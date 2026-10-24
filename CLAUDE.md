@@ -130,3 +130,9 @@ The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 - He often adds requests mid-task — fold them in rather than restarting.
 - Ask before big design decisions; small tuning numbers can be proposed.
 - He commits with GitHub Desktop (repo: Wozo-bit/Tower-Climber, private).
+- No rush: quality over speed, work can span days. Don't cut corners to
+  save usage; still commit at safe points (tests passing) on feature branches.
+- He plans to SELL the game. So: no assets, fonts, music or code that
+  aren't cleared for commercial use (record the license of anything added);
+  no other games' names, characters or trademarks in the game itself; keep
+  Godot's MIT license notice for release; keep saves tamper-safe (JSON).
