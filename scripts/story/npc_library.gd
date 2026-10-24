@@ -39,6 +39,20 @@ const NPCS := {
 		"color": Color(0.45, 0.45, 0.4),
 		"floors": ["combat"], "min_floor": 2, "max_floor": 9999, "chance": 0.2,
 	},
+	# Quest from a found item: a torn map on early floors (until you've picked
+	# it up), and the cache it points to once you're on that step.
+	&"torn_map": {
+		"name": "Torn map", "kind": "object", "dialogue": &"torn_map",
+		"color": Color(0.8, 0.75, 0.55),
+		"floors": ["combat"], "min_floor": 2, "max_floor": 9, "chance": 0.3,
+		"if": { "quest_new": &"torn_map" },
+	},
+	&"hidden_cache": {
+		"name": "Loose stone", "kind": "object", "dialogue": &"hidden_cache",
+		"color": Color(0.5, 0.5, 0.45),
+		"floors": ["combat", "rest"], "min_floor": 6, "max_floor": 9999,
+		"if": { "quest_on_step": [&"torn_map", 1] },
+	},
 	# Ashbound clue 1 of 3: on normal floors of stage 2 until you've read it.
 	&"scorched_mural": {
 		"name": "Scorched mural", "kind": "object", "dialogue": &"scorched_mural",

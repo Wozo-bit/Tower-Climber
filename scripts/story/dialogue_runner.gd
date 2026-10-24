@@ -130,6 +130,11 @@ static func check(cond: Dictionary) -> bool:
 			"ng_plus": ok = (gs.ng_plus_cycle > 0) == v
 			"on_secret_path": ok = SecretPaths.is_on_path(v, gs.story_flags)
 			"recruited": ok = gs.has_recruited(v)
+			"quest_new": ok = gs.quests.is_new(v)
+			"quest_active": ok = gs.quests.is_active(v)
+			"quest_done": ok = gs.quests.is_done(v)
+			"quest_failed": ok = gs.quests.is_failed(v)
+			"quest_on_step": ok = gs.quests.step_index(v[0]) == v[1]
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
 				ok = false
@@ -171,6 +176,12 @@ func _apply_effects(effects: Array) -> void:
 					"" if gs.companions.has(companion) else " (on the reserve)"])
 			else:
 				messages.append("No room: the party and reserve are full.")
+		if e.has("take_item"):
+			gs.inventory.remove(e.take_item, e.get("count", 1))
+		if e.has("start_quest"):
+			gs.quests.start(e.start_quest)   # its "New quest" toast comes from the quest log
+		if e.has("fail_quest"):
+			gs.quests.fail(e.fail_quest)
 		if e.has("toast"):
 			messages.append(fill(e.toast, _npc_name()))
 

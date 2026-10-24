@@ -250,3 +250,46 @@ static func floor_enemies_from_array(arr: Array) -> Array:
 			e["roamer_id"] = StringName(_s(row, "roamer_id"))
 		out.append(e)
 	return out
+
+
+# =========================================================
+# Quests (generated bounties are saved whole, so they're validated here)
+# =========================================================
+
+static func quest_def_to_dict(q: Dictionary) -> Dictionary:
+	var steps := []
+	for st in q.get("steps", []):
+		var g: Dictionary = st.goal
+		var gd := { "type": g.type, "count": g.get("count", 1) }
+		for k in ["enemy", "family", "kind"]:
+			if g.has(k):
+				gd[k] = String(g[k])
+		steps.append({ "text": st.text, "goal": gd })
+	var r: Dictionary = q.get("rewards", {})
+	return { "title": q.title, "kind": q.kind, "giver": q.get("giver", ""), "desc": q.get("desc", ""),
+		"steps": steps, "rewards": { "gold": r.get("gold", 0), "xp": r.get("xp", 0) } }
+
+
+## Only defeat bounties are generated, so only those are accepted back.
+## Returns {} if anything is off.
+static func quest_def_from_dict(d: Dictionary) -> Dictionary:
+	var steps := []
+	for st in _a(d, "steps"):
+		if not st is Dictionary:
+			return {}
+		var g := _d(st, "goal")
+		if _s(g, "type") != "defeat":
+			return {}
+		var goal := { "type": "defeat", "count": _i(g, "count", 1, 1, 99) }
+		if g.has("enemy"):
+			goal["enemy"] = StringName(_s(g, "enemy"))
+		elif g.has("family"):
+			goal["family"] = StringName(_s(g, "family"))
+		elif g.has("kind"):
+			goal["kind"] = _s(g, "kind")
+		steps.append({ "text": _s(st, "text", "Defeat enemies", 128), "goal": goal })
+	var r := _d(d, "rewards")
+	var q := { "title": _s(d, "title", "Bounty", 64), "kind": "bounty", "giver": _s(d, "giver", "Notice board", 64),
+		"desc": _s(d, "desc", "", 512), "steps": steps,
+		"rewards": { "gold": _i(r, "gold", 0, 0, 100000), "xp": _i(r, "xp", 0, 0, 100000) } }
+	return q if QuestLibrary.validate(&"saved_bounty", q).is_empty() else {}

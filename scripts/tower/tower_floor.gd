@@ -33,6 +33,7 @@ const C_PLAYER := Color(0.45, 0.75, 1.0)
 const C_CAMPFIRE := Color(1.0, 0.55, 0.2)
 const C_MERCHANT := Color(0.7, 0.45, 0.9)
 const C_NPC_OUTLINE := Color(0.95, 0.95, 0.85)
+const C_BOARD := Color(0.5, 0.35, 0.2)
 
 var layout: FloorLayout
 var origin := Vector2.ZERO
@@ -63,6 +64,12 @@ var _pause: PauseMenu
 var _dialogue: DialogueBox
 var _talk_cooldown := 0.0
 var _climb_prompt: ConfirmationDialog
+var _board_panel: NoticeBoardPanel
+## Pinned quest's current step (top right) and quest toasts (under the main toast).
+var _tracker: Label
+var _quest_toast: Label
+## Does the board have jobs you haven't taken? (Shows "!" on it.)
+var _board_has_new := false
 var _completion_open := false
 
 
@@ -144,6 +151,9 @@ func _process(delta: float) -> void:
 	if not _dialogue.visible:
 		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
+	if not GameState.quests.messages.is_empty():
+		_show_quest_messages()
+
 	if not _menus_open():
 		_update_player(delta)
 		_update_enemies(delta)
@@ -152,7 +162,7 @@ func _process(delta: float) -> void:
 
 func _menus_open() -> bool:
 	return _party_menu.visible or _shop.visible or _pause.visible or _dialogue.visible \
-		or _climb_prompt.visible or _completion_open
+		or _climb_prompt.visible or _board_panel.visible or _completion_open
 
 
 ## Saves only during a real run (never in the dev sandbox).
@@ -203,6 +213,9 @@ func try_move(dir: Vector2i) -> bool:
 		return false
 	if target == layout.merchant:
 		talk(&"merchant")
+		return false
+	if target == layout.board:
+		_board_panel.open()
 		return false
 	if layout.npcs.has(target):
 		var waiting := GameState.waiting_companion(layout.npcs[target])
@@ -496,6 +509,12 @@ func _draw() -> void:
 		var mr := Rect2(_tile_px(layout.merchant), Vector2(TILE, TILE)).grow(-3)
 		draw_rect(mr, C_MERCHANT)
 		draw_string(font, mr.position + Vector2(10, 23), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+	if layout.board.x >= 0:   # notice board: a wooden panel with "!"
+		var br := Rect2(_tile_px(layout.board), Vector2(TILE, TILE)).grow(-4)
+		draw_rect(br, C_BOARD)
+		draw_rect(br, C_BOARD.lightened(0.4), false, 2.0)
+		draw_string(font, br.position + Vector2(11, 21), "!" if _board_has_new else "·", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
+			Color(1, 0.9, 0.4) if _board_has_new else Color(1, 1, 1, 0.5))
 
 	# NPCs (rounded square with an initial) and lore objects (diamond with "?")
 	for p: Vector2i in layout.npcs:
@@ -593,6 +612,19 @@ func _build_hud() -> void:
 	hint.modulate = Color(1, 1, 1, 0.5)
 	top.add_child(hint)
 
+	# Pinned quest, top right under the controls hint.
+	_tracker = Label.new()
+	_tracker.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_tracker.offset_top = 34
+	_tracker.offset_right = -16
+	_tracker.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_tracker.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tracker.add_theme_font_size_override("font_size", 14)
+	_tracker.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
+	_tracker.add_theme_color_override("font_outline_color", Color.BLACK)
+	_tracker.add_theme_constant_override("outline_size", 4)
+	_hud.add_child(_tracker)
+
 	_party_strip = HBoxContainer.new()
 	_party_strip.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_party_strip.offset_left = 16
@@ -610,6 +642,17 @@ func _build_hud() -> void:
 	_toast.add_theme_color_override("font_outline_color", Color.BLACK)
 	_toast.add_theme_constant_override("outline_size", 6)
 	_hud.add_child(_toast)
+	_quest_toast = Label.new()
+	_quest_toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_quest_toast.offset_top = 84
+	_quest_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_quest_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_quest_toast.add_theme_font_size_override("font_size", 16)
+	_quest_toast.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
+	_quest_toast.add_theme_color_override("font_outline_color", Color.BLACK)
+	_quest_toast.add_theme_constant_override("outline_size", 5)
+	_quest_toast.modulate.a = 0.0
+	_hud.add_child(_quest_toast)
 
 	_flash = ColorRect.new()
 	_flash.color = Color.WHITE
@@ -626,6 +669,9 @@ func _build_hud() -> void:
 	_hud.add_child(_shop)
 	_pause = PauseMenu.new()
 	_hud.add_child(_pause)
+	_board_panel = NoticeBoardPanel.new()
+	_board_panel.closed.connect(_update_hud)
+	_hud.add_child(_board_panel)
 	_climb_prompt = ConfirmationDialog.new()
 	_climb_prompt.title = "Danger ahead"
 	_climb_prompt.ok_button_text = "Climb"
@@ -663,6 +709,12 @@ func _update_hud() -> void:
 					fl += "     ? %s is loose on this floor" % name_s
 	_floor_label.text = fl
 
+	_board_has_new = layout != null and layout.board.x >= 0 \
+		and not GameState.quests.board_offers(GameState.floor_number).is_empty()
+	var pinned := GameState.quests.pinned
+	_tracker.text = "📌 %s\n%s" % [GameState.quests.def_of(pinned).title, GameState.quests.step_text(pinned)] \
+		if GameState.quests.is_active(pinned) else ""
+
 	for c in _party_strip.get_children():
 		c.queue_free()
 	for m in GameState.battle_party():
@@ -686,3 +738,14 @@ func _show_toast(text: String) -> void:
 	var tw := _toast.create_tween()
 	tw.tween_interval(2.0)
 	tw.tween_property(_toast, "modulate:a", 0.0, 0.6)
+
+
+## Quest news ("Quest updated: ...") gets its own line so it never hides other toasts.
+func _show_quest_messages() -> void:
+	_quest_toast.text = "\n".join(GameState.quests.messages)
+	GameState.quests.messages.clear()
+	_quest_toast.modulate.a = 1.0
+	var tw := _quest_toast.create_tween()
+	tw.tween_interval(3.0)
+	tw.tween_property(_quest_toast, "modulate:a", 0.0, 0.8)
+	_update_hud()

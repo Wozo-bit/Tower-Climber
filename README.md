@@ -1,6 +1,6 @@
-# Tower Climber (Godot 4.6)
+# Tower Climber (Godot 4.7)
 
-Open `project.godot` in Godot 4.6 and press **F5**. The game opens on the **title screen**:
+Open `project.godot` in Godot 4.7.2 and press **F5**. The game scales to fit any window size or fullscreen. It opens on the **title screen**:
 
 - **Continue:** pick one of the **3 save slots**. Each shows character, level, floor, play time and last save time.
 - **New Game:** pick a slot (overwriting asks first), then a two-step, Pokémon-style setup. You name your climber, then your childhood friend (leave it blank or press **Use "Rowan"** for the default). You both start at level 1 on floor 1.
@@ -77,6 +77,10 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/combat/element.gd`, `enemy_families.gd` | Elements and weapon kinds, how reactions combine, and the enemy families (weaknesses, resistances, traits). |
 | `scripts/data/bestiary.gd`, `scripts/ui/bestiary_panel.gd` | What you've learned about enemies, and Tab → Bestiary. |
 | `tests/test_elements.gd` | 79 element, weakness, trait, stagger, bestiary, Scouting Lens, elemental weapon and stage theme checks. Run: `godot --headless res://tests/test_elements.tscn` |
+| `scripts/story/quest_library.gd` | Every hand-written quest as data (format at the top, checked by the tests). |
+| `scripts/story/quest_log.gd` | Your quests this run: progress, rewards, deadlines, notice-board bounties, saving. |
+| `scripts/ui/quest_log_panel.gd`, `notice_board_panel.gd` | Tab → Quests and the rest-floor notice board. |
+| `tests/test_quests.gd` | 68 quest checks: every goal type, rewards, expiry/failing, dialogue hooks, the board, saving. Run: `godot --headless res://tests/test_quests.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
 ## Dialogue, NPCs and recruiting
@@ -129,6 +133,23 @@ Open it with **Tab → Manage party**.
 - **Commands:** Attack, Skills, Defend (halves damage until your next turn), Move row (saved on the character), Flee (chance based on average Agility).
 - **Victory:** every surviving party member gets the full XP, and the leader gets the gold.
 - **Commands** also include **Items** (Potion, Advanced Potion, Ether).
+
+## Quests
+- **Where they come from:** people (dialogue), the **notice board** on rest floors, things you find (lore objects), and the **main questline**, which starts by itself.
+- **Goals** (`scripts/story/quest_library.gd`): **defeat** enemies (a specific enemy, a family, or any boss/miniboss/roaming boss), **collect** items, **reach** a floor, and **flag** steps for talking to someone or finding something (the dialogue or lore object sets the flag). Steps happen in order.
+- **Rewards:** gold, XP (whole fighting party), items, **quest gear** (marked `quest_reward`, so it never carries into New Game+), story flags (unlocks), and **bestiary notes** that reveal a whole family.
+- **Deadlines and failing:** a quest can expire after a floor (`expires_after_floor`), and a dialogue choice can fail it (`fail_quest`). Failed quests stay in the log and can set a flag (`on_fail_flag`) that opens something else.
+- **Quest items** (e.g. Glowcaps) drop only while a quest needs them, stop dropping once you have enough, and can't be used like normal items. They're listed in Tab → Quests.
+- **Notice board** (rest floors, a wooden panel marked **!** when there's something new): hand-written jobs (`"board": true`) plus **3 generated bounties** for the stage ahead. The first bounty is for the stage's family, the other two for different enemies. A board offers the same jobs if you come back. Take as many as you like.
+- **Tracking:** **Tab → Quests** lists active, completed and failed quests with each step and its progress. **Pin** one to show its current step in the top-right corner of the floor HUD. Quest news ("Quest updated: Defeat slimes (3/8)") pops up under the normal messages.
+- **Dialogue hooks:** conditions `quest_new`, `quest_active`, `quest_on_step`, `quest_done`, `quest_failed`, and effects `start_quest`, `fail_quest` and `take_item` (for hand-ins).
+- **Placeholder quests:**
+  - **The Climb** (main): beat the floor-10 boss, reach 11, beat the floor-20 boss.
+  - **Glowcaps for the Merchant**: collect 3 from slimes, then hand them in, before floor 15.
+  - **The Torn Map**: a map on floors 2–9 leads to a hidden cache from floor 6, which pays out a Cartographer's Charm.
+  - **Slime Survey** (board, floor 5+): defeat 8 slimes, and the reward reveals all slime weaknesses.
+- Bounty pay (`QuestLog.BOUNTY_*`): 10 gold + 2 per floor and 15 XP + 2 per floor, per enemy asked for. The balance pass can tune it.
+- **Not built yet (part 2):** Hero/Villain/Vigilante routes, endings, companions leaving over your route, route-flavored bounties.
 
 ## Elements, weaknesses and the Bestiary
 Plan your party on floors 1–9 for the boss on floor 10.

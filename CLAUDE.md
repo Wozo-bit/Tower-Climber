@@ -10,9 +10,10 @@ Building the **Skeleton** (every system working) before the **Meat** (story,
 quests, relationships). Don't write story content unless asked.
 
 Skeleton items still open (Hayden picks the order):
-quests, tier-2 class advancement after floor 20 (also where deeper elemental
-skill lines go, e.g. Fire mage -> Lava = Fire + Earth), selling gear, balance
-pass, art/sound hooks.
+routes + endings (quests part 2, NEXT), tier-2 class advancement after floor
+20 (also where deeper elemental skill lines go, e.g. Fire mage -> Lava =
+Fire + Earth), selling gear, balance pass (incl. bounty rewards), art/sound
+hooks.
 Hayden will send tweaks to the enemy family table after playing it.
 
 ### Layout rule
@@ -21,7 +22,12 @@ stretch mode canvas_items/expand). The battle field scrolls instead of
 growing so the command buttons are always on screen. If Hayden still sees
 cut-off screens, ask for his resolution + Windows display scaling.
 
-### NEXT: Quests + routes (designed with Hayden 2026-10-24, not built yet)
+### Quests + routes (designed with Hayden 2026-10-24)
+Part 1 (quests) is BUILT: QuestLibrary (data + validator), QuestLog
+(GameState.quests: progress, rewards, expiry, bounties, save), dialogue
+hooks, notice board, Tab -> Quests, HUD tracker, quest toasts.
+Part 2 (routes, endings, companions leaving, route-flavored bounties, Hall
+recording endings) is NOT built yet.
 - Quest sources: NPC dialogue, rest-floor notice board, found items/lore
   objects, and a main story questline.
 - Goal types: defeat enemies (count/family/specific boss or roamer),
@@ -47,8 +53,9 @@ cut-off screens, ask for his resolution + Windows display scaling.
 - Tracking: Tab -> Quests log (active/completed/failed with step progress),
   one pinned quest on the floor HUD, toasts on progress.
 - Build quests/routes as data (like DialogueLibrary), validated by tests;
-  placeholder text only, no real story. Tutorial is deliberately deferred until the game is closer
-to complete.
+  placeholder text only, no real story.
+
+Tutorial is deliberately deferred until the game is closer to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
@@ -105,7 +112,7 @@ FINAL_FLOOR = 20 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (9 suites, 525 checks at last run).
+Every change gets tests in tests/ (10 suites, 593 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -114,7 +121,7 @@ Run headless from the project folder:
 (Replace `godot` with the Godot 4.7.2 console exe on this PC:
 C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
-test_skills, test_dialogue, test_party, test_elements. All must pass before
+test_skills, test_dialogue, test_party, test_elements, test_quests. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

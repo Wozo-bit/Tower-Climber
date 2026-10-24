@@ -58,6 +58,8 @@ var defeated_roamers: Array = []
 var story_flags: Dictionary = {}
 ## What the party has learned about enemies (weaknesses, traits). Per run.
 var bestiary := Bestiary.new()
+## Active / completed / failed quests and notice-board bounties. Per run.
+var quests := QuestLog.new()
 ## The stage theme picked for each StageLibrary slot this run (e.g. floors
 ## 1-10 = Slime Pits). Rolled on New Game / New Game+, saved with the run.
 var stage_themes: Array = []:
@@ -149,6 +151,7 @@ func reset_run() -> void:
 	defeated_roamers = []
 	story_flags = {}
 	bestiary = Bestiary.new()
+	quests = QuestLog.new()
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
 	play_time_sec = 0.0
@@ -168,6 +171,7 @@ func start_new_game(character_name: String, friend_name: String = "", slot: int 
 	player.legacy_id = _new_legacy_id()
 	companions.append(make_childhood_friend(friend_name))
 	roll_stage_themes()
+	quests.update()   # the main questline starts
 	run_active = true
 	save_game()
 
@@ -202,6 +206,7 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1) -> void:
 	companions.append(make_childhood_friend(record.friend_name))
 	ng_plus_cycle = record.highest_cycle_cleared + 1
 	roll_stage_themes()
+	quests.update()
 	run_active = true
 	save_game()
 
@@ -285,6 +290,7 @@ func save_game() -> bool:
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
 		"ng_plus_cycle": ng_plus_cycle,
 		"bestiary": bestiary.to_dict(),
+		"quests": quests.to_dict(),
 		"stage_themes": stage_themes.map(func(t): return String(t)),
 	}
 	var ok := SaveSerializer.write_json(slot_path(current_slot), d)
@@ -336,6 +342,7 @@ func load_game(slot: int = -1) -> bool:
 			story_flags[StringName(f)] = true
 	ng_plus_cycle = S._i(d, "ng_plus_cycle", 0, 0, 999)
 	bestiary = Bestiary.from_dict(S._d(d, "bestiary"))
+	quests = QuestLog.from_dict(S._d(d, "quests"))
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	run_active = true
@@ -497,6 +504,7 @@ func enter_floor(n: int) -> void:
 	floor_player_pos = Vector2i(-1, -1)
 	if is_rest_floor(n):
 		checkpoint_floor = n
+	quests.update()   # "reach floor" steps, and quests that expire past a floor
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies
@@ -784,6 +792,7 @@ func set_flag(flag: StringName, value: bool = true) -> void:
 		story_flags[flag] = true
 	else:
 		story_flags.erase(flag)
+	quests.update()   # talk / find steps complete when their flag is set
 
 
 func has_flag(flag: StringName) -> bool:
@@ -848,6 +857,10 @@ func finish_battle(outcome: int) -> void:
 			checkpoint_floor = floor_number   # the arena's campfire is your new checkpoint
 			if floor_number >= FINAL_FLOOR:
 				pending_completion = true
+	if outcome == BattleManager.Outcome.VICTORY:
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		quests.on_battle_won(pending_encounter, rng)   # defeat counts + quest-item drops
 	if outcome == BattleManager.Outcome.DEFEAT:
 		handle_defeat()
 	pending_encounter = []

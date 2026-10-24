@@ -21,6 +21,9 @@ static func _build() -> Dictionary:
 		ItemDef.make(&"scouting_lens", "Scouting Lens",
 			"In battle: reveals one enemy's weaknesses, resistances and traits, and records them in the Bestiary. Carry up to 3.",
 			{"scan": true, "max_carry": 3, "price": 200}),
+		# --- Quest items (placeholders) ---
+		ItemDef.make(&"glowcap", "Glowcap", "A softly glowing mushroom. The merchant wants these.",
+			{"quest_item": true, "price": 0}),
 	]
 	# One skill book per learnable skill: "Skill Book: Power Strike", etc.
 	for s in SkillLibrary.learnable_skills():

@@ -18,6 +18,8 @@ extends Resource
 @export var scan: bool = false
 ## Most you can carry (0 = no limit). Extra copies (buying, drops) are refused.
 @export var max_carry: int = 0
+## Quest items: carried for a quest, can't be used (Tab -> Quests shows them).
+@export var quest_item: bool = false
 
 
 func is_skill_book() -> bool:

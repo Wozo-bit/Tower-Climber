@@ -29,6 +29,9 @@ extends RefCounted
 ##   "ng_plus": bool         true = only in New Game+, false = only first run
 ##   "on_secret_path": &"id" the player has found enough clues for that path
 ##   "recruited": &"npc_id"  that NPC is in the party / reserve
+##   "quest_new": &"id"      that quest was never started (so it can be offered)
+##   "quest_active": &"id"   /  "quest_done": &"id"  /  "quest_failed": &"id"
+##   "quest_on_step": [&"id", i]  the quest is active and on step i (0 = first)
 ##
 ## Effects (a list of one-key dictionaries, run in order):
 ##   { "set_flag": &"x" }  { "clear_flag": &"x" }
@@ -38,6 +41,8 @@ extends RefCounted
 ##   { "open_shop": true }      ends the talk and opens the merchant's shop
 ##   { "toast": "text" }        a message on the floor HUD afterwards
 ##   { "rejoin": true }         the dismissed companion you're talking to comes back
+##   { "start_quest": &"id" }   { "fail_quest": &"id" }   (QuestLibrary ids)
+##   { "take_item": &"id", "count": 1 }   e.g. handing over quest items
 ##
 ## Story content goes here later. What's below are placeholder lines so every
 ## system (shop, clues, recruiting) can be tested.
@@ -57,8 +62,25 @@ const DIALOGUES := {
 						"if": { "min_floor": 10, "not_flag": &"clue_ash_merchant_story" } },
 					# Weakness hint for the stage ahead (StageLibrary theme "hint").
 					{ "text": "Any advice for the floors ahead?", "next": "advice" },
+					# Quest: glowcap delivery (offered, then handed in).
+					{ "text": "Need help with anything?", "next": "glowcap_ask",
+						"if": { "quest_new": &"glowcap_delivery", "max_floor": 15 } },
+					{ "text": "Here are your glowcaps.", "next": "glowcap_thanks",
+						"if": { "quest_on_step": [&"glowcap_delivery", 1] } },
 					{ "text": "Never mind." },
 				],
+			},
+			"glowcap_ask": {
+				"speaker": "Merchant",
+				"text": "(Placeholder) Glowcaps! Three of them. Slimes swallow them whole, so check what they leave behind. Before floor 15, mind; they spoil.",
+				"effects": [{ "start_quest": &"glowcap_delivery" }],
+				"next": "hello",
+			},
+			"glowcap_thanks": {
+				"speaker": "Merchant",
+				"text": "(Placeholder) Perfect, still glowing. Here, for your trouble.",
+				"effects": [{ "take_item": &"glowcap", "count": 3 }, { "set_flag": &"glowcaps_delivered" }],
+				"next": "hello",
 			},
 			"story": {
 				"speaker": "Merchant",
@@ -70,6 +92,28 @@ const DIALOGUES := {
 				"speaker": "Merchant",
 				"text": "{stage_hint}",
 				"next": "hello",
+			},
+		},
+	},
+
+	# --- Quest from a found item: the torn map, and the cache it leads to. ---
+	&"torn_map": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "(Placeholder) A torn scrap of map is pinned under a rock. An X marks somewhere a few floors up.",
+				"effects": [{ "start_quest": &"torn_map" }],
+			},
+		},
+	},
+	&"hidden_cache": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "(Placeholder) Behind a loose stone: the cache from the map!",
+				"effects": [{ "set_flag": &"found_hidden_cache" }],
 			},
 		},
 	},
@@ -157,9 +201,10 @@ const DIALOGUES := {
 }
 
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
-	"ng_plus", "on_secret_path", "recruited"]
+	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
+	"quest_on_step"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
-	"heal_party", "open_shop", "toast", "rejoin"]
+	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:
@@ -231,6 +276,14 @@ static func _validate_condition(where: String, cond: Dictionary) -> PackedString
 		problems.append("%s: unknown NPC '%s'" % [where, cond.recruited])
 	if cond.has("on_secret_path") and not SecretPaths.PATHS.has(cond.on_secret_path):
 		problems.append("%s: unknown secret path '%s'" % [where, cond.on_secret_path])
+	for k in ["quest_new", "quest_active", "quest_done", "quest_failed"]:
+		if cond.has(k) and not QuestLibrary.QUESTS.has(cond[k]):
+			problems.append("%s: unknown quest '%s'" % [where, cond[k]])
+	if cond.has("quest_on_step"):
+		var qs = cond.quest_on_step
+		if not (qs is Array and qs.size() == 2 and QuestLibrary.QUESTS.has(qs[0])
+				and qs[1] is int and qs[1] < QuestLibrary.QUESTS[qs[0]].steps.size()):
+			problems.append("%s: quest_on_step needs [quest id, step index] (got %s)" % [where, qs])
 	return problems
 
 
@@ -249,4 +302,9 @@ static func _validate_effects(where: String, effects: Array) -> PackedStringArra
 			var npc: Dictionary = NpcLibrary.NPCS.get(e.recruit, {})
 			if not npc.has("recruit"):
 				problems.append("%s: '%s' isn't a recruitable NPC" % [where, e.recruit])
+		for k in ["start_quest", "fail_quest"]:
+			if e.has(k) and not QuestLibrary.QUESTS.has(e[k]):
+				problems.append("%s: unknown quest '%s'" % [where, e[k]])
+		if e.has("take_item") and ItemLibrary.get_item(e.take_item) == null:
+			problems.append("%s: unknown item '%s'" % [where, e.take_item])
 	return problems

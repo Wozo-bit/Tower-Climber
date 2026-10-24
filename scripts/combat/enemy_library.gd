@@ -194,6 +194,16 @@ static func _build() -> Dictionary:
 	return dict
 
 
+## Every enemy definition, sorted by id.
+static func all() -> Array[EnemyDef]:
+	var ids := _enemies.keys()
+	ids.sort()
+	var out: Array[EnemyDef] = []
+	for id in ids:
+		out.append(_enemies[id])
+	return out
+
+
 ## Like get_enemy() but quiet: for validating ids read from save files.
 static func get_enemy_or_null(id: StringName) -> EnemyDef:
 	return _enemies.get(id)

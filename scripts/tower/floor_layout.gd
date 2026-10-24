@@ -17,6 +17,8 @@ var start := Vector2i.ZERO
 var stairs := Vector2i.ZERO
 var campfire := Vector2i(-1, -1)
 var merchant := Vector2i(-1, -1)
+## Rest floors: the notice board with quests and bounties. (-1,-1) = none.
+var board := Vector2i(-1, -1)
 ## Where a miniboss or stage boss stands guard, in front of the stairs. (-1,-1) = none.
 var guardian_spot := Vector2i(-1, -1)
 var is_boss_floor := false
@@ -67,9 +69,9 @@ func is_wall(p: Vector2i) -> bool:
 	return not in_bounds(p) or tiles[p.y * WIDTH + p.x] == Tile.WALL
 
 
-## Walls, the campfire, the merchant and NPCs all block movement.
+## Walls, the campfire, the merchant, the notice board and NPCs all block movement.
 func is_blocked(p: Vector2i) -> bool:
-	return is_wall(p) or p == campfire or p == merchant or npcs.has(p)
+	return is_wall(p) or p == campfire or p == merchant or p == board or npcs.has(p)
 
 
 ## Puts NPC `id` on a free tile and returns it ((-1,-1) if there's no room).
@@ -208,6 +210,7 @@ func _build_rest_floor() -> void:
 	stairs = Vector2i(WIDTH - 2, HEIGHT / 2)
 	campfire = Vector2i(WIDTH / 2, HEIGHT / 2)
 	merchant = Vector2i(WIDTH / 2, HEIGHT / 2 - 4)
+	board = Vector2i(WIDTH / 2, HEIGHT / 2 + 4)
 	# A few pillars for looks.
 	for p in [Vector2i(6, 4), Vector2i(6, 12), Vector2i(22, 4), Vector2i(22, 12)]:
 		_set_wall(p)

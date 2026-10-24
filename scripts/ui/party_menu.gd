@@ -16,6 +16,7 @@ var _gear_panel: GearPanel
 var _skills_panel: SkillsPanel
 var _manage_panel: PartyManagePanel
 var _bestiary_panel: BestiaryPanel
+var _quest_panel: QuestLogPanel
 
 ## When set, the member list shows "Use here" buttons.
 ## { "kind": "item", "id": StringName } or { "kind": "heal", "caster": CharacterData, "skill": SkillDef }
@@ -69,6 +70,11 @@ func _init() -> void:
 	bestiary_btn.tooltip_text = "Enemies you've fought and what you've learned about them."
 	bestiary_btn.pressed.connect(func(): _bestiary_panel.open())
 	header.add_child(bestiary_btn)
+	var quests_btn := Button.new()
+	quests_btn.text = "Quests"
+	quests_btn.tooltip_text = "Active, completed and failed quests."
+	quests_btn.pressed.connect(func(): _quest_panel.open())
+	header.add_child(quests_btn)
 	var close_btn := Button.new()
 	close_btn.text = "Close (Tab)"
 	close_btn.pressed.connect(close)
@@ -118,6 +124,8 @@ func _init() -> void:
 	add_child(_manage_panel)
 	_bestiary_panel = BestiaryPanel.new()
 	add_child(_bestiary_panel)
+	_quest_panel = QuestLogPanel.new()
+	add_child(_quest_panel)
 
 	_class_screen = ClassSelectionScreen.new()
 	add_child(_class_screen)
@@ -142,7 +150,7 @@ func open_manage() -> void:
 
 func close() -> void:
 	if _class_screen.visible or _stats_overlay.visible or _gear_panel.visible or _skills_panel.visible \
-			or _manage_panel.visible or _bestiary_panel.visible:
+			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible:
 		return
 	hide()
 	closed.emit()
@@ -150,7 +158,7 @@ func close() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or _gear_panel.visible or _skills_panel.visible or _manage_panel.visible \
-			or _bestiary_panel.visible:
+			or _bestiary_panel.visible or _quest_panel.visible:
 		return
 	if event.is_action_pressed("party_menu") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
@@ -190,7 +198,7 @@ func _rebuild() -> void:
 
 	# --- Items ---
 	_actions_box.add_child(_heading("Items"))
-	var owned := GameState.inventory.owned()
+	var owned := GameState.inventory.owned().filter(func(i): return not i.quest_item)   # see Tab -> Quests
 	if owned.is_empty():
 		_actions_box.add_child(_note("No items."))
 	for item in owned:

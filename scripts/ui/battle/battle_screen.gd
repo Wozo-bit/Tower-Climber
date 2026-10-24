@@ -238,7 +238,7 @@ func _cmd_skills() -> void:
 func _cmd_items() -> void:
 	for c in _skill_box.get_children():
 		c.queue_free()
-	var owned := GameState.inventory.owned().filter(func(i): return not i.is_skill_book())
+	var owned := GameState.inventory.owned().filter(func(i): return not i.is_skill_book() and not i.quest_item)
 	if owned.is_empty():
 		var none := Label.new()
 		none.text = "No items."
