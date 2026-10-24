@@ -1,0 +1,11 @@
+# Godot 4 cache (regenerated automatically)
+.godot/
+
+# Export output
+/builds/
+/android/
+
+# Temp / OS files
+*.tmp
+.DS_Store
+Thumbs.db

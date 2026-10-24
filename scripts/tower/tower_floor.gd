@@ -1,0 +1,598 @@
+extends Node2D
+## One tower floor. Grid movement, wandering enemies that chase when you're
+## close, and Pokémon-style contact: touch an enemy and a battle starts.
+## Stairs take you up. Every 5th floor is a rest floor (campfire + merchant).
+##
+## Controls: WASD / arrows to move, Tab (or I) for the party menu.
+## Walk into the campfire or merchant to use them.
+
+const TILE := 36
+const PLAYER_STEP_TIME := 0.13
+const ENEMY_STEP_TIME := 0.2
+const ENEMY_THINK_MIN := 0.45
+const ENEMY_THINK_MAX := 0.9
+const CHASE_RANGE := 5
+## Roaming bosses are faster and notice you from further away.
+const ROAMER_CHASE_RANGE := 8
+const ROAMER_THINK_MIN := 0.3
+const ROAMER_THINK_MAX := 0.55
+const C_BOSS_RING := Color(1.0, 0.25, 0.2)
+const C_MINIBOSS_RING := Color(1.0, 0.8, 0.2)
+const C_ROAMER_RING := Color(0.8, 0.4, 1.0)
+const FLEE_STUN_TIME := 2.5
+const POST_BATTLE_GRACE := 1.2
+
+const C_FLOOR := Color(0.16, 0.16, 0.2)
+const C_FLOOR_ALT := Color(0.18, 0.18, 0.22)
+const C_WALL := Color(0.3, 0.29, 0.36)
+const C_WALL_EDGE := Color(0.42, 0.4, 0.5)
+const C_STAIRS := Color(0.95, 0.8, 0.3)
+const C_PLAYER := Color(0.45, 0.75, 1.0)
+const C_CAMPFIRE := Color(1.0, 0.55, 0.2)
+const C_MERCHANT := Color(0.7, 0.45, 0.9)
+
+var layout: FloorLayout
+var origin := Vector2.ZERO
+
+# Player
+var player_tile := Vector2i.ZERO
+var _player_from := Vector2.ZERO
+var _player_to := Vector2.ZERO
+var _player_t := 1.0
+var _invulnerable := 0.0
+
+# Enemies: parallel to GameState.floor_enemies
+# { "tile": Vector2i, "from": Vector2, "to": Vector2, "t": float, "think": float, "stun": float }
+var _enemy_view: Array = []
+
+var _busy := false            # starting a battle / changing floor
+var _rng := RandomNumberGenerator.new()
+
+# UI
+var _hud: CanvasLayer
+var _floor_label: Label
+var _party_strip: HBoxContainer
+var _toast: Label
+var _party_menu: PartyMenu
+var _shop: ShopPanel
+var _flash: ColorRect
+var _pause: PauseMenu
+var _completion_open := false
+
+
+func _ready() -> void:
+	_rng.randomize()
+	_build_hud()
+	_load_floor()
+	_handle_battle_return()
+	if GameState.pending_completion:
+		_show_completion()
+	else:
+		_autosave()
+
+
+# =========================================================
+# Floor setup
+# =========================================================
+
+func _load_floor() -> void:
+	layout = GameState.current_layout()
+	var vp := get_viewport_rect().size
+	var map_px := Vector2(FloorLayout.WIDTH, FloorLayout.HEIGHT) * TILE
+	origin = ((vp - map_px) / 2.0).floor() + Vector2(0, 14)
+
+	player_tile = GameState.floor_player_pos
+	if player_tile.x < 0 or layout.is_blocked(player_tile):
+		player_tile = layout.start
+	_player_from = _tile_px(player_tile)
+	_player_to = _player_from
+	_player_t = 1.0
+
+	_enemy_view.clear()
+	for e in GameState.floor_enemies:
+		var px := _tile_px(e.pos)
+		_enemy_view.append({ "tile": e.pos, "from": px, "to": px, "t": 1.0,
+			"think": _rng.randf_range(ENEMY_THINK_MIN, ENEMY_THINK_MAX) + 0.6, "stun": 0.0 })
+
+	_update_hud()
+	queue_redraw()
+
+
+func _handle_battle_return() -> void:
+	var outcome := GameState.last_battle_outcome
+	GameState.last_battle_outcome = -1
+	match outcome:
+		BattleManager.Outcome.VICTORY:
+			_invulnerable = POST_BATTLE_GRACE
+			_show_toast("Victory!")
+			if _alive_enemy_count() == 0 and not layout.is_boss_floor:
+				_show_toast("Floor cleared! The stairs are waiting.")
+			if StageLibrary.is_miniboss_floor(GameState.floor_number) and not GameState.stairs_locked():
+				_show_toast("Miniboss defeated! The stairs are open. (Tab to check your loot)")
+			if layout.is_boss_floor and not GameState.stairs_locked():
+				_show_toast("The boss falls! A campfire flickers to life. (Checkpoint saved)")
+			if GameState.pending_unlock_message != "":
+				_show_toast(GameState.pending_unlock_message)
+				GameState.pending_unlock_message = ""
+		BattleManager.Outcome.FLED:
+			_invulnerable = POST_BATTLE_GRACE + 0.5
+			var idx := GameState.active_enemy_index
+			if idx >= 0 and idx < _enemy_view.size():
+				_enemy_view[idx].stun = FLEE_STUN_TIME
+			GameState.active_enemy_index = -1
+			_show_toast("You got away!")
+		BattleManager.Outcome.DEFEAT:
+			_show_toast("You wake up on floor %d..." % GameState.floor_number)
+		_:
+			_show_toast(_floor_intro_text())
+
+
+# =========================================================
+# Per-frame
+# =========================================================
+
+func _process(delta: float) -> void:
+	if _busy:
+		return
+	_invulnerable = maxf(0.0, _invulnerable - delta)
+
+	if not _menus_open():
+		_update_player(delta)
+		_update_enemies(delta)
+	queue_redraw()
+
+
+func _menus_open() -> bool:
+	return _party_menu.visible or _shop.visible or _pause.visible or _completion_open
+
+
+## Saves only during a real run (never in the dev sandbox).
+func _autosave() -> void:
+	if GameState.run_active:
+		GameState.save_game()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _busy or _menus_open():
+		return
+	if event.is_action_pressed("party_menu"):
+		get_viewport().set_input_as_handled()
+		_party_menu.open()
+	elif event.is_action_pressed("pause"):
+		get_viewport().set_input_as_handled()
+		_pause.open()
+
+
+func _update_player(delta: float) -> void:
+	if _player_t < 1.0:
+		_player_t = minf(1.0, _player_t + delta / PLAYER_STEP_TIME)
+		if _player_t >= 1.0:
+			_on_player_arrived()
+		return
+
+	var dir := Vector2i.ZERO
+	if Input.is_action_pressed("move_up"):
+		dir = Vector2i.UP
+	elif Input.is_action_pressed("move_down"):
+		dir = Vector2i.DOWN
+	elif Input.is_action_pressed("move_left"):
+		dir = Vector2i.LEFT
+	elif Input.is_action_pressed("move_right"):
+		dir = Vector2i.RIGHT
+	if dir != Vector2i.ZERO:
+		try_move(dir)
+
+
+## Attempts one step. Bumping the campfire/merchant uses them.
+## Public so tests/automation can drive the player.
+func try_move(dir: Vector2i) -> bool:
+	if _player_t < 1.0 or _busy:
+		return false
+	var target := player_tile + dir
+	if target == layout.campfire:
+		_use_campfire()
+		return false
+	if target == layout.merchant:
+		_shop.open()
+		return false
+	if target == layout.stairs and GameState.stairs_locked():
+		_show_toast("The stairs are guarded. Defeat the %s to go up!" %
+			("boss" if layout.is_boss_floor else "miniboss"))
+		return false
+	if layout.is_blocked(target):
+		return false
+	_player_from = _tile_px(player_tile)
+	player_tile = target
+	_player_to = _tile_px(target)
+	_player_t = 0.0
+	GameState.floor_player_pos = player_tile
+	return true
+
+
+func _on_player_arrived() -> void:
+	if player_tile == layout.stairs:
+		_go_upstairs()
+		return
+	_check_contact()
+
+
+func _update_enemies(delta: float) -> void:
+	for i in _enemy_view.size():
+		var data: Dictionary = GameState.floor_enemies[i]
+		if not data.alive:
+			continue
+		var v: Dictionary = _enemy_view[i]
+		if v.stun > 0.0:
+			v.stun -= delta
+			continue
+		var kind := GameState.enemy_kind(data)
+		if kind == "miniboss" or kind == "boss":
+			continue   # guardians hold their post in front of the stairs
+		if v.t < 1.0:
+			v.t = minf(1.0, v.t + delta / ENEMY_STEP_TIME)
+			if v.t >= 1.0:
+				_check_contact()
+			continue
+		v.think -= delta
+		if v.think > 0.0:
+			continue
+		if kind == "roaming":
+			v.think = _rng.randf_range(ROAMER_THINK_MIN, ROAMER_THINK_MAX)
+		else:
+			v.think = _rng.randf_range(ENEMY_THINK_MIN, ENEMY_THINK_MAX)
+		var step := _enemy_choose_step(i)
+		if step != Vector2i.ZERO:
+			var target: Vector2i = v.tile + step
+			v.from = _tile_px(v.tile)
+			v.tile = target
+			v.to = _tile_px(target)
+			v.t = 0.0
+			data.pos = target
+
+
+func _enemy_choose_step(i: int) -> Vector2i:
+	var v: Dictionary = _enemy_view[i]
+	var tile: Vector2i = v.tile
+	var to_player := player_tile - tile
+	var dirs: Array[Vector2i] = []
+	var chase := ROAMER_CHASE_RANGE if GameState.enemy_kind(GameState.floor_enemies[i]) == "roaming" else CHASE_RANGE
+	if absi(to_player.x) + absi(to_player.y) <= chase and _invulnerable <= 0.0:
+		# Chase: prefer the axis with the bigger gap.
+		var sx := Vector2i(signi(to_player.x), 0)
+		var sy := Vector2i(0, signi(to_player.y))
+		if absi(to_player.x) >= absi(to_player.y):
+			dirs = [sx, sy]
+		else:
+			dirs = [sy, sx]
+	else:
+		if _rng.randf() < 0.35:
+			return Vector2i.ZERO  # idle
+		dirs = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
+		dirs.shuffle()
+	for d in dirs:
+		if d != Vector2i.ZERO and _enemy_can_enter(tile + d, i):
+			return d
+	return Vector2i.ZERO
+
+
+func _enemy_can_enter(p: Vector2i, self_index: int) -> bool:
+	if layout.is_blocked(p) or p == layout.stairs:
+		return false
+	for j in _enemy_view.size():
+		if j != self_index and GameState.floor_enemies[j].alive and _enemy_view[j].tile == p:
+			return false
+	return true
+
+
+func _check_contact() -> void:
+	if _busy or _invulnerable > 0.0:
+		return
+	for i in _enemy_view.size():
+		if GameState.floor_enemies[i].alive and _enemy_view[i].tile == player_tile \
+				and _enemy_view[i].stun <= 0.0:
+			_start_battle(i)
+			return
+
+
+# =========================================================
+# Events
+# =========================================================
+
+func _start_battle(index: int) -> void:
+	_busy = true
+	GameState.floor_player_pos = player_tile
+	_flash.show()
+	var tw := create_tween()
+	tw.tween_property(_flash, "modulate:a", 1.0, 0.25).from(0.0)
+	tw.tween_callback(func(): GameState.start_floor_battle(index))
+
+
+func _go_upstairs() -> void:
+	_busy = true
+	var tw := create_tween()
+	_flash.show()
+	tw.tween_property(_flash, "modulate:a", 1.0, 0.3).from(0.0)
+	tw.tween_callback(func():
+		GameState.enter_floor(GameState.floor_number + 1)
+		_busy = false
+		_load_floor()
+		_autosave()
+		_show_toast(_floor_intro_text()))
+	tw.tween_property(_flash, "modulate:a", 0.0, 0.3)
+	tw.tween_callback(_flash.hide)
+
+
+func _use_campfire() -> void:
+	GameState.full_restore_party()
+	_update_hud()
+	_autosave()
+	_show_toast("The warmth restores everyone. (HP/MP full, downed allies revived)")
+
+
+## Final boss beaten: record the character in the Hall of Climbers and end the run.
+func _show_completion() -> void:
+	_completion_open = true
+	var was_real_run := GameState.run_active
+	var ng := GameState.ng_plus_cycle
+	var time := LegacyRecord.format_time(GameState.play_time_sec)
+	var rec := GameState.complete_run() if was_real_run else null
+
+	var overlay := ColorRect.new()
+	overlay.color = Color(0, 0, 0, 0.75)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_hud.add_child(overlay)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(560, 0)
+	UIStyle.apply(panel)
+	center.add_child(panel)
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 22)
+	panel.add_child(margin)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 14)
+	margin.add_child(box)
+	var title := Label.new()
+	title.text = "The tower is conquered!"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 30)
+	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
+	box.add_child(title)
+	var body := Label.new()
+	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if rec:
+		body.text = "%s has been recorded in the Hall of Climbers.\nCleared %s in %s (times cleared: %d).\n\nNew Game+ is open: climb again with %s from the title screen." % [
+			rec.display_name(), "the normal game" if ng == 0 else "NG+%d" % ng, time, rec.times_cleared, rec.display_name()]
+	else:
+		body.text = "(Dev sandbox run: not recorded in the Hall of Climbers.)"
+	box.add_child(body)
+	var btn := Button.new()
+	btn.text = "Return to Title"
+	btn.pressed.connect(func(): get_tree().change_scene_to_file(GameState.TITLE_SCENE))
+	box.add_child(btn)
+	btn.grab_focus.call_deferred()
+
+
+func _floor_intro_text() -> String:
+	var n := GameState.floor_number
+	var t := "Floor %d" % n
+	if layout.is_rest:
+		t += " — Rest Floor"
+	var boss := GameState.floor_has_alive("boss")
+	if not boss.is_empty():
+		t += " — BOSS: the %s awaits" % EnemyLibrary.get_enemy(boss.group[0]).display_name
+	var roamer := GameState.floor_has_alive("roaming")
+	if not roamer.is_empty():
+		var info := StageLibrary.roamer_info(roamer.roamer_id)
+		if info.has("intro"):
+			t += "\n⚠ " + info.intro
+		else:
+			t += "\n⚠ The %s has broken loose from floor %d!" % [
+				EnemyLibrary.get_enemy(roamer.group[0]).display_name, info.get("origin_floor", 0)]
+	return t
+
+
+func _alive_enemy_count() -> int:
+	var n := 0
+	for e in GameState.floor_enemies:
+		if e.alive:
+			n += 1
+	return n
+
+
+# =========================================================
+# Drawing (placeholder art: shapes only)
+# =========================================================
+
+func _tile_px(t: Vector2i) -> Vector2:
+	return origin + Vector2(t) * TILE
+
+
+func _draw() -> void:
+	if layout == null:
+		return
+	var font := ThemeDB.fallback_font
+	for y in FloorLayout.HEIGHT:
+		for x in FloorLayout.WIDTH:
+			var p := Vector2i(x, y)
+			var r := Rect2(_tile_px(p), Vector2(TILE, TILE))
+			if layout.is_wall(p):
+				draw_rect(r, C_WALL)
+				draw_rect(r, C_WALL_EDGE, false, 1.0)
+			else:
+				draw_rect(r, C_FLOOR if (x + y) % 2 == 0 else C_FLOOR_ALT)
+
+	# Stairs
+	var sr := Rect2(_tile_px(layout.stairs), Vector2(TILE, TILE)).grow(-4)
+	var locked := GameState.stairs_locked()
+	draw_rect(sr, C_STAIRS.darkened(0.55) if locked else C_STAIRS)
+	draw_string(font, sr.position + Vector2(7, 24), "UP", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.BLACK)
+
+	# Rest floor props
+	if layout.campfire.x >= 0:
+		var c := _tile_px(layout.campfire) + Vector2(TILE, TILE) / 2
+		draw_circle(c, TILE * 0.42, C_CAMPFIRE)
+		draw_circle(c + Vector2(0, 3), TILE * 0.2, Color(1, 0.9, 0.4))
+	if layout.merchant.x >= 0:
+		var mr := Rect2(_tile_px(layout.merchant), Vector2(TILE, TILE)).grow(-3)
+		draw_rect(mr, C_MERCHANT)
+		draw_string(font, mr.position + Vector2(10, 23), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+
+	# Enemies
+	for i in _enemy_view.size():
+		var data: Dictionary = GameState.floor_enemies[i]
+		if not data.alive:
+			continue
+		var v: Dictionary = _enemy_view[i]
+		var pos: Vector2 = (v.from as Vector2).lerp(v.to, v.t) + Vector2(TILE, TILE) / 2
+		var first := EnemyLibrary.get_enemy(data.group[0])
+		var col: Color = first.color
+		if v.stun > 0.0:
+			col.a = 0.35
+		var kind := GameState.enemy_kind(data)
+		var is_boss := kind != "normal"
+		var radius: float = TILE * (0.3 + 0.04 * data.group.size())
+		if is_boss:
+			radius = TILE * (0.62 if kind == "boss" else 0.48)
+			var ring: Color = {"boss": C_BOSS_RING, "miniboss": C_MINIBOSS_RING, "roaming": C_ROAMER_RING}[kind]
+			if kind == "roaming":   # pulsing ring so it stands out while it moves
+				ring.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() / 150.0)
+			draw_arc(pos, radius + 4, 0, TAU, 28, ring, 3.0)
+		draw_circle(pos, radius, col)
+		draw_arc(pos, radius, 0, TAU, 20, Color(0, 0, 0, 0.6), 2.0)
+		if is_boss:
+			var mark: String = {"boss": "!!", "miniboss": "!", "roaming": "?"}[kind]
+			draw_string(font, pos + Vector2(-4.5 * mark.length(), 6), mark, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.BLACK)
+		elif data.group.size() > 1:
+			draw_string(font, pos + Vector2(-4, 5), str(data.group.size()), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.BLACK)
+
+	# Player
+	var pp := _player_from.lerp(_player_to, _player_t)
+	var pr := Rect2(pp, Vector2(TILE, TILE)).grow(-6)
+	var pc := C_PLAYER
+	if _invulnerable > 0.0 and int(_invulnerable * 10) % 2 == 0:
+		pc.a = 0.4
+	draw_rect(pr, pc)
+	draw_rect(pr, Color.WHITE, false, 2.0)
+
+
+# =========================================================
+# HUD
+# =========================================================
+
+func _build_hud() -> void:
+	_hud = CanvasLayer.new()
+	add_child(_hud)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.06, 0.06, 0.08)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Background must sit *behind* the map, so it goes on its own layer.
+	var bg_layer := CanvasLayer.new()
+	bg_layer.layer = -1
+	bg_layer.add_child(bg)
+	add_child(bg_layer)
+
+	var top := HBoxContainer.new()
+	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	top.offset_left = 16
+	top.offset_right = -16
+	top.offset_top = 8
+	_hud.add_child(top)
+	_floor_label = Label.new()
+	_floor_label.add_theme_font_size_override("font_size", 16)
+	top.add_child(_floor_label)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(spacer)
+	var hint := Label.new()
+	hint.text = "WASD move · Tab party"
+	hint.modulate = Color(1, 1, 1, 0.5)
+	top.add_child(hint)
+
+	_party_strip = HBoxContainer.new()
+	_party_strip.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_party_strip.offset_left = 16
+	_party_strip.offset_top = -40
+	_party_strip.offset_bottom = -8
+	_party_strip.add_theme_constant_override("separation", 28)
+	_hud.add_child(_party_strip)
+
+	_toast = Label.new()
+	_toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_toast.offset_top = 30
+	_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast.add_theme_font_size_override("font_size", 18)
+	_toast.add_theme_color_override("font_outline_color", Color.BLACK)
+	_toast.add_theme_constant_override("outline_size", 6)
+	_hud.add_child(_toast)
+
+	_flash = ColorRect.new()
+	_flash.color = Color.WHITE
+	_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_flash.hide()
+	_hud.add_child(_flash)
+
+	_party_menu = PartyMenu.new()
+	_party_menu.closed.connect(_update_hud)
+	_hud.add_child(_party_menu)
+	_shop = ShopPanel.new()
+	_shop.closed.connect(_update_hud)
+	_hud.add_child(_shop)
+	_pause = PauseMenu.new()
+	_hud.add_child(_pause)
+
+
+func _update_hud() -> void:
+	var fl := "Floor %d" % GameState.floor_number
+	if GameState.is_rest_floor(GameState.floor_number):
+		fl += "  (Rest Floor)"
+	fl += "     Gold %d     Checkpoint: floor %d" % [GameState.player.gold, GameState.checkpoint_floor]
+	fl = StageLibrary.stage_name(GameState.floor_number) + "   ·   " + fl
+	for e in GameState.floor_enemies:
+		if not e.alive:
+			continue
+		var name_s := EnemyLibrary.get_enemy(e.group[0]).display_name
+		match GameState.enemy_kind(e):
+			"miniboss":
+				fl += "     ⚠ %s guards the stairs" % name_s
+			"boss":
+				fl += "     ☠ BOSS: %s" % name_s
+			"roaming":
+				# Secret-path roamers stay mysterious until you fight them.
+				if StageLibrary.roamer_info(e.roamer_id).get("spawn") == "secret":
+					fl += "     ? Something stalks this floor"
+				else:
+					fl += "     ? %s is loose on this floor" % name_s
+	_floor_label.text = fl
+
+	for c in _party_strip.get_children():
+		c.queue_free()
+	for m in GameState.battle_party():
+		var l := Label.new()
+		if m.is_downed():
+			l.text = "%s  DOWNED" % m.character_name
+			l.modulate = Color(1, 0.45, 0.45)
+		else:
+			l.text = "%s  HP %d/%d  MP %d/%d" % [m.character_name, m.current_hp(), m.max_hp(),
+				m.current_mp(), m.max_mp()]
+			if m.current_hp() < m.max_hp() * 0.35:
+				l.modulate = Color(1, 0.8, 0.4)
+		if m.unspent_points > 0 or m.can_choose_class():
+			l.text += "  ★"
+		_party_strip.add_child(l)
+
+
+func _show_toast(text: String) -> void:
+	_toast.text = text
+	_toast.modulate.a = 1.0
+	var tw := _toast.create_tween()
+	tw.tween_interval(2.0)
+	tw.tween_property(_toast, "modulate:a", 0.0, 0.6)
