@@ -67,7 +67,25 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/skills/*` | `SkillTier` (book tier odds) and `SkillBooks` (who drops which books, drop chances). Shared skills themselves are in `skill_library.gd`. |
 | `scripts/ui/skills_panel.gd` | Tab → Skills: known skills and spending skill picks. |
 | `tests/test_skills.gd` | 39 intent, shared skill, skill pick and skill book checks. |
+| `scripts/story/dialogue_library.gd` | Every conversation as data: lines, choices, conditions and effects. The format is documented at the top. |
+| `scripts/story/dialogue_runner.gd` | Plays a conversation (pure logic): checks conditions, runs effects, fills in `{player}` / `{friend}`. |
+| `scripts/story/npc_library.gd` | NPCs and lore objects: which floors they appear on, recruit builds. |
+| `scripts/ui/dialogue_box.gd` | The conversation box at the bottom of the screen. |
+| `tests/test_dialogue.gd` | 69 dialogue, NPC placement, recruiting, reserve and clue checks. Run: `godot --headless res://tests/test_dialogue.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
+
+## Dialogue, NPCs and recruiting
+- **Walk into** an NPC (coloured square with an initial), a lore object (diamond with **?**) or the merchant to talk. Choices are buttons; Enter/Space picks, and Esc works as "Next".
+- **Conversations are data** in `dialogue_library.gd`. Each line can have choices, and both lines and choices can have:
+  - **Conditions** (hide a choice or pick a different opening): story flags, floor range, player level, gold, an item, NG+ or not, being on a secret path, having recruited someone.
+  - **Effects:** set/clear flags, give items or gold, take gold, recruit, heal the party, open the shop, show a message.
+  - `{player}` and `{friend}` in any text become the current names, so the childhood friend can join in.
+- **A typo can't sneak in:** the dialogue tests check every conversation for missing lines, misspelled conditions/effects and unknown items or NPCs.
+- **NPCs and lore objects** are set up in `npc_library.gd`: which kinds of floor they can be on (rest, cleared boss, combat, miniboss), the floor range, a chance per floor, extra conditions, a flag that makes them disappear for good, and whether they stand by the campfire. Placement uses the floor's seed, so they're in the same spot when you come back, and never cut off part of the floor.
+- **The merchant** now greets you first: **Let's trade** opens the shop. From floor 10 they also have a story to tell (an Ashbound clue).
+- **Recruiting:** recruitable NPCs join at **your level − 1** (min 1), with their points spent by their build and their class taken if they're level 10+. If the party (you + 3) is full, they wait on the **reserve** (listed in the Tab menu, no XP) until party management lets you swap them in. Recruits leave the floor, are saved, and reset in New Game+ like other story progress. Uniques on reserve members still carry into New Game+.
+- **The Ashbound clues** all come from this system now: the **scorched mural** (40% of normal floors 11–29), the **merchant's story** (floor 10+) and the **glint in the embers** (by the campfire on rest floors and cleared boss floors from floor 10).
+- **Placeholder content only:** Brakka (a Tank you can recruit on rest floors from floor 5), the merchant and the two lore objects. Real story content comes later.
 
 ## Enemy intent, shared skills and skill books
 - **Enemy intent:** at the start of each round, every enemy decides its move. Its card shows it (e.g. "Smash → Cassia" or "Volley → everyone"), and targeted allies get a red **⚠ Targeted** marker (x2 if two enemies are aiming at them). React with Defend, Guard, Ward, heals or a row change. If the target falls, or someone starts **taunting**, the intent re-plans and the markers update. An enemy can hide its intent (`hide_intent`, shown as "Intent: ???"); none do yet.

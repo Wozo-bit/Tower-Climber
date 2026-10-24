@@ -21,6 +21,9 @@ var merchant := Vector2i(-1, -1)
 var guardian_spot := Vector2i(-1, -1)
 var is_boss_floor := false
 var enemy_spawns: Array[Vector2i] = []
+## NPCs and lore objects standing on this floor: Vector2i -> NpcLibrary id.
+## GameState fills this in (see place_npc); they block movement like the merchant.
+var npcs: Dictionary = {}
 
 
 ## `p_guardian` = a miniboss guards the stairs. `p_boss` = stage-boss arena.
@@ -64,9 +67,43 @@ func is_wall(p: Vector2i) -> bool:
 	return not in_bounds(p) or tiles[p.y * WIDTH + p.x] == Tile.WALL
 
 
-## Walls, the campfire and the merchant all block movement.
+## Walls, the campfire, the merchant and NPCs all block movement.
 func is_blocked(p: Vector2i) -> bool:
-	return is_wall(p) or p == campfire or p == merchant
+	return is_wall(p) or p == campfire or p == merchant or npcs.has(p)
+
+
+## Puts NPC `id` on a free tile and returns it ((-1,-1) if there's no room).
+## Never on/next to the entrance or stairs, never on an enemy spawn, and never
+## somewhere that would cut off part of the floor. `near` = a tile to stand
+## within 2 steps of (e.g. the campfire), or (-1,-1) for anywhere.
+func place_npc(id: StringName, rng: RandomNumberGenerator, near := Vector2i(-1, -1)) -> Vector2i:
+	var dist := distance_map(start)
+	var reachable := dist.size()
+	var candidates: Array[Vector2i] = []
+	for p: Vector2i in dist:
+		if _steps(p, start) < 2 or _steps(p, stairs) < 2 or p == guardian_spot or enemy_spawns.has(p):
+			continue
+		if guardian_spot.x >= 0 and _steps(p, guardian_spot) < 2:
+			continue
+		if near.x >= 0 and _steps(p, near) > 2:
+			continue
+		candidates.append(p)
+	candidates.sort_custom(func(a, b): return a.y * WIDTH + a.x < b.y * WIDTH + b.x)
+	for i in range(candidates.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp := candidates[i]
+		candidates[i] = candidates[j]
+		candidates[j] = tmp
+	for p in candidates:
+		npcs[p] = id
+		if distance_map(start).size() == reachable - 1:
+			return p
+		npcs.erase(p)
+	return Vector2i(-1, -1)
+
+
+static func _steps(a: Vector2i, b: Vector2i) -> int:
+	return absi(a.x - b.x) + absi(a.y - b.y)
 
 
 ## BFS distances from `from` to every reachable tile.

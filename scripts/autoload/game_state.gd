@@ -29,6 +29,9 @@ const CHILDHOOD_FRIEND_NAME := "Rowan"
 # --- Party ---
 var player: CharacterData
 var companions: Array[CharacterData] = []
+## Recruits who joined while the party was full. They wait here (and get no
+## XP) until party management lets you swap them in.
+var reserve: Array[CharacterData] = []
 var inventory := Inventory.new()
 
 # --- Tower progress ---
@@ -116,6 +119,7 @@ func _init() -> void:
 func reset_run() -> void:
 	player = CharacterData.new()
 	companions.clear()
+	reserve.clear()
 	inventory = Inventory.new()
 	for id in STARTING_ITEMS:
 		inventory.add(id, STARTING_ITEMS[id])
@@ -239,6 +243,7 @@ func save_game() -> bool:
 		"play_time_sec": play_time_sec,
 		"player": SaveSerializer.character_to_dict(player),
 		"companions": companions.map(SaveSerializer.character_to_dict),
+		"reserve": reserve.map(SaveSerializer.character_to_dict),
 		"inventory": SaveSerializer.inventory_to_dict(inventory),
 		"floor_number": floor_number,
 		"checkpoint_floor": checkpoint_floor,
@@ -270,6 +275,9 @@ func load_game(slot: int = -1) -> bool:
 	for cd in S._a(d, "companions"):
 		if cd is Dictionary:
 			companions.append(S.character_from_dict(cd))
+	for cd in S._a(d, "reserve"):
+		if cd is Dictionary:
+			reserve.append(S.character_from_dict(cd))
 	inventory = S.inventory_from_dict(S._d(d, "inventory"))
 	floor_number = S._i(d, "floor_number", 1, 1, 100000)
 	checkpoint_floor = S._i(d, "checkpoint_floor", 1, 1, floor_number)
@@ -371,7 +379,7 @@ func record_completion() -> LegacyRecord:
 	# Unequipped Uniques (bag + companions' gear) go in the vault for New Game+.
 	rec.vault.clear()
 	var loose: Array = inventory.gear.duplicate()
-	for c in companions:
+	for c in companions + reserve:
 		loose.append_array(c.equipment.values())
 	for g: GearItem in loose:
 		if g.carries_into_ng_plus():
@@ -477,7 +485,68 @@ func current_layout() -> FloorLayout:
 	if layout.is_boss_floor and stairs_locked():
 		layout.campfire = Vector2i(-1, -1)
 		layout.merchant = Vector2i(-1, -1)
+	place_npcs(layout)
 	return layout
+
+
+## "rest", "boss", "miniboss" or "combat" (NpcLibrary uses these).
+func floor_kind(n: int) -> String:
+	if is_rest_floor(n):
+		return "rest"
+	if StageLibrary.is_boss_floor(n):
+		return "boss"
+	if StageLibrary.is_miniboss_floor(n):
+		return "miniboss"
+	return "combat"
+
+
+## (Re)places this floor's NPCs and lore objects. Called when the floor is
+## built and again after a conversation (a clue that's been read disappears,
+## a recruit leaves with you). Each NPC rolls from its own seed, so they stand
+## in the same spot every time you come back.
+func place_npcs(layout: FloorLayout) -> void:
+	layout.npcs.clear()
+	var kind := floor_kind(floor_number)
+	if kind == "boss" and stairs_locked():
+		return   # nobody hangs around a boss fight
+	var rng_for := func(id: StringName) -> RandomNumberGenerator:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = ("%d:%s" % [floor_seed, id]).hash()
+		return rng
+	for id in NpcLibrary.npcs_for_floor(floor_number, kind, rng_for):
+		var near := Vector2i(-1, -1)
+		match NpcLibrary.get_npc(id).get("near", ""):
+			"campfire": near = layout.campfire
+			"merchant": near = layout.merchant
+		var rng: RandomNumberGenerator = rng_for.call(id)
+		rng.randf()   # skip the roll used for "chance"
+		layout.place_npc(id, rng, near)
+
+
+# =========================================================
+# Recruiting
+# =========================================================
+
+## True if this NPC is in the party or on the reserve bench.
+func has_recruited(npc_id: StringName) -> bool:
+	for c in companions + reserve:
+		if c.companion_id == npc_id:
+			return true
+	return false
+
+
+## Recruits an NPC at the player's level - 1. Joins the party if there's room,
+## otherwise the reserve. Returns the new member (null if not recruitable or
+## already recruited).
+func recruit(npc_id: StringName) -> CharacterData:
+	if not NpcLibrary.is_recruitable(npc_id) or has_recruited(npc_id):
+		return null
+	var c := NpcLibrary.make_recruit(npc_id, player.level - 1)
+	if companions.size() < MAX_PARTY_SIZE - 1:
+		companions.append(c)
+	else:
+		reserve.append(c)
+	return c
 
 
 ## Plain combat floors past the first few may have a roaming boss wandering them.
@@ -677,7 +746,7 @@ func unequip_to_bag(member: CharacterData, slot: int) -> bool:
 func owned_unique_classes() -> Array:
 	var out := []
 	var all_gear: Array = inventory.gear.duplicate()
-	for m in battle_party():
+	for m in battle_party() + reserve:
 		all_gear.append_array(m.equipment.values())
 	for g: GearItem in all_gear:
 		if g.rarity == Rarity.Tier.UNIQUE and not out.has(g.class_lock):

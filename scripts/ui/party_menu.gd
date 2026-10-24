@@ -157,6 +157,12 @@ func _rebuild() -> void:
 
 	for member in GameState.battle_party():
 		_members_box.add_child(_member_row(member))
+	if not GameState.reserve.is_empty():
+		_members_box.add_child(_heading("Reserve"))
+		for member in GameState.reserve:
+			var def := member.get_class_def()
+			_members_box.add_child(_note("%s   Lv %d   %s   (waiting: the party is full)" % [
+				member.character_name, member.level, def.display_name if def else "No class"]))
 
 	# --- Items ---
 	_actions_box.add_child(_heading("Items"))

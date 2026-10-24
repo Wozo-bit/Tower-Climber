@@ -4,7 +4,7 @@ extends Node2D
 ## Stairs take you up. Every 5th floor is a rest floor (campfire + merchant).
 ##
 ## Controls: WASD / arrows to move, Tab (or I) for the party menu.
-## Walk into the campfire or merchant to use them.
+## Walk into the campfire, the merchant or an NPC / lore object to use them.
 
 const TILE := 36
 const PLAYER_STEP_TIME := 0.13
@@ -21,6 +21,8 @@ const C_MINIBOSS_RING := Color(1.0, 0.8, 0.2)
 const C_ROAMER_RING := Color(0.8, 0.4, 1.0)
 const FLEE_STUN_TIME := 2.5
 const POST_BATTLE_GRACE := 1.2
+## After a conversation, holding the move key won't start it again straight away.
+const TALK_COOLDOWN := 0.35
 
 const C_FLOOR := Color(0.16, 0.16, 0.2)
 const C_FLOOR_ALT := Color(0.18, 0.18, 0.22)
@@ -30,6 +32,7 @@ const C_STAIRS := Color(0.95, 0.8, 0.3)
 const C_PLAYER := Color(0.45, 0.75, 1.0)
 const C_CAMPFIRE := Color(1.0, 0.55, 0.2)
 const C_MERCHANT := Color(0.7, 0.45, 0.9)
+const C_NPC_OUTLINE := Color(0.95, 0.95, 0.85)
 
 var layout: FloorLayout
 var origin := Vector2.ZERO
@@ -57,6 +60,8 @@ var _party_menu: PartyMenu
 var _shop: ShopPanel
 var _flash: ColorRect
 var _pause: PauseMenu
+var _dialogue: DialogueBox
+var _talk_cooldown := 0.0
 var _completion_open := false
 
 
@@ -135,6 +140,8 @@ func _process(delta: float) -> void:
 	if _busy:
 		return
 	_invulnerable = maxf(0.0, _invulnerable - delta)
+	if not _dialogue.visible:
+		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
 	if not _menus_open():
 		_update_player(delta)
@@ -143,7 +150,7 @@ func _process(delta: float) -> void:
 
 
 func _menus_open() -> bool:
-	return _party_menu.visible or _shop.visible or _pause.visible or _completion_open
+	return _party_menu.visible or _shop.visible or _pause.visible or _dialogue.visible or _completion_open
 
 
 ## Saves only during a real run (never in the dev sandbox).
@@ -183,7 +190,7 @@ func _update_player(delta: float) -> void:
 		try_move(dir)
 
 
-## Attempts one step. Bumping the campfire/merchant uses them.
+## Attempts one step. Bumping the campfire, merchant or an NPC uses them.
 ## Public so tests/automation can drive the player.
 func try_move(dir: Vector2i) -> bool:
 	if _player_t < 1.0 or _busy:
@@ -193,7 +200,10 @@ func try_move(dir: Vector2i) -> bool:
 		_use_campfire()
 		return false
 	if target == layout.merchant:
-		_shop.open()
+		talk(&"merchant")
+		return false
+	if layout.npcs.has(target):
+		talk(NpcLibrary.get_npc(layout.npcs[target]).dialogue)
 		return false
 	if target == layout.stairs and GameState.stairs_locked():
 		_show_toast("The stairs are guarded. Defeat the %s to go up!" %
@@ -322,6 +332,24 @@ func _go_upstairs() -> void:
 	tw.tween_callback(_flash.hide)
 
 
+## Opens a conversation (public so tests/automation can use it).
+func talk(dialogue_id: StringName) -> void:
+	if _talk_cooldown > 0.0 or _dialogue.visible:
+		return
+	_dialogue.open(dialogue_id)
+
+
+func _on_dialogue_finished(runner: DialogueRunner) -> void:
+	_talk_cooldown = TALK_COOLDOWN
+	GameState.place_npcs(layout)   # read clues vanish, recruits leave with you
+	_update_hud()
+	_autosave()
+	if not runner.messages.is_empty():
+		_show_toast("\n".join(runner.messages))
+	if runner.requests.has("shop"):
+		_shop.open()
+
+
 func _use_campfire() -> void:
 	GameState.full_restore_party()
 	_update_hud()
@@ -442,6 +470,26 @@ func _draw() -> void:
 		draw_rect(mr, C_MERCHANT)
 		draw_string(font, mr.position + Vector2(10, 23), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
 
+	# NPCs (rounded square with an initial) and lore objects (diamond with "?")
+	for p: Vector2i in layout.npcs:
+		var npc := NpcLibrary.get_npc(layout.npcs[p])
+		var center := _tile_px(p) + Vector2(TILE, TILE) / 2
+		var col: Color = npc.get("color", Color.GRAY)
+		if npc.get("kind") == "object":
+			var h := TILE * 0.38
+			var pts := PackedVector2Array([center + Vector2(0, -h), center + Vector2(h, 0),
+				center + Vector2(0, h), center + Vector2(-h, 0)])
+			draw_colored_polygon(pts, col)
+			pts.append(pts[0])
+			draw_polyline(pts, Color(1, 0.85, 0.5), 2.0)
+			draw_string(font, center + Vector2(-4, 6), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.9, 0.6))
+		else:
+			var nr := Rect2(_tile_px(p), Vector2(TILE, TILE)).grow(-5)
+			draw_rect(nr, col)
+			draw_rect(nr, C_NPC_OUTLINE, false, 2.0)
+			draw_string(font, nr.position + Vector2(8, 20), String(npc.name).left(1),
+				HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color.BLACK)
+
 	# Enemies
 	for i in _enemy_view.size():
 		var data: Dictionary = GameState.floor_enemies[i]
@@ -548,6 +596,9 @@ func _build_hud() -> void:
 	_hud.add_child(_shop)
 	_pause = PauseMenu.new()
 	_hud.add_child(_pause)
+	_dialogue = DialogueBox.new()
+	_dialogue.finished.connect(_on_dialogue_finished)
+	_hud.add_child(_dialogue)
 
 
 func _update_hud() -> void:
