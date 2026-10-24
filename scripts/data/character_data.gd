@@ -335,14 +335,18 @@ func get_class_def() -> ClassDef:
 
 
 func get_qualifying_classes() -> Array[ClassDef]:
-	return ClassRegistry.get_qualifying(stats, 1, GameState.unlocked_secret_classes())
+	var out: Array[ClassDef] = []
+	for def in ClassRegistry.get_qualifying(stats, 1, GameState.unlocked_secret_classes()):
+		if def.route_allows():   # route-only classes (tier 2 later)
+			out.append(def)
+	return out
 
 
 ## Switch to an unlocked secret class, even if a class was already chosen.
 ## The caller (GameState.take_secret_class) checks it's unlocked.
 func can_take_secret_class(def: ClassDef) -> bool:
 	return def != null and def.is_secret and level >= CLASS_UNLOCK_LEVEL \
-		and class_id != def.id and def.qualifies(stats)
+		and class_id != def.id and def.qualifies(stats) and def.route_allows()
 
 
 func take_secret_class(def: ClassDef) -> bool:
@@ -357,7 +361,7 @@ func take_secret_class(def: ClassDef) -> bool:
 
 
 func choose_class(def: ClassDef) -> bool:
-	if def == null or not can_choose_class() or not def.qualifies(stats):
+	if def == null or not can_choose_class() or not def.qualifies(stats) or not def.route_allows():
 		return false
 	class_id = def.id
 	_apply_class_bonus()

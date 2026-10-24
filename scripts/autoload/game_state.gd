@@ -60,6 +60,11 @@ var story_flags: Dictionary = {}
 var bestiary := Bestiary.new()
 ## Active / completed / failed quests and notice-board bounties. Per run.
 var quests := QuestLog.new()
+## Route points (Hero, Villain, Vigilante...) and the locked route. Per run.
+var route := RouteState.new()
+## Conversations a companion wants to have about your route, shown by the
+## tower when nothing else is open: [{ "dialogue": id, "companion": CharacterData }].
+var pending_talks: Array = []
 ## The stage theme picked for each StageLibrary slot this run (e.g. floors
 ## 1-10 = Slime Pits). Rolled on New Game / New Game+, saved with the run.
 var stage_themes: Array = []:
@@ -97,6 +102,7 @@ var last_battle_outcome := -1     # BattleManager.Outcome, read by the tower on 
 
 func _ready() -> void:
 	_register_input_actions()
+	DlcLoader.load_all()
 
 
 func _process(delta: float) -> void:
@@ -152,6 +158,8 @@ func reset_run() -> void:
 	story_flags = {}
 	bestiary = Bestiary.new()
 	quests = QuestLog.new()
+	route = RouteState.new()
+	pending_talks = []
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
 	play_time_sec = 0.0
@@ -291,6 +299,7 @@ func save_game() -> bool:
 		"ng_plus_cycle": ng_plus_cycle,
 		"bestiary": bestiary.to_dict(),
 		"quests": quests.to_dict(),
+		"route": route.to_dict(),
 		"stage_themes": stage_themes.map(func(t): return String(t)),
 	}
 	var ok := SaveSerializer.write_json(slot_path(current_slot), d)
@@ -343,6 +352,7 @@ func load_game(slot: int = -1) -> bool:
 	ng_plus_cycle = S._i(d, "ng_plus_cycle", 0, 0, 999)
 	bestiary = Bestiary.from_dict(S._d(d, "bestiary"))
 	quests = QuestLog.from_dict(S._d(d, "quests"))
+	route = RouteState.from_dict(S._d(d, "route"))
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	run_active = true
@@ -385,6 +395,10 @@ func load_legacy() -> LegacyBook:
 		r.best_play_time_sec = S._f(rd, "best_play_time_sec", 0.0, 0.0)
 		r.friend_name = CharacterData.clean_name(S._s(rd, "friend_name"))
 		r.slot = S._i(rd, "slot", 1, 1, SLOT_COUNT)
+		for e in S._a(rd, "endings_seen"):
+			# Unknown ids are kept only if they look sane: a DLC ending may not be loaded right now.
+			if e is String and e.length() <= 64 and not r.endings_seen.has(StringName(e)):
+				r.endings_seen.append(StringName(e))
 		for gd in S._a(rd, "vault"):
 			if gd is Dictionary:
 				var g := S.gear_from_dict(gd)
@@ -402,6 +416,7 @@ func save_legacy(book: LegacyBook) -> bool:
 			"times_cleared": r.times_cleared, "highest_cycle_cleared": r.highest_cycle_cleared,
 			"first_cleared_at": r.first_cleared_at, "last_cleared_at": r.last_cleared_at,
 			"best_play_time_sec": r.best_play_time_sec, "friend_name": r.friend_name, "slot": r.slot,
+			"endings_seen": r.endings_seen.map(func(e): return String(e)),
 			"vault": r.vault.map(SaveSerializer.gear_to_dict),
 		})
 	return SaveSerializer.write_json(legacy_path, { "version": SaveSerializer.FORMAT_VERSION, "records": records })
@@ -422,6 +437,9 @@ func record_completion() -> LegacyRecord:
 	rec.character = player.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	rec.character.full_restore()
 	rec.slot = current_slot
+	var ending: Dictionary = RouteLibrary.pick_ending()
+	if not ending.is_empty() and not rec.endings_seen.has(ending.id):
+		rec.endings_seen.append(ending.id)
 	var friend := childhood_friend()
 	if friend:
 		rec.friend_name = friend.character_name
@@ -608,7 +626,7 @@ func has_recruited(npc_id: StringName) -> bool:
 ## then the reserve, then waits at rest floors. Returns the new member (null if
 ## not recruitable or already recruited).
 func recruit(npc_id: StringName) -> CharacterData:
-	if not NpcLibrary.is_recruitable(npc_id) or has_recruited(npc_id):
+	if not NpcLibrary.is_recruitable(npc_id) or has_recruited(npc_id) or npc_refuses(npc_id):
 		return null
 	var c := NpcLibrary.make_recruit(npc_id, player.level - 1)
 	_add_member(c)
@@ -711,13 +729,102 @@ func dismiss(c: CharacterData) -> bool:
 ## A waiting companion comes back: party if there's room, else the reserve.
 ## False if locked or there's no room anywhere.
 func rejoin(c: CharacterData) -> bool:
-	if party_locked() or not waiting.has(c):
+	if party_locked() or not waiting.has(c) or refuses_to_rejoin(c):
 		return false
 	if companions.size() >= MAX_PARTY_SIZE - 1 and reserve.size() >= RESERVE_CAP:
 		return false
 	waiting.erase(c)
 	_add_member(c)
 	return true
+
+
+# =========================================================
+# Routes (Hero / Villain / Vigilante ...) — see RouteLibrary
+# =========================================================
+
+## Placeholder values for the childhood friend (recruits keep theirs in NpcLibrary).
+const CHILDHOOD_FRIEND_VALUES := { "likes": [&"hero"], "dislikes": [&"villain"] }
+## A companion who's been warned leaves once a route they dislike has this many
+## points (or gets locked).
+const COMPANION_LEAVE_POINTS := 20
+## Merchant prices while leaning hero / villain. Locked villains are refused.
+const HERO_PRICE_MULT := 0.9
+const VILLAIN_PRICE_MULT := 1.25
+
+
+func add_route_points(id: StringName, amount: int) -> void:
+	route.add(id, amount)
+	_check_companions()
+
+
+## A key story choice. False if a route is already locked.
+func lock_route(id: StringName) -> bool:
+	var ok := route.lock(id)
+	if ok:
+		_check_companions()
+	return ok
+
+
+## { "likes": [route ids], "dislikes": [...] } for a companion.
+func companion_values(c: CharacterData) -> Dictionary:
+	if c.companion_id == &"childhood_friend":
+		return CHILDHOOD_FRIEND_VALUES
+	return NpcLibrary.get_npc(c.companion_id).get("values", {})
+
+
+func disagrees(c: CharacterData) -> bool:
+	var r := route.current()
+	return r != &"" and companion_values(c).get("dislikes", []).has(r)
+
+
+## A recruitable NPC won't join someone on a route they dislike.
+func npc_refuses(npc_id: StringName) -> bool:
+	var r := route.current()
+	return r != &"" and NpcLibrary.get_npc(npc_id).get("values", {}).get("dislikes", []).has(r)
+
+
+## Someone who left over your route won't come back while you're still on it.
+func refuses_to_rejoin(c: CharacterData) -> bool:
+	return has_flag(StringName("route_left_%s" % c.companion_id)) and disagrees(c)
+
+
+## After the route changes: companions who dislike it warn you first, then leave.
+func _check_companions() -> void:
+	for c in companions + reserve:
+		if not disagrees(c):
+			continue
+		var warned := StringName("route_warned_%s" % c.companion_id)
+		if not has_flag(warned):
+			story_flags[warned] = true
+			pending_talks.append({ "dialogue": &"companion_warning", "companion": c })
+			continue
+		var r := route.current()
+		if route.locked == r or route.points_of(r) >= COMPANION_LEAVE_POINTS:
+			leave_over_route(c)
+
+
+## The companion walks away: gear to the bag, waits at rest floors, and won't
+## rejoin until your route changes. Works even on a locked floor (it's their choice).
+func leave_over_route(c: CharacterData) -> void:
+	if not (companions.has(c) or reserve.has(c)):
+		return
+	for slot in c.equipment.keys():
+		unequip_to_bag(c, slot)
+	companions.erase(c)
+	reserve.erase(c)
+	if c.companion_id == &"":
+		c.companion_id = StringName("companion_%d" % randi())
+	waiting.append(c)
+	story_flags[StringName("route_left_%s" % c.companion_id)] = true
+	pending_talks.append({ "dialogue": &"companion_leaving", "companion": c })
+
+
+## What the merchant charges you (route discounts / markups).
+func shop_price(item: ItemDef) -> int:
+	match route.current():
+		&"hero": return roundi(item.price * HERO_PRICE_MULT)
+		&"villain": return roundi(item.price * VILLAIN_PRICE_MULT)
+	return item.price
 
 
 ## After a won battle: everyone on the reserve gets their share of the XP.
@@ -941,11 +1048,16 @@ func owned_unique_classes() -> Array:
 	return out
 
 
-func buy_item(id: StringName) -> bool:
+## Buys from the merchant (route prices) or, with `price_override`, from
+## another trader like the black market.
+func buy_item(id: StringName, price_override: int = -1) -> bool:
 	var item := ItemLibrary.get_item(id)
-	if item == null or player.gold < item.price or not inventory.has_room(id):
+	if item == null:
 		return false
-	player.gold -= item.price
+	var price := price_override if price_override >= 0 else shop_price(item)
+	if player.gold < price or not inventory.has_room(id):
+		return false
+	player.gold -= price
 	inventory.add(id)
 	return true
 

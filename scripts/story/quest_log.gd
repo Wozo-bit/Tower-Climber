@@ -206,6 +206,8 @@ func give_rewards(r: Dictionary) -> String:
 		parts.append(g.display_name)
 	for f in r.get("flags", []):
 		gs.set_flag(f)
+	for route_id in r.get("route_points", {}):   # never shown as numbers
+		gs.add_route_points(route_id, r.route_points[route_id])
 	if r.has("reveal_family"):
 		for def in EnemyLibrary.all():
 			if def.family == r.reveal_family:
@@ -315,6 +317,7 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 		pool[i] = pool[j]
 		pool[j] = tmp
 	var counts := [rng.randi_range(6, 10), rng.randi_range(3, 6), rng.randi_range(3, 6), rng.randi_range(3, 6)]
+	var flavor_rolls := [rng.randf(), rng.randf(), rng.randf(), rng.randf()]   # one per board slot
 	var goal := {}
 	var label := ""
 	if index == 0 and theme.has("family"):
@@ -326,13 +329,42 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 		label = EnemyLibrary.get_enemy(target).display_name + "s"
 	var n: int = goal.count
 	var id := StringName("bounty_%d_%d" % [floor_n, index])
+	var rewards := { "gold": n * (BOUNTY_GOLD_PER_KILL + BOUNTY_GOLD_PER_FLOOR * floor_n),
+		"xp": n * (BOUNTY_XP_PER_KILL + BOUNTY_XP_PER_FLOOR * floor_n) }
+	var title := "Bounty: %s" % label.capitalize()
+	var desc := "(Placeholder) Someone wants %d %s gone." % [n, label]
+	# Some jobs lean a route (the family bounty never does).
+	var flavor := _bounty_flavor(flavor_rolls[mini(index, flavor_rolls.size() - 1)]) if index > 0 else {}
+	if not flavor.is_empty():
+		title = "%s: %s" % [flavor.label, label.capitalize()]
+		desc = flavor.desc % [n, label]
+		rewards.gold = roundi(rewards.gold * flavor.gold_mult)
+		rewards["route_points"] = { flavor.route: BOUNTY_ROUTE_POINTS }
 	return { "id": id, "def": {
-		"title": "Bounty: %s" % label.capitalize(), "kind": "bounty", "giver": "Notice board",
-		"desc": "(Placeholder) Someone wants %d %s gone." % [n, label],
-		"steps": [{ "text": "Defeat %s" % label, "goal": goal }],
-		"rewards": { "gold": n * (BOUNTY_GOLD_PER_KILL + BOUNTY_GOLD_PER_FLOOR * floor_n),
-			"xp": n * (BOUNTY_XP_PER_KILL + BOUNTY_XP_PER_FLOOR * floor_n) },
+		"title": title, "kind": "bounty", "giver": "Notice board", "desc": desc,
+		"steps": [{ "text": "Defeat %s" % label, "goal": goal }], "rewards": rewards,
 	} }
+
+
+## Route flavors for bounties: { route, label, desc (with %d/%s), gold_mult }.
+const BOUNTY_ROUTE_POINTS := 3
+const BOUNTY_FLAVORS := [
+	{ "chance": 0.2, "route": &"villain", "label": "Shady job", "gold_mult": 1.5,
+		"desc": "(Placeholder) No names, no questions: %d %s, and the pay is good." },
+	{ "chance": 0.2, "route": &"hero", "label": "Plea for help", "gold_mult": 0.8,
+		"desc": "(Placeholder) Climbers below are scared. Clear out %d %s for them." },
+	{ "chance": 0.15, "route": &"vigilante", "label": "Wanted", "gold_mult": 1.2,
+		"desc": "(Placeholder) The guards won't touch them. Deal with %d %s yourself." },
+]
+
+
+static func _bounty_flavor(roll: float) -> Dictionary:
+	var acc := 0.0
+	for f in BOUNTY_FLAVORS:
+		acc += f.chance
+		if roll < acc:
+			return f
+	return {}
 
 
 # =========================================================

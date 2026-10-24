@@ -17,6 +17,7 @@ var _skills_panel: SkillsPanel
 var _manage_panel: PartyManagePanel
 var _bestiary_panel: BestiaryPanel
 var _quest_panel: QuestLogPanel
+var _reputation: Label
 
 ## When set, the member list shows "Use here" buttons.
 ## { "kind": "item", "id": StringName } or { "kind": "heal", "caster": CharacterData, "skill": SkillDef }
@@ -55,6 +56,12 @@ func _init() -> void:
 	title.text = "Party"
 	title.add_theme_font_size_override("font_size", 26)
 	header.add_child(title)
+	# Route hint: how people see you (never numbers).
+	_reputation = Label.new()
+	_reputation.modulate = Color(0.85, 0.8, 1.0, 0.8)
+	_reputation.add_theme_font_size_override("font_size", 14)
+	_reputation.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(_reputation)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -186,6 +193,7 @@ func _rebuild() -> void:
 	for c in _actions_box.get_children():
 		c.queue_free()
 	_gold_label.text = "Gold: %d   " % GameState.player.gold
+	_reputation.text = "   " + GameState.route.reputation_text()
 
 	for member in GameState.battle_party():
 		_members_box.add_child(_member_row(member))

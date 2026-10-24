@@ -24,6 +24,14 @@ const EPSILON := 0.0001
 @export var ng_plus_only: bool = false
 ## Boost to every stat total while in this class (0.2 = +20%).
 @export var stat_bonus_pct: float = 0.0
+## Only on this route (RouteLibrary id, e.g. &"villain"). Empty = any route.
+## Meant for tier-2 advancements; checked by CharacterData.
+@export var required_route: StringName = &""
+
+
+## True if the current run's route allows this class.
+func route_allows() -> bool:
+	return required_route == &"" or GameState.route.current() == required_route
 
 
 static func create(p_id: StringName, p_name: String, p_desc: String,

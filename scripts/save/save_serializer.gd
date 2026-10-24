@@ -256,6 +256,13 @@ static func floor_enemies_from_array(arr: Array) -> Array:
 # Quests (generated bounties are saved whole, so they're validated here)
 # =========================================================
 
+static func _stringify_keys(src: Dictionary) -> Dictionary:
+	var out := {}
+	for k in src:
+		out[String(k)] = src[k]
+	return out
+
+
 static func quest_def_to_dict(q: Dictionary) -> Dictionary:
 	var steps := []
 	for st in q.get("steps", []):
@@ -267,7 +274,8 @@ static func quest_def_to_dict(q: Dictionary) -> Dictionary:
 		steps.append({ "text": st.text, "goal": gd })
 	var r: Dictionary = q.get("rewards", {})
 	return { "title": q.title, "kind": q.kind, "giver": q.get("giver", ""), "desc": q.get("desc", ""),
-		"steps": steps, "rewards": { "gold": r.get("gold", 0), "xp": r.get("xp", 0) } }
+		"steps": steps, "rewards": { "gold": r.get("gold", 0), "xp": r.get("xp", 0),
+			"route_points": _stringify_keys(r.get("route_points", {})) } }
 
 
 ## Only defeat bounties are generated, so only those are accepted back.
@@ -292,4 +300,11 @@ static func quest_def_from_dict(d: Dictionary) -> Dictionary:
 	var q := { "title": _s(d, "title", "Bounty", 64), "kind": "bounty", "giver": _s(d, "giver", "Notice board", 64),
 		"desc": _s(d, "desc", "", 512), "steps": steps,
 		"rewards": { "gold": _i(r, "gold", 0, 0, 100000), "xp": _i(r, "xp", 0, 0, 100000) } }
+	var rp := _d(r, "route_points")
+	if not rp.is_empty():
+		var points := {}
+		for route_id in rp:
+			if route_id is String and RouteLibrary.routes.has(StringName(route_id)):
+				points[StringName(route_id)] = _i(rp, route_id, 0, -10, 10)
+		q.rewards["route_points"] = points
 	return q if QuestLibrary.validate(&"saved_bounty", q).is_empty() else {}

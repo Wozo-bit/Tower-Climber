@@ -89,7 +89,7 @@ func choose(index: int) -> bool:
 		return false
 	var c: Dictionary = all[index]
 	_apply_effects(c.get("effects", []))
-	if requests.has("shop"):
+	if requests.any(func(r): return r.begins_with("shop")):
 		_enter("")
 	else:
 		_enter(c.get("next", ""))
@@ -135,6 +135,10 @@ static func check(cond: Dictionary) -> bool:
 			"quest_done": ok = gs.quests.is_done(v)
 			"quest_failed": ok = gs.quests.is_failed(v)
 			"quest_on_step": ok = gs.quests.step_index(v[0]) == v[1]
+			"route": ok = gs.route.current() == v
+			"not_route": ok = gs.route.current() != v
+			"route_locked": ok = ((gs.route.locked != &"") == v) if v is bool else gs.route.locked == v
+			"no_route": ok = (gs.route.current() == &"") == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
 				ok = false
@@ -161,6 +165,8 @@ func _apply_effects(effects: Array) -> void:
 		if e.has("take_gold"):
 			gs.player.gold = maxi(0, gs.player.gold - e.take_gold)
 		if e.has("recruit"):
+			if gs.npc_refuses(e.recruit):
+				messages.append("%s won't travel with someone like you." % NpcLibrary.get_npc(e.recruit).name)
 			var c := gs.recruit(e.recruit)
 			if c:
 				messages.append("%s joined the party!" % c.character_name if gs.companions.has(c)
@@ -169,13 +175,21 @@ func _apply_effects(effects: Array) -> void:
 			gs.full_restore_party()
 			messages.append("Everyone feels rested.")
 		if e.has("open_shop"):
-			requests.append("shop")
+			# true = the merchant; a shop id string = that trader's stock.
+			requests.append("shop" if e.open_shop is bool else "shop:%s" % e.open_shop)
 		if e.has("rejoin") and companion:
-			if gs.rejoin(companion):
+			if gs.refuses_to_rejoin(companion):
+				messages.append("%s won't come back while you walk this path." % companion.character_name)
+			elif gs.rejoin(companion):
 				messages.append("%s is back%s!" % [companion.character_name,
 					"" if gs.companions.has(companion) else " (on the reserve)"])
 			else:
 				messages.append("No room: the party and reserve are full.")
+		if e.has("route_points"):
+			for r in e.route_points:
+				gs.add_route_points(r, e.route_points[r])
+		if e.has("lock_route"):
+			gs.lock_route(e.lock_route)
 		if e.has("take_item"):
 			gs.inventory.remove(e.take_item, e.get("count", 1))
 		if e.has("start_quest"):

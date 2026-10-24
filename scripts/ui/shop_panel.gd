@@ -1,9 +1,14 @@
 class_name ShopPanel
 extends Control
-## Rest-floor merchant. Sells ItemLibrary.SHOP_STOCK for the leader's gold.
+## A trader's shop (ItemLibrary.SHOPS): the rest-floor merchant by default, or
+## another trader like the black market. Sells for the leader's gold.
 
 signal closed
 
+## Which ItemLibrary.SHOPS entry is open.
+var shop_id: StringName = &"merchant"
+var _title: Label
+var _greet: Label
 var _list: VBoxContainer
 var _gold: Label
 var _message: Label
@@ -32,14 +37,12 @@ func _init() -> void:
 	box.add_theme_constant_override("separation", 10)
 	margin.add_child(box)
 
-	var title := Label.new()
-	title.text = "Merchant"
-	title.add_theme_font_size_override("font_size", 24)
-	box.add_child(title)
-	var greet := Label.new()
-	greet.text = "\"Climbing, are we? You'll want these.\""
-	greet.modulate = Color(1, 1, 1, 0.7)
-	box.add_child(greet)
+	_title = Label.new()
+	_title.add_theme_font_size_override("font_size", 24)
+	box.add_child(_title)
+	_greet = Label.new()
+	_greet.modulate = Color(1, 1, 1, 0.7)
+	box.add_child(_greet)
 	_gold = Label.new()
 	box.add_child(_gold)
 	_list = VBoxContainer.new()
@@ -52,7 +55,11 @@ func _init() -> void:
 	box.add_child(close_btn)
 
 
-func open() -> void:
+func open(id: StringName = &"merchant") -> void:
+	shop_id = id if ItemLibrary.SHOPS.has(id) else &"merchant"
+	var shop: Dictionary = ItemLibrary.SHOPS[shop_id]
+	_title.text = shop.name
+	_greet.text = shop.greet
 	_message.text = ""
 	_rebuild()
 	show()
@@ -69,12 +76,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		close()
 
 
+## What this trader charges for `item` right now.
+static func price_of(shop: StringName, item: ItemDef) -> int:
+	var prices: Dictionary = ItemLibrary.SHOPS.get(shop, {}).get("prices", {})
+	return prices.get(item.id, GameState.shop_price(item))
+
+
 func _rebuild() -> void:
 	for c in _list.get_children():
 		c.queue_free()
 	_gold.text = "Gold: %d" % GameState.player.gold
-	for id in ItemLibrary.SHOP_STOCK:
+	var shop: Dictionary = ItemLibrary.SHOPS[shop_id]
+	for id in shop.stock:
 		var item := ItemLibrary.get_item(id)
+		var price := price_of(shop_id, item)
 		var row := HBoxContainer.new()
 		var l := Label.new()
 		l.text = "%s — %s  (have %d)" % [item.display_name, item.description, GameState.inventory.count(id)]
@@ -84,10 +99,10 @@ func _rebuild() -> void:
 		row.add_child(l)
 		var b := Button.new()
 		var full := not GameState.inventory.has_room(id)
-		b.text = ("Max %d" % item.max_carry) if full else ("Buy %dg" % item.price)
-		b.disabled = full or GameState.player.gold < item.price
+		b.text = ("Max %d" % item.max_carry) if full else ("Buy %dg" % price)
+		b.disabled = full or GameState.player.gold < price
 		b.pressed.connect(func():
-			if GameState.buy_item(id):
+			if GameState.buy_item(id, price):
 				_message.text = "Bought a %s." % item.display_name
 			_rebuild())
 		row.add_child(b)

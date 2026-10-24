@@ -81,6 +81,9 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/story/quest_log.gd` | Your quests this run: progress, rewards, deadlines, notice-board bounties, saving. |
 | `scripts/ui/quest_log_panel.gd`, `notice_board_panel.gd` | Tab → Quests and the rest-floor notice board. |
 | `tests/test_quests.gd` | 68 quest checks: every goal type, rewards, expiry/failing, dialogue hooks, the board, saving. Run: `godot --headless res://tests/test_quests.tscn` |
+| `scripts/story/route_library.gd`, `route_state.gd` | Routes, endings (with priorities) and this run's route points / lock. |
+| `scripts/autoload/dlc_loader.gd` | Loads DLC packs and their `content.gd` at startup. |
+| `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
 ## Dialogue, NPCs and recruiting
@@ -149,7 +152,24 @@ Open it with **Tab → Manage party**.
   - **The Torn Map**: a map on floors 2–9 leads to a hidden cache from floor 6, which pays out a Cartographer's Charm.
   - **Slime Survey** (board, floor 5+): defeat 8 slimes, and the reward reveals all slime weaknesses.
 - Bounty pay (`QuestLog.BOUNTY_*`): 10 gold + 2 per floor and 15 XP + 2 per floor, per enemy asked for. The balance pass can tune it.
-- **Not built yet (part 2):** Hero/Villain/Vigilante routes, endings, companions leaving over your route, route-flavored bounties.
+
+## Routes and endings
+- **Routes:** Hero, Villain and Vigilante (`scripts/story/route_library.gd`). Your choices, quests and some bounties add **points** to a route. You **lean** toward one at **10 points** if it's ahead of the rest (a tie doesn't count). A route **locks** for good at **30 points with a 15-point lead**, or through a **key choice**.
+- **You only ever see hints**, never numbers: a line in the Tab menu ("People lower their voices when you pass."), how NPCs treat you, prices.
+- **What your route changes:**
+  - **The ending:** beating the final floor shows your route's ending, or **The Wanderer** if you never leaned.
+  - **Quests and dialogue:** `route`, `not_route`, `route_locked` and `no_route` conditions, plus `route_points` and `lock_route` effects.
+  - **Who joins and stays:** each companion has values (`"likes"` / `"dislikes"`). Lean into a route they dislike and they warn you in a conversation. Keep going (20 points, or a lock) and they leave: their gear goes to your bag, they wait by a campfire, and they refuse to rejoin until you turn back. Your childhood friend can leave too. A recruitable NPC won't join someone on a route they dislike.
+  - **Shops:** heroes pay 10% less and villains 25% more (`GameState.HERO_PRICE_MULT` / `VILLAIN_PRICE_MULT`). A locked-in villain is refused by the merchant, but a **hooded trader (the black market)** appears on rest floors for anyone on the villain route, with its own stock and prices.
+  - **Classes:** a class can have a `required_route` (for tier-2 advancement later). It's hidden and can't be taken on other routes.
+  - **Bounties:** besides the family bounty, board jobs can be a **Shady job** (more gold, nudges villain), a **Plea for help** (less gold, nudges hero) or **Wanted** (nudges vigilante).
+- **Endings are picked by priority:** when the run ends, the most specific ending that fits wins. The route endings are priority 10, the Wanderer is 0 and always fits.
+- **The Hall of Climbers** records every ending a character has reached. New Game+ starts the route over, so you can try another one.
+- **DLC-ready:** at startup the game mounts any `.pck` in a `dlc` folder next to the game exe and calls `register()` on each `res://dlc/<name>/content.gd`. A DLC can add routes and endings (e.g. a priority-20 "The Lonely Hero" ending for heroes whose friend left) without changing the base game. Packs are only read from the game's own folder, never from saves. There's an example pack in `tests/fixtures/dlc/`.
+- **Placeholder route content:**
+  - **A captured bandit** on cleared boss floors: let them go (hero), turn them in (vigilante) or rob them (villain).
+  - **The crossroads shrine** on rest floors from 15, while no route is locked: the key choice, swearing an oath that locks a route.
+- Tunables: `RouteLibrary.LEAN_POINTS / LOCK_POINTS / LOCK_LEAD`, `GameState.COMPANION_LEAVE_POINTS`, `QuestLog.BOUNTY_FLAVORS`.
 
 ## Elements, weaknesses and the Bestiary
 Plan your party on floors 1–9 for the boss on floor 10.

@@ -32,6 +32,23 @@ const NPCS := {
 			"class_id": &"tank",
 			"build": { Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 4, Stats.Type.STRENGTH: 3 },
 		},
+		# Routes he likes / won't stand for (placeholder). See GameState routes.
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	# --- Route content (placeholders) ---
+	&"black_market": {
+		"name": "Hooded trader", "kind": "npc", "dialogue": &"black_market", "color": Color(0.25, 0.2, 0.3),
+		"floors": ["rest", "boss"], "min_floor": 5, "max_floor": 9999, "near": "merchant",
+		"if": { "route": &"villain" },
+	},
+	&"captured_bandit": {
+		"name": "Captured bandit", "kind": "npc", "dialogue": &"captured_bandit", "color": Color(0.6, 0.5, 0.35),
+		"floors": ["boss"], "min_floor": 10, "max_floor": 9999, "gone_flag": &"bandit_judged",
+	},
+	&"crossroads_shrine": {
+		"name": "Crossroads shrine", "kind": "object", "dialogue": &"crossroads_shrine", "color": Color(0.85, 0.85, 0.95),
+		"floors": ["rest"], "min_floor": 15, "max_floor": 9999,
+		"if": { "route_locked": false },
 	},
 	# A hint about the current stage's enemies, on some normal floors.
 	&"warning_scrawl": {

@@ -8,6 +8,17 @@ static var _items: Dictionary = _build()
 ## Goddess Tears are deliberately pricey here; bosses drop them for free.
 const SHOP_STOCK := [&"potion", &"advanced_potion", &"ether", &"scouting_lens", &"goddess_tear"]
 
+## Every trader. "prices" overrides an item's price (and skips the merchant's
+## route discounts/markups); items not listed use GameState.shop_price.
+const SHOPS := {
+	&"merchant": { "name": "Merchant", "greet": "\"Climbing, are we? You'll want these.\"",
+		"stock": SHOP_STOCK, "prices": {} },
+	# Villain route only. Sells what honest traders won't, at its own prices.
+	&"black_market": { "name": "Black Market", "greet": "\"(Placeholder) No names, no questions. Coin first.\"",
+		"stock": [&"advanced_potion", &"ether", &"scouting_lens", &"goddess_tear"],
+		"prices": { &"advanced_potion": 140, &"ether": 120, &"scouting_lens": 160, &"goddess_tear": 900 } },
+}
+
 
 static func _build() -> Dictionary:
 	var list: Array[ItemDef] = [

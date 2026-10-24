@@ -18,6 +18,8 @@ extends Resource
 @export var friend_name: String = ""
 ## The save slot this character conquered the tower in. New Game+ reuses it.
 @export var slot: int = 1
+## Ending ids this character has reached (RouteLibrary), across all their runs.
+@export var endings_seen: Array[StringName] = []
 
 
 func display_name() -> String:

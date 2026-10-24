@@ -9,7 +9,8 @@ extends RefCounted
 ##   "giver":   who you get it from, for the log ("Merchant", "Notice board"...)
 ##   "steps":   done in order. Each: { "text": "Defeat 5 slimes", "goal": <goal> }
 ##   "rewards": (optional) { "gold", "xp", "items": { id: count },
-##              "gear": <quest gear>, "flags": [..], "reveal_family": &"slime" }
+##              "gear": <quest gear>, "flags": [..], "reveal_family": &"slime",
+##              "route_points": { &"hero": 3 } }
 ##              Quest gear is marked quest_reward, so it never carries into NG+.
 ##   "drops":   (optional) quest items enemies drop WHILE a collect step needs
 ##              them: [{ "item", "family" or "enemy", "chance" }]
@@ -132,6 +133,9 @@ static func validate(id: StringName, q: Dictionary) -> PackedStringArray:
 		problems.append("%s: reward gear has unknown base %s" % [id, r.gear.get("base")])
 	if r.has("reveal_family") and not EnemyFamilies.FAMILIES.has(r.reveal_family):
 		problems.append("%s: reveals unknown family %s" % [id, r.reveal_family])
+	for route_id in r.get("route_points", {}):
+		if not RouteLibrary.routes.has(route_id):
+			problems.append("%s: reward for unknown route %s" % [id, route_id])
 	for key in ["auto_start", "board_if"]:
 		for k in q.get(key, {}):
 			if not k in DialogueLibrary.CONDITION_KEYS:

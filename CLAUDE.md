@@ -10,10 +10,11 @@ Building the **Skeleton** (every system working) before the **Meat** (story,
 quests, relationships). Don't write story content unless asked.
 
 Skeleton items still open (Hayden picks the order):
-routes + endings (quests part 2, NEXT), tier-2 class advancement after floor
-20 (also where deeper elemental skill lines go, e.g. Fire mage -> Lava =
-Fire + Earth), selling gear, balance pass (incl. bounty rewards), art/sound
-hooks.
+tier-2 class advancement after floor 20 (also where deeper elemental skill
+lines go, e.g. Fire mage -> Lava = Fire + Earth; ClassDef.required_route is
+ready for route-only advancements), selling gear, balance pass (incl. bounty
+rewards, route thresholds), art/sound hooks (+ credits screen with Godot's
+license notice).
 Hayden will send tweaks to the enemy family table after playing it.
 
 ### Layout rule
@@ -26,8 +27,12 @@ cut-off screens, ask for his resolution + Windows display scaling.
 Part 1 (quests) is BUILT: QuestLibrary (data + validator), QuestLog
 (GameState.quests: progress, rewards, expiry, bounties, save), dialogue
 hooks, notice board, Tab -> Quests, HUD tracker, quest toasts.
-Part 2 (routes, endings, companions leaving, route-flavored bounties, Hall
-recording endings) is NOT built yet.
+Part 2 (routes) is BUILT: RouteLibrary (routes, endings by priority,
+register_* for DLC), RouteState (GameState.route), companion values/warning/
+leaving, merchant prices + refusal, black market, route-flavored bounties,
+ClassDef.required_route, Hall endings_seen, DlcLoader (res://dlc/<name>/
+content.gd + .pck files next to the exe). Hayden wants DLC to be able to add
+more routes/endings: keep new route content data-driven and registrable.
 - Quest sources: NPC dialogue, rest-floor notice board, found items/lore
   objects, and a main story questline.
 - Goal types: defeat enemies (count/family/specific boss or roamer),
@@ -112,7 +117,7 @@ FINAL_FLOOR = 20 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (10 suites, 593 checks at last run).
+Every change gets tests in tests/ (11 suites, 660 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -121,8 +126,8 @@ Run headless from the project folder:
 (Replace `godot` with the Godot 4.7.2 console exe on this PC:
 C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
-test_skills, test_dialogue, test_party, test_elements, test_quests. All must pass before
-handing work back.
+test_skills, test_dialogue, test_party, test_elements, test_quests,
+test_routes. All must pass before handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 
 ## Working with Hayden

@@ -32,6 +32,10 @@ extends RefCounted
 ##   "quest_new": &"id"      that quest was never started (so it can be offered)
 ##   "quest_active": &"id"   /  "quest_done": &"id"  /  "quest_failed": &"id"
 ##   "quest_on_step": [&"id", i]  the quest is active and on step i (0 = first)
+##   "route": &"hero"        you're on that route (locked, or clearly leaning)
+##   "not_route": &"villain" you're NOT on that route
+##   "route_locked": &"hero" that route is locked in (true/false = any route locked or not)
+##   "no_route": true        neutral (not on any route)
 ##
 ## Effects (a list of one-key dictionaries, run in order):
 ##   { "set_flag": &"x" }  { "clear_flag": &"x" }
@@ -43,6 +47,9 @@ extends RefCounted
 ##   { "rejoin": true }         the dismissed companion you're talking to comes back
 ##   { "start_quest": &"id" }   { "fail_quest": &"id" }   (QuestLibrary ids)
 ##   { "take_item": &"id", "count": 1 }   e.g. handing over quest items
+##   { "route_points": { &"hero": 3 } }   nudges your route (negative = away)
+##   { "lock_route": &"villain" }  a KEY choice: that route for good
+##   { "open_shop": "black_market" }  a different trader's stock (ShopPanel)
 ##
 ## Story content goes here later. What's below are placeholder lines so every
 ## system (shop, clues, recruiting) can be tested.
@@ -50,8 +57,16 @@ extends RefCounted
 const DIALOGUES := {
 	# --- The rest-floor merchant. Bumping the merchant starts this. ---
 	&"merchant": {
-		"start": "hello",
+		# Locked-in villains get turned away (prices also shift with your route).
+		"start": [
+			{ "if": { "route_locked": &"villain" }, "node": "refuse" },
+			{ "node": "hello" },
+		],
 		"nodes": {
+			"refuse": {
+				"speaker": "Merchant",
+				"text": "(Placeholder) I know who you are. I don't sell to your kind. Try the alleys.",
+			},
 			"hello": {
 				"speaker": "Merchant",
 				"text": "Climbing, are we? You'll want supplies.",
@@ -92,6 +107,81 @@ const DIALOGUES := {
 				"speaker": "Merchant",
 				"text": "{stage_hint}",
 				"next": "hello",
+			},
+		},
+	},
+
+	# --- Route reactions from companions ({npc} = the companion). ---
+	&"companion_warning": {
+		"start": "warn",
+		"nodes": {
+			"warn": {
+				"speaker": "{npc}",
+				"text": "(Placeholder) {player}... I don't like who you're becoming. Keep going like this and I'm gone.",
+			},
+		},
+	},
+	&"companion_leaving": {
+		"start": "leave",
+		"nodes": {
+			"leave": {
+				"speaker": "{npc}",
+				"text": "(Placeholder) I warned you. I can't follow you down this path. If you ever turn back, I'll be by a campfire.",
+			},
+		},
+	},
+
+	# --- Route placeholders: a choice that nudges your route, and a key choice. ---
+	&"captured_bandit": {
+		"start": "plead",
+		"nodes": {
+			"plead": {
+				"speaker": "Captured bandit",
+				"text": "(Placeholder) The boss had me chained here. Please, let me go. I'll never rob anyone again.",
+				"choices": [
+					{ "text": "Let them go.", "next": "freed",
+						"effects": [{ "route_points": { &"hero": 5 } }, { "set_flag": &"bandit_judged" }] },
+					{ "text": "Turn them in for the bounty.", "next": "turned_in",
+						"effects": [{ "route_points": { &"vigilante": 5 } }, { "give_gold": 150 }, { "set_flag": &"bandit_judged" }] },
+					{ "text": "Take everything they have.", "next": "robbed",
+						"effects": [{ "route_points": { &"villain": 5 } }, { "give_gold": 250 }, { "set_flag": &"bandit_judged" }] },
+				],
+			},
+			"freed": { "speaker": "Captured bandit", "text": "(Placeholder) Thank you. I won't forget this." },
+			"turned_in": { "speaker": "Captured bandit", "text": "(Placeholder) ...Figures." },
+			"robbed": { "speaker": "Captured bandit", "text": "(Placeholder) You're worse than the boss." },
+		},
+	},
+	&"crossroads_shrine": {
+		"start": [
+			{ "if": { "route_locked": true }, "node": "settled" },
+			{ "node": "oath" },
+		],
+		"nodes": {
+			"oath": {
+				"speaker": "",
+				"text": "(Placeholder) An old shrine where three paths meet. An oath sworn here can't be taken back.",
+				"choices": [
+					{ "text": "Swear to protect the tower's people.", "next": "sworn", "effects": [{ "lock_route": &"hero" }] },
+					{ "text": "Swear to take what you want.", "next": "sworn", "effects": [{ "lock_route": &"villain" }] },
+					{ "text": "Swear to judge for yourself.", "next": "sworn", "effects": [{ "lock_route": &"vigilante" }] },
+					{ "text": "Not yet." },
+				],
+			},
+			"sworn": { "speaker": "", "text": "(Placeholder) The shrine's light settles on you. There's no going back now." },
+			"settled": { "speaker": "", "text": "(Placeholder) The shrine is quiet. Your path is already chosen." },
+		},
+	},
+	&"black_market": {
+		"start": "hello",
+		"nodes": {
+			"hello": {
+				"speaker": "Hooded trader",
+				"text": "(Placeholder) Heard you're not fussy about how things get done. Neither am I.",
+				"choices": [
+					{ "text": "Show me what you've got.", "effects": [{ "open_shop": "black_market" }] },
+					{ "text": "Not now." },
+				],
 			},
 		},
 	},
@@ -202,9 +292,10 @@ const DIALOGUES := {
 
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
-	"quest_on_step"]
+	"quest_on_step", "route", "not_route", "route_locked", "no_route"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
-	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item"]
+	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
+	"route_points", "lock_route"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:
@@ -276,6 +367,9 @@ static func _validate_condition(where: String, cond: Dictionary) -> PackedString
 		problems.append("%s: unknown NPC '%s'" % [where, cond.recruited])
 	if cond.has("on_secret_path") and not SecretPaths.PATHS.has(cond.on_secret_path):
 		problems.append("%s: unknown secret path '%s'" % [where, cond.on_secret_path])
+	for k in ["route", "not_route", "route_locked"]:
+		if cond.has(k) and not (k == "route_locked" and cond[k] is bool) and not RouteLibrary.routes.has(cond[k]):
+			problems.append("%s: unknown route '%s'" % [where, cond[k]])
 	for k in ["quest_new", "quest_active", "quest_done", "quest_failed"]:
 		if cond.has(k) and not QuestLibrary.QUESTS.has(cond[k]):
 			problems.append("%s: unknown quest '%s'" % [where, cond[k]])
@@ -307,4 +401,11 @@ static func _validate_effects(where: String, effects: Array) -> PackedStringArra
 				problems.append("%s: unknown quest '%s'" % [where, e[k]])
 		if e.has("take_item") and ItemLibrary.get_item(e.take_item) == null:
 			problems.append("%s: unknown item '%s'" % [where, e.take_item])
+		if e.has("lock_route") and not RouteLibrary.routes.has(e.lock_route):
+			problems.append("%s: unknown route '%s'" % [where, e.lock_route])
+		for r in e.get("route_points", {}):
+			if not RouteLibrary.routes.has(r):
+				problems.append("%s: unknown route '%s'" % [where, r])
+		if e.get("open_shop") is String and not ItemLibrary.SHOPS.has(StringName(e.open_shop)):
+			problems.append("%s: unknown shop '%s'" % [where, e.open_shop])
 	return problems

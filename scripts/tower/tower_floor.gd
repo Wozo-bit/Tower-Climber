@@ -151,8 +151,13 @@ func _process(delta: float) -> void:
 	if not _dialogue.visible:
 		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
-	if not GameState.quests.messages.is_empty():
+	if not GameState.quests.messages.is_empty() or not GameState.route.messages.is_empty():
 		_show_quest_messages()
+	# A companion wants a word about your route (warning, or leaving).
+	if not GameState.pending_talks.is_empty() and not _menus_open() and _player_t >= 1.0:
+		var talk_req: Dictionary = GameState.pending_talks.pop_front()
+		_talk_cooldown = 0.0
+		talk(talk_req.dialogue, talk_req.companion)
 
 	if not _menus_open():
 		_update_player(delta)
@@ -368,8 +373,11 @@ func _on_dialogue_finished(runner: DialogueRunner) -> void:
 	_autosave()
 	if not runner.messages.is_empty():
 		_show_toast("\n".join(runner.messages))
-	if runner.requests.has("shop"):
-		_shop.open()
+	for r in runner.requests:
+		if r == "shop":
+			_shop.open()
+		elif r.begins_with("shop:"):
+			_shop.open(StringName(r.trim_prefix("shop:")))
 
 
 ## "the Goblin Captain (miniboss)" if the next floor has a miniboss or boss, else "".
@@ -403,6 +411,7 @@ func _show_completion() -> void:
 	var was_real_run := GameState.run_active
 	var ng := GameState.ng_plus_cycle
 	var time := LegacyRecord.format_time(GameState.play_time_sec)
+	var ending: Dictionary = RouteLibrary.pick_ending()   # before the run is wrapped up
 	var rec := GameState.complete_run() if was_real_run else null
 
 	var overlay := ColorRect.new()
@@ -432,11 +441,13 @@ func _show_completion() -> void:
 	var body := Label.new()
 	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.text = "%s\n%s\n\n" % [ending.get("title", ""), ending.get("text", "")]
 	if rec:
-		body.text = "%s has been recorded in the Hall of Climbers.\nCleared %s in %s (times cleared: %d).\n\nNew Game+ is open: climb again with %s from the title screen." % [
-			rec.display_name(), "the normal game" if ng == 0 else "NG+%d" % ng, time, rec.times_cleared, rec.display_name()]
+		body.text += "%s has been recorded in the Hall of Climbers.\nCleared %s in %s (times cleared: %d, endings seen: %d).\n\nNew Game+ is open: climb again with %s from the title screen." % [
+			rec.display_name(), "the normal game" if ng == 0 else "NG+%d" % ng, time, rec.times_cleared,
+			rec.endings_seen.size(), rec.display_name()]
 	else:
-		body.text = "(Dev sandbox run: not recorded in the Hall of Climbers.)"
+		body.text += "(Dev sandbox run: not recorded in the Hall of Climbers.)"
 	box.add_child(body)
 	var btn := Button.new()
 	btn.text = "Return to Title"
@@ -742,8 +753,9 @@ func _show_toast(text: String) -> void:
 
 ## Quest news ("Quest updated: ...") gets its own line so it never hides other toasts.
 func _show_quest_messages() -> void:
-	_quest_toast.text = "\n".join(GameState.quests.messages)
+	_quest_toast.text = "\n".join(GameState.quests.messages + GameState.route.messages)
 	GameState.quests.messages.clear()
+	GameState.route.messages.clear()
 	_quest_toast.modulate.a = 1.0
 	var tw := _quest_toast.create_tween()
 	tw.tween_interval(3.0)
