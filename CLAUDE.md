@@ -15,6 +15,19 @@ skill lines go, e.g. Fire mage -> Lava = Fire + Earth), selling gear, balance
 pass, art/sound hooks.
 Hayden will send tweaks to the enemy family table after playing it.
 
+### To do first when Hayden is back (in this order)
+1. Upgrade the project to Godot 4.7.2 on its own branch (after merging
+   feature/boss-weaknesses into main): headless import with 4.7.2, run all
+   suites, fix breakages, update this file's version/paths.
+2. BUG (Hayden, playing in-game): the screen gets cut off and doesn't
+   fit/adjust to the window, so in fights the command buttons can end up off
+   screen. Every screen must always fit, battle commands always visible.
+   Likely fix: project.godot has no stretch settings (only 1280x720
+   viewport) -> set display/window/stretch/mode="canvas_items" and
+   aspect="expand", then check battle/party/manage/bestiary layouts at
+   smaller and larger window sizes (and fullscreen). Ask him for his screen
+   resolution / Windows display scaling if it still happens.
+
 ### NEXT: Quests + routes (designed with Hayden 2026-10-24, not built yet)
 - Quest sources: NPC dialogue, rest-floor notice board, found items/lore
   objects, and a main story questline.
