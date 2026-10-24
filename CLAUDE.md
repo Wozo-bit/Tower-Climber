@@ -1,6 +1,6 @@
 # Tower Climber — notes for Claude
 
-Manhwa-inspired tower-climber RPG in **Godot 4.6.1** (GDScript). Plays like
+Manhwa-inspired tower-climber RPG in **Godot 4.7.2** (GDScript; upgraded from 4.6.1). Plays like
 Hero's Adventure: Road to Passion / Final Fantasy: FF-style menu combat with
 front/back rows. README.md documents every system and its tunables — read it
 before changing gameplay.
@@ -16,10 +16,7 @@ pass, art/sound hooks.
 Hayden will send tweaks to the enemy family table after playing it.
 
 ### To do first when Hayden is back (in this order)
-1. Upgrade the project to Godot 4.7.2 on its own branch (after merging
-   feature/boss-weaknesses into main): headless import with 4.7.2, run all
-   suites, fix breakages, update this file's version/paths.
-2. BUG (Hayden, playing in-game): the screen gets cut off and doesn't
+1. BUG (Hayden, playing in-game): the screen gets cut off and doesn't
    fit/adjust to the window, so in fights the command buttons can end up off
    screen. Every screen must always fit, battle commands always visible.
    Likely fix: project.godot has no stretch settings (only 1280x720
@@ -118,7 +115,8 @@ Run headless from the project folder:
     godot --headless --path . --import
     godot --headless --path . res://tests/test_skills.tscn
 
-(Replace `godot` with the path to the Godot 4.6.1 executable on this PC.)
+(Replace `godot` with the Godot 4.7.2 console exe on this PC:
+C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements. All must pass before
 handing work back.
