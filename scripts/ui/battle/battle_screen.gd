@@ -464,10 +464,16 @@ func _build_ui() -> void:
 	top.add_child(_turn_strip)
 
 	# --- Middle: battlefield ---
+	# Scrolls (rarely) instead of growing, so the commands below always stay on screen.
+	var field_scroll := ScrollContainer.new()
+	field_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	field_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(field_scroll)
 	var field := HBoxContainer.new()
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	field.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	field.add_theme_constant_override("separation", 18)
-	root.add_child(field)
+	field_scroll.add_child(field)
 	for key in ["enemy_back", "enemy_front"]:
 		field.add_child(_make_column(key))
 	var spacer := Control.new()
@@ -483,7 +489,7 @@ func _build_ui() -> void:
 
 	# --- Bottom: commands | skills | log ---
 	var bottom := HBoxContainer.new()
-	bottom.custom_minimum_size.y = 220
+	bottom.custom_minimum_size.y = 210
 	bottom.add_theme_constant_override("separation", 16)
 	root.add_child(bottom)
 
@@ -535,7 +541,7 @@ func _build_ui() -> void:
 func _make_column(key: String) -> VBoxContainer:
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_theme_constant_override("separation", 10)
+	col.add_theme_constant_override("separation", 6)
 	var header := Label.new()
 	header.text = key.split("_")[1].capitalize() + " row"
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

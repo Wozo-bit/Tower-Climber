@@ -15,15 +15,11 @@ skill lines go, e.g. Fire mage -> Lava = Fire + Earth), selling gear, balance
 pass, art/sound hooks.
 Hayden will send tweaks to the enemy family table after playing it.
 
-### To do first when Hayden is back (in this order)
-1. BUG (Hayden, playing in-game): the screen gets cut off and doesn't
-   fit/adjust to the window, so in fights the command buttons can end up off
-   screen. Every screen must always fit, battle commands always visible.
-   Likely fix: project.godot has no stretch settings (only 1280x720
-   viewport) -> set display/window/stretch/mode="canvas_items" and
-   aspect="expand", then check battle/party/manage/bestiary layouts at
-   smaller and larger window sizes (and fullscreen). Ask him for his screen
-   resolution / Windows display scaling if it still happens.
+### Layout rule
+Every screen must fit the 1280x720 design size (the window scales via
+stretch mode canvas_items/expand). The battle field scrolls instead of
+growing so the command buttons are always on screen. If Hayden still sees
+cut-off screens, ask for his resolution + Windows display scaling.
 
 ### NEXT: Quests + routes (designed with Hayden 2026-10-24, not built yet)
 - Quest sources: NPC dialogue, rest-floor notice board, found items/lore

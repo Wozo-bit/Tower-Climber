@@ -33,16 +33,16 @@ func _init(p_unit: Combatant) -> void:
 	_style.set_border_width_all(2)
 	_style.border_color = Color(0.25, 0.25, 0.3)
 	_style.set_corner_radius_all(6)
-	_style.set_content_margin_all(8)
+	_style.set_content_margin_all(6)
 	add_theme_stylebox_override("panel", _style)
 
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 3)
+	box.add_theme_constant_override("separation", 1)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(box)
 
 	_sprite = ColorRect.new()
-	_sprite.custom_minimum_size = Vector2(0, 44)
+	_sprite.custom_minimum_size = Vector2(0, 26)
 	_sprite.color = unit.color
 	_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(_sprite)
@@ -118,6 +118,7 @@ func refresh() -> void:
 	if unit.side == Combatant.Side.ENEMY and unit.is_alive() and unit.stagger > 0:
 		tags.append("Stagger %d/%d" % [unit.stagger, unit.stagger_max])
 	_status.text = " ".join(tags)
+	_status.visible = _status.text != ""   # empty lines would still take up height
 	if unit.is_alive():
 		_sprite.color = unit.color   # also restores colour after a revive
 	else:
@@ -175,9 +176,11 @@ func set_known(text: String) -> void:
 
 func set_intent(text: String) -> void:
 	_intent.text = text
+	_intent.visible = text != ""
 	_intent.add_theme_color_override("font_color", Color(1.0, 0.75, 0.45))
 
 
 func set_threat(text: String) -> void:
 	_intent.text = text
+	_intent.visible = text != ""
 	_intent.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
