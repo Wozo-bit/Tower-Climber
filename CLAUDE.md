@@ -13,7 +13,35 @@ Skeleton items still open (Hayden picks the order):
 quests, tier-2 class advancement after floor 20 (also where deeper elemental
 skill lines go, e.g. Fire mage -> Lava = Fire + Earth), selling gear, balance
 pass, art/sound hooks.
-Hayden will send tweaks to the enemy family table after playing it. Tutorial is deliberately deferred until the game is closer
+Hayden will send tweaks to the enemy family table after playing it.
+
+### NEXT: Quests + routes (designed with Hayden 2026-10-24, not built yet)
+- Quest sources: NPC dialogue, rest-floor notice board, found items/lore
+  objects, and a main story questline.
+- Goal types: defeat enemies (count/family/specific boss or roamer),
+  collect/deliver items, reach floor / find something, talk to someone.
+- Rewards: gold/XP/items/books, quest_reward gear (never carries to NG+),
+  unlocks (recruits, secret-path clues, shop items, tier-2 class reqs),
+  bestiary knowledge.
+- Failing: optional quests can expire (floor limit) and choices can close
+  quests off. A failed quest goes to "Failed" and can set a flag that opens
+  another quest or consequence.
+- ROUTES (multiple endings): Hero, Villain, Vigilante (more later). Tracked
+  by points per route from choices/quests PLUS a few big key choices that
+  lock a route. Route changes: the ending, which quests are offered, who
+  joins (and stays), route-only classes and shops (merchants refusing etc.).
+  Player sees HINTS only (reputation line in Tab, NPC reactions), no meter.
+- Companions who strongly disagree warn first, then leave (wait at rest
+  floors, refuse to rejoin unless the route changes back). The childhood
+  friend CAN leave too on certain routes (big story moment).
+- NG+: route resets to neutral; the Hall of Climbers records which endings
+  that character has seen.
+- Notice board: both generated bounties fitting the current stage (3 per
+  rest floor, some route-flavored) and hand-written jobs at set floors/routes.
+- Tracking: Tab -> Quests log (active/completed/failed with step progress),
+  one pinned quest on the floor HUD, toasts on progress.
+- Build quests/routes as data (like DialogueLibrary), validated by tests;
+  placeholder text only, no real story. Tutorial is deliberately deferred until the game is closer
 to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
