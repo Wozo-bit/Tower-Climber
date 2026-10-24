@@ -15,7 +15,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 ## Saving, the Hall of Climbers and New Game+
 - **Autosave** happens when a run starts, on every floor, after every battle and at campfires. You can also save from the pause menu. Slots are `user://saves/slot_1.json` to `slot_3.json`.
 - **Saves are plain JSON, on purpose.** Godot's `.tres` format can contain scripts that run when loaded, so a shared or tampered save could run code on someone's computer. JSON can only hold data, and everything read back is validated: unknown ids are dropped, numbers clamped, names cleaned. A broken file just shows as "Unreadable save". Saves are written to a temp file and then swapped in, so a crash mid-save can't corrupt the slot.
-- **Completing the game** means beating the boss on `GameState.FINAL_FLOOR`, currently **20** (the design target is 100). The character is recorded in the **Hall of Climbers** (`user://hall_of_climbers.json`, kept across new games), and their save slot shows "conquered the tower" (it can't be continued, but New Game+ suggests it). Clearing again with the same character updates their record (times cleared, highest NG+ cycle, best time) instead of adding a duplicate.
+- **Completing the game** means beating the boss on `GameState.FINAL_FLOOR`, currently **30** (the design target is 100). The character is recorded in the **Hall of Climbers** (`user://hall_of_climbers.json`, kept across new games), and their save slot shows "conquered the tower" (it can't be continued, but New Game+ suggests it). Clearing again with the same character updates their record (times cleared, highest NG+ cycle, best time) instead of adding a duplicate.
 - **What New Game+ keeps:**
   - Level, allocated stats, class and name.
   - **Unique gear only** (equipped, plus Uniques left in the bag or on companions), except gear marked `quest_reward`, which you'd earn again through its questline.
@@ -83,6 +83,8 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tests/test_quests.gd` | 68 quest checks: every goal type, rewards, expiry/failing, dialogue hooks, the board, saving. Run: `godot --headless res://tests/test_quests.tscn` |
 | `scripts/story/route_library.gd`, `route_state.gd` | Routes, endings (with priorities) and this run's route points / lock. |
 | `scripts/autoload/dlc_loader.gd` | Loads DLC packs and their `content.gd` at startup. |
+| `scripts/ui/advancement_panel.gd` | Tab → ✦ Advance: requirements checklist, begin trial, advance. |
+| `tests/test_classes.gd` | 42 advancement checks: the tree, lineage, gate, trials, keeping skills, builds, route-only classes, Uniques, saving. Run: `godot --headless res://tests/test_classes.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
@@ -153,6 +155,23 @@ Open it with **Tab → Manage party**.
   - **Slime Survey** (board, floor 5+): defeat 8 slimes, and the reward reveals all slime weaknesses.
 - Bounty pay (`QuestLog.BOUNTY_*`): 10 gold + 2 per floor and 15 XP + 2 per floor, per enemy asked for. The balance pass can tune it.
 
+## Class advancement (tier 2+)
+- **When:** each tier has a **gate** in `ClassRegistry.ADVANCEMENT_GATES`. Tier 2 needs you to have **beaten floor 20** and the character to be **level 25**. Once both are met, an **✦ Advance** button appears on that character in the Tab menu. More tiers (e.g. 3 at floor 40, 4 at 60, 5 at 80) are just a gate plus their classes; the design is 3–5 advancements over the full 100-floor climb.
+- **Each advancement also needs:** its **stat build** (a share of allocated points, like tier 1), its **route** if it's route-only, and its **trial quest**. Trials are placeholders: defeat 20 enemies, then a miniboss. Begin one from the Advance panel, and once it's done anyone who qualifies can take that class. The panel shows every requirement as ✔ / ✘.
+- **What you get:** you **keep every skill** (tier-1 class skills and learned ones) and gain **2 new skills**, plus **+10% to every stat** (`ADVANCED_STAT_BONUS`; Ascendant's +20% stays the strongest). Your basic attack, default row and your class's **Unique weapon** carry over. Unique drops treat you as your tier-1 class.
+- **The tree** (placeholder names, in `class_registry.gd` and skills in `skill_library.gd`):
+
+| Tier 1 | Advancement | Advancement | Route-only |
+|---|---|---|---|
+| Tank | Bastion (HP+STA): Bulwark, Iron Will | Juggernaut (STR+HP): Crushing Blow, Rampage | Paladin (Hero, HP+INT): Holy Strike, Lay on Hands |
+| Mage | Pyromancer (INT): Magma Burst (Fire+Earth), Inferno | Stormcaller (INT+AGI): Chain Lightning, Tempest (Wind+Lightning) | Warlock (Villain, INT+HP): Hex Bolt, Doom Wave |
+| Archer | Sharpshooter (AGI+LUCK): Deadeye, Armor Breaker | Ranger (AGI+STR): Gale Arrows, Wind Step | — |
+| Rogue | Assassin (AGI+STR): Shadow Strike, Vanish | Trickster (LUCK+AGI): Lucky Strike, Smoke Screen | Executioner (Vigilante, STR+AGI): Execute, Grim Resolve |
+| Support | Cleric (INT+HP): Holy Light, Divine Lance | Oracle (INT+LUCK): Foresight, Starfall | — |
+
+- Route-only advancements are **hidden** unless you're on that route.
+- **The main questline** now continues to floor 30, where the climb ends for now.
+
 ## Routes and endings
 - **Routes:** Hero, Villain and Vigilante (`scripts/story/route_library.gd`). Your choices, quests and some bounties add **points** to a route. You **lean** toward one at **10 points** if it's ahead of the rest (a tie doesn't count). A route **locks** for good at **30 points with a 15-point lead**, or through a **key choice**.
 - **You only ever see hints**, never numbers: a line in the Tab menu ("People lower their voices when you pass."), how NPCs treat you, prices.
@@ -161,7 +180,7 @@ Open it with **Tab → Manage party**.
   - **Quests and dialogue:** `route`, `not_route`, `route_locked` and `no_route` conditions, plus `route_points` and `lock_route` effects.
   - **Who joins and stays:** each companion has values (`"likes"` / `"dislikes"`). Lean into a route they dislike and they warn you in a conversation. Keep going (20 points, or a lock) and they leave: their gear goes to your bag, they wait by a campfire, and they refuse to rejoin until you turn back. Your childhood friend can leave too. A recruitable NPC won't join someone on a route they dislike.
   - **Shops:** heroes pay 10% less and villains 25% more (`GameState.HERO_PRICE_MULT` / `VILLAIN_PRICE_MULT`). A locked-in villain is refused by the merchant, but a **hooded trader (the black market)** appears on rest floors for anyone on the villain route, with its own stock and prices.
-  - **Classes:** a class can have a `required_route` (for tier-2 advancement later). It's hidden and can't be taken on other routes.
+  - **Classes:** a class can have a `required_route` (Paladin, Warlock and Executioner do). It's hidden and can't be taken on other routes.
   - **Bounties:** besides the family bounty, board jobs can be a **Shady job** (more gold, nudges villain), a **Plea for help** (less gold, nudges hero) or **Wanted** (nudges vigilante).
 - **Endings are picked by priority:** when the run ends, the most specific ending that fits wins. The route endings are priority 10, the Wanderer is 0 and always fits.
 - **The Hall of Climbers** records every ending a character has reached. New Game+ starts the route over, so you can try another one.

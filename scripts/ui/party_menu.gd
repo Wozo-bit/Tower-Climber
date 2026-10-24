@@ -18,6 +18,7 @@ var _manage_panel: PartyManagePanel
 var _bestiary_panel: BestiaryPanel
 var _quest_panel: QuestLogPanel
 var _reputation: Label
+var _advance_panel: AdvancementPanel
 
 ## When set, the member list shows "Use here" buttons.
 ## { "kind": "item", "id": StringName } or { "kind": "heal", "caster": CharacterData, "skill": SkillDef }
@@ -133,6 +134,9 @@ func _init() -> void:
 	add_child(_bestiary_panel)
 	_quest_panel = QuestLogPanel.new()
 	add_child(_quest_panel)
+	_advance_panel = AdvancementPanel.new()
+	_advance_panel.closed.connect(_rebuild)
+	add_child(_advance_panel)
 
 	_class_screen = ClassSelectionScreen.new()
 	add_child(_class_screen)
@@ -157,7 +161,7 @@ func open_manage() -> void:
 
 func close() -> void:
 	if _class_screen.visible or _stats_overlay.visible or _gear_panel.visible or _skills_panel.visible \
-			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible:
+			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible:
 		return
 	hide()
 	closed.emit()
@@ -165,7 +169,7 @@ func close() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or _gear_panel.visible or _skills_panel.visible or _manage_panel.visible \
-			or _bestiary_panel.visible or _quest_panel.visible:
+			or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible:
 		return
 	if event.is_action_pressed("party_menu") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
@@ -331,6 +335,13 @@ func _member_row(member: CharacterData) -> Control:
 			class_btn.modulate = Color(0.5, 1, 1)
 			class_btn.pressed.connect(func(): _class_screen.open(member))
 			row.add_child(class_btn)
+		if member.advancement_open():
+			var adv_btn := Button.new()
+			adv_btn.text = "✦ Advance"
+			adv_btn.modulate = Color(0.6, 1, 0.8)
+			adv_btn.tooltip_text = "Advance to a stronger class (needs its trial)."
+			adv_btn.pressed.connect(func(): _advance_panel.open(member))
+			row.add_child(adv_btn)
 	return panel
 
 

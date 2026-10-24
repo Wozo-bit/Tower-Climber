@@ -259,6 +259,8 @@ func on_battle_won(defs: Array, rng: RandomNumberGenerator) -> void:
 
 ## Does a defeat goal count this enemy?
 static func matches(goal: Dictionary, def: EnemyDef) -> bool:
+	if goal.get("any", false):
+		return true
 	if goal.has("enemy"):
 		return def.id == goal.enemy
 	if goal.has("family"):

@@ -25,7 +25,7 @@ extends RefCounted
 ##
 ## Goals:
 ##   { "type": "defeat", "count": n, and ONE of "enemy": id / "family": id /
-##     "kind": "boss" | "miniboss" | "roaming" }
+##     "kind": "boss" | "miniboss" | "roaming" / "any": true }
 ##   { "type": "collect", "item": id, "count": n }    (items in the bag)
 ##   { "type": "reach", "floor": n }
 ##   { "type": "flag", "flag": &"x" }  talk to someone / find something: the
@@ -43,6 +43,8 @@ const QUESTS := {
 			{ "text": "Defeat the guardian of floor 10", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
 			{ "text": "Reach floor 11", "goal": { "type": "reach", "floor": 11 } },
 			{ "text": "Defeat the guardian of floor 20", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+			{ "text": "Reach floor 21", "goal": { "type": "reach", "floor": 21 } },
+			{ "text": "Defeat the guardian of floor 30", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
 		],
 		"rewards": { "gold": 500 },
 	},
@@ -92,7 +94,35 @@ const KINDS := ["main", "side", "bounty"]
 
 
 static func get_quest(id: StringName) -> Dictionary:
-	return QUESTS.get(id, {})
+	if QUESTS.has(id):
+		return QUESTS[id]
+	return trials().get(id, {})
+
+
+## Class trials: one per advanced class (tier 2+), id "trial_<class>". Started
+## from Tab -> party -> Advance; finishing one lets anyone who qualifies take
+## that class. Built from ClassRegistry, so new tiers get trials automatically.
+## Placeholder goals; give a class a hand-made trial by adding
+## "trial_<class>" to QUESTS above (it takes priority).
+static var _trial_cache: Dictionary = {}
+
+
+static func trials() -> Dictionary:
+	if _trial_cache.is_empty():
+		for def in ClassRegistry.get_all():
+			if def.advances_from == &"":
+				continue
+			var id := StringName("trial_" + String(def.id))
+			var count := 10 + 5 * def.tier
+			_trial_cache[id] = {
+				"title": "Trial of the %s" % def.display_name, "kind": "side", "giver": "Class trial",
+				"desc": "(Placeholder) Prove you're ready to become a %s." % def.display_name,
+				"steps": [
+					{ "text": "Defeat enemies", "goal": { "type": "defeat", "any": true, "count": count } },
+					{ "text": "Defeat a miniboss", "goal": { "type": "defeat", "kind": "miniboss", "count": 1 } },
+				],
+			}
+	return _trial_cache
 
 
 ## Checks every quest for typos (unknown enemies, items, families, goal types).
@@ -101,6 +131,8 @@ static func validate_all() -> PackedStringArray:
 	var problems: PackedStringArray = []
 	for id in QUESTS:
 		problems.append_array(validate(id, QUESTS[id]))
+	for id in trials():
+		problems.append_array(validate(id, trials()[id]))
 	return problems
 
 
@@ -147,9 +179,9 @@ static func validate_goal(where: String, g: Dictionary) -> PackedStringArray:
 	var problems: PackedStringArray = []
 	match g.get("type", ""):
 		"defeat":
-			var targets := ["enemy", "family", "kind"].filter(func(k): return g.has(k))
+			var targets := ["enemy", "family", "kind", "any"].filter(func(k): return g.has(k))
 			if targets.size() != 1:
-				problems.append("%s: defeat needs exactly one of enemy/family/kind" % where)
+				problems.append("%s: defeat needs exactly one of enemy/family/kind/any" % where)
 			if g.has("enemy") and EnemyLibrary.get_enemy_or_null(g.enemy) == null:
 				problems.append("%s: unknown enemy %s" % [where, g.enemy])
 			if g.has("family") and not EnemyFamilies.FAMILIES.has(g.family):

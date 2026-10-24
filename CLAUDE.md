@@ -10,11 +10,17 @@ Building the **Skeleton** (every system working) before the **Meat** (story,
 quests, relationships). Don't write story content unless asked.
 
 Skeleton items still open (Hayden picks the order):
-tier-2 class advancement after floor 20 (also where deeper elemental skill
-lines go, e.g. Fire mage -> Lava = Fire + Earth; ClassDef.required_route is
-ready for route-only advancements), selling gear, balance pass (incl. bounty
-rewards, route thresholds), art/sound hooks (+ credits screen with Godot's
-license notice).
+selling gear, balance pass (incl. bounty rewards, route thresholds, tier-2
+skills), art/sound hooks (+ credits screen with Godot's license notice).
+
+Class advancement is BUILT as a multi-tier system: ClassRegistry.
+ADVANCEMENT_GATES (tier 2 = beat floor 20 + level 25), per-class stat build,
+route-only classes, auto-generated trial quests (QuestLibrary.trials()),
+lineage (advanced classes keep all skills, basic attack, row, Uniques).
+Tier 2 = 13 placeholder classes (names to confirm with Hayden). Hayden wants
+3-5 advancements over 100 floors: add tiers as gates + classes when the
+tower grows. Open question for later: tier 3+ may outclass Ascendant (+20%),
+which must stay the strongest (design rule) — decide with Hayden then.
 Hayden will send tweaks to the enemy family table after playing it.
 
 ### Layout rule
@@ -64,7 +70,7 @@ Tutorial is deliberately deferred until the game is closer to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
-FINAL_FLOOR = 20 (long-term target is 100 floors, roguelite-style replayability).
+FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability), tier-2 class names.
 
 ## Architecture
 - Autoloads: ClassRegistry, GameState, Settings. UI is built in code
@@ -117,7 +123,7 @@ FINAL_FLOOR = 20 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (11 suites, 660 checks at last run).
+Every change gets tests in tests/ (12 suites, 702 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -127,7 +133,7 @@ Run headless from the project folder:
 C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
-test_routes. All must pass before handing work back.
+test_routes, test_classes. All must pass before handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 
 ## Working with Hayden

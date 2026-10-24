@@ -525,11 +525,13 @@ func party_luck() -> int:
 	return best
 
 
+## Tier-1 classes in the party (Uniques are per tier-1 class, so a Pyromancer
+## counts as a Mage).
 func party_classes() -> Array:
 	var out := []
 	for u in party:
 		if u.source_character and u.source_character.class_id != &"":
-			out.append(u.source_character.class_id)
+			out.append(ClassRegistry.root_of(u.source_character.class_id))
 	return out
 
 

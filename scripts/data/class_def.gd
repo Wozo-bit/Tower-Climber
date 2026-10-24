@@ -29,6 +29,11 @@ const EPSILON := 0.0001
 @export var required_route: StringName = &""
 
 
+## The tier a class advancing from `parent` gets (parent's tier + 1).
+static func tier_of_next(parent: ClassDef) -> int:
+	return (parent.tier if parent else 1) + 1
+
+
 ## True if the current run's route allows this class.
 func route_allows() -> bool:
 	return required_route == &"" or GameState.route.current() == required_route

@@ -35,8 +35,10 @@ func carries_into_ng_plus() -> bool:
 	return rarity == Rarity.Tier.UNIQUE and not quest_reward
 
 
+## Class-locked gear also fits every class advanced from that class
+## (a Pyromancer can still use the Mage's Starfall Staff).
 func can_equip(c: CharacterData) -> bool:
-	return class_lock == &"" or c.class_id == class_lock
+	return class_lock == &"" or (c.class_id != &"" and ClassRegistry.is_in_lineage(c.class_id, class_lock))
 
 
 func lock_text() -> String:

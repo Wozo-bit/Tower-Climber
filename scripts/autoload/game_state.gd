@@ -8,8 +8,9 @@ const TOWER_SCENE := "res://scenes/tower_floor.tscn"
 const TITLE_SCENE := "res://scenes/title.tscn"
 
 ## Beating the boss on this floor completes the game (character goes into the
-## Hall of Climbers). The design target is 100 floors; 20 = end of stage 2 for now.
-const FINAL_FLOOR := 20
+## Hall of Climbers). The design target is 100 floors; 30 for now (tier-2
+## advancement opens after floor 20, so it gets played).
+const FINAL_FLOOR := 30
 ## Each New Game+ cycle multiplies enemy strength by this much more (NG+1 = x1.5).
 const NG_PLUS_SCALE_PER_CYCLE := 0.5
 
@@ -52,6 +53,8 @@ var floor_enemies: Array = []
 var floor_player_pos := Vector2i(-1, -1)
 ## Roaming bosses the party has beaten (they never come back).
 var defeated_roamers: Array = []
+## Highest floor reached this run (class advancement gates check it).
+var highest_floor := 1
 
 # --- Story ---
 ## Story/clue flags: StringName -> true. Dialogue, lore objects and quests set these.
@@ -155,6 +158,7 @@ func reset_run() -> void:
 	floor_enemies = []
 	floor_player_pos = Vector2i(-1, -1)
 	defeated_roamers = []
+	highest_floor = 1
 	story_flags = {}
 	bestiary = Bestiary.new()
 	quests = QuestLog.new()
@@ -295,6 +299,7 @@ func save_game() -> bool:
 		"floor_enemies": SaveSerializer.floor_enemies_to_array(floor_enemies),
 		"floor_player_pos": [floor_player_pos.x, floor_player_pos.y],
 		"defeated_roamers": defeated_roamers.map(func(id): return String(id)),
+		"highest_floor": highest_floor,
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
 		"ng_plus_cycle": ng_plus_cycle,
 		"bestiary": bestiary.to_dict(),
@@ -343,6 +348,8 @@ func load_game(slot: int = -1) -> bool:
 		floor_ready = false   # enemy list was lost/invalid: regenerate the floor
 	var pos := S._a(d, "floor_player_pos")
 	floor_player_pos = Vector2i(int(pos[0]), int(pos[1])) if pos.size() == 2 else Vector2i(-1, -1)
+	# Older saves: assume the current floor is the highest reached.
+	highest_floor = S._i(d, "highest_floor", floor_number, floor_number, 100000)
 	for id in S._a(d, "defeated_roamers"):
 		if id is String:
 			defeated_roamers.append(StringName(id))
@@ -516,6 +523,7 @@ static func enemy_scale_for_floor(n: int) -> float:
 
 func enter_floor(n: int) -> void:
 	floor_number = n
+	highest_floor = maxi(highest_floor, n)
 	floor_seed = randi()
 	floor_ready = false
 	floor_enemies.clear()

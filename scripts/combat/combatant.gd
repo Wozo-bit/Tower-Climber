@@ -76,7 +76,8 @@ static func from_character(c: CharacterData) -> Combatant:
 	u.skills = c.all_skills()   # class skills + learned shared skills
 	u.row = c.battle_row if c.battle_row >= 0 else SkillLibrary.default_row_for_class(c.class_id)
 	u.skill_chance = 0.4
-	u.color = CLASS_COLORS.get(c.class_id, Color(0.75, 0.7, 0.65))
+	var root := ClassRegistry.root_of(c.class_id) if c.class_id != &"" else c.class_id
+	u.color = CLASS_COLORS.get(c.class_id, CLASS_COLORS.get(root, Color(0.75, 0.7, 0.65)))
 	var weapon := c.get_equipped(GearItem.Slot.WEAPON)
 	u.weapon_kind = weapon.weapon_kind() if weapon else Element.Type.BLUNT   # fists are blunt
 	u.weapon_element = weapon.element if weapon else -1

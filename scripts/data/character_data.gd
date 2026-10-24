@@ -132,7 +132,7 @@ func _refresh_gear_bonus() -> void:
 # =========================================================
 
 func knows_skill(id: StringName) -> bool:
-	return learned_skills.has(id) or SkillLibrary.CLASS_SKILLS.get(class_id, []).has(id)
+	return learned_skills.has(id) or SkillLibrary.skills_for_class(class_id).any(func(s): return s.id == id)
 
 
 ## Learn a shared skill (from a skill book). False if unknown, not learnable,
@@ -362,6 +362,69 @@ func take_secret_class(def: ClassDef) -> bool:
 
 func choose_class(def: ClassDef) -> bool:
 	if def == null or not can_choose_class() or not def.qualifies(stats) or not def.route_allows():
+		return false
+	class_id = def.id
+	_apply_class_bonus()
+	class_chosen.emit(def)
+	stats_changed.emit()
+	return true
+
+
+# =========================================================
+# Class advancement (tier 2, 3, ...)
+# =========================================================
+# An advancement needs: its tier's gate (floor passed + level, ClassRegistry.
+# ADVANCEMENT_GATES), its stat build, its route (if any) and its trial quest.
+# You keep every skill from the classes you came from.
+
+## The quest id of an advanced class's trial.
+static func trial_id(def: ClassDef) -> StringName:
+	return StringName("trial_" + String(def.id))
+
+
+## Each requirement and whether it's met:
+## { "floor": bool, "level": bool, "stats": bool, "route": bool, "trial": bool, "gate": Dictionary }
+func advancement_status(def: ClassDef) -> Dictionary:
+	var gate: Dictionary = ClassRegistry.ADVANCEMENT_GATES.get(def.tier, {})
+	return {
+		"gate": gate,
+		"floor": not gate.is_empty() and GameState.highest_floor > gate.floor,
+		"level": not gate.is_empty() and level >= gate.level,
+		"stats": def.qualifies(stats),
+		"route": def.route_allows(),
+		"trial": GameState.quests.is_done(trial_id(def)),
+	}
+
+
+## Advancements this character's class leads to (route-only ones hidden while
+## you're not on that route, so they're not spoiled).
+func available_advancements() -> Array[ClassDef]:
+	var out: Array[ClassDef] = []
+	for def in ClassRegistry.advancements_for(class_id):
+		if def.route_allows():
+			out.append(def)
+	return out
+
+
+## True once the tier's floor + level gate is met (the Advance button shows).
+func advancement_open() -> bool:
+	for def in available_advancements():
+		var s := advancement_status(def)
+		if s.floor and s.level:
+			return true
+	return false
+
+
+func can_advance(def: ClassDef) -> bool:
+	if def == null or def.advances_from != class_id or class_id == &"":
+		return false
+	var s := advancement_status(def)
+	return s.floor and s.level and s.stats and s.route and s.trial
+
+
+## Advance into `def`. Keeps all skills of the classes you came from.
+func advance_class(def: ClassDef) -> bool:
+	if not can_advance(def):
 		return false
 	class_id = def.id
 	_apply_class_bonus()

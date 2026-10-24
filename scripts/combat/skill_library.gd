@@ -18,6 +18,20 @@ const CLASS_SKILLS := {
 	&"support": [&"heal", &"ward"],
 	&"ashbound_knight": [&"ember_strike", &"ashen_nova"],
 	&"ascendant": [&"judgment", &"sanctuary", &"heavens_fall"],
+	# Tier 2: these come ON TOP of the class they advanced from (lineage).
+	&"bastion": [&"bulwark", &"iron_will"],
+	&"juggernaut": [&"crushing_blow", &"rampage"],
+	&"paladin": [&"holy_strike", &"lay_on_hands"],
+	&"pyromancer": [&"magma_burst", &"inferno"],
+	&"stormcaller": [&"chain_lightning", &"tempest"],
+	&"warlock": [&"hex_bolt", &"doom_wave"],
+	&"sharpshooter": [&"deadeye", &"armor_breaker"],
+	&"ranger": [&"gale_arrows", &"wind_step"],
+	&"assassin": [&"shadow_strike", &"vanish"],
+	&"trickster": [&"lucky_strike", &"smoke_screen"],
+	&"executioner": [&"execute", &"grim_resolve"],
+	&"cleric": [&"holy_light", &"divine_lance"],
+	&"oracle": [&"foresight", &"starfall"],
 }
 
 ## Default basic attack per class. Classless characters punch things.
@@ -159,6 +173,63 @@ static func _build() -> Dictionary:
 			{"mp_cost": 18, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3,
 			"learnable": true, "tier": 4}),
 
+		# =====================================================
+		# Tier 2 class skills (placeholder numbers)
+		# =====================================================
+		SkillDef.make(&"bulwark", "Bulwark", "The whole party takes 30% less damage for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 2}),
+		SkillDef.make(&"iron_will", "Iron Will", "Recover 30% of your max HP.",
+			{"mp_cost": 10, "effect": E.HEAL, "targeting": T.SELF, "power": 0.0, "heal_pct_max_hp": 0.3}),
+		SkillDef.make(&"crushing_blow", "Crushing Blow", "A huge blow that ignores 30% of defense.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 2.0, "def_pierce": 0.3}),
+		SkillDef.make(&"rampage", "Rampage", "Smashes every enemy you can reach.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 14, "damage_type": D.MELEE, "targeting": T.ENEMY_ALL, "power": 1.0}),
+		SkillDef.make(&"holy_strike", "Holy Strike", "A blessed blade.",
+			{"elements": [EL.HOLY, EL.SLASH] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 1.7}),
+		SkillDef.make(&"lay_on_hands", "Lay on Hands", "A strong heal on one ally.",
+			{"mp_cost": 12, "effect": E.HEAL, "targeting": T.ALLY_SINGLE, "power": 1.5, "heal_pct_max_hp": 0.25}),
+		SkillDef.make(&"magma_burst", "Magma Burst", "Molten rock: Fire and Earth at once.",
+			{"elements": [EL.FIRE, EL.EARTH] as Array[int], "mp_cost": 14, "damage_type": D.MAGIC, "power": 2.0}),
+		SkillDef.make(&"inferno", "Inferno", "Fire engulfs every enemy.",
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 18, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.1}),
+		SkillDef.make(&"chain_lightning", "Chain Lightning", "Lightning leaps between every enemy.",
+			{"elements": [EL.LIGHTNING] as Array[int], "mp_cost": 15, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.95}),
+		SkillDef.make(&"tempest", "Tempest", "A storm of wind and lightning over every enemy.",
+			{"elements": [EL.WIND, EL.LIGHTNING] as Array[int], "mp_cost": 20, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.2}),
+		SkillDef.make(&"hex_bolt", "Hex Bolt", "A cursed bolt of darkness.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 10, "damage_type": D.MAGIC, "power": 1.9}),
+		SkillDef.make(&"doom_wave", "Doom Wave", "Darkness washes over every enemy.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 18, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.1}),
+		SkillDef.make(&"deadeye", "Deadeye", "A perfect shot. +30% crit chance.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 10, "damage_type": D.RANGED, "power": 2.0, "bonus_crit": 0.3}),
+		SkillDef.make(&"armor_breaker", "Armor Breaker", "Ignores 80% of the target's defense.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 9, "damage_type": D.RANGED, "power": 1.5, "def_pierce": 0.8}),
+		SkillDef.make(&"gale_arrows", "Gale Arrows", "Wind-driven arrows hit every enemy.",
+			{"elements": [EL.WIND, EL.PIERCE] as Array[int], "mp_cost": 12, "damage_type": D.RANGED, "targeting": T.ENEMY_ALL, "power": 0.9}),
+		SkillDef.make(&"wind_step", "Wind Step", "Much more likely to act first for 2 rounds.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"haste", "status_turns": 3}),
+		SkillDef.make(&"shadow_strike", "Shadow Strike", "From the dark, past the front line. +20% crit chance.",
+			{"elements": [EL.DARK, EL.PIERCE] as Array[int], "mp_cost": 11, "damage_type": D.MELEE, "power": 2.0,
+			"ignores_row": true, "bonus_crit": 0.2}),
+		SkillDef.make(&"vanish", "Vanish", "+30% dodge for 3 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"evasive", "status_turns": 3}),
+		SkillDef.make(&"lucky_strike", "Lucky Strike", "Reaches any row. +50% crit chance.",
+			{"mp_cost": 7, "damage_type": D.MELEE, "power": 1.4, "ignores_row": true, "bonus_crit": 0.5}),
+		SkillDef.make(&"smoke_screen", "Smoke Screen", "The whole party gets +30% dodge for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 2}),
+		SkillDef.make(&"execute", "Execute", "One enormous, final swing.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 14, "damage_type": D.MELEE, "power": 2.6}),
+		SkillDef.make(&"grim_resolve", "Grim Resolve", "Take 30% less damage for 3 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3}),
+		SkillDef.make(&"holy_light", "Holy Light", "Heals the whole party.",
+			{"mp_cost": 16, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.2, "heal_pct_max_hp": 0.1}),
+		SkillDef.make(&"divine_lance", "Divine Lance", "A lance of holy light.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 10, "damage_type": D.MAGIC, "power": 1.7}),
+		SkillDef.make(&"foresight", "Foresight", "The whole party gets +30% dodge for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 2}),
+		SkillDef.make(&"starfall", "Starfall", "Holy starlight falls on every enemy.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0}),
+
 		# --- Enemy-only ---
 		# Smash and Firebolt are enemy moves, but their books can drop, so they're learnable too.
 		SkillDef.make(&"smash", "Smash", "A crushing overhead blow.",
@@ -205,14 +276,24 @@ static func get_skill(id: StringName) -> SkillDef:
 
 static func skills_for_class(class_id: StringName) -> Array[SkillDef]:
 	var out: Array[SkillDef] = []
-	for sid in CLASS_SKILLS.get(class_id, []):
-		out.append(get_skill(sid))
+	if class_id == &"":
+		return out
+	# Advanced classes keep the skills of every class they came from
+	# (tier-1 skills first, then each advancement's).
+	var line := ClassRegistry.lineage(class_id)
+	line.reverse()
+	for cid in line:
+		for sid in CLASS_SKILLS.get(cid, []):
+			out.append(get_skill(sid))
 	return out
 
 
+## Advanced classes use their tier-1 class's basic attack and row.
 static func basic_attack_for_class(class_id: StringName) -> SkillDef:
-	return get_skill(CLASS_BASIC_ATTACK.get(class_id, &"attack_melee"))
+	var root := ClassRegistry.root_of(class_id) if class_id != &"" else class_id
+	return get_skill(CLASS_BASIC_ATTACK.get(class_id, CLASS_BASIC_ATTACK.get(root, &"attack_melee")))
 
 
 static func default_row_for_class(class_id: StringName) -> int:
-	return Combatant.Row.BACK if class_id in CLASS_DEFAULT_BACK_ROW else Combatant.Row.FRONT
+	var root := ClassRegistry.root_of(class_id) if class_id != &"" else class_id
+	return Combatant.Row.BACK if root in CLASS_DEFAULT_BACK_ROW else Combatant.Row.FRONT
