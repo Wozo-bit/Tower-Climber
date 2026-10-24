@@ -21,7 +21,11 @@ const ENEMY_SCALE_PER_FLOOR := 0.08
 ## Fraction of the leader's gold lost on a party wipe.
 const DEFEAT_GOLD_PENALTY := 0.2
 
-const STARTING_ITEMS := { &"potion": 3, &"ether": 1 }
+## Bench size, and the share of battle XP benched members get.
+const RESERVE_CAP := 6
+const RESERVE_XP_SHARE := 0.5
+
+const STARTING_ITEMS :={ &"potion": 3, &"ether": 1 }
 ## Every run starts with your childhood friend (story canon). The player names
 ## them on the New Game screen; this is the default if they leave it blank.
 const CHILDHOOD_FRIEND_NAME := "Rowan"
@@ -29,9 +33,13 @@ const CHILDHOOD_FRIEND_NAME := "Rowan"
 # --- Party ---
 var player: CharacterData
 var companions: Array[CharacterData] = []
-## Recruits who joined while the party was full. They wait here (and get no
-## XP) until party management lets you swap them in.
+## Companions on the bench: they don't fight, and get RESERVE_XP_SHARE of
+## each battle's XP. Swap them in from Tab -> Manage party. Max RESERVE_CAP.
 var reserve: Array[CharacterData] = []
+## Dismissed companions (and recruits who joined with no room anywhere). They
+## wait by the campfire on rest floors and cleared boss floors, exactly as they
+## left, and can always rejoin.
+var waiting: Array[CharacterData] = []
 var inventory := Inventory.new()
 
 # --- Tower progress ---
@@ -120,6 +128,7 @@ func reset_run() -> void:
 	player = CharacterData.new()
 	companions.clear()
 	reserve.clear()
+	waiting.clear()
 	inventory = Inventory.new()
 	for id in STARTING_ITEMS:
 		inventory.add(id, STARTING_ITEMS[id])
@@ -182,8 +191,9 @@ static func ng_plus_slot_for(record: LegacyRecord) -> int:
 	return clampi(record.slot, 1, SLOT_COUNT) if record.slot > 0 else 1
 
 
+## Wherever they are: party, reserve or waiting at a campfire.
 func childhood_friend() -> CharacterData:
-	for c in companions:
+	for c in companions + reserve + waiting:
 		if c.companion_id == &"childhood_friend":
 			return c
 	return null
@@ -244,6 +254,7 @@ func save_game() -> bool:
 		"player": SaveSerializer.character_to_dict(player),
 		"companions": companions.map(SaveSerializer.character_to_dict),
 		"reserve": reserve.map(SaveSerializer.character_to_dict),
+		"waiting": waiting.map(SaveSerializer.character_to_dict),
 		"inventory": SaveSerializer.inventory_to_dict(inventory),
 		"floor_number": floor_number,
 		"checkpoint_floor": checkpoint_floor,
@@ -278,6 +289,14 @@ func load_game(slot: int = -1) -> bool:
 	for cd in S._a(d, "reserve"):
 		if cd is Dictionary:
 			reserve.append(S.character_from_dict(cd))
+	for cd in S._a(d, "waiting"):
+		if cd is Dictionary:
+			waiting.append(S.character_from_dict(cd))
+	# A tampered save can't field more than a full party or overfill the bench.
+	while companions.size() > MAX_PARTY_SIZE - 1:
+		reserve.append(companions.pop_back())
+	while reserve.size() > RESERVE_CAP:
+		waiting.append(reserve.pop_back())
 	inventory = S.inventory_from_dict(S._d(d, "inventory"))
 	floor_number = S._i(d, "floor_number", 1, 1, 100000)
 	checkpoint_floor = S._i(d, "checkpoint_floor", 1, 1, floor_number)
@@ -379,7 +398,7 @@ func record_completion() -> LegacyRecord:
 	# Unequipped Uniques (bag + companions' gear) go in the vault for New Game+.
 	rec.vault.clear()
 	var loose: Array = inventory.gear.duplicate()
-	for c in companions + reserve:
+	for c in companions + reserve + waiting:
 		loose.append_array(c.equipment.values())
 	for g: GearItem in loose:
 		if g.carries_into_ng_plus():
@@ -521,32 +540,164 @@ func place_npcs(layout: FloorLayout) -> void:
 		var rng: RandomNumberGenerator = rng_for.call(id)
 		rng.randf()   # skip the roll used for "chance"
 		layout.place_npc(id, rng, near)
+	# Dismissed companions wait by the campfire (anywhere, if it's crowded).
+	if layout.campfire.x >= 0:
+		for c in waiting:
+			var id := waiting_npc_id(c)
+			if layout.place_npc(id, rng_for.call(id), layout.campfire).x < 0:
+				layout.place_npc(id, rng_for.call(id))
+
+
+## Floor NPC id for a waiting companion: "waiting:<companion_id>".
+static func waiting_npc_id(c: CharacterData) -> StringName:
+	return StringName("waiting:" + String(c.companion_id))
+
+
+## The waiting companion behind a floor NPC id (null if it isn't one).
+func waiting_companion(npc_id: StringName) -> CharacterData:
+	for c in waiting:
+		if waiting_npc_id(c) == npc_id:
+			return c
+	return null
 
 
 # =========================================================
 # Recruiting
 # =========================================================
 
-## True if this NPC is in the party or on the reserve bench.
+## True if this NPC has joined you (party, reserve, or waiting at rest floors).
 func has_recruited(npc_id: StringName) -> bool:
-	for c in companions + reserve:
+	for c in companions + reserve + waiting:
 		if c.companion_id == npc_id:
 			return true
 	return false
 
 
 ## Recruits an NPC at the player's level - 1. Joins the party if there's room,
-## otherwise the reserve. Returns the new member (null if not recruitable or
-## already recruited).
+## then the reserve, then waits at rest floors. Returns the new member (null if
+## not recruitable or already recruited).
 func recruit(npc_id: StringName) -> CharacterData:
 	if not NpcLibrary.is_recruitable(npc_id) or has_recruited(npc_id):
 		return null
 	var c := NpcLibrary.make_recruit(npc_id, player.level - 1)
+	_add_member(c)
+	return c
+
+
+## Party if there's room, then the reserve, then waiting at rest floors.
+func _add_member(c: CharacterData) -> void:
 	if companions.size() < MAX_PARTY_SIZE - 1:
 		companions.append(c)
-	else:
+	elif reserve.size() < RESERVE_CAP:
 		reserve.append(c)
-	return c
+	else:
+		waiting.append(c)
+
+
+# =========================================================
+# Party management
+# =========================================================
+# Swapping, benching, dismissing and rejoining are locked on a floor whose
+# miniboss or boss is still standing: plan your party on the floors before.
+# Reordering and rows can be changed any time out of battle.
+
+func party_locked() -> bool:
+	return stairs_locked()
+
+
+func party_lock_reason() -> String:
+	if not party_locked():
+		return ""
+	return "The party is locked until this floor's %s is beaten." % (
+		"boss" if StageLibrary.is_boss_floor(floor_number) else "miniboss")
+
+
+## Party -> reserve. False if locked, not in the party, or the bench is full.
+func bench(c: CharacterData) -> bool:
+	if party_locked() or not companions.has(c) or reserve.size() >= RESERVE_CAP:
+		return false
+	companions.erase(c)
+	reserve.append(c)
+	return true
+
+
+## Reserve -> party. False if locked, not on the reserve, or the party is full.
+func unbench(c: CharacterData) -> bool:
+	if party_locked() or not reserve.has(c) or companions.size() >= MAX_PARTY_SIZE - 1:
+		return false
+	reserve.erase(c)
+	companions.append(c)
+	return true
+
+
+## Swaps a party member with a reserve member; the newcomer takes their place
+## in the party order.
+func swap_members(in_party: CharacterData, on_bench: CharacterData) -> bool:
+	if party_locked() or not companions.has(in_party) or not reserve.has(on_bench):
+		return false
+	companions[companions.find(in_party)] = on_bench
+	reserve[reserve.find(on_bench)] = in_party
+	return true
+
+
+## Moves a companion up (-1) or down (+1) in the party order. The player is
+## always first, so this only reorders companions.
+func move_member(c: CharacterData, delta: int) -> bool:
+	var i := companions.find(c)
+	var j := i + delta
+	if i < 0 or j < 0 or j >= companions.size():
+		return false
+	companions[i] = companions[j]
+	companions[j] = c
+	return true
+
+
+## Sets the row they start battles in (Combatant.Row).
+func set_member_row(c: CharacterData, row: int) -> void:
+	c.battle_row = clampi(row, Combatant.Row.FRONT, Combatant.Row.BACK)
+
+
+## The row they'll start the next battle in.
+static func member_row(c: CharacterData) -> int:
+	return c.battle_row if c.battle_row >= 0 else SkillLibrary.default_row_for_class(c.class_id)
+
+
+## Lets a companion go. Their gear goes to the bag, and they wait by the
+## campfire on rest floors until you take them back. Not permanent.
+func dismiss(c: CharacterData) -> bool:
+	if party_locked() or c == player or not (companions.has(c) or reserve.has(c)):
+		return false
+	for slot in c.equipment.keys():
+		unequip_to_bag(c, slot)
+	companions.erase(c)
+	reserve.erase(c)
+	if c.companion_id == &"":
+		c.companion_id = StringName("companion_%d" % randi())   # needs an id to wait on a floor
+	waiting.append(c)
+	return true
+
+
+## A waiting companion comes back: party if there's room, else the reserve.
+## False if locked or there's no room anywhere.
+func rejoin(c: CharacterData) -> bool:
+	if party_locked() or not waiting.has(c):
+		return false
+	if companions.size() >= MAX_PARTY_SIZE - 1 and reserve.size() >= RESERVE_CAP:
+		return false
+	waiting.erase(c)
+	_add_member(c)
+	return true
+
+
+## After a won battle: everyone on the reserve gets their share of the XP.
+## Returns the amount each got.
+func grant_reserve_xp(battle_xp: int) -> int:
+	var share := floori(battle_xp * RESERVE_XP_SHARE)
+	if share <= 0:
+		return 0
+	for c in reserve:
+		c.add_xp(share)
+	return share
 
 
 ## Plain combat floors past the first few may have a roaming boss wandering them.
@@ -746,7 +897,7 @@ func unequip_to_bag(member: CharacterData, slot: int) -> bool:
 func owned_unique_classes() -> Array:
 	var out := []
 	var all_gear: Array = inventory.gear.duplicate()
-	for m in battle_party() + reserve:
+	for m in battle_party() + reserve + waiting:
 		all_gear.append_array(m.equipment.values())
 	for g: GearItem in all_gear:
 		if g.rarity == Rarity.Tier.UNIQUE and not out.has(g.class_lock):

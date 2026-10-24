@@ -139,6 +139,9 @@ func _on_battle_ended(outcome: int) -> void:
 		BattleManager.Outcome.VICTORY:
 			battle.apply_rewards()
 			_result_label.text = "Victory!\n+%d XP each   +%d gold" % [battle.rewards.xp, battle.rewards.gold]
+			var reserve_xp := GameState.grant_reserve_xp(battle.rewards.xp)
+			if reserve_xp > 0:
+				_result_label.text += "\nReserve: +%d XP each" % reserve_xp
 			for id in battle.rewards.items:
 				_result_label.text += "\nObtained: %s x%d" % [ItemLibrary.get_item(id).display_name, battle.rewards.items[id]]
 			for sid in battle.rewards.books:

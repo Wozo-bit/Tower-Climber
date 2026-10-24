@@ -53,9 +53,10 @@ func _init() -> void:
 	box.add_child(_buttons)
 
 
-## Starts conversation `id`. Returns false (and stays hidden) if it doesn't exist.
-func open(id: StringName) -> bool:
-	if not runner.start(id):
+## Starts conversation `id` (`with` = the companion you're talking to, if
+## it's one of yours). Returns false (and stays hidden) if it doesn't exist.
+func open(id: StringName, with: CharacterData = null) -> bool:
+	if not runner.start(id, with):
 		push_warning("DialogueBox: no dialogue '%s'" % id)
 		return false
 	show()

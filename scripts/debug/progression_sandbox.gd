@@ -13,6 +13,11 @@ var _name_edit: LineEdit
 var _log: RichTextLabel
 var _respec_btn: Button
 var _class_btn: Button
+var _floor_pick: SpinBox
+var _floor_info: Label
+
+## Highest floor the sandbox floor picker offers (stages repeat past the last one).
+const SANDBOX_MAX_FLOOR := 100
 
 
 func _ready() -> void:
@@ -108,6 +113,25 @@ func _ready() -> void:
 		GameState.ensure_test_companions()
 		get_tree().change_scene_to_file(GameState.TOWER_SCENE))
 
+	# Jump straight to any floor to test its enemies, miniboss or boss.
+	var floor_row := HBoxContainer.new()
+	floor_row.add_theme_constant_override("separation", 8)
+	right.add_child(floor_row)
+	var floor_label := Label.new()
+	floor_label.text = "Floor:"
+	floor_row.add_child(floor_label)
+	_floor_pick = SpinBox.new()
+	_floor_pick.min_value = 1
+	_floor_pick.max_value = SANDBOX_MAX_FLOOR
+	_floor_pick.value = GameState.floor_number
+	_floor_pick.value_changed.connect(func(_v): _floor_info.text = describe_floor(int(_floor_pick.value)))
+	floor_row.add_child(_floor_pick)
+	_add_button(floor_row, "▲ Go to floor", func(): go_to_floor(int(_floor_pick.value)))
+	_floor_info = Label.new()
+	_floor_info.modulate = Color(1, 1, 1, 0.7)
+	_floor_info.text = describe_floor(int(_floor_pick.value))
+	floor_row.add_child(_floor_info)
+
 	var log_title := Label.new()
 	log_title.text = "Log"
 	right.add_child(log_title)
@@ -173,6 +197,27 @@ func _reset_character() -> void:
 	GameState.player = character
 	_bind_character()
 	_log_line("Character reset.")
+
+
+## Puts the party on floor `n` (fresh layout, and it becomes the checkpoint so
+## a wipe brings you straight back) and enters the tower.
+func go_to_floor(n: int) -> void:
+	GameState.ensure_test_companions()
+	GameState.enter_floor(clampi(n, 1, SANDBOX_MAX_FLOOR))
+	GameState.checkpoint_floor = GameState.floor_number
+	get_tree().change_scene_to_file(GameState.TOWER_SCENE)
+
+
+## e.g. "Stage 1: Goblin Warrens · miniboss: Goblin Captain".
+static func describe_floor(n: int) -> String:
+	var t := StageLibrary.stage_name(n)
+	if GameState.is_rest_floor(n):
+		return t + "  ·  rest floor"
+	if StageLibrary.is_boss_floor(n):
+		return t + "  ·  BOSS: " + EnemyLibrary.get_enemy(StageLibrary.boss_for_floor(n)[0]).display_name
+	if StageLibrary.is_miniboss_floor(n):
+		return t + "  ·  miniboss: " + EnemyLibrary.get_enemy(StageLibrary.miniboss_for_floor(n)[0]).display_name
+	return t + "  ·  normal floor"
 
 
 func _start_test_battle() -> void:

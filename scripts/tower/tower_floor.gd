@@ -62,6 +62,7 @@ var _flash: ColorRect
 var _pause: PauseMenu
 var _dialogue: DialogueBox
 var _talk_cooldown := 0.0
+var _climb_prompt: ConfirmationDialog
 var _completion_open := false
 
 
@@ -150,7 +151,8 @@ func _process(delta: float) -> void:
 
 
 func _menus_open() -> bool:
-	return _party_menu.visible or _shop.visible or _pause.visible or _dialogue.visible or _completion_open
+	return _party_menu.visible or _shop.visible or _pause.visible or _dialogue.visible \
+		or _climb_prompt.visible or _completion_open
 
 
 ## Saves only during a real run (never in the dev sandbox).
@@ -203,7 +205,11 @@ func try_move(dir: Vector2i) -> bool:
 		talk(&"merchant")
 		return false
 	if layout.npcs.has(target):
-		talk(NpcLibrary.get_npc(layout.npcs[target]).dialogue)
+		var waiting := GameState.waiting_companion(layout.npcs[target])
+		if waiting:
+			talk(&"waiting_companion", waiting)
+		else:
+			talk(NpcLibrary.get_npc(layout.npcs[target]).dialogue)
 		return false
 	if target == layout.stairs and GameState.stairs_locked():
 		_show_toast("The stairs are guarded. Defeat the %s to go up!" %
@@ -221,7 +227,10 @@ func try_move(dir: Vector2i) -> bool:
 
 func _on_player_arrived() -> void:
 	if player_tile == layout.stairs:
-		_go_upstairs()
+		if _guardian_ahead() != "":
+			_ask_before_climbing()
+		else:
+			_go_upstairs()
 		return
 	_check_contact()
 
@@ -333,10 +342,10 @@ func _go_upstairs() -> void:
 
 
 ## Opens a conversation (public so tests/automation can use it).
-func talk(dialogue_id: StringName) -> void:
+func talk(dialogue_id: StringName, with: CharacterData = null) -> void:
 	if _talk_cooldown > 0.0 or _dialogue.visible:
 		return
-	_dialogue.open(dialogue_id)
+	_dialogue.open(dialogue_id, with)
 
 
 func _on_dialogue_finished(runner: DialogueRunner) -> void:
@@ -348,6 +357,24 @@ func _on_dialogue_finished(runner: DialogueRunner) -> void:
 		_show_toast("\n".join(runner.messages))
 	if runner.requests.has("shop"):
 		_shop.open()
+
+
+## "the Goblin Captain (miniboss)" if the next floor has a miniboss or boss, else "".
+func _guardian_ahead() -> String:
+	var next := GameState.floor_number + 1
+	var group: Array[StringName] = StageLibrary.boss_for_floor(next) if StageLibrary.is_boss_floor(next) \
+		else StageLibrary.miniboss_for_floor(next)
+	if group.is_empty():
+		return ""
+	return "the %s (%s)" % [EnemyLibrary.get_enemy(group[0]).display_name,
+		"boss" if StageLibrary.is_boss_floor(next) else "miniboss"]
+
+
+## Before a miniboss/boss floor: the party locks up there, so offer a check.
+func _ask_before_climbing() -> void:
+	_climb_prompt.dialog_text = "Floor %d: %s awaits.\n\nOnce you're up there, you can't swap, bench or dismiss\nparty members until it's beaten." % [
+		GameState.floor_number + 1, _guardian_ahead()]
+	_climb_prompt.popup_centered()
 
 
 func _use_campfire() -> void:
@@ -473,6 +500,9 @@ func _draw() -> void:
 	# NPCs (rounded square with an initial) and lore objects (diamond with "?")
 	for p: Vector2i in layout.npcs:
 		var npc := NpcLibrary.get_npc(layout.npcs[p])
+		var waiting := GameState.waiting_companion(layout.npcs[p])
+		if waiting:   # one of your dismissed companions: drawn in the player's colour
+			npc = { "name": waiting.character_name, "kind": "npc", "color": C_PLAYER.darkened(0.2) }
 		var center := _tile_px(p) + Vector2(TILE, TILE) / 2
 		var col: Color = npc.get("color", Color.GRAY)
 		if npc.get("kind") == "object":
@@ -596,6 +626,15 @@ func _build_hud() -> void:
 	_hud.add_child(_shop)
 	_pause = PauseMenu.new()
 	_hud.add_child(_pause)
+	_climb_prompt = ConfirmationDialog.new()
+	_climb_prompt.title = "Danger ahead"
+	_climb_prompt.ok_button_text = "Climb"
+	_climb_prompt.cancel_button_text = "Check party first"
+	_climb_prompt.confirmed.connect(_go_upstairs)
+	_climb_prompt.canceled.connect(func():
+		_party_menu.open()
+		_party_menu.open_manage())
+	_hud.add_child(_climb_prompt)
 	_dialogue = DialogueBox.new()
 	_dialogue.finished.connect(_on_dialogue_finished)
 	_hud.add_child(_dialogue)

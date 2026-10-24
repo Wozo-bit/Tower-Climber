@@ -15,13 +15,17 @@ var finished := true
 var requests: Array[String] = []
 ## Toasts for the floor HUD ("Brakka joined the party!").
 var messages: Array[String] = []
+## Who you're talking to, when it's one of your own companions (a dismissed
+## companion waiting by the campfire). Used by {npc} and the "rejoin" effect.
+var companion: CharacterData
 
 var _nodes: Dictionary = {}
 
 
 ## Starts a conversation. Returns false if the id doesn't exist.
-func start(id: StringName) -> bool:
+func start(id: StringName, with: CharacterData = null) -> bool:
 	var d := DialogueLibrary.get_dialogue(id)
+	companion = with
 	requests.clear()
 	messages.clear()
 	if d.is_empty():
@@ -46,11 +50,11 @@ static func start_node(d: Dictionary) -> String:
 
 
 func speaker() -> String:
-	return fill(_node().get("speaker", ""))
+	return fill(_node().get("speaker", ""), _npc_name())
 
 
 func text() -> String:
-	return fill(_node().get("text", ""))
+	return fill(_node().get("text", ""), _npc_name())
 
 
 ## Visible choices as [{ "index", "text" }]. Empty = show a "Next" button.
@@ -60,7 +64,7 @@ func choices() -> Array:
 	var all: Array = _node().get("choices", [])
 	for i in all.size():
 		if check(all[i].get("if", {})):
-			out.append({ "index": i, "text": fill(all[i].text) })
+			out.append({ "index": i, "text": fill(all[i].text, _npc_name()) })
 	return out
 
 
@@ -161,12 +165,23 @@ func _apply_effects(effects: Array) -> void:
 			messages.append("Everyone feels rested.")
 		if e.has("open_shop"):
 			requests.append("shop")
+		if e.has("rejoin") and companion:
+			if gs.rejoin(companion):
+				messages.append("%s is back%s!" % [companion.character_name,
+					"" if gs.companions.has(companion) else " (on the reserve)"])
+			else:
+				messages.append("No room: the party and reserve are full.")
 		if e.has("toast"):
-			messages.append(fill(e.toast))
+			messages.append(fill(e.toast, _npc_name()))
 
 
-## Swaps {player} and {friend} for the current names.
-static func fill(s: String) -> String:
+func _npc_name() -> String:
+	return companion.character_name if companion else ""
+
+
+## Swaps {player}, {friend} and {npc} for the current names.
+static func fill(s: String, npc_name: String = "") -> String:
 	var friend := GameState.childhood_friend()
 	return s.replace("{player}", GameState.player.character_name) \
-		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME)
+		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
+		.replace("{npc}", npc_name)

@@ -9,7 +9,8 @@ extends RefCounted
 ##
 ## A node:
 ##   "speaker": shown above the text. "" = narration. "{player}" / "{friend}"
-##              work here and in all text (they become the current names).
+##              work here and in all text (they become the current names), and
+##              "{npc}" is the companion you're talking to (waiting_companion).
 ##   "text":    the line.
 ##   "effects": (optional) run when the node is shown. See below.
 ##   Then ONE of:
@@ -36,6 +37,7 @@ extends RefCounted
 ##   { "heal_party": true }     full HP/MP + revive, like a campfire
 ##   { "open_shop": true }      ends the talk and opens the merchant's shop
 ##   { "toast": "text" }        a message on the floor HUD afterwards
+##   { "rejoin": true }         the dismissed companion you're talking to comes back
 ##
 ## Story content goes here later. What's below are placeholder lines so every
 ## system (shop, clues, recruiting) can be tested.
@@ -98,6 +100,21 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Any dismissed companion waiting by the campfire. ---
+	&"waiting_companion": {
+		"start": "hello",
+		"nodes": {
+			"hello": {
+				"speaker": "{npc}",
+				"text": "(Placeholder) {player}! Ready to climb together again?",
+				"choices": [
+					{ "text": "Rejoin us.", "effects": [{ "rejoin": true }] },
+					{ "text": "Not yet." },
+				],
+			},
+		},
+	},
+
 	# --- Lore objects (Ashbound clues 1 and 3) ---
 	&"scorched_mural": {
 		"start": "look",
@@ -124,7 +141,7 @@ const DIALOGUES := {
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
-	"heal_party", "open_shop", "toast"]
+	"heal_party", "open_shop", "toast", "rejoin"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:

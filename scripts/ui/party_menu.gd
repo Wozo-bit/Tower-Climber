@@ -14,6 +14,7 @@ var _stats_panel: StatAllocationPanel
 var _class_screen: ClassSelectionScreen
 var _gear_panel: GearPanel
 var _skills_panel: SkillsPanel
+var _manage_panel: PartyManagePanel
 
 ## When set, the member list shows "Use here" buttons.
 ## { "kind": "item", "id": StringName } or { "kind": "heal", "caster": CharacterData, "skill": SkillDef }
@@ -57,6 +58,11 @@ func _init() -> void:
 	header.add_child(spacer)
 	_gold_label = Label.new()
 	header.add_child(_gold_label)
+	var manage_btn := Button.new()
+	manage_btn.text = "Manage party"
+	manage_btn.tooltip_text = "Order, rows, the reserve and dismissing companions."
+	manage_btn.pressed.connect(open_manage)
+	header.add_child(manage_btn)
 	var close_btn := Button.new()
 	close_btn.text = "Close (Tab)"
 	close_btn.pressed.connect(close)
@@ -101,6 +107,9 @@ func _init() -> void:
 	_skills_panel = SkillsPanel.new()
 	_skills_panel.closed.connect(_rebuild)
 	add_child(_skills_panel)
+	_manage_panel = PartyManagePanel.new()
+	_manage_panel.closed.connect(_rebuild)
+	add_child(_manage_panel)
 
 	_class_screen = ClassSelectionScreen.new()
 	add_child(_class_screen)
@@ -118,15 +127,21 @@ func open() -> void:
 	show()
 
 
+## Opens the Manage party screen on top of this menu.
+func open_manage() -> void:
+	_manage_panel.open()
+
+
 func close() -> void:
-	if _class_screen.visible or _stats_overlay.visible or _gear_panel.visible or _skills_panel.visible:
+	if _class_screen.visible or _stats_overlay.visible or _gear_panel.visible or _skills_panel.visible \
+			or _manage_panel.visible:
 		return
 	hide()
 	closed.emit()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible or _gear_panel.visible or _skills_panel.visible:
+	if not visible or _gear_panel.visible or _skills_panel.visible or _manage_panel.visible:
 		return
 	if event.is_action_pressed("party_menu") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
@@ -161,7 +176,7 @@ func _rebuild() -> void:
 		_members_box.add_child(_heading("Reserve"))
 		for member in GameState.reserve:
 			var def := member.get_class_def()
-			_members_box.add_child(_note("%s   Lv %d   %s   (waiting: the party is full)" % [
+			_members_box.add_child(_note("%s   Lv %d   %s   (swap in from Manage party)" % [
 				member.character_name, member.level, def.display_name if def else "No class"]))
 
 	# --- Items ---

@@ -8,7 +8,7 @@ Open `project.godot` in Godot 4.6 and press **F5**. The game opens on the **titl
 - **Delete:** every slot has a Delete button (with a confirmation) for a fresh start. Characters in the Hall of Climbers are never deleted this way.
 - **Settings:** master, music and sound-effect volume, fullscreen and V-Sync. Saved to `user://settings.cfg`.
 - **Quit**
-- **Dev Sandbox** (bottom-right, debug builds only): the old test screen with level-10 companions and test fights. Sandbox sessions never autosave over your real save.
+- **Dev Sandbox** (bottom-right, debug builds only): the old test screen with level-10 companions and test fights. Its **floor picker** puts you on any floor (1–100) to test that floor's enemies, miniboss or boss, and shows what's there before you go. That floor becomes your checkpoint, so a wipe brings you straight back. Sandbox sessions never autosave over your real save.
 
 In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** pauses (Resume / Save / Settings / Quit to Title). You can rename yourself or your friend anytime from **Tab → Rename**.
 
@@ -72,6 +72,8 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/story/npc_library.gd` | NPCs and lore objects: which floors they appear on, recruit builds. |
 | `scripts/ui/dialogue_box.gd` | The conversation box at the bottom of the screen. |
 | `tests/test_dialogue.gd` | 69 dialogue, NPC placement, recruiting, reserve and clue checks. Run: `godot --headless res://tests/test_dialogue.tscn` |
+| `scripts/ui/party_manage_panel.gd` | Tab → Manage party: order, rows, reserve, swapping and dismissing. |
+| `tests/test_party.gd` | 58 party management checks: bench/swap, order, rows, caps, the miniboss/boss lock, dismiss/rejoin, reserve XP. Run: `godot --headless res://tests/test_party.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
 ## Dialogue, NPCs and recruiting
@@ -83,9 +85,17 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 - **A typo can't sneak in:** the dialogue tests check every conversation for missing lines, misspelled conditions/effects and unknown items or NPCs.
 - **NPCs and lore objects** are set up in `npc_library.gd`: which kinds of floor they can be on (rest, cleared boss, combat, miniboss), the floor range, a chance per floor, extra conditions, a flag that makes them disappear for good, and whether they stand by the campfire. Placement uses the floor's seed, so they're in the same spot when you come back, and never cut off part of the floor.
 - **The merchant** now greets you first: **Let's trade** opens the shop. From floor 10 they also have a story to tell (an Ashbound clue).
-- **Recruiting:** recruitable NPCs join at **your level − 1** (min 1), with their points spent by their build and their class taken if they're level 10+. If the party (you + 3) is full, they wait on the **reserve** (listed in the Tab menu, no XP) until party management lets you swap them in. Recruits leave the floor, are saved, and reset in New Game+ like other story progress. Uniques on reserve members still carry into New Game+.
+- **Recruiting:** recruitable NPCs join at **your level − 1** (min 1), with their points spent by their build and their class taken if they're level 10+. They join the party if there's room, then the reserve, and if both are full they wait by the campfire on rest floors (see Party management). Recruits leave the floor, are saved, and reset in New Game+ like other story progress. Uniques on reserve or waiting members still carry into New Game+.
 - **The Ashbound clues** all come from this system now: the **scorched mural** (40% of normal floors 11–29), the **merchant's story** (floor 10+) and the **glint in the embers** (by the campfire on rest floors and cleared boss floors from floor 10).
 - **Placeholder content only:** Brakka (a Tank you can recruit on rest floors from floor 5), the merchant and the two lore objects. Real story content comes later.
+
+## Party management
+Open it with **Tab → Manage party**.
+- **The party** is you plus up to 3 companions. You always lead. Use **▲ / ▼** to change the order, which is the order in battle and on the HUD. **Front / Back** sets the row each member starts battles in.
+- **The reserve** (the bench) holds up to **6** (`RESERVE_CAP`). Benched members don't fight but get **50%** of each battle's XP (`RESERVE_XP_SHARE`), shown on the victory screen. **Bench** sends a party member there, **Join party** brings someone back if there's a free slot, and **Swap in…** trades places with a party member you pick.
+- **Dismiss** (with a confirm) is never permanent. Their gear goes to your bag, and they wait by the campfire on **rest floors and cleared boss floors**, exactly as they left. Talk to them there to bring them back (party if there's room, else the reserve). Recruits who join when the party and reserve are both full wait there too. The Manage party screen lists who's waiting.
+- **The childhood friend** can be benched or dismissed like anyone else.
+- **Plan ahead: the party locks on miniboss and boss floors.** While a floor's miniboss or boss is standing, you can't bench, swap, dismiss or bring anyone back. You can still change the order and rows. Walking onto stairs that lead to a miniboss or boss floor asks first: **Climb**, or **Check party first** (opens Manage party).
 
 ## Enemy intent, shared skills and skill books
 - **Enemy intent:** at the start of each round, every enemy decides its move. Its card shows it (e.g. "Smash → Cassia" or "Volley → everyone"), and targeted allies get a red **⚠ Targeted** marker (x2 if two enemies are aiming at them). React with Defend, Guard, Ward, heals or a row change. If the target falls, or someone starts **taunting**, the intent re-plans and the markers update. An enemy can hide its intent (`hide_intent`, shown as "Intent: ???"); none do yet.
