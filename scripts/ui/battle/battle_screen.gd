@@ -13,6 +13,8 @@ const COLOR_DAMAGE := Color(1, 0.95, 0.9)
 const COLOR_CRIT := Color(1, 0.75, 0.2)
 const COLOR_HEAL := Color(0.4, 1, 0.5)
 const COLOR_MISC := Color(0.7, 0.85, 1)
+const COLOR_WEAK := Color(1, 0.45, 0.25)
+const COLOR_RESIST := Color(0.65, 0.65, 0.75)
 
 var battle: BattleManager
 var _cards: Dictionary = {}   # Combatant -> UnitCard
@@ -57,6 +59,7 @@ func _start_battle() -> void:
 	battle.inventory = GameState.inventory
 	battle.loot_level = GameState.floor_number
 	battle.owned_unique_classes = GameState.owned_unique_classes()
+	battle.bestiary = GameState.bestiary
 	battle.setup(GameState.battle_party(), encounter)
 	battle.turn_started.connect(_on_turn_started)
 	battle.action_resolved.connect(_on_action_resolved)
@@ -115,7 +118,26 @@ func _on_action_resolved(result: Dictionary) -> void:
 			continue
 		match e.kind:
 			"damage":
-				card.popup(("%d!" if e.crit else "%d") % e.amount, COLOR_CRIT if e.crit else COLOR_DAMAGE)
+				var txt: String = ("%d!" if e.crit else "%d") % e.amount
+				var col := COLOR_CRIT if e.crit else COLOR_DAMAGE
+				if e.get("staggered", false):
+					txt = "STAGGER! " + txt
+					col = COLOR_WEAK
+				elif e.get("weak", false):
+					txt = "WEAK " + txt
+					col = COLOR_WEAK
+				elif e.get("resisted", false):
+					txt = "resist " + txt
+					col = COLOR_RESIST
+				card.popup(txt, col)
+			"absorb":
+				card.popup("Absorbed +%d" % e.amount, COLOR_HEAL)
+			"immune":
+				card.popup("Immune", COLOR_RESIST)
+			"staggered":
+				card.popup("Staggered", COLOR_WEAK)
+			"scan":
+				card.popup("Scanned", COLOR_MISC)
 			"heal":
 				card.popup("+%d" % e.amount, COLOR_HEAL)
 			"miss":
@@ -203,6 +225,9 @@ func _cmd_skills() -> void:
 		var b := Button.new()
 		b.text = "%s  (%d MP)" % [s.display_name, s.mp_cost]
 		b.tooltip_text = s.description
+		var els: Array[int] = DamageCalc.attack_elements(actor, s) if s.effect == SkillDef.Effect.DAMAGE else ([] as Array[int])
+		if not els.is_empty():
+			b.text += "  [%s]" % Element.list_text(els)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.disabled = not actor.can_afford(s) or battle.valid_targets(actor, s).is_empty()
 		b.pressed.connect(_begin_skill.bind(s))
@@ -233,11 +258,15 @@ func _begin_item(item: ItemDef) -> void:
 	_pending_skill = null
 	_pending_item = item
 	var valid: Array[Combatant] = []
-	for u in battle.allies_of(battle.current):
-		if u.is_alive() != item.is_revive():   # revive items target the downed
-			valid.append(u)
+	if item.scan:   # Scouting Lens: look at an enemy
+		valid = BattleManager.living(battle.opponents_of(battle.current))
+	else:
+		for u in battle.allies_of(battle.current):
+			if u.is_alive() != item.is_revive():   # revive items target the downed
+				valid.append(u)
 	_highlight_targets(valid)
-	_prompt.text = "%s: choose an ally.  (Right-click or Esc to cancel)" % item.display_name
+	_prompt.text = "%s: choose %s.  (Right-click or Esc to cancel)" % [item.display_name,
+		"an enemy" if item.scan else "an ally"]
 
 
 func _highlight_targets(valid: Array[Combatant]) -> void:
@@ -310,6 +339,9 @@ func _update_intents() -> void:
 	for u in _cards:
 		var card: UnitCard = _cards[u]
 		var a := battle.intent_of(u)
+		if u.side == Combatant.Side.ENEMY and u.is_alive() and u.staggered:
+			card.set_intent("Staggered: loses its next turn")
+			continue
 		if u.side != Combatant.Side.ENEMY or a == null or not u.is_alive():
 			card.set_intent("")
 			continue
@@ -354,6 +386,8 @@ func _refresh_all() -> void:
 	for u in _cards:
 		var card: UnitCard = _cards[u]
 		card.set_highlight(UnitCard.Highlight.ACTIVE if u == battle.current else UnitCard.Highlight.NONE)
+		if u.source_enemy:
+			card.set_known(GameState.bestiary.summary(u.source_enemy))
 		card.refresh()
 	_update_intents()
 

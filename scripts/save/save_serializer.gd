@@ -107,6 +107,7 @@ static func gear_to_dict(g: GearItem) -> Dictionary:
 		"name": g.display_name, "base": String(g.base_id), "slot": g.slot, "rarity": g.rarity,
 		"bonuses": _stat_dict_out(g.bonuses), "class_lock": String(g.class_lock),
 		"item_level": g.item_level, "quest_reward": g.quest_reward, "description": g.description,
+		"element": g.element,
 	}
 
 
@@ -124,6 +125,9 @@ static func gear_from_dict(d: Dictionary) -> GearItem:
 	g.item_level = _i(d, "item_level", 1, 1, 9999)
 	g.quest_reward = _b(d, "quest_reward", false)
 	g.description = _s(d, "description", "", 512)
+	# Only weapons carry an element, and only a real magic one.
+	var el := _i(d, "element", -1, -1, Element.Type.size() - 1)
+	g.element = el if g.slot == GearItem.Slot.WEAPON and Element.MAGIC_ELEMENTS.has(el) else -1
 	return g
 
 
@@ -140,7 +144,7 @@ static func inventory_from_dict(d: Dictionary) -> Inventory:
 	for id in counts:
 		var n = counts[id]
 		if id is String and ItemLibrary.get_item(StringName(id)) and (n is int or n is float) and n > 0:
-			inv.counts[StringName(id)] = clampi(int(n), 0, 9999)
+			inv.add(StringName(id), clampi(int(n), 0, 9999))   # respects carry limits
 	for gd in _a(d, "gear"):
 		if gd is Dictionary:
 			var g := gear_from_dict(gd)

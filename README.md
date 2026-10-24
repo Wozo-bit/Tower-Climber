@@ -8,7 +8,7 @@ Open `project.godot` in Godot 4.6 and press **F5**. The game opens on the **titl
 - **Delete:** every slot has a Delete button (with a confirmation) for a fresh start. Characters in the Hall of Climbers are never deleted this way.
 - **Settings:** master, music and sound-effect volume, fullscreen and V-Sync. Saved to `user://settings.cfg`.
 - **Quit**
-- **Dev Sandbox** (bottom-right, debug builds only): the old test screen with level-10 companions and test fights. Its **floor picker** puts you on any floor (1–100) to test that floor's enemies, miniboss or boss, and shows what's there before you go. That floor becomes your checkpoint, so a wipe brings you straight back. Sandbox sessions never autosave over your real save.
+- **Dev Sandbox** (bottom-right, debug builds only): the old test screen with level-10 companions and test fights. Its **floor picker** puts you on any floor (1–100) to test that floor's enemies, miniboss or boss, and shows what's there before you go. That floor becomes your checkpoint, so a wipe brings you straight back. The theme pickers next to it choose each stage's theme (e.g. Slime Pits, to test King Slime). Sandbox sessions never autosave over your real save.
 
 In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** pauses (Resume / Save / Settings / Quit to Title). You can rename yourself or your friend anytime from **Tab → Rename**.
 
@@ -74,6 +74,9 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tests/test_dialogue.gd` | 69 dialogue, NPC placement, recruiting, reserve and clue checks. Run: `godot --headless res://tests/test_dialogue.tscn` |
 | `scripts/ui/party_manage_panel.gd` | Tab → Manage party: order, rows, reserve, swapping and dismissing. |
 | `tests/test_party.gd` | 58 party management checks: bench/swap, order, rows, caps, the miniboss/boss lock, dismiss/rejoin, reserve XP. Run: `godot --headless res://tests/test_party.tscn` |
+| `scripts/combat/element.gd`, `enemy_families.gd` | Elements and weapon kinds, how reactions combine, and the enemy families (weaknesses, resistances, traits). |
+| `scripts/data/bestiary.gd`, `scripts/ui/bestiary_panel.gd` | What you've learned about enemies, and Tab → Bestiary. |
+| `tests/test_elements.gd` | 79 element, weakness, trait, stagger, bestiary, Scouting Lens, elemental weapon and stage theme checks. Run: `godot --headless res://tests/test_elements.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
 ## Dialogue, NPCs and recruiting
@@ -100,7 +103,7 @@ Open it with **Tab → Manage party**.
 ## Enemy intent, shared skills and skill books
 - **Enemy intent:** at the start of each round, every enemy decides its move. Its card shows it (e.g. "Smash → Cassia" or "Volley → everyone"), and targeted allies get a red **⚠ Targeted** marker (x2 if two enemies are aiming at them). React with Defend, Guard, Ward, heals or a row change. If the target falls, or someone starts **taunting**, the intent re-plans and the markers update. An enemy can hide its intent (`hide_intent`, shown as "Intent: ???"); none do yet.
 - **Shared skills:** anyone can learn these, whatever their class (or with no class). They're kept when you change class and carried into New Game+.
-  - **Skill picks:** everyone starts with **1** (a starting skill) and gets another at levels **3, 6, 9, 12…**. Picks choose from the **Common** skills: Power Strike, First Aid, Guard, Focus, Quick Step. Spend them in **Tab → Skills**.
+  - **Skill picks:** everyone starts with **1** (a starting skill) and gets another at levels **3, 6, 9, 12…**. Picks choose from the **Common** skills: Power Strike, First Aid, Guard, Focus, Quick Step, and the six elemental bolts (Ember, Frost Bolt, Splash, Spark, Stone Shot, Gust). Spend them in **Tab → Skills**.
   - **Guard** takes single-target hits aimed at an ally (30% less) until your next turn. **Focus** restores 25% MP. **First Aid** heals 15% of max HP plus a little. **Quick Step** makes acting first much more likely next round.
 - **Skill books** teach any shared skill, including Rare, Epic, Legendary and Unique ones, only through books. Use them from **Tab → Items**. They can't be read mid-battle, and a book isn't used up on someone who already knows the skill.
   - **Who drops what:** monsters drop books that fit them, including skills they actually use (an Orc Brute can drop Smash). Each enemy's list is in `scripts/skills/skill_books.gd`.
@@ -127,10 +130,34 @@ Open it with **Tab → Manage party**.
 - **Victory:** every surviving party member gets the full XP, and the leader gets the gold.
 - **Commands** also include **Items** (Potion, Advanced Potion, Ether).
 
+## Elements, weaknesses and the Bestiary
+Plan your party on floors 1–9 for the boss on floor 10.
+- **Elements:** Fire, Ice, Water, Lightning, Earth, Holy, Dark and Wind, plus the physical **weapon kinds** Slash, Pierce and Blunt (`scripts/combat/element.gd`). A skill can carry more than one: Ember Strike is Fire + Slash, Meteor is Fire + Earth. Battle skill buttons show what each hit carries, e.g. "Ember (3 MP) [Fire]".
+- **Weapon kinds:** physical attacks and skills that don't name a kind use your weapon's. Sword = Slash; Bow and Dagger = Pierce; Mace, Staff and Scepter = Blunt; no weapon = Blunt.
+- **Elemental weapons:** Rare+ weapons can roll an element (25% Rare, 35% Epic, 50% Legendary), e.g. "Flame Mithril Sword". It's added to that wielder's **basic attack**.
+- **Reactions:** **Weak ×1.5**, **Resists ×0.5**, plus rare **Immune** (no damage) and **Absorbs** (heals it). If a hit has several elements, the multipliers stack. Absorb beats everything, then immune.
+- **Stagger:** every weakness hit fills the enemy's meter: **2** hits for normal enemies, **4** for bosses, minibosses and roaming bosses (`Combatant.STAGGER_HITS`). A full meter makes it **lose its next turn** and cancels its planned move. Each stagger needs one more hit than the last, so bosses can't be stun-locked. The meter shows on the enemy's card.
+- **Families** share weaknesses, resistances and traits (`scripts/combat/enemy_families.gd`). An enemy can override single elements on top of its family, like the Mud Slime that doesn't mind water.
+
+| Family | Weak | Resists | Trait |
+|---|---|---|---|
+| Slimes | Fire, Wind | Water, Slash, Pierce | Gelatinous: the first physical hit each round does half damage |
+| Goblins | Pierce | — | Easily distracted: Taunt lasts +1 turn; goes after whoever hit it last |
+| Orcs | Pierce, Ice | Blunt | Thick-skulled: 1 more weakness hit to stagger |
+| Imps | Holy, Water | Fire, Dark | — |
+| Wraiths | Holy, Blunt | Pierce, Slash; **immune** to Dark | — |
+| Wyrms | Ice, Water | **absorbs** Fire | — |
+| Beasts | Pierce | Blunt | Reckless: hits 30% harder below half HP |
+
+- **Bestiary (Tab → Bestiary):** every enemy you fight is added. Hitting one with an element records how it reacted, and what you learn about a family shows on all its members. Traits and lore unlock once you've beaten it. In battle, each enemy card shows what you know ("Weak: Fire, Wind"). The bestiary is saved with the run and starts fresh in New Game+.
+- **Scouting Lens** (merchant, **200g**, carry at most **3**; stage bosses drop one 35% of the time): use it on an enemy in battle to reveal all its reactions and traits for good. Because families share knowledge, scanning one slime tells you about every slime.
+- **Hints:** the merchant's "Any advice for the floors ahead?" and the scratched warnings on some normal floors (20%) describe the next stage's family (placeholder text in each theme's `hint`).
+- **Learning elements:** the six elemental bolts are Common picks, so any character can answer a weakness early. Smite (Holy) and Shadow Bolt (Dark) are Rare skill books. Monsters drop books that fit them.
+
 ## Tower rules
 - **HP and MP carry over** between battles. Heal with Support's Heal (in or out of battle) or potions.
 - **Downed allies stay down** (no turns) until you use a **Goddess Tear** (revives with 30% HP, in or out of battle) or rest at a **campfire** (full heal and revive for the whole party).
-- **Goddess Tears** are rare. Bosses drop them, and the merchant sells them for 1500g (a Potion is 40g).
+- **Goddess Tears** are rare. Bosses drop them, and the merchant sells them for 1500g (a Potion is 40g). The merchant also sells the Scouting Lens (200g, carry 3).
 - **Bosses and minibosses** can't be fled from; roaming bosses can. The sandbox has test buttons for all three kinds.
 - **Every 5th floor is a rest floor** (except boss floors), with a campfire, a merchant and no enemies. Reaching one makes it your checkpoint. Beating a stage boss also makes its floor your checkpoint.
 - **A party wipe** sends you back to your last checkpoint (floor 1 before your first rest floor), fully healed, and costs 20% of your gold.
@@ -139,12 +166,17 @@ Open it with **Tab → Manage party**.
 - **Enemy strength** scales with the floor: ×0.7 on floor 1, +0.08 per floor. Floors 1–3 have smaller groups.
 
 ## Stages, bosses & loot
-The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_library.gd`. Each stage has a theme, minibosses that lead up to its boss, and a **boss on its last floor**. The structure is data, not a hard rule: you can change the number of floors per stage, how many minibosses a stage has, or which floors they're on. Floors past the last stage you've defined reuse the stages in order.
+The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_library.gd`. Each stage has a **theme** (an enemy family), normal enemies and minibosses from that family, and a **boss on its last floor**. The structure is data, not a hard rule: you can change the number of floors per stage, how many minibosses a theme has, or which floors they're on. Floors past the last stage slot reuse the slots in order.
 
-| Stage | Floor 4 miniboss | Floor 9 miniboss | Floor 10 boss |
-|---|---|---|---|
-| 1: Goblin Warrens | Goblin Captain | Hobgoblin | Goblin King (+ Goblin Sorcerer, Goblin Archer) |
-| 2: Orc Stronghold (floors 11–20) | Orc Warchief | Orc Blood Shaman | Orc Warlord |
+**Themes are picked per run.** Each stage slot has a pool of themes, and every New Game and New Game+ rolls one per slot (saved with the run). A slot can be **pinned** to one theme (`"pinned"`) if the story ever needs it fixed. Saves from before themes existed keep the original stages.
+
+| Floors | Theme | Floor 4 miniboss | Floor 9 miniboss | Floor 10 boss |
+|---|---|---|---|---|
+| 1–10 | Goblin Warrens | Goblin Captain | Hobgoblin | Goblin King (+ Goblin Sorcerer, Goblin Archer) |
+| 1–10 | *or* Slime Pits | Big Slime | Mire Slime | King Slime (+ 2 Bubble Slimes) |
+| 11–20 | Orc Stronghold | Orc Warchief | Orc Blood Shaman | Orc Warlord |
+
+- Floor 1 always uses the small level-1 groups. Floors 2–3 use the theme's small early groups, and floor 4 onward its full groups.
 
 - **Minibosses and bosses guard the stairs.** They don't move, the stairs stay locked until you win, and you can't flee.
 - **A boss floor is an arena** with no regular enemies. Beating the boss lights a **campfire** and brings the **merchant**, and that floor becomes your checkpoint. Normal **rest floors** are every 5th floor except boss floors (5, 15, 25…).

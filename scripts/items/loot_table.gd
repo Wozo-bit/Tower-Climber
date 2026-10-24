@@ -8,14 +8,17 @@ const W := GearItem.Slot.WEAPON
 const A := GearItem.Slot.ARMOR
 const X := GearItem.Slot.ACCESSORY
 
+const K := Element.Type
+
 ## Base item types. `stats` = the stats this item favours (primary lines).
+## Weapons have a `kind` (Slash / Pierce / Blunt) that physical attacks use.
 const BASES := {
-	&"sword":  { "name": "Sword",  "slot": W, "stats": [S.STRENGTH, S.HEALTH] },
-	&"mace":   { "name": "Mace",   "slot": W, "stats": [S.STRENGTH, S.STAMINA] },
-	&"staff":  { "name": "Staff",  "slot": W, "stats": [S.INTELLIGENCE] },
-	&"bow":    { "name": "Bow",    "slot": W, "stats": [S.AGILITY, S.STRENGTH] },
-	&"dagger": { "name": "Dagger", "slot": W, "stats": [S.AGILITY, S.LUCK] },
-	&"scepter": { "name": "Scepter", "slot": W, "stats": [S.INTELLIGENCE, S.STAMINA] },
+	&"sword":  { "name": "Sword",  "slot": W, "stats": [S.STRENGTH, S.HEALTH], "kind": K.SLASH },
+	&"mace":   { "name": "Mace",   "slot": W, "stats": [S.STRENGTH, S.STAMINA], "kind": K.BLUNT },
+	&"staff":  { "name": "Staff",  "slot": W, "stats": [S.INTELLIGENCE], "kind": K.BLUNT },
+	&"bow":    { "name": "Bow",    "slot": W, "stats": [S.AGILITY, S.STRENGTH], "kind": K.PIERCE },
+	&"dagger": { "name": "Dagger", "slot": W, "stats": [S.AGILITY, S.LUCK], "kind": K.PIERCE },
+	&"scepter": { "name": "Scepter", "slot": W, "stats": [S.INTELLIGENCE, S.STAMINA], "kind": K.BLUNT },
 	&"plate":  { "name": "Plate Armor",  "slot": A, "stats": [S.HEALTH, S.STAMINA] },
 	&"leather": { "name": "Leather Vest", "slot": A, "stats": [S.AGILITY, S.STAMINA] },
 	&"robe":   { "name": "Robe",   "slot": A, "stats": [S.INTELLIGENCE, S.STAMINA] },
@@ -52,6 +55,13 @@ const BUDGET_MULT := {
 	Rarity.Tier.EPIC: 2.6,
 	Rarity.Tier.LEGENDARY: 3.4,
 	Rarity.Tier.UNIQUE: 4.5,
+}
+
+## Chance a weapon of this rarity rolls an element (added to basic attacks).
+const ELEMENT_CHANCE := {
+	Rarity.Tier.RARE: 0.25,
+	Rarity.Tier.EPIC: 0.35,
+	Rarity.Tier.LEGENDARY: 0.5,
 }
 
 ## One Unique weapon per class. Only that class can equip it.
@@ -143,6 +153,11 @@ static func make_gear(base_id: StringName, rarity: int, item_level: int, rng: Ra
 	for s in lines:
 		weights[s] = 2.0 if base.stats.has(s) else 1.0
 	g.bonuses = _split_budget(budget_for(rarity, item_level), weights)
+
+	# Rare+ weapons may carry an element ("Flame Mithril Sword").
+	if g.slot == W and rng.randf() < ELEMENT_CHANCE.get(rarity, 0.0):
+		g.element = Element.MAGIC_ELEMENTS[rng.randi_range(0, Element.MAGIC_ELEMENTS.size() - 1)]
+		g.display_name = "%s %s" % [Element.adjective_of(g.element), g.display_name]
 	return g
 
 

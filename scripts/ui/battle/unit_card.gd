@@ -19,6 +19,8 @@ var _hp_label: Label
 var _mp_bar: ProgressBar
 var _status: Label
 var _intent: Label
+## Enemies: what the bestiary knows ("Weak: Fire").
+var _known: Label
 var _highlight: int = Highlight.NONE
 
 
@@ -75,6 +77,15 @@ func _init(p_unit: Combatant) -> void:
 	_intent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(_intent)
 
+	if unit.side == Combatant.Side.ENEMY:
+		_known = Label.new()
+		_known.add_theme_font_size_override("font_size", 11)
+		_known.add_theme_color_override("font_color", Color(1.0, 0.6, 0.4))
+		_known.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_known.custom_minimum_size.x = 134
+		_known.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(_known)
+
 	gui_input.connect(_on_gui_input)
 	refresh()
 
@@ -104,6 +115,8 @@ func refresh() -> void:
 	var tags: PackedStringArray = []
 	for id in unit.statuses:
 		tags.append("%s(%d)" % [String(id).capitalize(), unit.statuses[id]])
+	if unit.side == Combatant.Side.ENEMY and unit.is_alive() and unit.stagger > 0:
+		tags.append("Stagger %d/%d" % [unit.stagger, unit.stagger_max])
 	_status.text = " ".join(tags)
 	if unit.is_alive():
 		_sprite.color = unit.color   # also restores colour after a revive
@@ -152,6 +165,12 @@ func _on_gui_input(event: InputEvent) -> void:
 	if _highlight == Highlight.TARGETABLE and event is InputEventMouseButton \
 			and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		clicked.emit(unit)
+
+
+## "Weak: Fire · Resists: Water" from the bestiary ("Weaknesses: ?" if nothing's known).
+func set_known(text: String) -> void:
+	if _known:
+		_known.text = text if text != "" else "Weaknesses: ?"
 
 
 func set_intent(text: String) -> void:

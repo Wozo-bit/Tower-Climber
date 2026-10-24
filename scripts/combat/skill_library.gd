@@ -6,6 +6,7 @@ extends RefCounted
 const E := SkillDef.Effect
 const D := SkillDef.DamageType
 const T := SkillDef.Targeting
+const EL := Element.Type
 
 static var _skills: Dictionary = _build()
 
@@ -46,25 +47,25 @@ static func _build() -> Dictionary:
 
 		# --- Tank ---
 		SkillDef.make(&"shield_bash", "Shield Bash", "Heavy melee blow.",
-			{"mp_cost": 5, "damage_type": D.MELEE, "power": 1.4}),
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 5, "damage_type": D.MELEE, "power": 1.4}),
 		SkillDef.make(&"taunt", "Taunt", "Enemies focus you for 2 turns.",
 			{"mp_cost": 4, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"taunt", "status_turns": 2}),
 
 		# --- Mage ---
 		SkillDef.make(&"fireball", "Fireball", "Strong single-target magic.",
-			{"mp_cost": 6, "damage_type": D.MAGIC, "power": 1.6}),
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 6, "damage_type": D.MAGIC, "power": 1.6}),
 		SkillDef.make(&"arc_storm", "Arc Storm", "Lightning hits every enemy.",
-			{"mp_cost": 10, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.75}),
+			{"elements": [EL.LIGHTNING] as Array[int], "mp_cost": 10, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.75}),
 
 		# --- Archer ---
 		SkillDef.make(&"piercing_shot", "Piercing Shot", "Ignores half the target's defense.",
-			{"mp_cost": 5, "damage_type": D.RANGED, "power": 1.2, "def_pierce": 0.5}),
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 5, "damage_type": D.RANGED, "power": 1.2, "def_pierce": 0.5}),
 		SkillDef.make(&"volley", "Volley", "Arrows rain on every enemy.",
-			{"mp_cost": 8, "damage_type": D.RANGED, "targeting": T.ENEMY_ALL, "power": 0.6}),
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 8, "damage_type": D.RANGED, "targeting": T.ENEMY_ALL, "power": 0.6}),
 
 		# --- Rogue ---
 		SkillDef.make(&"backstab", "Backstab", "Slips past the front line. +25% crit chance.",
-			{"mp_cost": 6, "damage_type": D.MELEE, "power": 1.3, "ignores_row": true, "bonus_crit": 0.25}),
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 6, "damage_type": D.MELEE, "power": 1.3, "ignores_row": true, "bonus_crit": 0.25}),
 		SkillDef.make(&"evade", "Evade", "+30% dodge for 2 turns.",
 			{"mp_cost": 4, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"evasive", "status_turns": 2}),
 
@@ -76,17 +77,17 @@ static func _build() -> Dictionary:
 
 		# --- Ashbound Knight (secret) ---
 		SkillDef.make(&"ember_strike", "Ember Strike", "A burning blade that ignores 30% of defense.",
-			{"mp_cost": 6, "damage_type": D.MELEE, "power": 1.5, "def_pierce": 0.3}),
+			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 6, "damage_type": D.MELEE, "power": 1.5, "def_pierce": 0.3}),
 		SkillDef.make(&"ashen_nova", "Ashen Nova", "Cinders burst over every enemy.",
-			{"mp_cost": 12, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.85}),
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 12, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.85}),
 
 		# --- Ascendant (New Game+ only) ---
 		SkillDef.make(&"judgment", "Judgment", "A devastating blow using your stronger of STR or INT. Ignores rows.",
-			{"mp_cost": 10, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "power": 2.2, "bonus_crit": 0.15}),
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 10, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "power": 2.2, "bonus_crit": 0.15}),
 		SkillDef.make(&"sanctuary", "Sanctuary", "Heals the whole party.",
 			{"mp_cost": 14, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.1}),
 		SkillDef.make(&"heavens_fall", "Heaven's Fall", "Strikes every enemy with your stronger of STR or INT.",
-			{"mp_cost": 18, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "targeting": T.ENEMY_ALL, "power": 1.2}),
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 18, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "targeting": T.ENEMY_ALL, "power": 1.2}),
 
 		# =====================================================
 		# Shared skills: anyone can learn these (picks or skill books).
@@ -106,9 +107,27 @@ static func _build() -> Dictionary:
 		SkillDef.make(&"quick_step", "Quick Step", "Much more likely to act first next round.",
 			{"mp_cost": 3, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"haste", "status_turns": 2,
 			"learnable": true, "tier": 0}),
+		# Elemental bolts: cheap single-target magic, one per element, so any
+		# character can answer a weakness. Common = available as skill picks.
+		SkillDef.make(&"ember", "Ember", "A small burst of flame. [Fire]",
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 3, "damage_type": D.MAGIC, "power": 1.0, "learnable": true, "tier": 0}),
+		SkillDef.make(&"frost_bolt", "Frost Bolt", "A shard of ice. [Ice]",
+			{"elements": [EL.ICE] as Array[int], "mp_cost": 3, "damage_type": D.MAGIC, "power": 1.0, "learnable": true, "tier": 0}),
+		SkillDef.make(&"splash", "Splash", "A lash of water. [Water]",
+			{"elements": [EL.WATER] as Array[int], "mp_cost": 3, "damage_type": D.MAGIC, "power": 1.0, "learnable": true, "tier": 0}),
+		SkillDef.make(&"spark", "Spark", "A crackle of lightning. [Lightning]",
+			{"elements": [EL.LIGHTNING] as Array[int], "mp_cost": 3, "damage_type": D.MAGIC, "power": 1.0, "learnable": true, "tier": 0}),
+		SkillDef.make(&"stone_shot", "Stone Shot", "Hurls a chunk of rock. [Earth]",
+			{"elements": [EL.EARTH] as Array[int], "mp_cost": 3, "damage_type": D.MAGIC, "power": 1.0, "learnable": true, "tier": 0}),
+		SkillDef.make(&"gust", "Gust", "A cutting gust of wind. [Wind]",
+			{"elements": [EL.WIND] as Array[int], "mp_cost": 3, "damage_type": D.MAGIC, "power": 1.0, "learnable": true, "tier": 0}),
+		SkillDef.make(&"smite", "Smite", "Holy light strikes one enemy. [Holy]",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 6, "damage_type": D.MAGIC, "power": 1.4, "learnable": true, "tier": 1}),
+		SkillDef.make(&"shadow_bolt", "Shadow Bolt", "A bolt of darkness. [Dark]",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 6, "damage_type": D.MAGIC, "power": 1.4, "learnable": true, "tier": 1}),
 		# --- Rare ---
 		SkillDef.make(&"cleave", "Cleave", "Hits every enemy you can reach in melee.",
-			{"mp_cost": 7, "damage_type": D.MELEE, "targeting": T.ENEMY_ALL, "power": 0.75, "learnable": true, "tier": 1}),
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 7, "damage_type": D.MELEE, "targeting": T.ENEMY_ALL, "power": 0.75, "learnable": true, "tier": 1}),
 		SkillDef.make(&"mend", "Mend", "Heals the whole party a little.",
 			{"mp_cost": 9, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 0.5, "heal_pct_max_hp": 0.1,
 			"learnable": true, "tier": 1}),
@@ -117,7 +136,7 @@ static func _build() -> Dictionary:
 			"learnable": true, "tier": 1}),
 		# --- Epic ---
 		SkillDef.make(&"earthshatter", "Earthshatter", "A blow that shakes every enemy, front row or back.",
-			{"mp_cost": 14, "damage_type": D.MELEE, "targeting": T.ENEMY_ALL, "power": 1.0, "ignores_row": true,
+			{"elements": [EL.EARTH, EL.BLUNT] as Array[int], "mp_cost": 14, "damage_type": D.MELEE, "targeting": T.ENEMY_ALL, "power": 1.0, "ignores_row": true,
 			"learnable": true, "tier": 2}),
 		SkillDef.make(&"arcane_barrage", "Arcane Barrage", "Magic bolts hit every enemy.",
 			{"mp_cost": 14, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0, "learnable": true, "tier": 2}),
@@ -126,15 +145,15 @@ static func _build() -> Dictionary:
 			{"mp_cost": 16, "effect": E.HEAL, "targeting": T.SELF, "power": 0.0, "heal_pct_max_hp": 0.5,
 			"learnable": true, "tier": 3}),
 		SkillDef.make(&"meteor", "Meteor", "A falling star crushes every enemy.",
-			{"mp_cost": 28, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.6, "learnable": true, "tier": 3}),
+			{"elements": [EL.FIRE, EL.EARTH] as Array[int], "mp_cost": 28, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.6, "learnable": true, "tier": 3}),
 		# --- Unique (boss and roaming-boss books only) ---
 		SkillDef.make(&"kings_decree", "King's Decree", "The Goblin King's command: a crushing blow with your stronger of STR or INT.",
-			{"mp_cost": 20, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "power": 2.6,
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 20, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "power": 2.6,
 			"learnable": true, "tier": 4}),
 		SkillDef.make(&"labyrinth_rage", "Labyrinth Rage", "The Minotaur's fury: an enormous blow that reaches any row.",
-			{"mp_cost": 22, "damage_type": D.MELEE, "ignores_row": true, "power": 3.0, "learnable": true, "tier": 4}),
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 22, "damage_type": D.MELEE, "ignores_row": true, "power": 3.0, "learnable": true, "tier": 4}),
 		SkillDef.make(&"cinder_storm", "Cinder Storm", "The Wyrmling's breath: hits every enemy with your stronger of STR or INT.",
-			{"mp_cost": 26, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "targeting": T.ENEMY_ALL,
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 26, "damage_type": D.MAGIC, "adaptive": true, "ignores_row": true, "targeting": T.ENEMY_ALL,
 			"power": 1.8, "learnable": true, "tier": 4}),
 		SkillDef.make(&"warlords_roar", "Warlord's Roar", "The whole party takes 30% less damage for 3 turns and acts sooner.",
 			{"mp_cost": 18, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3,
@@ -143,11 +162,11 @@ static func _build() -> Dictionary:
 		# --- Enemy-only ---
 		# Smash and Firebolt are enemy moves, but their books can drop, so they're learnable too.
 		SkillDef.make(&"smash", "Smash", "A crushing overhead blow.",
-			{"mp_cost": 4, "damage_type": D.MELEE, "power": 1.5, "learnable": true, "tier": 1}),
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 4, "damage_type": D.MELEE, "power": 1.5, "learnable": true, "tier": 1}),
 		SkillDef.make(&"firebolt", "Firebolt", "A spiteful little fireball.",
-			{"mp_cost": 5, "damage_type": D.MAGIC, "power": 1.3, "learnable": true, "tier": 1}),
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 5, "damage_type": D.MAGIC, "power": 1.3, "learnable": true, "tier": 1}),
 		SkillDef.make(&"ash_breath", "Ash Breath", "Scorching ash washes over the whole party.",
-			{"mp_cost": 8, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.7}),
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 8, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.7}),
 		SkillDef.make(&"war_cry", "War Cry", "Steel yourself: take 30% less damage for 3 turns.",
 			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3,
 			"learnable": true, "tier": 2}),

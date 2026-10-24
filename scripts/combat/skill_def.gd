@@ -35,6 +35,9 @@ enum Targeting { ENEMY_SINGLE, ENEMY_ALL, ALLY_SINGLE, ALLY_ALL, SELF }
 ## and enemy-only moves are not learnable.
 @export var learnable: bool = false
 @export var tier: int = 0   # SkillTier.Tier, for learnable skills
+## Element.Type values this skill hits with. Physical (melee/ranged) skills
+## with no weapon kind here (Slash/Pierce/Blunt) use the attacker's weapon's kind.
+@export var elements: Array[int] = []
 ## Status applied by STATUS skills (or as a rider on others).
 @export var status_id: StringName = &""
 @export var status_turns: int = 0

@@ -132,6 +132,30 @@ func _ready() -> void:
 	_floor_info.text = describe_floor(int(_floor_pick.value))
 	floor_row.add_child(_floor_info)
 
+	# Pick which theme each stage uses (e.g. floors 1-10: Goblin Warrens or Slime Pits).
+	var theme_row := HBoxContainer.new()
+	theme_row.add_theme_constant_override("separation", 8)
+	right.add_child(theme_row)
+	if GameState.stage_themes.is_empty():
+		GameState.stage_themes = []   # fills in each slot's default
+	for i in StageLibrary.STAGE_SLOTS.size():
+		var slot: Dictionary = StageLibrary.STAGE_SLOTS[i]
+		var lbl := Label.new()
+		lbl.text = "Floors %d-%d:" % [i * StageLibrary.FLOORS_PER_STAGE + 1, (i + 1) * StageLibrary.FLOORS_PER_STAGE]
+		theme_row.add_child(lbl)
+		var opt := OptionButton.new()
+		for t in slot.themes:
+			opt.add_item(StageLibrary.THEMES[t].name)
+		opt.selected = slot.themes.find(StageLibrary.theme_id_for_slot(i))
+		opt.disabled = slot.themes.size() < 2 or slot.has("pinned")
+		opt.item_selected.connect(func(idx: int):
+			var picks := GameState.stage_themes.duplicate()
+			picks[i] = slot.themes[idx]
+			GameState.stage_themes = picks
+			GameState.floor_ready = false
+			_floor_info.text = describe_floor(int(_floor_pick.value)))
+		theme_row.add_child(opt)
+
 	var log_title := Label.new()
 	log_title.text = "Log"
 	right.add_child(log_title)

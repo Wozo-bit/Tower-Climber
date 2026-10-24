@@ -27,9 +27,22 @@ func count(id: StringName) -> int:
 	return counts.get(id, 0)
 
 
-func add(id: StringName, amount: int = 1) -> void:
+## Adds up to the item's carry limit (if it has one). Returns how many were added.
+func add(id: StringName, amount: int = 1) -> int:
+	var item := ItemLibrary.get_item(id)
+	if item and item.max_carry > 0:
+		amount = clampi(item.max_carry - count(id), 0, amount)
+	if amount <= 0:
+		return 0
 	counts[id] = count(id) + amount
 	emit_changed()
+	return amount
+
+
+## True if one more fits under the item's carry limit.
+func has_room(id: StringName) -> bool:
+	var item := ItemLibrary.get_item(id)
+	return item == null or item.max_carry <= 0 or count(id) < item.max_carry
 
 
 func remove(id: StringName, amount: int = 1) -> bool:

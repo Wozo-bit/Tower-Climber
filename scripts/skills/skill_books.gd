@@ -21,21 +21,25 @@ const BOOK_DROP_CHANCE := {
 ## Extra books each enemy can drop on top of the learnable skills it actually
 ## uses (e.g. an Orc Brute using Smash can drop Smash). Edit freely.
 const ENEMY_BOOKS := {
-	&"slime": [&"guard", &"focus"],
+	&"slime": [&"guard", &"focus", &"splash"],
 	&"goblin": [&"power_strike", &"quick_step"],
-	&"goblin_archer": [&"quick_step", &"focus"],
-	&"imp_shaman": [&"focus"],
-	&"orc_brute": [&"power_strike", &"cleave"],
-	&"goblin_sorcerer": [&"first_aid", &"mend"],
+	&"goblin_archer": [&"quick_step", &"focus", &"gust"],
+	&"imp_shaman": [&"focus", &"ember", &"shadow_bolt"],
+	&"orc_brute": [&"power_strike", &"cleave", &"stone_shot"],
+	&"goblin_sorcerer": [&"first_aid", &"mend", &"spark", &"frost_bolt"],
 	&"goblin_captain": [&"power_strike", &"cleave", &"rally"],
 	&"hobgoblin": [&"cleave", &"rally"],
 	&"orc_warchief": [&"earthshatter"],
 	&"orc_blood_shaman": [&"mend", &"arcane_barrage"],
-	&"king_slime": [&"guard", &"mend"],
+	&"bubble_slime": [&"focus", &"splash", &"frost_bolt"],
+	&"mud_slime": [&"guard", &"stone_shot"],
+	&"big_slime": [&"guard", &"splash", &"mend"],
+	&"mire_slime": [&"mend", &"rally", &"stone_shot"],
+	&"king_slime": [&"rally", &"mend", &"second_wind", &"meteor"],
 	&"goblin_king": [&"rally", &"earthshatter", &"second_wind", &"kings_decree"],
 	&"orc_warlord": [&"earthshatter", &"second_wind", &"warlords_roar"],
 	&"labyrinth_minotaur": [&"earthshatter", &"second_wind", &"labyrinth_rage"],
-	&"lantern_wraith": [&"arcane_barrage", &"meteor"],
+	&"lantern_wraith": [&"arcane_barrage", &"meteor", &"smite"],
 	&"ashen_wyrmling": [&"arcane_barrage", &"meteor", &"cinder_storm"],
 }
 

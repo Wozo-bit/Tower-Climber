@@ -70,8 +70,13 @@ func _init() -> void:
 	_picks_label = Label.new()
 	_picks_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	right.add_child(_picks_label)
+	var pick_scroll := ScrollContainer.new()
+	pick_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	pick_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	right.add_child(pick_scroll)
 	_pick_box = VBoxContainer.new()
-	right.add_child(_pick_box)
+	_pick_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pick_scroll.add_child(_pick_box)
 	var hint := Label.new()
 	hint.text = "Rarer skills come from skill books that monsters drop (bosses most often).\nUse them from the party menu's Items list."
 	hint.modulate = Color(1, 1, 1, 0.55)

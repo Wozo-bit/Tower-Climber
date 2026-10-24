@@ -6,7 +6,7 @@ static var _items: Dictionary = _build()
 
 ## What the rest-floor merchant sells.
 ## Goddess Tears are deliberately pricey here; bosses drop them for free.
-const SHOP_STOCK := [&"potion", &"advanced_potion", &"ether", &"goddess_tear"]
+const SHOP_STOCK := [&"potion", &"advanced_potion", &"ether", &"scouting_lens", &"goddess_tear"]
 
 
 static func _build() -> Dictionary:
@@ -17,6 +17,10 @@ static func _build() -> Dictionary:
 		ItemDef.make(&"goddess_tear", "Goddess Tear",
 			"Revives a downed ally with 30% HP. Rare — bosses drop them.",
 			{"revive_hp_pct": 0.3, "price": 1500}),
+		# Limited on purpose (max 3 carried) so it's a shortcut, not a crutch.
+		ItemDef.make(&"scouting_lens", "Scouting Lens",
+			"In battle: reveals one enemy's weaknesses, resistances and traits, and records them in the Bestiary. Carry up to 3.",
+			{"scan": true, "max_carry": 3, "price": 200}),
 	]
 	# One skill book per learnable skill: "Skill Book: Power Strike", etc.
 	for s in SkillLibrary.learnable_skills():

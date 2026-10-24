@@ -17,10 +17,17 @@ const SLOT_NAMES := { Slot.WEAPON: "Weapon", Slot.ARMOR: "Armor", Slot.ACCESSORY
 ## Rewards from questlines are earned again each run, so they don't carry into New Game+.
 @export var quest_reward: bool = false
 @export_multiline var description: String
+## Elemental weapons (Element.Type, -1 = none): adds that element to basic attacks.
+@export var element: int = -1
 
 
 static func slot_name(s: int) -> String:
 	return SLOT_NAMES.get(s, "?")
+
+
+## Slash / Pierce / Blunt for weapons (from the base item), -1 for anything else.
+func weapon_kind() -> int:
+	return LootTable.BASES.get(base_id, {}).get("kind", -1) if slot == Slot.WEAPON else -1
 
 
 ## New Game+ keeps only hard-to-get gear: Uniques that aren't questline rewards.
@@ -57,6 +64,10 @@ func bonus_text() -> String:
 ## "[Rare] Mithril Bow (+4 AGI, +3 STR)"
 func summary() -> String:
 	var s := "[%s] %s (%s)" % [Rarity.name_of(rarity), display_name, bonus_text()]
+	if slot == Slot.WEAPON:
+		s += " · " + Element.name_of(weapon_kind())
+		if element >= 0:
+			s += " + " + Element.name_of(element)
 	if class_lock != &"":
 		s += " — " + lock_text()
 	return s

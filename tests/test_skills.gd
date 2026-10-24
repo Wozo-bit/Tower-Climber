@@ -172,8 +172,9 @@ func test_focus_first_aid_haste() -> void:
 func test_skill_picks() -> void:
 	var c := CharacterData.new()
 	check(c.skill_picks == 1, "everyone starts with 1 skill pick (starting skill)")
-	check(SkillLibrary.pick_pool().size() == 5 and SkillLibrary.pick_pool().all(func(s): return s.tier == SkillTier.Tier.COMMON),
-		"picks choose from the 5 Common shared skills")
+	# 5 utility skills + 6 elemental bolts (Ember, Frost Bolt, Splash, Spark, Stone Shot, Gust).
+	check(SkillLibrary.pick_pool().size() == 11 and SkillLibrary.pick_pool().all(func(s): return s.tier == SkillTier.Tier.COMMON),
+		"picks choose from the 11 Common shared skills")
 	check(c.pick_skill(&"first_aid") and c.skill_picks == 0, "spend the starting pick on First Aid")
 	check(not c.pick_skill(&"guard"), "no picks left")
 	while c.level < 9:

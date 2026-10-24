@@ -28,6 +28,12 @@ extends Resource
 ## Hide this enemy's planned move from the player ("Intent: ???").
 @export var hide_intent: bool = false
 @export_multiline var lore: String = ""
+## EnemyFamilies id: shared weaknesses, resistances and traits.
+@export var family: StringName = &""
+## Element.Type -> Element.Affinity overrides on top of the family's.
+@export var affinities: Dictionary = {}
+## Extra traits on top of the family's (EnemyFamilies.TRAITS ids).
+@export var traits: Array[StringName] = []
 
 # --- Loot profile (only matters if loot_rolls > 0) ---
 ## Added to the party's Luck for this enemy's rarity rolls.

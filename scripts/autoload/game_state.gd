@@ -56,6 +56,14 @@ var defeated_roamers: Array = []
 # --- Story ---
 ## Story/clue flags: StringName -> true. Dialogue, lore objects and quests set these.
 var story_flags: Dictionary = {}
+## What the party has learned about enemies (weaknesses, traits). Per run.
+var bestiary := Bestiary.new()
+## The stage theme picked for each StageLibrary slot this run (e.g. floors
+## 1-10 = Slime Pits). Rolled on New Game / New Game+, saved with the run.
+var stage_themes: Array = []:
+	set(value):
+		stage_themes = StageLibrary.validate_themes(value)
+		StageLibrary.run_themes = stage_themes
 
 # --- Run / meta ---
 ## 0 = normal game, 1 = first New Game+, ...
@@ -140,6 +148,8 @@ func reset_run() -> void:
 	floor_player_pos = Vector2i(-1, -1)
 	defeated_roamers = []
 	story_flags = {}
+	bestiary = Bestiary.new()
+	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
 	play_time_sec = 0.0
 	pending_completion = false
@@ -157,8 +167,16 @@ func start_new_game(character_name: String, friend_name: String = "", slot: int 
 	player.rename(character_name)
 	player.legacy_id = _new_legacy_id()
 	companions.append(make_childhood_friend(friend_name))
+	roll_stage_themes()
 	run_active = true
 	save_game()
+
+
+## Picks this run's stage themes (Goblin Warrens or Slime Pits, ...).
+func roll_stage_themes() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	stage_themes = StageLibrary.roll_themes(rng)
 
 
 ## New Game+: continue a character from the Hall of Climbers. By default it uses
@@ -183,6 +201,7 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1) -> void:
 			inventory.add_gear(g.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
 	companions.append(make_childhood_friend(record.friend_name))
 	ng_plus_cycle = record.highest_cycle_cleared + 1
+	roll_stage_themes()
 	run_active = true
 	save_game()
 
@@ -265,6 +284,8 @@ func save_game() -> bool:
 		"defeated_roamers": defeated_roamers.map(func(id): return String(id)),
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
 		"ng_plus_cycle": ng_plus_cycle,
+		"bestiary": bestiary.to_dict(),
+		"stage_themes": stage_themes.map(func(t): return String(t)),
 	}
 	var ok := SaveSerializer.write_json(slot_path(current_slot), d)
 	if not ok:
@@ -314,6 +335,8 @@ func load_game(slot: int = -1) -> bool:
 		if f is String:
 			story_flags[StringName(f)] = true
 	ng_plus_cycle = S._i(d, "ng_plus_cycle", 0, 0, 999)
+	bestiary = Bestiary.from_dict(S._d(d, "bestiary"))
+	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	run_active = true
 	return true
@@ -907,7 +930,7 @@ func owned_unique_classes() -> Array:
 
 func buy_item(id: StringName) -> bool:
 	var item := ItemLibrary.get_item(id)
-	if item == null or player.gold < item.price:
+	if item == null or player.gold < item.price or not inventory.has_room(id):
 		return false
 	player.gold -= item.price
 	inventory.add(id)

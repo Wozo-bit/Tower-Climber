@@ -79,10 +79,13 @@ func _rebuild() -> void:
 		var l := Label.new()
 		l.text = "%s — %s  (have %d)" % [item.display_name, item.description, GameState.inventory.count(id)]
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size.x = 380
 		row.add_child(l)
 		var b := Button.new()
-		b.text = "Buy %dg" % item.price
-		b.disabled = GameState.player.gold < item.price
+		var full := not GameState.inventory.has_room(id)
+		b.text = ("Max %d" % item.max_carry) if full else ("Buy %dg" % item.price)
+		b.disabled = full or GameState.player.gold < item.price
 		b.pressed.connect(func():
 			if GameState.buy_item(id):
 				_message.text = "Bought a %s." % item.display_name

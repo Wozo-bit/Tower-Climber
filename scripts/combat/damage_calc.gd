@@ -50,13 +50,31 @@ static func defense_of(target: Combatant, type: int) -> float:
 	return target.stats.physical_defense()
 
 
-## Returns { "miss": bool, "crit": bool, "amount": int }
+## Elements this hit carries: the skill's own, plus the weapon's kind for
+## physical skills that don't name one, plus an elemental weapon's element on
+## basic attacks.
+static func attack_elements(attacker: Combatant, skill: SkillDef) -> Array[int]:
+	var out: Array[int] = skill.elements.duplicate()
+	var physical := effective_type(attacker, skill) != SkillDef.DamageType.MAGIC
+	if physical and attacker.weapon_kind >= 0 and not out.any(func(e): return Element.WEAPON_KINDS.has(e)):
+		out.append(attacker.weapon_kind)
+	if skill == attacker.basic_attack and attacker.weapon_element >= 0 and not out.has(attacker.weapon_element):
+		out.append(attacker.weapon_element)
+	return out
+
+
+## Returns { "miss", "crit", "amount", "elements", "weak", "resisted",
+## "immune", "absorbed", "hit" } (see Element.resolve for the last five).
+## "absorbed": `amount` is HP the target regains instead of losing.
+## Note: marks a Gelatinous target as having softened its hit this round.
 static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 		rng: RandomNumberGenerator) -> Dictionary:
 	var type := effective_type(attacker, skill)
+	var elements := attack_elements(attacker, skill)
 	# Dodge: physical only. Magic always lands.
 	if type != SkillDef.DamageType.MAGIC and rng.randf() < target.dodge_chance():
-		return { "miss": true, "crit": false, "amount": 0 }
+		return { "miss": true, "crit": false, "amount": 0, "elements": elements, "weak": false,
+			"resisted": false, "immune": false, "absorbed": false, "hit": {} }
 
 	var raw := attack_power(attacker, type) * skill.power * rng.randf_range(1.0 - VARIANCE, 1.0 + VARIANCE)
 	var def := defense_of(target, type) * (1.0 - skill.def_pierce)
@@ -76,7 +94,24 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 	if target.has_status(&"guarding"):
 		dmg *= GUARD_MULT
 
-	return { "miss": false, "crit": crit, "amount": maxi(1, roundi(dmg)) }
+	# Traits
+	if attacker.has_trait(&"reckless") and attacker.hp * 2 < attacker.max_hp:
+		dmg *= EnemyFamilies.RECKLESS_MULT
+	if type != SkillDef.DamageType.MAGIC and target.has_trait(&"gelatinous") and not target.gel_used:
+		dmg *= EnemyFamilies.GELATINOUS_MULT
+		target.gel_used = true
+
+	# Elements: weak / resist / immune / absorb
+	var aff := Element.resolve(elements, target.affinities)
+	var amount: int
+	if aff.absorbed:
+		amount = maxi(1, roundi(dmg))   # healed by this much
+	elif aff.immune:
+		amount = 0
+	else:
+		amount = maxi(1, roundi(dmg * aff.mult))
+	return { "miss": false, "crit": crit, "amount": amount, "elements": elements, "weak": aff.weak,
+		"resisted": aff.resisted, "immune": aff.immune, "absorbed": aff.absorbed, "hit": aff.hit }
 
 
 ## Average heal with no randomness (used out of battle). Some heals also

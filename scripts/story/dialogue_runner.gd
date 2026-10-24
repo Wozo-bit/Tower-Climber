@@ -179,9 +179,11 @@ func _npc_name() -> String:
 	return companion.character_name if companion else ""
 
 
-## Swaps {player}, {friend} and {npc} for the current names.
+## Swaps {player}, {friend} and {npc} for the current names, and {stage_hint}
+## for a hint about the stage ahead (StageLibrary theme "hint").
 static func fill(s: String, npc_name: String = "") -> String:
 	var friend := GameState.childhood_friend()
 	return s.replace("{player}", GameState.player.character_name) \
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
-		.replace("{npc}", npc_name)
+		.replace("{npc}", npc_name) \
+		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))

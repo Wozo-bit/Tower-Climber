@@ -43,6 +43,9 @@ static func choose(battle: BattleManager, actor: Combatant) -> BattleAction:
 		for t in targets:
 			if t.has_status(&"taunt"):
 				return BattleAction.use_skill(actor, skill, t)
+		# Easily distracted: goes after whoever hit it last.
+		if actor.has_trait(&"easily_distracted") and actor.last_attacker and targets.has(actor.last_attacker):
+			return BattleAction.use_skill(actor, skill, actor.last_attacker)
 	return BattleAction.use_skill(actor, skill, targets[rng.randi_range(0, targets.size() - 1)])
 
 

@@ -14,6 +14,10 @@ extends Resource
 ## Skill books: teaches this shared skill when used on a character (out of battle).
 @export var teaches_skill: StringName = &""
 @export var tier: int = 0   # SkillTier, for books
+## Scouting Lens: used on an ENEMY in battle to reveal its affinities and traits.
+@export var scan: bool = false
+## Most you can carry (0 = no limit). Extra copies (buying, drops) are refused.
+@export var max_carry: int = 0
 
 
 func is_skill_book() -> bool:

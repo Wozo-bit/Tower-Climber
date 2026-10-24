@@ -37,6 +37,30 @@ var color := Color(0.6, 0.6, 0.7)
 var source_character: CharacterData
 var source_enemy: EnemyDef
 
+# --- Elements, traits, stagger ---
+## Element.Type -> Element.Affinity (enemies, from their family). Party: none yet.
+var affinities: Dictionary = {}
+var traits: Array[StringName] = []
+## Physical attacks use this kind (Slash/Pierce/Blunt), -1 = none (enemies).
+var weapon_kind := -1
+## Elemental weapon: added to basic attacks. -1 = none.
+var weapon_element := -1
+## Weakness hits fill this; at stagger_max the unit loses its next turn.
+var stagger := 0
+var stagger_max := STAGGER_HITS
+## Set when the meter fills; the unit skips its next turn, then it clears.
+var staggered := false
+## Who damaged it last (Easily distracted enemies go after them).
+var last_attacker: Combatant
+## Gelatinous: has it already softened a physical hit this round?
+var gel_used := false
+
+## Weakness hits to stagger a normal enemy / a boss or miniboss. After each
+## stagger it takes STAGGER_GROWTH more, so a boss can't be stun-locked.
+const STAGGER_HITS := 2
+const STAGGER_HITS_BOSS := 4
+const STAGGER_GROWTH := 1
+
 
 static func from_character(c: CharacterData) -> Combatant:
 	var u := Combatant.new()
@@ -53,6 +77,9 @@ static func from_character(c: CharacterData) -> Combatant:
 	u.row = c.battle_row if c.battle_row >= 0 else SkillLibrary.default_row_for_class(c.class_id)
 	u.skill_chance = 0.4
 	u.color = CLASS_COLORS.get(c.class_id, Color(0.75, 0.7, 0.65))
+	var weapon := c.get_equipped(GearItem.Slot.WEAPON)
+	u.weapon_kind = weapon.weapon_kind() if weapon else Element.Type.BLUNT   # fists are blunt
+	u.weapon_element = weapon.element if weapon else -1
 	return u
 
 
@@ -76,7 +103,28 @@ static func from_enemy(def: EnemyDef, scale: float = 1.0) -> Combatant:
 	u.ai_controlled = true
 	u.skill_chance = def.skill_chance
 	u.color = def.color
+	u.affinities = EnemyFamilies.affinities_for(def)
+	u.traits = EnemyFamilies.traits_for(def)
+	u.stagger_max = (STAGGER_HITS_BOSS if def.is_boss or def.is_roaming else STAGGER_HITS) \
+		+ (1 if u.has_trait(&"thick_skulled") else 0)
 	return u
+
+
+func has_trait(id: StringName) -> bool:
+	return traits.has(id)
+
+
+## One weakness hit. Returns true if that filled the meter (staggered).
+func add_stagger() -> bool:
+	if staggered or not is_alive():
+		return false
+	stagger += 1
+	if stagger < stagger_max:
+		return false
+	stagger = 0
+	stagger_max += STAGGER_GROWTH
+	staggered = true
+	return true
 
 
 func is_alive() -> bool:

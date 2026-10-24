@@ -10,12 +10,10 @@ Building the **Skeleton** (every system working) before the **Meat** (story,
 quests, relationships). Don't write story content unless asked.
 
 Skeleton items still open (Hayden picks the order):
-boss weaknesses (NEXT: elements on skills, weaknesses/resistances and
-traits like "easily taunted" on enemies, a bestiary that records what you've
-seen, so players scout floors 1-9 and plan the party for the boss; e.g.
-slimes weak to fire, goblins easy to distract; design it with Hayden first),
-quests, tier-2 class advancement after floor 20, selling gear, balance pass,
-art/sound hooks. Tutorial is deliberately deferred until the game is closer
+quests, tier-2 class advancement after floor 20 (also where deeper elemental
+skill lines go, e.g. Fire mage -> Lava = Fire + Earth), selling gear, balance
+pass, art/sound hooks.
+Hayden will send tweaks to the enemy family table after playing it. Tutorial is deliberately deferred until the game is closer
 to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
@@ -59,12 +57,21 @@ FINAL_FLOOR = 20 (long-term target is 100 floors, roguelite-style replayability)
   floor whose miniboss or boss is alive (plan the party beforehand; the
   stairs warn first). Order and rows can always change. Reserve cap 6, gets
   50% XP. The childhood friend can be benched/dismissed like anyone.
+- Weaknesses: 8 elements (Fire, Ice, Water, Lightning, Earth, Holy, Dark,
+  Wind) + weapon kinds (Slash, Pierce, Blunt); skills can carry several.
+  Weak x1.5 / resist x0.5 / immune and absorb only on rare enemies.
+  Weakness hits stagger (2 normal, 4 bosses) = lose next turn. Enemy
+  families share weaknesses + traits so floors 1-9 teach the floor-10 boss.
+  Players learn by fighting (bestiary), family knowledge, lore hints, and a
+  LIMITED Scouting Lens (200g, carry max 3) so it can't be abused.
+- Stage themes are random per run (e.g. floors 1-10 Goblin Warrens or Slime
+  Pits). If the story needs a fixed stage, pin that slot in StageLibrary.
 - Dismissing is never permanent: they wait by the campfire on rest floors
   exactly as they left (gear goes to the bag). Recruits with no room at all
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (8 suites, 446 checks at last run).
+Every change gets tests in tests/ (9 suites, 525 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -72,7 +79,8 @@ Run headless from the project folder:
 
 (Replace `godot` with the path to the Godot 4.6.1 executable on this PC.)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
-test_skills, test_dialogue, test_party. All must pass before handing work back.
+test_skills, test_dialogue, test_party, test_elements. All must pass before
+handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 
 ## Working with Hayden

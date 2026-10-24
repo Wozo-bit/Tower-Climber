@@ -33,6 +33,12 @@ const NPCS := {
 			"build": { Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 4, Stats.Type.STRENGTH: 3 },
 		},
 	},
+	# A hint about the current stage's enemies, on some normal floors.
+	&"warning_scrawl": {
+		"name": "Scratched warning", "kind": "object", "dialogue": &"warning_scrawl",
+		"color": Color(0.45, 0.45, 0.4),
+		"floors": ["combat"], "min_floor": 2, "max_floor": 9999, "chance": 0.2,
+	},
 	# Ashbound clue 1 of 3: on normal floors of stage 2 until you've read it.
 	&"scorched_mural": {
 		"name": "Scorched mural", "kind": "object", "dialogue": &"scorched_mural",

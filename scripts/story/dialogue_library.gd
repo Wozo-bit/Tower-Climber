@@ -55,6 +55,8 @@ const DIALOGUES := {
 					# Ashbound clue 2 of 3. Only once you're deep enough to care.
 					{ "text": "Heard any odd stories?", "next": "story",
 						"if": { "min_floor": 10, "not_flag": &"clue_ash_merchant_story" } },
+					# Weakness hint for the stage ahead (StageLibrary theme "hint").
+					{ "text": "Any advice for the floors ahead?", "next": "advice" },
 					{ "text": "Never mind." },
 				],
 			},
@@ -63,6 +65,22 @@ const DIALOGUES := {
 				"text": "(Placeholder) A knight who walked out of a fire, they say. Burned black, but still walking.",
 				"effects": [{ "set_flag": &"clue_ash_merchant_story" }],
 				"next": "hello",
+			},
+			"advice": {
+				"speaker": "Merchant",
+				"text": "{stage_hint}",
+				"next": "hello",
+			},
+		},
+	},
+
+	# --- Scratched warnings on the walls of normal floors (weakness hints). ---
+	&"warning_scrawl": {
+		"start": "read",
+		"nodes": {
+			"read": {
+				"speaker": "",
+				"text": "Someone scratched a warning into the wall: \"{stage_hint}\"",
 			},
 		},
 	},

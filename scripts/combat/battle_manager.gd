@@ -47,6 +47,8 @@ var loot_level := 1
 var owned_unique_classes: Array = []
 ## Multiplies enemy HP/stats (floor difficulty). Set BEFORE setup().
 var enemy_scale := 1.0
+## Where element discoveries are written (GameState.bestiary). Optional.
+var bestiary: Bestiary
 
 var _queue: Array[Combatant] = []
 
@@ -64,6 +66,8 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 		party.append(Combatant.from_character(c))
 	for e in enemy_defs:
 		enemies.append(Combatant.from_enemy(e, enemy_scale))
+		if bestiary:
+			bestiary.record_seen(e)
 	_dedupe_enemy_names()
 	for e in enemies:
 		if e.source_enemy.is_boss:
@@ -119,6 +123,10 @@ func intent_still_valid(a: BattleAction) -> bool:
 			for t in legal:
 				if t.has_status(&"taunt"):
 					return false
+			# Easily distracted: turns on whoever just hit it.
+			var la := a.actor.last_attacker
+			if a.actor.has_trait(&"easily_distracted") and la and la != a.target and legal.has(la):
+				return false
 	elif valid_targets(a.actor, a.skill).is_empty():
 		return false
 	return true
@@ -254,6 +262,8 @@ func _resolve_item(action: BattleAction, result: Dictionary) -> bool:
 	var t := action.target
 	if inventory == null or item == null or inventory.count(item.id) <= 0:
 		return false
+	if item.scan:
+		return _resolve_scan(action, result)
 	if t == null or t.side != action.actor.side:
 		return false
 	if item.is_revive():
@@ -279,6 +289,26 @@ func _resolve_item(action: BattleAction, result: Dictionary) -> bool:
 		parts.append("%d MP" % mp_gain)
 	result.text = "%s uses a %s on %s: +%s." % [action.actor.display_name, item.display_name,
 		t.display_name, ", +".join(parts)]
+	return true
+
+
+## Scouting Lens: reveals one living enemy's affinities and traits for good.
+func _resolve_scan(action: BattleAction, result: Dictionary) -> bool:
+	var t := action.target
+	if t == null or t.side == action.actor.side or not t.is_alive() or t.source_enemy == null:
+		return false
+	inventory.remove(action.item.id)
+	if bestiary == null:
+		bestiary = Bestiary.new()
+	bestiary.scan(t.source_enemy)
+	result.entries.append({ "target": t, "kind": "scan", "amount": 0, "crit": false, "killed": false })
+	var found := bestiary.summary(t.source_enemy)
+	var trait_names: PackedStringArray = []
+	for tr in t.traits:
+		trait_names.append(EnemyFamilies.trait_name(tr))
+	result.text = "%s studies %s through a %s: %s%s." % [action.actor.display_name, t.display_name,
+		action.item.display_name, found if found != "" else "no weaknesses or resistances",
+		(" · Traits: " + ", ".join(trait_names)) if not trait_names.is_empty() else ""]
 	return true
 
 
@@ -317,7 +347,8 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 
 	for target in targets:
 		var t: Combatant = target
-		var entry := { "target": t, "kind": "", "amount": 0, "crit": false, "killed": false }
+		var entry := { "target": t, "kind": "", "amount": 0, "crit": false, "killed": false,
+			"weak": false, "resisted": false, "staggered": false }
 		match skill.effect:
 			SkillDef.Effect.DAMAGE:
 				# Guard: single-target hits on a guarded unit land on the guardian instead.
@@ -331,12 +362,29 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 					entry.kind = "miss"
 					parts.append("%s dodges" % t.display_name)
 				else:
-					entry.kind = "damage"
-					entry.amount = t.take_damage(roll.amount)
-					entry.crit = roll.crit
-					entry.killed = not t.is_alive()
-					parts.append("%s takes %d%s%s" % [t.display_name, entry.amount,
-						" (CRIT)" if roll.crit else "", " and falls" if entry.killed else ""])
+					_learn(t, roll.hit)
+					if roll.absorbed:
+						entry.kind = "absorb"
+						entry.amount = t.restore_hp(roll.amount)
+						parts.append("%s absorbs it and recovers %d HP" % [t.display_name, entry.amount])
+					elif roll.immune:
+						entry.kind = "immune"
+						parts.append("%s is immune" % t.display_name)
+					else:
+						entry.kind = "damage"
+						entry.amount = t.take_damage(roll.amount)
+						entry.crit = roll.crit
+						entry.weak = roll.weak
+						entry.resisted = roll.resisted
+						entry.killed = not t.is_alive()
+						t.last_attacker = actor
+						entry.staggered = roll.weak and t.add_stagger()
+						if entry.staggered:
+							intents.erase(t)
+						parts.append("%s takes %d%s%s%s%s" % [t.display_name, entry.amount,
+							" (WEAK)" if roll.weak else (" (resisted)" if roll.resisted else ""),
+							" (CRIT)" if roll.crit else "", " and falls" if entry.killed else "",
+							" and is STAGGERED" if entry.staggered else ""])
 			SkillDef.Effect.HEAL:
 				entry.kind = "heal"
 				entry.amount = t.restore_hp(DamageCalc.roll_heal(actor, skill, rng, t))
@@ -354,12 +402,25 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 				parts.append("%s will take hits for %s" % [actor.display_name, t.display_name])
 			SkillDef.Effect.STATUS:
 				entry.kind = "status"
-				t.add_status(skill.status_id, skill.status_turns)
+				var turns := skill.status_turns
+				# Easily distracted enemies fall for a Taunt for a turn longer.
+				if skill.status_id == &"taunt" and living(opponents_of(actor)).any(
+						func(o): return o.has_trait(&"easily_distracted")):
+					turns += 1
+				t.add_status(skill.status_id, turns)
 				parts.append("%s gains %s" % [t.display_name, String(skill.status_id)])
 		result.entries.append(entry)
 
 	result.text = "%s uses %s: %s." % [actor.display_name, skill.display_name, ", ".join(parts)]
 	return true
+
+
+## Writes what a hit revealed (element -> affinity) into the bestiary.
+func _learn(t: Combatant, hit: Dictionary) -> void:
+	if bestiary == null or t.source_enemy == null:
+		return
+	for e in hit:
+		bestiary.record_affinity(t.source_enemy, e, hit[e])
 
 
 # =========================================================
@@ -372,6 +433,15 @@ func _next_turn() -> void:
 		if _queue.is_empty():
 			_start_round()
 		var next: Combatant = _queue.pop_front()
+		if next.is_alive() and next.staggered:
+			# Staggered: loses this turn (and whatever it was planning).
+			next.staggered = false
+			next.tick_statuses()
+			intents.erase(next)
+			action_resolved.emit({ "actor": next, "type": BattleAction.Type.DEFEND, "skill": null,
+				"entries": [{ "target": next, "kind": "staggered", "amount": 0, "crit": false, "killed": false }],
+				"text": "%s is staggered and loses its turn!" % next.display_name })
+			continue
 		if next.is_alive():
 			current = next
 	current.tick_statuses()
@@ -384,6 +454,7 @@ func _start_round() -> void:
 	var units: Array[Combatant] = living(party)
 	units.append_array(living(enemies))
 	for u in units:
+		u.gel_used = false
 		var agi := float(u.stats.turn_priority())
 		rolls[u] = agi * rng.randf_range(1.0 - INITIATIVE_SPREAD, 1.0 + INITIATIVE_SPREAD) + rng.randf() * 0.01
 		if u.has_status(&"haste"):
@@ -397,6 +468,8 @@ func _start_round() -> void:
 func _check_end() -> bool:
 	if living(enemies).is_empty():
 		for e in enemies:
+			if bestiary:
+				bestiary.record_defeat(e.source_enemy)
 			rewards.xp += e.source_enemy.xp_reward
 			rewards.gold += e.source_enemy.gold_reward
 			var loot := LootTable.roll_enemy_loot(e.source_enemy, party_luck(), loot_level, rng,
