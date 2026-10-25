@@ -17,6 +17,8 @@ const CLASS_SKILLS := {
 	&"rogue": [&"backstab", &"evade"],
 	&"support": [&"heal", &"ward"],
 	&"ashbound_knight": [&"ember_strike", &"ashen_nova"],
+	&"cinderbrand": [&"cinder_cleave", &"ashen_ward"],
+	&"cinderbrand_t3": [&"wyrmflame"],
 	&"ascendant": [&"judgment", &"sanctuary", &"heavens_fall"],
 	# Tier 2: these come ON TOP of the class they advanced from (lineage).
 	&"bastion": [&"bulwark", &"iron_will"],
@@ -198,6 +200,12 @@ static func _build() -> Dictionary:
 			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 6, "damage_type": D.MELEE, "power": 1.5, "def_pierce": 0.3}),
 		SkillDef.make(&"ashen_nova", "Ashen Nova", "Cinders burst over every enemy.",
 			{"elements": [EL.FIRE] as Array[int], "mp_cost": 12, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 0.85}),
+		SkillDef.make(&"cinder_cleave", "Cinder Cleave", "A burning sweep across every enemy, steel or spell (whichever is stronger).",
+			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 14, "damage_type": D.MELEE, "power": 1.1, "adaptive": true, "targeting": T.ENEMY_ALL}),
+		SkillDef.make(&"ashen_ward", "Ashen Ward", "A veil of cinders: the whole party takes 30% less damage for 3 turns.",
+			{"mp_cost": 16, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
+		SkillDef.make(&"wyrmflame", "Wyrmflame", "The wyrm's fire through the blade: a huge hit that ignores half of defense.",
+			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 22, "damage_type": D.MELEE, "power": 3.0, "adaptive": true, "def_pierce": 0.5}),
 
 		# --- Ascendant (New Game+ only) ---
 		SkillDef.make(&"judgment", "Judgment", "A devastating blow using your stronger of STR or INT. Ignores rows.",

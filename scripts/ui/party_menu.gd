@@ -367,6 +367,14 @@ func _member_row(member: CharacterData) -> Control:
 			adv_btn.tooltip_text = "Advance to a stronger class (needs its trial)."
 			adv_btn.pressed.connect(func(): _advance_panel.open(member))
 			row.add_child(adv_btn)
+		# The one free class change, once the tier-2 gate's floor is beaten.
+		if member.class_change_open():
+			var change_btn := Button.new()
+			change_btn.text = "⇄ Change class"
+			change_btn.modulate = Color(0.75, 0.85, 1)
+			change_btn.tooltip_text = "Once per character, before advancing: give up this class, respec for free, and choose again."
+			change_btn.pressed.connect(_confirm_class_change.bind(member))
+			row.add_child(change_btn)
 		# NG+ Ascension: shown on a top-tier line once you're in New Game+.
 		if GameState.ng_plus_cycle >= 1 and def and def.tier >= ClassRegistry.ASCENSION_GATE.tier 				and member.class_id != &"ascendant" and not member.ascended:
 			var asc_btn := Button.new()
@@ -426,6 +434,25 @@ func _open_rename(member: CharacterData) -> void:
 	add_child(dlg)
 	dlg.popup_centered()
 	edit.grab_focus()
+
+
+func _confirm_class_change(member: CharacterData) -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.title = "Change class"
+	dlg.dialog_text = ("%s gives up the %s?
+
+You get a free respec, then choose a class again (or an unlocked secret class)."
+		+ "
+Learned skills stay; class skills change. This is your only free change.") % [
+		member.character_name, member.get_class_def().display_name]
+	dlg.confirmed.connect(func():
+		if GameState.release_class(member):
+			_say("%s can choose a new class. Respec first if you like (free)." % member.character_name)
+		_rebuild()
+		dlg.queue_free())
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()
 
 
 func _confirm_secret_class(member: CharacterData, def: ClassDef) -> void:

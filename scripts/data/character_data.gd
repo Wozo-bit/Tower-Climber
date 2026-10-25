@@ -39,6 +39,9 @@ const RESPEC_COST_MULTIPLIER := 2.0 # each paid respec costs this much more
 @export var free_respec_pre_class_used: bool = false
 @export var free_respec_post_class_used: bool = false
 @export var paid_respec_count: int = 0
+## The one free class change (Hayden 2026-10-25), offered once the tier-2
+## gate's floor is beaten, while still in a tier-1 class.
+@export var class_change_used: bool = false
 ## Battle row (Combatant.Row). -1 = use the class default. Saved when changed in battle.
 @export var battle_row: int = -1
 ## HP/MP carry over between battles. Stored as "missing" amounts so that
@@ -511,6 +514,28 @@ func take_secret_class(def: ClassDef) -> bool:
 	_apply_class_bonus()
 	battle_row = -1   # use the new class's default row
 	class_chosen.emit(def)
+	stats_changed.emit()
+	return true
+
+
+## Can give up their tier-1 class once (see class_change_used): after the
+## tier-2 gate's floor, before advancing. Not the NG+ Ascendant.
+func class_change_open() -> bool:
+	var def := get_class_def()
+	var gate: Dictionary = ClassRegistry.ADVANCEMENT_GATES.get(2, {})
+	return def != null and def.tier == 1 and class_id != &"ascendant" and not class_change_used 		and not gate.is_empty() and GameState.highest_floor > gate.floor
+
+
+## Gives up the class (once) and gets a free respec, then picks again like
+## at level 10 (or takes an unlocked secret class). Learned skills stay.
+func release_class() -> bool:
+	if not class_change_open():
+		return false
+	class_change_used = true
+	class_id = &""
+	free_respec_pre_class_used = false   # the respec before choosing again is free
+	_apply_class_bonus()
+	battle_row = -1
 	stats_changed.emit()
 	return true
 

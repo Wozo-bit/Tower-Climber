@@ -235,7 +235,10 @@ Tutorial is deliberately deferred until the game is closer to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
-FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability), tier-2/tier-3/demigod class names.
+FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability), tier-2/tier-3/demigod class names, Ashbound's Cinderbrand/Wyrmflame Knight.
+Secret classes (Hayden 2026-10-25): a build hint on floors 2-9, their own
+advancement lines, and one free class change + free respec per character
+after floor 20 (tier 1 only).
 
 ## Architecture
 - Autoloads: ClassRegistry, GameState, Settings. UI is built in code
@@ -289,7 +292,7 @@ FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (21 suites, 1206 checks at last run).
+Every change gets tests in tests/ (21 suites, 1218 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

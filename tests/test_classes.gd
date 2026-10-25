@@ -18,6 +18,8 @@ func _ready() -> void:
 	test_route_only()
 	test_uniques_and_loot()
 	test_save_roundtrip()
+	test_secret_line()
+	test_class_change()
 	GameState.delete_slot(1)
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
@@ -76,7 +78,8 @@ func _finish_trial(def: ClassDef) -> void:
 
 
 func test_tree_is_complete() -> void:
-	var tier2 := ClassRegistry.get_tier(2).filter(func(d): return d.unique_to == &"")   # demigods' classes aside
+	# Demigods' and secret classes' own lines aside.
+	var tier2 := ClassRegistry.get_tier(2).filter(func(d): return d.unique_to == &"" and not _secret_line(d))
 	var bases := [&"tank", &"mage", &"archer", &"rogue", &"support", &"warrior", &"monk", &"spellblade", &"magic_swordsman", &"summoner"]
 	check(ClassRegistry.get_tier(1).filter(func(d): return not d.is_secret).size() == bases.size(), "10 starting classes")
 	check(tier2.size() == 24, "24 tier-2 classes (2 per class + 4 route-only)")
@@ -85,7 +88,7 @@ func test_tree_is_complete() -> void:
 		check(normal.size() == 2, "%s has 2 normal advancements" % base)
 	var routed := tier2.filter(func(d): return d.required_route != &"")
 	check(routed.size() == 4 and routed.all(func(d): return RouteLibrary.routes.has(d.required_route)), "4 route-only advancements on real routes")
-	var tier3 := ClassRegistry.get_tier(3).filter(func(d): return d.unique_to == &"")
+	var tier3 := ClassRegistry.get_tier(3).filter(func(d): return d.unique_to == &"" and not _secret_line(d))
 	check(tier3.size() == tier2.size() and tier2.all(func(d): return ClassRegistry.advancements_for(d.id).size() == 1),
 		"every tier-2 class has a tier-3 mastery")
 	var t3_ok := true
@@ -201,6 +204,50 @@ func test_uniques_and_loot() -> void:
 	var party: Array[CharacterData] = [c]
 	b.setup(party, EnemyLibrary.build_group([&"slime"]), 1)
 	check(b.party_classes() == [&"mage"], "Unique drops treat a Pyromancer as a Mage")
+
+
+static func _secret_line(d: ClassDef) -> bool:
+	return ClassRegistry.get_class_def(ClassRegistry.root_of(d.id)).is_secret
+
+
+## Hayden 2026-10-25: secret classes get their own advancements.
+func test_secret_line() -> void:
+	print("Secret class line")
+	var t2 := ClassRegistry.advancements_for(&"ashbound_knight")
+	check(t2.size() == 1 and t2[0].tier == 2 and ClassRegistry.advancements_for(t2[0].id).size() == 1,
+		"Ashbound Knight -> %s -> its tier 3" % (t2[0].display_name if not t2.is_empty() else "?"))
+	check(not QuestLibrary.get_quest(CharacterData.trial_id(t2[0])).is_empty(), "with a trial like any advancement")
+	var t3 := ClassRegistry.advancements_for(t2[0].id)[0]
+	check(SkillLibrary.CLASS_SKILLS.get(t2[0].id, []).size() == 2 and SkillLibrary.CLASS_SKILLS.get(t3.id, []).size() == 1,
+		"2 new skills, then a capstone")
+	check(ClassRegistry.root_of(t3.id) == &"ashbound_knight", "the line keeps Ashbound Knight's skills and Unique")
+	var teaser := NpcLibrary.get_npc(&"ash_carving")
+	check(teaser.get("max_floor", 99) < 10 and not SecretPaths.PATHS.ashbound.clue_flags.has(teaser.get("gone_flag")),
+		"a hint before the level-10 class choice (not one of the 3 clues)")
+
+
+## One free class change after the tier-2 gate's floor, while still tier 1.
+func test_class_change() -> void:
+	print("Free class change")
+	_fresh()
+	var c := _veteran(&"mage", MAGE)
+	GameState.highest_floor = 20
+	check(not c.class_change_open(), "not before floor 20 is beaten")
+	GameState.highest_floor = 21
+	check(c.class_change_open(), "open on floor 21")
+	c.gold = 0
+	check(GameState.release_class(c) and not c.has_class() and c.can_choose_class(), "give up the class...")
+	check(c.next_respec_cost() == 0 and c.respec(), "...respec for free...")
+	c.apply_allocation({ Stats.Type.HEALTH: c.unspent_points / 2, Stats.Type.STAMINA: c.unspent_points - c.unspent_points / 2 })
+	check(c.choose_class(ClassRegistry.get_class_def(&"tank")) and c.class_id == &"tank", "...and choose again")
+	check(not c.class_change_open(), "only once")
+	var adv := _veteran(&"mage", MAGE)
+	adv.class_id = &"pyromancer"
+	check(not adv.class_change_open(), "not after advancing")
+	GameState.player.class_change_used = true
+	GameState.save_game()
+	GameState.load_game(1)
+	check(GameState.player.class_change_used, "saved")
 
 
 func test_save_roundtrip() -> void:

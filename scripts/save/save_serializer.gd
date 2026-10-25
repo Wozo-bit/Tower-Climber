@@ -166,6 +166,7 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"class": String(c.class_id), "gold": c.gold,
 		"free_respec_pre_used": c.free_respec_pre_class_used,
 		"free_respec_post_used": c.free_respec_post_class_used,
+		"class_change_used": c.class_change_used,
 		"paid_respecs": c.paid_respec_count, "battle_row": c.battle_row,
 		"missing_hp": c.missing_hp, "missing_mp": c.missing_mp,
 		"legacy_id": c.legacy_id, "companion_id": String(c.companion_id),
@@ -192,6 +193,7 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 	c.gold = _i(d, "gold", 0, 0)
 	c.free_respec_pre_class_used = _b(d, "free_respec_pre_used", false)
 	c.free_respec_post_class_used = _b(d, "free_respec_post_used", false)
+	c.class_change_used = _b(d, "class_change_used", false)
 	c.paid_respec_count = _i(d, "paid_respecs", 0, 0, 999)
 	c.battle_row = _i(d, "battle_row", -1, -1, 1)
 	c.legacy_id = _s(d, "legacy_id", "", 64)

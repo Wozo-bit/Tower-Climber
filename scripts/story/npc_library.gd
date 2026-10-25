@@ -348,6 +348,14 @@ const NPCS := {
 		"floors": ["combat", "rest"], "min_floor": 6, "max_floor": 9999,
 		"if": { "quest_on_step": [&"torn_map", 1] },
 	},
+	# Ashbound teaser (Hayden 2026-10-25): before the level-10 class choice, so
+	# players can plan the build. Not one of the 3 clues.
+	&"ash_carving": {
+		"name": "Burnt sword", "kind": "object", "dialogue": &"ash_carving",
+		"color": Color(0.45, 0.3, 0.25),
+		"floors": ["combat"], "min_floor": 2, "max_floor": 9, "chance": 0.5,
+		"gone_flag": &"hint_ash_carving",
+	},
 	# Ashbound clue 1 of 3: on normal floors of stage 2 until you've read it.
 	&"scorched_mural": {
 		"name": "Scorched mural", "kind": "object", "dialogue": &"scorched_mural",

@@ -232,6 +232,11 @@ func _register_secret() -> void:
 		[Stats.Type.STRENGTH, Stats.Type.INTELLIGENCE] as Array[int], 0.55)
 	ash.is_secret = true
 	register(ash)
+	# Its own line (Hayden 2026-10-25), so taking it isn't a step down. Placeholder names.
+	_advanced(&"cinderbrand", "Cinderbrand Knight", "(Placeholder) The ashes answer the blade.", &"ashbound_knight",
+		[Stats.Type.STRENGTH, Stats.Type.INTELLIGENCE], 0.55)
+	_advanced(&"cinderbrand_t3", "Wyrmflame Knight", "(Placeholder) The wyrm's fire, bound to a knight.", &"cinderbrand",
+		[Stats.Type.STRENGTH, Stats.Type.INTELLIGENCE], 0.55)
 
 	# New Game+ only: deliberately stronger than anything in a first run.
 	# Always ASCENDANT_EDGE above the best tier's bonus, no stat requirement,

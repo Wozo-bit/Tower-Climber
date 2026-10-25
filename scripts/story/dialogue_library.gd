@@ -479,6 +479,21 @@ const DIALOGUES := {
 			},
 		},
 	},
+	&"ash_carving": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "(Placeholder) A burnt-out sword in the stone. Scratched beside it: \"Strong of arm and sharp of mind, the ashes will know their own.\"",
+				"effects": [{ "set_flag": &"hint_ash_carving" }],
+				"next": "hint",
+			},
+			"hint": {
+				"speaker": "System",
+				"text": "A hidden class favours Strength and Intelligence. Its trail begins higher in the tower.",
+			},
+		},
+	},
 	&"feather_in_embers": {
 		"start": "look",
 		"nodes": {

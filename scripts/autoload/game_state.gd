@@ -691,6 +691,9 @@ func enter_floor(n: int) -> void:
 	highest_floor = maxi(highest_floor, n)
 	if party_size() > room_before:
 		_party_grows()
+	var gate: int = ClassRegistry.ADVANCEMENT_GATES[2].floor
+	if n == gate + 1 and battle_party().any(func(m): return m.class_change_open()):
+		quests.messages.append("Advancement is open. Each climber may also change class once, with a free respec (Tab).")
 	floor_seed = randi()
 	floor_ready = false
 	floor_enemies.clear()
@@ -1276,6 +1279,17 @@ func unlocked_secret_classes() -> Array:
 
 
 ## The player character switches to an unlocked secret class (stat gate applies).
+## The one free class change: they give up their class (gear locked to it
+## goes back in the bag) and pick again.
+func release_class(member: CharacterData) -> bool:
+	if not member.release_class():
+		return false
+	for slot in member.equipment.keys():
+		if not member.get_equipped(slot).can_equip(member):
+			unequip_to_bag(member, slot)
+	return true
+
+
 func take_secret_class(member: CharacterData, class_id: StringName) -> bool:
 	if member != player or not unlocked_secret_classes().has(class_id):
 		return false

@@ -120,6 +120,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 - **NPCs and lore objects** are set up in `npc_library.gd`: which kinds of floor they can be on (rest, cleared boss, combat, miniboss), the floor range, a chance per floor, extra conditions, a flag that makes them disappear for good, and whether they stand by the campfire. Placement uses the floor's seed, so they're in the same spot when you come back, and never cut off part of the floor.
 - **The merchant** now greets you first: **Let's trade** opens the shop. From floor 10 they also have a story to tell (an Ashbound clue).
 - **Recruiting:** recruitable NPCs join at **your level − 1** (min 1), with their points spent by their build and their class taken if they're level 10+. They join the party if there's room, then the reserve, and if both are full they wait by the campfire on rest floors (see Party management). Recruits leave the floor, are saved, and reset in New Game+ like other story progress. Uniques on reserve or waiting members still carry into New Game+.
+- **A hint before the class choice** (Hayden 2026-10-25): a **burnt sword** on normal floors 2–9 (50%) hints that a hidden class favours Strength and Intelligence, so players can plan their build before level 10. It isn't one of the 3 clues.
 - **The Ashbound clues** all come from this system now: the **scorched mural** (40% of normal floors 11–29), the **merchant's story** (floor 10+) and the **glint in the embers** (by the campfire on rest floors and cleared boss floors from floor 10).
 - **Placeholder content only:** the merchant, lore objects and the recruit roster below. Real story content comes later.
 
@@ -545,6 +546,8 @@ The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_
   2. **Once you've found `clues_to_start` of them** (all 3 by default), the path's roaming boss is guaranteed to hunt you.
   3. **Beating it is the final step.** It unlocks the secret class and announces it on the floor.
 - **Ashbound Knight** is the placeholder secret class. It needs 55% of allocated points in Strength + Intelligence, and it's **player character only**. Its skills are Ember Strike (melee, ignores 30% defense) and Ashen Nova (magic, hits all enemies). Once unlocked, it's offered at the level-10 class screen if you qualify. If you already have a class, the party menu has a **✦ Ashbound Knight** button that switches to it (it replaces your class and skills). Locked secret classes never show up anywhere, including the "how close you are" hints.
+- **Its own advancements** (Hayden 2026-10-25), so taking it isn't a step down: Ashbound Knight → **Cinderbrand Knight** (tier 2: Cinder Cleave, Ashen Ward) → **Wyrmflame Knight** (tier 3: Wyrmflame). Same gates and trials as other lines; placeholder names.
+- **One free class change** (Hayden 2026-10-25): once floor 20 is beaten, each character still in a tier-1 class gets a **⇄ Change class** button in Tab (a notice on floor 21 says so). It gives up the class, grants a free respec, and lets them choose again (any class they qualify for, or an unlocked secret class for the player). Learned skills stay. Once per character (`CharacterData.class_change_used`, saved), and not after advancing.
 - In the sandbox, **🔍 Find next Ashbound clue** gives you the clues one at a time for testing.
 
 ### Loot
