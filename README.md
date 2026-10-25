@@ -105,6 +105,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tests/test_screens.gd` | 12 smoke checks that open the real floor, battle and title screens and drive the hooks on them (including a captain joining a fight). Run: `godot --headless res://tests/test_screens.tscn` |
 | `scripts/data/difficulty.gd` | Difficulty modes (Relaxed / Normal / Hard / Hell). Ironman lives in `GameState`. |
 | `tools/balance_sim.gd` | The balance simulator (dev tool): a bot plays whole runs, or measures the guild world. See "What the balance simulator says". |
+| `tests/test_stages.gd` | 19 checks: every theme's data, the 60-floor ladder and the non-repeating pseudo-god slots, boss patrons (blessing, sensitivity rule, interest), the new traits, signature books. Run: `godot --headless res://tests/test_stages.tscn` |
 | `tests/test_difficulty.gd` | 45 checks: difficulty choice and lowering, battle multipliers, Hell extras, wipes, Ironman deaths and the fallen, Hall records, patron temper and feuds, scaling rules. Run: `godot --headless res://tests/test_difficulty.tscn` |
 
 ## Dialogue, NPCs and recruiting
@@ -441,11 +442,34 @@ The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_
 
 **Themes are picked per run.** Each stage slot has a pool of themes, and every New Game and New Game+ rolls one per slot (saved with the run). A slot can be **pinned** to one theme (`"pinned"`) if the story ever needs it fixed. Saves from before themes existed keep the original stages.
 
-| Floors | Theme | Floor 4 miniboss | Floor 9 miniboss | Floor 10 boss |
-|---|---|---|---|---|
-| 1–10 | Goblin Warrens | Goblin Captain | Hobgoblin | Goblin King (+ Goblin Sorcerer, Goblin Archer) |
-| 1–10 | *or* Slime Pits | Big Slime | Mire Slime | King Slime (+ 2 Bubble Slimes) |
-| 11–20 | Orc Stronghold | Orc Warchief | Orc Blood Shaman | Orc Warlord |
+**The climb is 60 floors (6 stages; `FINAL_FLOOR`).** Hayden's arc: the player climbs toward godhood. Each run picks one theme per slot:
+
+| Floors | Themes (one per run) | Minibosses (4th / 9th floor of the stage) | Boss (patron) |
+|---|---|---|---|
+| 1–10 | Goblin Warrens / Slime Pits | Goblin Captain, Hobgoblin / Big Slime, Mire Slime | Goblin King / King Slime |
+| 11–20 | Orc Stronghold / **Bandit Fortress** | Orc Warchief, Orc Blood Shaman / Bandit Captain, Bandit Quartermaster | Orc Warlord / **Bandit Lord** (Mammon) |
+| 21–30 | **Insect Hive** / **Beast Den** | Hive Warden, Brood Mother / Pack Leader, Elder Bear | **Hive Queen** (Apep) / **Moonfang, the Great Wolf** (Loki) |
+| 31–40 | **Elemental Rift** / **Undead Crypt** | Magma Colossus, Tempest Lord / Bone Knight, Grave Priest | **Rift Sovereign** (Typhon) / **The Necromancer** (Hades) |
+| 41–50 and 51–60 | two of **Demon Gate** / **Celestial Spire** (angels) / **Dragon Roost**, never the same twice | Pit Fiend, Hell Warlock / Throne Guardian, Choir Master / Drake Rider, Elder Wyvern | **The Archfiend** (Mephistopheles) / **Seraph Judicator** (Zeus) / **Dragon Sovereign** (Tiamat) |
+
+- **Pseudo-god stages:** Demons, Angels and Dragons share one pool for floors 41–60 (`"group"` in `STAGE_SLOTS`), so any two of them can come in either order.
+- **New families:**
+  - **Bandits:** weak to Lightning and Pierce; easily distracted.
+  - **Insects:** weak to Fire and Wind; resist Earth and Pierce. **Swarming:** +10% damage per other living swarmer, up to +30%.
+  - **Elementals:** resist all weapons; each absorbs its own element and fears its opposite.
+  - **Undead:** weak to Holy and Fire; resist Dark and Ice. **Undying:** survives its first killing blow with 1 HP, unless that blow is Holy or Fire.
+  - **Demons:** weak to Holy and Ice; resist Fire and Dark; reckless.
+  - **Celestials:** weak to Dark; resist Holy and Lightning.
+  - **Dragons:** weak to Ice and Pierce; resist Fire and Slash. **Dragonscale:** non-weakness hits do 25% less.
+  - Families and traits live in `enemy_families.gd`.
+- **Boss patrons:** a boss can name a sponsoring being (`EnemyDef.patron`).
+  - It fights with that being's level-2 blessing (buffs, no curse) and its blessed skill.
+  - The cut-in says "Sponsored by …".
+  - Beating it costs that being 10 interest in you, and gives each of its rivals 10.
+  - Sensitivity rule: figures from living religions never sponsor enemies (tests enforce it).
+- **Signature skills:** each new boss has a Unique skill book (Highwayman's Ruin, Chitin Storm, Moonfang, Cataclysm, Grave Tide, Abyssal Brand, Judgment Ray, Dragonfire).
+- **Theme power:** new themes are built at the goblins' baseline. The trait-heavy ones get a power rating so the floor curve stays fair: Insects 1.1, Elemental Rift 1.3, Undead 1.25, Demons 1.1, Angels 1.1, Dragons 1.2 (Orcs 1.4).
+- **Simulator, Normal, 60 floors:** 17 of 24 runs clear. The misses are mostly all-melee parties (rogue + tank) on the weapon-resistant Elemental Rift and Undead floors. Party level on first reaching floors 10/20/30/40/50/60 is about 12/25/35/44/51/59. Relaxed clears 12 of 12, Hard 11 of 12, and Hell 4 of 12 (a grind).
 
 - Floor 1 always uses the small level-1 groups. Floors 2–3 use the theme's small early groups, and floor 4 onward its full groups.
 

@@ -3,6 +3,8 @@ extends RefCounted
 ## Test enemies roughly tuned against a level-10 party. Placeholders.
 
 const S := Stats.Type
+const EL := Element.Type
+const AF := Element.Affinity
 const FRONT := 0  # Combatant.Row.FRONT
 const BACK := 1   # Combatant.Row.BACK
 
@@ -139,6 +141,343 @@ static func _build() -> Dictionary:
 			"row": FRONT, "skills": [&"smash", &"splash"] as Array[StringName], "skill_chance": 0.45,
 			"xp_reward": 700, "gold_reward": 300, "color": Color(0.3, 0.55, 1.0), "is_boss": true,
 			"lore": "(Placeholder) Every slime on these floors drains toward it eventually.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# =====================================================
+		# Stage themes added 2026-10-25. All built at the goblins' baseline
+		# strength (theme power 1.0): the floor curve sets the difficulty.
+		# Bosses have a `patron` (BeingLibrary): they fight with its blessing.
+		# =====================================================
+		# --- Bandit Fortress (floors 11-20) ---
+		EnemyDef.make(&"bandit_cutthroat", "Bandit Cutthroat", {
+			"family": &"bandit",
+			"max_hp": 140, "stats": {S.HEALTH: 7, S.STRENGTH: 14, S.STAMINA: 8, S.AGILITY: 15, S.LUCK: 10},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 60, "gold_reward": 20, "color": Color(0.55, 0.4, 0.3)}),
+		EnemyDef.make(&"bandit_brute", "Bandit Brute", {
+			"family": &"bandit",
+			"max_hp": 190, "stats": {S.HEALTH: 10, S.STRENGTH: 16, S.STAMINA: 12, S.AGILITY: 7},
+			"row": FRONT, "skills": [&"smash"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 70, "gold_reward": 18, "color": Color(0.45, 0.32, 0.25)}),
+		EnemyDef.make(&"bandit_crossbow", "Bandit Crossbow", {
+			"family": &"bandit",
+			"max_hp": 110, "stats": {S.STRENGTH: 11, S.STAMINA: 7, S.AGILITY: 16, S.LUCK: 9},
+			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 18,
+			"color": Color(0.6, 0.5, 0.35)}),
+		EnemyDef.make(&"bandit_hexer", "Bandit Hexer", {
+			"family": &"bandit",
+			"max_hp": 105, "stats": {S.INTELLIGENCE: 16, S.STAMINA: 7, S.AGILITY: 11},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"first_aid"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 65, "gold_reward": 20, "color": Color(0.4, 0.3, 0.45)}),
+		EnemyDef.make(&"bandit_captain", "Bandit Captain", {
+			"family": &"bandit",
+			"max_hp": 360, "stats": {S.HEALTH: 11, S.STRENGTH: 15, S.STAMINA: 11, S.AGILITY: 14, S.LUCK: 10},
+			"row": FRONT, "skills": [&"power_strike", &"war_cry"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 200, "gold_reward": 90, "color": Color(0.65, 0.45, 0.3),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"bandit_quartermaster", "Bandit Quartermaster", {
+			"family": &"bandit",
+			"max_hp": 480, "stats": {S.HEALTH: 12, S.INTELLIGENCE: 18, S.STAMINA: 12, S.AGILITY: 10, S.LUCK: 12},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"mend", &"ward"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 320, "gold_reward": 140, "color": Color(0.5, 0.4, 0.55),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"bandit_lord", "Bandit Lord", {
+			"family": &"bandit", "patron": &"mammon",
+			"max_hp": 1150, "stats": {S.HEALTH: 18, S.STRENGTH: 22, S.STAMINA: 17, S.AGILITY: 15, S.LUCK: 14},
+			"row": FRONT, "skills": [&"power_strike", &"war_cry", &"highwaymans_ruin"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 750, "gold_reward": 400, "color": Color(0.8, 0.6, 0.2), "is_boss": true,
+			"lore": "(Placeholder) Everything that goes missing on these floors ends up in his vault. Mammon takes a cut.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Insect Hive (floors 21-30) ---
+		EnemyDef.make(&"hive_drone", "Hive Drone", {
+			"family": &"insect",
+			"max_hp": 100, "stats": {S.STRENGTH: 12, S.STAMINA: 9, S.AGILITY: 16},
+			"row": FRONT, "xp_reward": 45, "gold_reward": 10, "color": Color(0.75, 0.7, 0.2)}),
+		EnemyDef.make(&"hive_soldier", "Hive Soldier", {
+			"family": &"insect",
+			"max_hp": 170, "stats": {S.HEALTH: 9, S.STRENGTH: 15, S.STAMINA: 14, S.AGILITY: 9},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 65, "gold_reward": 14, "color": Color(0.55, 0.45, 0.15)}),
+		EnemyDef.make(&"acid_spitter", "Acid Spitter", {
+			"family": &"insect",
+			"max_hp": 105, "stats": {S.INTELLIGENCE: 15, S.STAMINA: 8, S.AGILITY: 12},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"stone_shot", &"splash"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 55, "gold_reward": 12, "color": Color(0.5, 0.75, 0.25)}),
+		EnemyDef.make(&"hive_nurse", "Hive Nurse", {
+			"family": &"insect",
+			"max_hp": 120, "stats": {S.INTELLIGENCE: 14, S.STAMINA: 9, S.AGILITY: 10},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"heal", &"mend"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 55, "gold_reward": 12, "color": Color(0.85, 0.8, 0.55)}),
+		EnemyDef.make(&"hive_warden", "Hive Warden", {
+			"family": &"insect",
+			"max_hp": 380, "stats": {S.HEALTH: 12, S.STRENGTH: 15, S.STAMINA: 15, S.AGILITY: 10},
+			"row": FRONT, "skills": [&"smash", &"war_cry"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 200, "gold_reward": 70, "color": Color(0.6, 0.5, 0.1),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"brood_mother", "Brood Mother", {
+			"family": &"insect",
+			"max_hp": 520, "stats": {S.HEALTH: 12, S.INTELLIGENCE: 18, S.STAMINA: 13, S.AGILITY: 11},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"stone_shot", &"mend", &"gust"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 320, "gold_reward": 110, "color": Color(0.7, 0.65, 0.35),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"hive_queen", "Hive Queen", {
+			"family": &"insect", "patron": &"apep",
+			"max_hp": 1100, "stats": {S.HEALTH: 17, S.INTELLIGENCE: 22, S.STRENGTH: 16, S.STAMINA: 16, S.AGILITY: 13, S.LUCK: 10},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"stone_shot", &"mend", &"chitin_storm"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 750, "gold_reward": 320, "color": Color(0.9, 0.75, 0.15), "is_boss": true,
+			"lore": "(Placeholder) A thousand eggs, a thousand mouths. The Serpent of Chaos loves a hungry thing.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Beast Den (floors 21-30) ---
+		EnemyDef.make(&"dire_wolf", "Dire Wolf", {
+			"family": &"beast",
+			"max_hp": 140, "stats": {S.HEALTH: 7, S.STRENGTH: 14, S.STAMINA: 9, S.AGILITY: 16},
+			"row": FRONT, "xp_reward": 60, "gold_reward": 10, "color": Color(0.55, 0.55, 0.6)}),
+		EnemyDef.make(&"cave_bear", "Cave Bear", {
+			"family": &"beast",
+			"max_hp": 220, "stats": {S.HEALTH: 12, S.STRENGTH: 17, S.STAMINA: 13, S.AGILITY: 6},
+			"row": FRONT, "skills": [&"smash"] as Array[StringName], "skill_chance": 0.35,
+			"xp_reward": 75, "gold_reward": 12, "color": Color(0.45, 0.3, 0.2)}),
+		EnemyDef.make(&"razor_hawk", "Razor Hawk", {
+			"family": &"beast",
+			"max_hp": 95, "stats": {S.STRENGTH: 12, S.STAMINA: 6, S.AGILITY: 19, S.LUCK: 10},
+			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"gust"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 55, "gold_reward": 10, "color": Color(0.7, 0.6, 0.45)}),
+		EnemyDef.make(&"boar", "Tusked Boar", {
+			"family": &"beast",
+			"max_hp": 170, "stats": {S.HEALTH: 9, S.STRENGTH: 15, S.STAMINA: 12, S.AGILITY: 10},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 65, "gold_reward": 10, "color": Color(0.5, 0.35, 0.3)}),
+		EnemyDef.make(&"pack_leader", "Pack Leader", {
+			"family": &"beast",
+			"max_hp": 360, "stats": {S.HEALTH: 11, S.STRENGTH: 16, S.STAMINA: 11, S.AGILITY: 16},
+			"row": FRONT, "skills": [&"power_strike", &"war_cry"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 200, "gold_reward": 60, "color": Color(0.65, 0.65, 0.7),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"elder_bear", "Elder Bear", {
+			"family": &"beast",
+			"max_hp": 560, "stats": {S.HEALTH: 14, S.STRENGTH: 19, S.STAMINA: 16, S.AGILITY: 7},
+			"row": FRONT, "skills": [&"smash", &"war_cry"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 320, "gold_reward": 90, "color": Color(0.35, 0.22, 0.15),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"moonfang", "Moonfang, the Great Wolf", {
+			"family": &"beast", "patron": &"loki",
+			"max_hp": 1150, "stats": {S.HEALTH: 17, S.STRENGTH: 23, S.STAMINA: 16, S.AGILITY: 18, S.LUCK: 12},
+			"row": FRONT, "skills": [&"power_strike", &"war_cry", &"moonfang_bite"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 750, "gold_reward": 300, "color": Color(0.8, 0.82, 0.9), "is_boss": true,
+			"lore": "(Placeholder) The trickster raised it on stolen moonlight. It has never once been full.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Elemental Rift (floors 31-40) ---
+		EnemyDef.make(&"ember_sprite", "Ember Sprite", {
+			"family": &"elemental", "affinities": {EL.FIRE: AF.ABSORB, EL.WATER: AF.WEAK, EL.ICE: AF.WEAK},
+			"max_hp": 110, "stats": {S.INTELLIGENCE: 16, S.STAMINA: 8, S.AGILITY: 13},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"firebolt"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 60, "gold_reward": 12, "color": Color(1.0, 0.45, 0.15)}),
+		EnemyDef.make(&"frost_wisp", "Frost Wisp", {
+			"family": &"elemental", "affinities": {EL.ICE: AF.ABSORB, EL.FIRE: AF.WEAK},
+			"max_hp": 110, "stats": {S.INTELLIGENCE: 16, S.STAMINA: 8, S.AGILITY: 13},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"frost_bolt"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 60, "gold_reward": 12, "color": Color(0.6, 0.85, 1.0)}),
+		EnemyDef.make(&"storm_spirit", "Storm Spirit", {
+			"family": &"elemental", "affinities": {EL.LIGHTNING: AF.ABSORB, EL.EARTH: AF.WEAK},
+			"max_hp": 120, "stats": {S.INTELLIGENCE: 17, S.STAMINA: 8, S.AGILITY: 16},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"spark", &"gust"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 65, "gold_reward": 12, "color": Color(0.75, 0.75, 1.0)}),
+		EnemyDef.make(&"stone_golem", "Stone Golem", {
+			"family": &"elemental", "affinities": {EL.EARTH: AF.ABSORB, EL.WIND: AF.WEAK, EL.WATER: AF.WEAK, EL.BLUNT: AF.NORMAL},
+			"max_hp": 230, "stats": {S.HEALTH: 12, S.STRENGTH: 16, S.STAMINA: 16, S.AGILITY: 4},
+			"row": FRONT, "skills": [&"smash"] as Array[StringName], "skill_chance": 0.35,
+			"xp_reward": 75, "gold_reward": 12, "color": Color(0.55, 0.5, 0.45)}),
+		EnemyDef.make(&"magma_colossus", "Magma Colossus", {
+			"family": &"elemental", "affinities": {EL.FIRE: AF.ABSORB, EL.EARTH: AF.RESIST, EL.WATER: AF.WEAK, EL.ICE: AF.WEAK},
+			"max_hp": 420, "stats": {S.HEALTH: 13, S.STRENGTH: 17, S.INTELLIGENCE: 14, S.STAMINA: 15, S.AGILITY: 6},
+			"row": FRONT, "skills": [&"smash", &"ash_breath"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 220, "gold_reward": 70, "color": Color(0.85, 0.3, 0.1),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"tempest_lord", "Tempest Lord", {
+			"family": &"elemental", "affinities": {EL.LIGHTNING: AF.ABSORB, EL.WIND: AF.RESIST, EL.EARTH: AF.WEAK},
+			"max_hp": 500, "stats": {S.HEALTH: 12, S.INTELLIGENCE: 20, S.STAMINA: 12, S.AGILITY: 16},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"spark", &"gust", &"ward"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 330, "gold_reward": 100, "color": Color(0.55, 0.6, 1.0),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"rift_sovereign", "Rift Sovereign", {
+			"family": &"elemental", "patron": &"typhon",
+			"affinities": {EL.FIRE: AF.RESIST, EL.ICE: AF.RESIST, EL.LIGHTNING: AF.RESIST, EL.HOLY: AF.WEAK, EL.DARK: AF.WEAK},
+			"max_hp": 1100, "stats": {S.HEALTH: 17, S.INTELLIGENCE: 24, S.STAMINA: 16, S.AGILITY: 12, S.LUCK: 10},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"firebolt", &"frost_bolt", &"spark", &"cataclysm"] as Array[StringName],
+			"skill_chance": 0.55, "xp_reward": 800, "gold_reward": 320, "color": Color(0.8, 0.5, 1.0), "is_boss": true,
+			"lore": "(Placeholder) Fire, frost and storm, bound into one will by the Father of Monsters.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Undead Crypt (floors 31-40) ---
+		EnemyDef.make(&"skeleton_warrior", "Skeleton Warrior", {
+			"family": &"undead", "affinities": {EL.BLUNT: AF.WEAK, EL.PIERCE: AF.RESIST},
+			"max_hp": 140, "stats": {S.STRENGTH: 15, S.STAMINA: 11, S.AGILITY: 9},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 60, "gold_reward": 14, "color": Color(0.85, 0.82, 0.72)}),
+		EnemyDef.make(&"ghoul", "Ghoul", {
+			"family": &"undead",
+			"max_hp": 180, "stats": {S.HEALTH: 10, S.STRENGTH: 16, S.STAMINA: 10, S.AGILITY: 11},
+			"row": FRONT, "xp_reward": 65, "gold_reward": 12, "color": Color(0.45, 0.55, 0.4)}),
+		EnemyDef.make(&"skeleton_archer", "Skeleton Archer", {
+			"family": &"undead", "affinities": {EL.BLUNT: AF.WEAK, EL.PIERCE: AF.RESIST},
+			"max_hp": 100, "stats": {S.STRENGTH: 11, S.STAMINA: 7, S.AGILITY: 16},
+			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 14, "color": Color(0.8, 0.78, 0.65)}),
+		EnemyDef.make(&"crypt_wraith", "Crypt Wraith", {
+			"family": &"undead", "affinities": {EL.SLASH: AF.RESIST, EL.PIERCE: AF.RESIST},
+			"max_hp": 110, "stats": {S.INTELLIGENCE: 17, S.STAMINA: 8, S.AGILITY: 14},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"frost_bolt"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 65, "gold_reward": 14, "color": Color(0.5, 0.55, 0.75)}),
+		EnemyDef.make(&"bone_knight", "Bone Knight", {
+			"family": &"undead", "affinities": {EL.BLUNT: AF.WEAK, EL.PIERCE: AF.RESIST},
+			"max_hp": 380, "stats": {S.HEALTH: 12, S.STRENGTH: 17, S.STAMINA: 15, S.AGILITY: 9},
+			"row": FRONT, "skills": [&"smash", &"war_cry"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 220, "gold_reward": 80, "color": Color(0.75, 0.72, 0.6),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"grave_priest", "Grave Priest", {
+			"family": &"undead",
+			"max_hp": 480, "stats": {S.HEALTH: 12, S.INTELLIGENCE: 19, S.STAMINA: 12, S.AGILITY: 10},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"mend", &"ward"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 330, "gold_reward": 110, "color": Color(0.4, 0.35, 0.5),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"necromancer", "The Necromancer", {
+			"family": &"undead", "patron": &"hades",
+			"max_hp": 1050, "stats": {S.HEALTH: 16, S.INTELLIGENCE: 24, S.STAMINA: 15, S.AGILITY: 11, S.LUCK: 10},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"mend", &"grave_tide"] as Array[StringName],
+			"skill_chance": 0.55, "xp_reward": 800, "gold_reward": 320, "color": Color(0.35, 0.25, 0.45), "is_boss": true,
+			"lore": "(Placeholder) The dead on these floors answer to him, and he answers to the Lord of the Underworld.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Demon Gate (floors 41-60) ---
+		EnemyDef.make(&"lesser_fiend", "Lesser Fiend", {
+			"family": &"demon",
+			"max_hp": 150, "stats": {S.HEALTH: 8, S.STRENGTH: 15, S.STAMINA: 10, S.AGILITY: 12},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 60, "gold_reward": 16, "color": Color(0.7, 0.2, 0.2)}),
+		EnemyDef.make(&"hellhound", "Hellhound", {
+			"family": &"demon", "affinities": {EL.FIRE: AF.ABSORB},
+			"max_hp": 140, "stats": {S.STRENGTH: 15, S.INTELLIGENCE: 12, S.STAMINA: 9, S.AGILITY: 16},
+			"row": FRONT, "skills": [&"ash_breath"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 60, "gold_reward": 14, "color": Color(0.5, 0.15, 0.1)}),
+		EnemyDef.make(&"succubus", "Temptress", {
+			"family": &"demon",
+			"max_hp": 115, "stats": {S.INTELLIGENCE: 17, S.STAMINA: 8, S.AGILITY: 14, S.LUCK: 12},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"firebolt"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 65, "gold_reward": 18, "color": Color(0.75, 0.3, 0.55)}),
+		EnemyDef.make(&"imp_swarm", "Imp Swarm", {
+			"family": &"demon",
+			"max_hp": 120, "stats": {S.INTELLIGENCE: 14, S.STAMINA: 8, S.AGILITY: 15},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"firebolt"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 55, "gold_reward": 14, "color": Color(0.8, 0.35, 0.3)}),
+		EnemyDef.make(&"pit_fiend", "Pit Fiend", {
+			"family": &"demon",
+			"max_hp": 400, "stats": {S.HEALTH: 13, S.STRENGTH: 18, S.STAMINA: 14, S.AGILITY: 10},
+			"row": FRONT, "skills": [&"smash", &"war_cry"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 230, "gold_reward": 90, "color": Color(0.55, 0.1, 0.1),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"hell_warlock", "Hell Warlock", {
+			"family": &"demon",
+			"max_hp": 500, "stats": {S.HEALTH: 12, S.INTELLIGENCE: 20, S.STAMINA: 12, S.AGILITY: 12},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"ash_breath", &"ward"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 340, "gold_reward": 120, "color": Color(0.45, 0.15, 0.35),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"archfiend", "The Archfiend", {
+			"family": &"demon", "patron": &"mephistopheles",
+			"max_hp": 1200, "stats": {S.HEALTH: 18, S.STRENGTH: 23, S.INTELLIGENCE: 20, S.STAMINA: 17, S.AGILITY: 13, S.LUCK: 12},
+			"row": FRONT, "skills": [&"smash", &"ash_breath", &"abyssal_brand"] as Array[StringName], "skill_chance": 0.5,
+			"xp_reward": 850, "gold_reward": 350, "color": Color(0.6, 0.05, 0.1), "is_boss": true,
+			"lore": "(Placeholder) It signed its soul away a thousand years ago and has been collecting interest ever since.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Celestial Spire: angels (floors 41-60) ---
+		EnemyDef.make(&"winged_sentinel", "Winged Sentinel", {
+			"family": &"celestial",
+			"max_hp": 160, "stats": {S.HEALTH: 9, S.STRENGTH: 15, S.STAMINA: 12, S.AGILITY: 11},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 65, "gold_reward": 14, "color": Color(0.95, 0.92, 0.75)}),
+		EnemyDef.make(&"choir_acolyte", "Choir Acolyte", {
+			"family": &"celestial",
+			"max_hp": 115, "stats": {S.INTELLIGENCE: 15, S.STAMINA: 9, S.AGILITY: 11},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"smite", &"heal"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 60, "gold_reward": 14, "color": Color(1.0, 0.95, 0.85)}),
+		EnemyDef.make(&"radiant_archer", "Radiant Archer", {
+			"family": &"celestial",
+			"max_hp": 105, "stats": {S.STRENGTH: 12, S.STAMINA: 7, S.AGILITY: 17, S.LUCK: 9},
+			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"smite"] as Array[StringName], "skill_chance": 0.25,
+			"xp_reward": 60, "gold_reward": 14, "color": Color(1.0, 0.9, 0.6)}),
+		EnemyDef.make(&"virtue", "Virtue", {
+			"family": &"celestial",
+			"max_hp": 150, "stats": {S.HEALTH: 9, S.INTELLIGENCE: 14, S.STRENGTH: 13, S.STAMINA: 12, S.AGILITY: 10},
+			"row": FRONT, "skills": [&"ward", &"smite"] as Array[StringName], "skill_chance": 0.35,
+			"xp_reward": 65, "gold_reward": 14, "color": Color(0.85, 0.85, 1.0)}),
+		EnemyDef.make(&"throne_guardian", "Throne Guardian", {
+			"family": &"celestial",
+			"max_hp": 420, "stats": {S.HEALTH: 13, S.STRENGTH: 17, S.STAMINA: 16, S.AGILITY: 9},
+			"row": FRONT, "skills": [&"smash", &"war_cry"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 230, "gold_reward": 80, "color": Color(0.9, 0.85, 0.5),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"choir_master", "Choir Master", {
+			"family": &"celestial",
+			"max_hp": 480, "stats": {S.HEALTH: 12, S.INTELLIGENCE: 20, S.STAMINA: 12, S.AGILITY: 11},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"smite", &"mend", &"ward"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 340, "gold_reward": 110, "color": Color(1.0, 1.0, 0.9),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"seraph_judicator", "Seraph Judicator", {
+			"family": &"celestial", "patron": &"zeus",
+			"max_hp": 1150, "stats": {S.HEALTH: 17, S.INTELLIGENCE: 23, S.STRENGTH: 20, S.STAMINA: 17, S.AGILITY: 14, S.LUCK: 12},
+			"row": FRONT, "skills": [&"smite", &"mend", &"judgment_ray"] as Array[StringName], "skill_chance": 0.5,
+			"xp_reward": 850, "gold_reward": 350, "color": Color(1.0, 0.95, 0.55), "is_boss": true,
+			"lore": "(Placeholder) It decides who is worthy of climbing higher. The King of the Gods signed its warrant.",
+			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
+			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
+
+		# --- Dragon Roost (floors 41-60) ---
+		EnemyDef.make(&"drakeling", "Drakeling", {
+			"family": &"dragon",
+			"max_hp": 150, "stats": {S.HEALTH: 8, S.STRENGTH: 15, S.STAMINA: 11, S.AGILITY: 12},
+			"row": FRONT, "xp_reward": 65, "gold_reward": 18, "color": Color(0.6, 0.3, 0.2)}),
+		EnemyDef.make(&"fire_drake", "Fire Drake", {
+			"family": &"dragon", "affinities": {EL.FIRE: AF.ABSORB},
+			"max_hp": 170, "stats": {S.HEALTH: 9, S.STRENGTH: 13, S.INTELLIGENCE: 14, S.STAMINA: 12, S.AGILITY: 10},
+			"row": FRONT, "skills": [&"ash_breath"] as Array[StringName], "skill_chance": 0.35,
+			"xp_reward": 70, "gold_reward": 20, "color": Color(0.85, 0.3, 0.15)}),
+		EnemyDef.make(&"wyvern", "Wyvern", {
+			"family": &"dragon", "affinities": {EL.WIND: AF.RESIST, EL.LIGHTNING: AF.WEAK},
+			"max_hp": 130, "stats": {S.STRENGTH: 14, S.STAMINA: 9, S.AGILITY: 17},
+			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"gust"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 65, "gold_reward": 18, "color": Color(0.4, 0.55, 0.35)}),
+		EnemyDef.make(&"dragon_cultist", "Dragon Cultist", {
+			"family": &"human",
+			"max_hp": 110, "stats": {S.INTELLIGENCE: 16, S.STAMINA: 8, S.AGILITY: 11},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"firebolt", &"heal"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 55, "gold_reward": 20, "color": Color(0.6, 0.25, 0.3)}),
+		EnemyDef.make(&"drake_rider", "Drake Rider", {
+			"family": &"dragon",
+			"max_hp": 420, "stats": {S.HEALTH: 13, S.STRENGTH: 18, S.STAMINA: 15, S.AGILITY: 13},
+			"row": FRONT, "skills": [&"power_strike", &"war_cry"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 240, "gold_reward": 90, "color": Color(0.7, 0.35, 0.25),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"elder_wyvern", "Elder Wyvern", {
+			"family": &"dragon", "affinities": {EL.WIND: AF.RESIST, EL.LIGHTNING: AF.WEAK},
+			"max_hp": 520, "stats": {S.HEALTH: 13, S.STRENGTH: 17, S.INTELLIGENCE: 16, S.STAMINA: 14, S.AGILITY: 15},
+			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"gust", &"ash_breath"] as Array[StringName],
+			"skill_chance": 0.5, "xp_reward": 350, "gold_reward": 120, "color": Color(0.35, 0.5, 0.3),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"dragon_sovereign", "Dragon Sovereign", {
+			"family": &"dragon", "patron": &"tiamat",
+			"max_hp": 1250, "stats": {S.HEALTH: 19, S.STRENGTH: 24, S.INTELLIGENCE: 22, S.STAMINA: 18, S.AGILITY: 12, S.LUCK: 12},
+			"row": FRONT, "skills": [&"smash", &"ash_breath", &"dragonfire"] as Array[StringName], "skill_chance": 0.5,
+			"xp_reward": 900, "gold_reward": 400, "color": Color(0.75, 0.1, 0.1), "is_boss": true,
+			"lore": "(Placeholder) The eldest child of the Mother of Chaos. Its hoard is the tower's crown.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 

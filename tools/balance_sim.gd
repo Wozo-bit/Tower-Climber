@@ -78,7 +78,7 @@ func _climb_report(diff: int, runs: int, floors: int) -> void:
 		print("Stage %d: wipes %.1f (boss %.1f, minibosses %.1f) | level at boss %.1f | normal fight: %.0f%% party HP lost, %.1f rounds | potions used %.1f | gold earned %.0f, held %.0f" % [
 			st + 1, w, wb, wm, lv, hp * 100, turns, pots, earned, gold])
 	var lv_line := "Party level on first reaching floor:"
-	for f in [4, 5, 9, 10, 14, 15, 19, 20, 25, 30]:
+	for f in [10, 20, 30, 40, 50, 60]:
 		var reached := all.filter(func(r): return r.first_level.has(f))
 		if not reached.is_empty():
 			lv_line += "  %d: %.1f (%d runs)" % [f, _avg(reached, func(r): return r.first_level[f]), reached.size()]

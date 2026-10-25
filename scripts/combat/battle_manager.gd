@@ -353,6 +353,8 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 
 	actor.mp -= skill.mp_cost
 	var parts: PackedStringArray = []
+	if actor.has_trait(&"swarming"):
+		actor.swarm_allies = living(allies_of(actor)).filter(func(u): return u != actor and u.has_trait(&"swarming")).size()
 
 	for target in targets:
 		var t: Combatant = target
@@ -381,7 +383,14 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 						parts.append("%s is immune" % t.display_name)
 					else:
 						entry.kind = "damage"
-						entry.amount = t.take_damage(roll.amount)
+						var amount: int = roll.amount
+						# Undying: shrugs off one killing blow (Holy and Fire put it down for good).
+						if amount >= t.hp and t.has_trait(&"undying") and not t.undying_used \
+								and not roll.elements.any(func(e): return e in [Element.Type.HOLY, Element.Type.FIRE]):
+							amount = t.hp - 1
+							t.undying_used = true
+							parts.append("%s refuses to die" % t.display_name)
+						entry.amount = t.take_damage(amount)
 						entry.crit = roll.crit
 						entry.weak = roll.weak
 						entry.resisted = roll.resisted

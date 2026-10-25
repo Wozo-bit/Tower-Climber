@@ -10,7 +10,7 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 ## Beating the boss on this floor completes the game (character goes into the
 ## Hall of Climbers). The design target is 100 floors; 30 for now (tier-2
 ## advancement opens after floor 20, so it gets played).
-const FINAL_FLOOR := 30
+const FINAL_FLOOR := 60
 ## Each New Game+ cycle multiplies enemy strength by this much more (NG+1 = x1.5).
 const NG_PLUS_SCALE_PER_CYCLE := 0.5
 
@@ -631,6 +631,8 @@ static func is_rest_floor(n: int) -> bool:
 ## Normal enemy groups never outnumber your party by more than this
 ## (groups are written for a full party; a pair meets smaller ones).
 const MAX_EXTRA_ENEMIES := 0
+## Beating a sponsored boss: interest its patron loses, and its rivals gain.
+const BOSS_PATRON_INTEREST := 10
 ## Fights against the stage theme's own enemies (StageLibrary "power" applies).
 const THEMED_KINDS := ["normal", "miniboss", "boss"]
 
@@ -1340,6 +1342,14 @@ func finish_battle(outcome: int, fighters: Array = []) -> void:
 			var regen := m.effect_sum("regen_pct")
 			if regen > 0.0 and not m.is_downed():
 				m.heal(roundi(m.max_hp() * regen))
+		# A sponsored boss falls: its patron is annoyed, the patron's rivals approve.
+		for d in pending_encounter:
+			if d.patron != &"":
+				blessings.add_interest(d.patron, -BOSS_PATRON_INTEREST)
+				for rival in BeingLibrary.rivals_of(d.patron):
+					blessings.add_interest(rival, BOSS_PATRON_INTEREST)
+				blessings.messages.append("%s's champion has fallen. %s won't forget it." % [
+					BeingLibrary.get_being(d.patron).get("name", "?"), BeingLibrary.get_being(d.patron).get("name", "?")])
 		# A stage boss falls: an interested being may come calling.
 		if pending_encounter.any(func(d): return SkillBooks.enemy_kind(d) == "boss"):
 			var offers := blessings.offering_beings()

@@ -92,7 +92,7 @@ func test_tree_is_complete() -> void:
 	check(ClassRegistry.ADVANCEMENT_GATES.has(2), "tier 2 has a gate")
 	check(QuestLibrary.trials().size() == 13 and QuestLibrary.validate_all().is_empty(), "every advanced class has a valid trial quest")
 	check(SkillLibrary.get_skill(&"magma_burst").elements == [Element.Type.FIRE, Element.Type.EARTH], "deeper elements: Magma Burst = Fire + Earth")
-	check(GameState.FINAL_FLOOR == 30, "the climb now ends on floor 30")
+	check(GameState.FINAL_FLOOR == 60, "the climb now ends on floor 60")
 	check(ClassRegistry.advancements_for(&"pyromancer").is_empty() and ClassRegistry.advancements_for(&"ascendant").is_empty(),
 		"no tier 3 yet; secret/NG+ classes don't advance")
 

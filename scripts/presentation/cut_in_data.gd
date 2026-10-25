@@ -39,10 +39,13 @@ static func boss(kind: String, group: Array, floor_n: int, info: Dictionary = {}
 	var id: StringName = def.id if def else &""
 	var title := def.display_name if def else "???"
 	var art := Assets.first([["cutins", id], ["enemies", id]])
+	var sponsor := ""
+	if def and def.patron != &"":
+		sponsor = "\nSponsored by %s" % BeingLibrary.full_name(def.patron)
 	match kind:
 		"boss":
 			var sub := "FINAL BOSS" if floor_n >= GameState.FINAL_FLOOR else "BOSS  ·  Floor %d" % floor_n
-			return make("boss", title, sub, art, C_BOSS, "☠")
+			return make("boss", title, sub + sponsor, art, C_BOSS, "☠")
 		"miniboss":
 			return make("miniboss", title, "MINIBOSS  ·  Floor %d" % floor_n, art, C_MINIBOSS, "!")
 		"roaming":

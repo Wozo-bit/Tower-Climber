@@ -361,14 +361,15 @@ func test_stage_themes() -> void:
 		rng.seed = s
 		seen[StageLibrary.roll_themes(rng)[0]] = true
 	check(seen.has(&"goblin_warrens") and seen.has(&"slime_pits"), "floors 1-10 roll Goblin Warrens or Slime Pits")
-	check(StageLibrary.validate_themes(["nonsense", 5]) == [&"goblin_warrens", &"orc_stronghold"], "bad picks fall back to defaults")
+	check(StageLibrary.validate_themes(["nonsense", 5]) == [&"goblin_warrens", &"orc_stronghold", &"insect_hive", &"elemental_rift", &"demon_gate", &"celestial_spire"],
+		"bad picks fall back to defaults (and the pseudo-god slots never repeat)")
 
 	GameState.reset_run()
 	GameState.stage_themes = [&"slime_pits", &"orc_stronghold"]
 	check(StageLibrary.stage_name(4) == "Stage 1: Slime Pits", "the run's pick is used")
 	check(StageLibrary.miniboss_for_floor(4)[0] == &"big_slime" and StageLibrary.miniboss_for_floor(9)[0] == &"mire_slime",
 		"slime minibosses on 4 and 9")
-	check(StageLibrary.boss_for_floor(10)[0] == &"king_slime" and StageLibrary.boss_for_floor(30)[0] == &"king_slime",
+	check(StageLibrary.boss_for_floor(10)[0] == &"king_slime" and StageLibrary.boss_for_floor(70)[0] == &"king_slime",
 		"King Slime on floor 10 (and when the stages repeat)")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4
@@ -398,7 +399,7 @@ func test_save_roundtrip() -> void:
 	GameState.save_game()
 	GameState.reset_run()
 	check(GameState.load_game(1), "load")
-	check(GameState.stage_themes == [&"slime_pits", &"orc_stronghold"] and StageLibrary.boss_for_floor(10)[0] == &"king_slime",
+	check(GameState.stage_themes.slice(0, 2) == [&"slime_pits", &"orc_stronghold"] and StageLibrary.boss_for_floor(10)[0] == &"king_slime",
 		"stage themes are saved with the run")
 	check(GameState.bestiary.knows_details(&"slime") and GameState.bestiary.summary(EnemyLibrary.get_enemy(&"slime")).contains("Weak: Fire"),
 		"bestiary is saved with the run")

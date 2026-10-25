@@ -227,7 +227,7 @@ func test_miniboss_floors() -> void:
 	check(StageLibrary.miniboss_for_floor(9)[0] == &"hobgoblin", "floor 9 = Hobgoblin")
 	check(StageLibrary.boss_for_floor(10)[0] == &"goblin_king", "floor 10 = Goblin King (the Hobgoblin's master)")
 	check(StageLibrary.miniboss_for_floor(14)[0] == &"orc_warchief" and StageLibrary.boss_for_floor(20)[0] == &"orc_warlord", "stage 2: orcs, Warlord on floor 20")
-	check(StageLibrary.boss_for_floor(30)[0] == &"goblin_king", "stages past the last defined one repeat (floor 30)")
+	check(StageLibrary.boss_for_floor(70)[0] == StageLibrary.boss_for_floor(10)[0], "stages past the last defined one repeat (floor 70 = floor 10)")
 	check(StageLibrary.guardian_scale(4) < StageLibrary.guardian_scale(10) and StageLibrary.guardian_scale(30) > StageLibrary.guardian_scale(20)
 		and is_equal_approx(StageLibrary.guardian_scale(10), GameState.enemy_scale_for_floor(10) * StageLibrary.GUARDIAN_MULT),
 		"bosses follow the floor curve, so repeated stages come back stronger")

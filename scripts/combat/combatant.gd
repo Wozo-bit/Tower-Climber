@@ -59,6 +59,10 @@ var staggered := false
 var last_attacker: Combatant
 ## Gelatinous: has it already softened a physical hit this round?
 var gel_used := false
+## Swarming: how many other living swarmers are on its side (set each action).
+var swarm_allies := 0
+## Undying: has it already shrugged off its one killing blow this fight?
+var undying_used := false
 
 ## Weakness hits to stagger a normal enemy / a boss or miniboss. After each
 ## stagger it takes STAGGER_GROWTH more, so a boss can't be stun-locked.
@@ -116,7 +120,27 @@ static func from_enemy(def: EnemyDef, scale: float = 1.0) -> Combatant:
 	u.traits = EnemyFamilies.traits_for(def)
 	u.stagger_max = (STAGGER_HITS_BOSS if def.is_boss or def.is_roaming else STAGGER_HITS) \
 		+ (1 if u.has_trait(&"thick_skulled") else 0)
+	if def.patron != &"":
+		u.apply_patron(def.patron)
 	return u
+
+
+## A boss sponsored by a being fights with its blessing: the buffs of
+## BOSS_PATRON_LEVEL (no curse: the patron wants its champion to win) and
+## the being's blessed skill.
+const BOSS_PATRON_LEVEL := 2
+
+
+func apply_patron(being: StringName) -> void:
+	var buff: Dictionary = BeingLibrary.level_effects(being, BOSS_PATRON_LEVEL).get("buff", {})
+	stats.blessing_pct = (buff.get("stats", {}) as Dictionary).duplicate()
+	for e in buff.get("element_power", {}):
+		element_power[e] = element_power.get(e, 0.0) + buff.element_power[e]
+	for e in buff.get("affinities", {}):
+		affinities[e] = buff.affinities[e]
+	var skill := SkillLibrary.get_skill_or_null(BeingLibrary.get_being(being).get("skill", &""))
+	if skill and not skills.has(skill):
+		skills.append(skill)
 
 
 func has_trait(id: StringName) -> bool:

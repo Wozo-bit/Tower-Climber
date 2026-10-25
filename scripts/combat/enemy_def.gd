@@ -34,6 +34,10 @@ extends Resource
 @export var affinities: Dictionary = {}
 ## Extra traits on top of the family's (EnemyFamilies.TRAITS ids).
 @export var traits: Array[StringName] = []
+## Bosses: the god/demon/devil sponsoring it (BeingLibrary id, &"" = none).
+## It fights with that being's blessing (level BOSS_PATRON_LEVEL) and its
+## blessed skill, and beating it shifts beings' interest in you.
+@export var patron: StringName = &""
 
 # --- Loot profile (only matters if loot_rolls > 0) ---
 ## Added to the party's Luck for this enemy's rarity rolls.

@@ -14,6 +14,19 @@ hooks, guild captains, the balance pass). Deferred until the story exists:
 route thresholds (depend on how many choices the story gives) and per-skill
 tuning of tier-2 classes. Re-balance with tools/balance_sim after big changes.
 
+### Stages + 60-floor climb (Hayden 2026-10-25)
+Hayden's arc: the player climbs to become a "God". Slots: Slimes/Goblins ->
+Bandits/Orcs -> Insects/Beasts -> Elemental Rift/Undead -> Demons/Angels/
+Dragons (floors 41-60 share one "pseudo_god" pool, never the same twice;
+Hayden: they're interchangeable). FINAL_FLOOR 60 (long-term 100). Bosses
+have god patrons (EnemyDef.patron; Hayden's Hades-sponsored Necromancer):
+level-2 blessing + blessed skill, interest shifts on defeat; never living-
+religion figures. Next per Hayden: more recruits, more classes/advanced
+classes before the skeleton is done.
+FUTURE (Hayden's idea, not built): in NG+ the player, having "become a god",
+can sponsor their own guild or another guild and choose its boons and
+punishments (like the beings do).
+
 ### Skill picks + battle layout (Hayden 2026-10-25)
 Hayden: skills should fit the class fantasy (mages need every bolt; tanks/
 bruisers only Guard, First Aid, Quick Step...). Built: per-class pick pools
@@ -197,7 +210,7 @@ Tutorial is deliberately deferred until the game is closer to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
-FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability), tier-2 class names.
+FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability), tier-2 class names.
 
 ## Architecture
 - Autoloads: ClassRegistry, GameState, Settings. UI is built in code
@@ -250,7 +263,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (18 suites, 1088 checks at last run).
+Every change gets tests in tests/ (19 suites, 1107 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -261,7 +274,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

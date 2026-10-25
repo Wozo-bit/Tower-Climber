@@ -100,6 +100,8 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 	if type != SkillDef.DamageType.MAGIC and target.has_trait(&"gelatinous") and not target.gel_used:
 		dmg *= EnemyFamilies.GELATINOUS_MULT
 		target.gel_used = true
+	if attacker.has_trait(&"swarming"):
+		dmg *= 1.0 + minf(EnemyFamilies.SWARM_PER_ALLY * attacker.swarm_allies, EnemyFamilies.SWARM_MAX)
 
 	# Elements: weak / resist / immune / absorb
 	# Blessings: more damage with favoured elements (adds up across elements).
@@ -109,6 +111,8 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 	dmg *= 1.0 + boost
 
 	var aff := Element.resolve(elements, target.affinities)
+	if target.has_trait(&"dragonscale") and not aff.weak:
+		dmg *= EnemyFamilies.DRAGONSCALE_MULT   # only weaknesses get through the scales cleanly
 	var amount: int
 	if aff.absorbed:
 		amount = maxi(1, roundi(dmg))   # healed by this much
