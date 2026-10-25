@@ -37,9 +37,26 @@ have god patrons (EnemyDef.patron; Hayden's Hades-sponsored Necromancer):
 level-2 blessing + blessed skill, interest shifts on defeat; never living-
 religion figures. Next per Hayden: more recruits, more classes/advanced
 classes before the skeleton is done.
-FUTURE (Hayden's idea, not built): in NG+ the player, having "become a god",
-can sponsor their own guild or another guild and choose its boons and
-punishments (like the beings do).
+### Becoming a god (designed with Hayden 2026-10-25)
+Hayden's answers: BOTH — the conqueror becomes a god (sponsors while
+climbing NG+) AND appears as a being in other characters' runs. Domain =
+ending suggests 2-3 (DomainLibrary, route), player picks + names title.
+Sponsor: own guild, existing guilds (contract; old patron gets angry),
+companions/NPCs, and your next character (via the being roster). Payoff:
+tithes, divine powers (Faith -> miracles), guild does your will (stance),
+champions fight for you. Boons: pick from a menu, each boon paired with a
+curse (like beings), levels grow as they serve your values. Punish:
+automatic warnings, smite by hand (Faith), revoke contract (may turn on
+you). Other gods react BY VALUES (allies/jealous rivals). Sponsor slots
+grow with divinity (start: own guild + 1).
+- Phase 1 BUILT: DomainLibrary (9 placeholder domains, 3 per route),
+  apotheosis on the completion screen, LegacyRecord.god_domain/god_title,
+  GameState.become_god / refresh_legacy_gods (past gods = "ascended_<id>"
+  beings, pantheon "Ascended", rivals by opposite values; never in their
+  own NG+).
+- Phase 2 (next): Faith, sponsoring guilds (own + contracts), boon/curse
+  menu, tithes, stance. Phase 3: people, smite/revoke/warnings, miracles,
+  champions joining fights, rival gods reacting, slot growth.
 
 ### Skill picks + battle layout (Hayden 2026-10-25)
 Hayden: skills should fit the class fantasy (mages need every bolt; tanks/
@@ -302,7 +319,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (21 suites, 1229 checks at last run).
+Every change gets tests in tests/ (22 suites, 1256 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -313,7 +330,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

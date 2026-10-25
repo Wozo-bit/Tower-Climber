@@ -129,6 +129,7 @@ var last_battle_outcome := -1     # BattleManager.Outcome, read by the tower on 
 func _ready() -> void:
 	_register_input_actions()
 	DlcLoader.load_all()
+	refresh_legacy_gods()
 
 
 func _process(delta: float) -> void:
@@ -213,6 +214,7 @@ func start_new_game(character_name: String, friend_name: String = "", slot: int 
 	current_slot = clampi(slot, 1, SLOT_COUNT)
 	player.rename(character_name)
 	player.legacy_id = _new_legacy_id()
+	refresh_legacy_gods()
 	companions.append(make_childhood_friend(friend_name))
 	roll_stage_themes()
 	quests.update()   # the main questline starts
@@ -249,6 +251,7 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1, p_difficulty: int
 	player.full_restore()
 	if player.legacy_id == "":
 		player.legacy_id = record.legacy_id
+	refresh_legacy_gods()   # every other god, never yourself
 	for g in record.vault:
 		if g.carries_into_ng_plus():
 			inventory.add_gear(g.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
@@ -365,6 +368,7 @@ func load_game(slot: int = -1) -> bool:
 	var S := SaveSerializer
 	reset_run()
 	current_slot = s
+	refresh_legacy_gods()   # the save may name a past god (a blessing, interest)
 	player = S.character_from_dict(d.player)
 	for cd in S._a(d, "companions"):
 		if cd is Dictionary:
@@ -411,6 +415,9 @@ func load_game(slot: int = -1) -> bool:
 	blessings = BlessingState.from_dict(S._d(d, "blessings"))
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
+	refresh_legacy_gods()   # now without the player's own god
+	if DomainLibrary.is_legacy_being(player.blessing_id) and not BeingLibrary.beings.has(player.blessing_id):
+		player.unbless()
 	run_active = true
 	return true
 
@@ -456,6 +463,11 @@ func load_legacy() -> LegacyBook:
 		r.fallen = S._b(rd, "fallen", false)
 		r.fallen_floor = S._i(rd, "fallen_floor", 0, 0, 100000)
 		r.fallen_difficulty = S._i(rd, "fallen_difficulty", Difficulty.DEFAULT, 0, Difficulty.Level.HELL)
+		# A god only with a real domain; the title is cleaned like a typed one.
+		var dom := StringName(S._s(rd, "god_domain", "", 32))
+		if not r.fallen and r.times_cleared > 0 and not DomainLibrary.get_domain(dom).is_empty():
+			r.god_domain = dom
+			r.god_title = DomainLibrary.clean_title(S._s(rd, "god_title", "", 200), dom)
 		for e in S._a(rd, "endings_seen"):
 			# Unknown ids are kept only if they look sane: a DLC ending may not be loaded right now.
 			if e is String and e.length() <= 64 and not r.endings_seen.has(StringName(e)):
@@ -481,6 +493,7 @@ func save_legacy(book: LegacyBook) -> bool:
 			"vault": r.vault.map(SaveSerializer.gear_to_dict),
 			"best_difficulty": r.best_difficulty, "ironman_cleared": r.ironman_cleared,
 			"fallen": r.fallen, "fallen_floor": r.fallen_floor, "fallen_difficulty": r.fallen_difficulty,
+			"god_domain": String(r.god_domain), "god_title": r.god_title,
 		})
 	return SaveSerializer.write_json(legacy_path, { "version": SaveSerializer.FORMAT_VERSION, "records": records })
 
@@ -524,6 +537,37 @@ func record_completion() -> LegacyRecord:
 	if not save_legacy(book):
 		push_error("Couldn't save the Hall of Climbers")
 	return rec
+
+
+## Apotheosis: a character who conquered the tower becomes a god of `domain`
+## (DomainLibrary), titled `title` (blank = the domain's default). Once per
+## character; saved in the Hall. Returns false if they can't.
+func become_god(legacy_id: String, domain: StringName, title: String = "") -> bool:
+	var book := load_legacy()
+	var rec := book.find(legacy_id)
+	if rec == null or rec.fallen or rec.times_cleared <= 0 or rec.is_god() \
+			or DomainLibrary.get_domain(domain).is_empty():
+		return false
+	rec.god_domain = domain
+	rec.god_title = DomainLibrary.clean_title(title, domain)
+	if not save_legacy(book):
+		return false
+	refresh_legacy_gods()
+	return true
+
+
+## Past gods from the Hall of Climbers join the roster of beings in every
+## OTHER character's run (offers, shrines, visits, rivalries). The character
+## who is that god never meets themself. Call before reading a save (it may
+## name one of them) and whenever the player or the Hall changes.
+func refresh_legacy_gods() -> void:
+	for id in BeingLibrary.beings.keys():
+		if DomainLibrary.is_legacy_being(id):
+			BeingLibrary.beings.erase(id)
+	for rec in load_legacy().records:
+		if rec.is_god() and rec.legacy_id != player.legacy_id:
+			BeingLibrary.register_being(DomainLibrary.being_id_for(rec.legacy_id),
+				DomainLibrary.being_spec(rec.display_name(), rec.god_title, rec.god_domain))
 
 
 ## Ironman death: the character goes into the Hall as Fallen (no New Game+ from it).

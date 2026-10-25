@@ -28,6 +28,19 @@ extends Resource
 @export var fallen: bool = false
 @export var fallen_floor: int = 0
 @export var fallen_difficulty: int = 1
+## Apotheosis (Hayden 2026-10-25): conquering the tower made them a god.
+## &"" = not (yet). The domain (DomainLibrary) and the title they chose.
+@export var god_domain: StringName = &""
+@export var god_title: String = ""
+
+
+func is_god() -> bool:
+	return god_domain != &"" and not DomainLibrary.get_domain(god_domain).is_empty()
+
+
+## "Ophelius, God of Valor"
+func god_name() -> String:
+	return "%s, %s" % [display_name(), god_title] if is_god() else display_name()
 
 
 func can_continue() -> bool:

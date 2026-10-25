@@ -489,11 +489,76 @@ func _show_completion() -> void:
 	else:
 		body.text += "(Dev sandbox run: not recorded in the Hall of Climbers.)"
 	box.add_child(body)
+	if rec and not rec.fallen:
+		box.add_child(_apotheosis_box(rec, ending.get("id", &"")))
 	var btn := Button.new()
 	btn.text = "Return to Title"
 	btn.pressed.connect(func(): get_tree().change_scene_to_file(GameState.TITLE_SCENE))
 	box.add_child(btn)
 	btn.grab_focus.call_deferred()
+
+
+## Apotheosis (Hayden 2026-10-25): the conqueror becomes a god. The ending
+## suggests the domains; the player picks one and names their title. A god
+## already (an earlier clear): just says so.
+func _apotheosis_box(rec: LegacyRecord, ending_id: StringName) -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	var head := Label.new()
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.add_theme_color_override("font_color", Color(1, 0.9, 0.55))
+	box.add_child(head)
+	if rec.is_god():
+		head.text = "%s already watches over the tower as %s." % [rec.display_name(), rec.god_title]
+		return box
+	head.text = "APOTHEOSIS\nYou climbed to the top. The tower makes you a god. Of what?"
+	var picks := HBoxContainer.new()
+	picks.alignment = BoxContainer.ALIGNMENT_CENTER
+	picks.add_theme_constant_override("separation", 8)
+	box.add_child(picks)
+	var title := LineEdit.new()
+	title.max_length = DomainLibrary.TITLE_MAX_LENGTH
+	title.placeholder_text = "Your title"
+	box.add_child(title)
+	var about := Label.new()
+	about.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	about.modulate = Color(1, 1, 1, 0.7)
+	about.add_theme_font_size_override("font_size", 13)
+	box.add_child(about)
+	var chosen := [&""]
+	var group := ButtonGroup.new()
+	for id in DomainLibrary.for_ending(ending_id):
+		var d := DomainLibrary.get_domain(id)
+		var b := Button.new()
+		b.text = d.name
+		b.toggle_mode = true
+		b.button_group = group
+		b.pressed.connect(func():
+			chosen[0] = id
+			title.text = d.title
+			about.text = "Values: likes %s, dislikes %s. Your blessing: %s. In other characters' runs you'll watch over the climb as one of the beings." % [
+				", ".join(d.likes.map(func(r): return RouteLibrary.route_name(r))),
+				", ".join(d.dislikes.map(func(r): return RouteLibrary.route_name(r))),
+				SkillLibrary.get_skill(d.skill).display_name])
+		picks.add_child(b)
+	var ascend := Button.new()
+	ascend.text = "Ascend"
+	ascend.pressed.connect(func():
+		if chosen[0] == &"":
+			about.text = "Choose a domain first."
+			return
+		if GameState.become_god(rec.legacy_id, chosen[0], title.text):
+			var done := GameState.load_legacy().find(rec.legacy_id)
+			for c in box.get_children():
+				c.queue_free()
+			var l := Label.new()
+			l.text = "%s ascends as %s." % [rec.display_name(), done.god_title if done else title.text]
+			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			l.add_theme_color_override("font_color", Color(1, 0.9, 0.55))
+			box.add_child(l))
+	box.add_child(ascend)
+	return box
 
 
 func _floor_intro_text() -> String:

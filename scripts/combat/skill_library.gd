@@ -385,6 +385,25 @@ static func _build() -> Dictionary:
 		# =====================================================
 		# Blessed skills: usable only while blessed by that being (BeingLibrary)
 		# =====================================================
+		# Divine domains (DomainLibrary): a past god's blessed skill.
+		SkillDef.make(&"valor_strike", "Valor Strike", "A fearless blow that ignores 30% of defense.",
+			{"mp_cost": 9, "damage_type": D.MELEE, "power": 1.8, "def_pierce": 0.3}),
+		SkillDef.make(&"verdict_of_light", "Verdict of Light", "Holy judgment on every enemy.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0}),
+		SkillDef.make(&"grace", "Grace", "A god's mercy heals the whole party.",
+			{"mp_cost": 14, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.0, "heal_pct_max_hp": 0.12}),
+		SkillDef.make(&"iron_decree", "Iron Decree", "A tyrant's command, enforced by force.",
+			{"elements": [EL.DARK, EL.BLUNT] as Array[int], "mp_cost": 10, "damage_type": D.MELEE, "power": 1.9}),
+		SkillDef.make(&"golden_hand", "Golden Hand", "Takes what it wants. +25% crit chance.",
+			{"mp_cost": 8, "damage_type": D.MELEE, "power": 1.6, "bonus_crit": 0.25}),
+		SkillDef.make(&"ruin_wave", "Ruin Wave", "Ruin washes over every enemy.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.05}),
+		SkillDef.make(&"retribution", "Retribution", "A debt collected, past any guard.",
+			{"elements": [EL.DARK, EL.PIERCE] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 1.7, "ignores_row": true}),
+		SkillDef.make(&"night_veil", "Night Veil", "The whole party gets +30% dodge for 3 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 3}),
+		SkillDef.make(&"unbound_gale", "Unbound Gale", "A free wind tears through every enemy.",
+			{"elements": [EL.WIND] as Array[int], "mp_cost": 15, "damage_type": D.RANGED, "targeting": T.ENEMY_ALL, "power": 1.0}),
 		SkillDef.make(&"righteous_smite", "Righteous Smite", "Holy judgment falls on one enemy.",
 			{"elements": [EL.HOLY] as Array[int], "mp_cost": 8, "damage_type": D.MAGIC, "power": 1.6}),
 		SkillDef.make(&"mercys_embrace", "Mercy's Embrace", "A warm blessing heals the whole party.",

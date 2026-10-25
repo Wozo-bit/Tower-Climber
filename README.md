@@ -12,6 +12,11 @@ Open `project.godot` in Godot 4.7.2 and press **F5**. The game scales to fit any
 
 In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** pauses (Resume / Save / Settings / Quit to Title). You can rename yourself or your friend anytime from **Tab → Rename**.
 
+## Becoming a god (Hayden 2026-10-25)
+- **Apotheosis:** conquering the tower makes your character a god. The completion screen offers the domains your ending suggests (Hero: Valor, Justice, Mercy · Villain: Tyranny, Greed, Ruin · Vigilante: Vengeance, Shadow, Freedom · the Wanderer may pick any), and you name your title (default "God of Valor" etc.). Once per character, saved in the Hall (`LegacyRecord.god_domain` / `god_title`).
+- **Past gods join other runs:** every god in the Hall becomes a being (pantheon "Ascended") in every OTHER character's run: they take an interest by their domain's values, offer their blessing (buff + curse + the domain's skill) at shrines and after bosses, and are rivals of beings with opposite values. You never meet yourself in your own New Game+.
+- `scripts/story/domain_library.gd` holds the domains (placeholder names and text; DLC can `register_domain`). Coming next: sponsoring guilds and people as a god in New Game+ (Faith, boons and curses, tithes, miracles).
+
 ## Saving, the Hall of Climbers and New Game+
 - **Autosave** happens when a run starts, on every floor, after every battle and at campfires. You can also save from the pause menu. Slots are `user://saves/slot_1.json` to `slot_3.json`.
 - **Saves are plain JSON, on purpose.** Godot's `.tres` format can contain scripts that run when loaded, so a shared or tampered save could run code on someone's computer. JSON can only hold data, and everything read back is validated: unknown ids are dropped, numbers clamped, names cleaned. A broken file just shows as "Unreadable save". Saves are written to a temp file and then swapped in, so a crash mid-save can't corrupt the slot.
@@ -107,6 +112,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tools/balance_sim.gd` | The balance simulator (dev tool): a bot plays whole runs, or measures the guild world. See "What the balance simulator says". |
 | `tests/test_recruits.gd` | 33 checks: the roster data, campfire/hire/favor/rescue/captive meetings, wanderers, route refusals, loyalty quests and personal skills, saving. Run: `godot --headless res://tests/test_recruits.tscn` |
 | `tests/test_stages.gd` | 19 checks: every theme's data, the 60-floor ladder and the non-repeating pseudo-god slots, boss patrons (blessing, sensitivity rule, interest), the new traits, signature books. Run: `godot --headless res://tests/test_stages.tscn` |
+| `tests/test_divinity.gd` | 26 checks: domains, apotheosis, past gods as beings in other runs (offers, skill, rivals, not in their own NG+), saves and tampered Hall records. Run: `godot --headless res://tests/test_divinity.tscn` |
 | `tests/test_demigods.gd` | 39 checks: demigod classes and recruits, pantheon omens, the legend chain, summons, Fury, NG+ Ascension, the Ascendant's gate skills, saving and tampering. Run: `godot --headless res://tests/test_demigods.tscn` |
 | `tests/test_difficulty.gd` | 45 checks: difficulty choice and lowering, battle multipliers, Hell extras, wipes, Ironman deaths and the fallen, Hall records, patron temper and feuds, scaling rules. Run: `godot --headless res://tests/test_difficulty.tscn` |
 
