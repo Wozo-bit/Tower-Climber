@@ -614,12 +614,12 @@ func place_npcs(layout: FloorLayout) -> void:
 				layout.place_npc(id, rng_for.call(id))
 	# Shrines of beings ready to offer you a blessing (rest floors only).
 	if kind == "rest":
-		for being in blessings.offering_beings():
+		for being in blessings.offering_beings().slice(0, BlessingState.MAX_SHRINES):
 			var sid := StringName("shrine:" + String(being))
 			layout.place_npc(sid, rng_for.call(sid))
 
 
-## The being behind a floor shrine id ("shrine:astraea"), or &"".
+## The being behind a floor shrine id ("shrine:odin"), or &"".
 static func shrine_being(npc_id: StringName) -> StringName:
 	var s := String(npc_id)
 	return StringName(s.trim_prefix("shrine:")) if s.begins_with("shrine:") else &""

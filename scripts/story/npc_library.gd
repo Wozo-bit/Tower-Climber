@@ -35,7 +35,7 @@ const NPCS := {
 		# Routes he likes / won't stand for (placeholder). See GameState routes.
 		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
 		# NPCs can be blessed too (personality): [being id, level].
-		"blessing": [&"astraea", 1],
+		"blessing": [&"thor", 1],
 	},
 	# --- Route content (placeholders) ---
 	&"black_market": {

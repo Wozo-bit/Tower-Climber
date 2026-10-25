@@ -77,10 +77,10 @@ const QUESTS := {
 				"desc": "(Placeholder) It always points somewhere interesting." } },
 	},
 
-	# --- A devil's bargain: Corvin's blessing costs this promise ---
+	# --- A devil's bargain: the Morrigan's blessing costs this promise ---
 	&"oath_of_vengeance": {
-		"title": "Oath of Vengeance", "kind": "side", "giver": "Corvin, Devil of Vengeance",
-		"desc": "(Placeholder) You swore that the tower's tyrants would pay. Corvin is watching.",
+		"title": "Oath of Vengeance", "kind": "side", "giver": "The Morrigan, Phantom Queen",
+		"desc": "(Placeholder) You swore that the tower's tyrants would pay. The ravens are watching.",
 		"steps": [
 			{ "text": "Defeat the tower's minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
 		],

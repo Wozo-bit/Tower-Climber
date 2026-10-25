@@ -19,6 +19,11 @@ const PUNISH_FLOORS := 5
 const PUNISH_HP_PCT := 0.3
 ## A refused being waits this many floors before asking again.
 const REOFFER_FLOORS := 5
+## Rivals are jealous: a being loses this much interest while you're blessed
+## by one of its rivals.
+const RIVAL_PENALTY := 15
+## Most shrines on one rest floor (the most interested beings).
+const MAX_SHRINES := 3
 
 ## being id -> { "bonus": int, "scorned": bool, "refused_floor": int, "warned": bool }
 var beings: Dictionary = {}
@@ -43,6 +48,9 @@ func interest(id: StringName) -> int:
 		total += r.points_of(route_id)
 	for route_id in b.values.get("dislikes", []):
 		total -= r.points_of(route_id)
+	var blessed_by: StringName = GameState.player.blessing_id
+	if blessed_by != &"" and blessed_by != id and BeingLibrary.rivals_of(id).has(blessed_by):
+		total -= RIVAL_PENALTY   # jealous of the rival you chose
 	return total
 
 
@@ -105,9 +113,17 @@ func accept(id: StringName) -> bool:
 		GameState.player.gold -= bargain.gold
 	if bargain.has("quest"):
 		GameState.quests.start(bargain.quest)
+	# Rivals who wanted you too are jealous (checked before you're blessed).
+	var jealous := BeingLibrary.rivals_of(id).filter(func(r): return wants_to_offer(r))
 	GameState.player.bless(id, maxi(1, level_for_interest(interest(id))))
 	_state(id)["warned"] = false
 	messages.append("You are blessed by %s." % BeingLibrary.full_name(id))
+	var p: CharacterData = GameState.player
+	if not jealous.is_empty() and p.curse_id == &"":
+		var rival: StringName = jealous[0]
+		p.curse(rival, 1, GameState.floor_number + PUNISH_FLOORS)
+		messages.append("%s is furious you chose %s, and curses you out of spite!" % [
+			BeingLibrary.get_being(rival).name, BeingLibrary.get_being(id).name])
 	return true
 
 

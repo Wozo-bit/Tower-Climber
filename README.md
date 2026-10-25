@@ -86,7 +86,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/ui/advancement_panel.gd` | Tab → ✦ Advance: requirements checklist, begin trial, advance. |
 | `tests/test_classes.gd` | 42 advancement checks: the tree, lineage, gate, trials, keeping skills, builds, route-only classes, Uniques, saving. Run: `godot --headless res://tests/test_classes.tscn` |
 | `scripts/story/being_library.gd`, `blessing_state.gd` | Gods, demons and devils (their values, blessing levels, buffs + curses, bargains) and this run's interest / refusals / punishment. |
-| `tests/test_blessings.gd` | 45 blessing checks: interest, offers, accepting, levels, buffs and curses in combat, warnings, punishment, bargains, shrines, boss visits, blessed NPCs, saving. Run: `godot --headless res://tests/test_blessings.tscn` |
+| `tests/test_blessings.gd` | 56 blessing checks: the roster and its sensitivity rule, rivalries, interest, offers, accepting, levels, buffs and curses in combat, warnings, punishment, bargains, shrines, boss visits, blessed NPCs, saving. Run: `godot --headless res://tests/test_blessings.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
@@ -159,16 +159,25 @@ Open it with **Tab → Manage party**.
 
 ## Blessings (gods, demons and devils)
 - **Many beings watch the climb** (`scripts/story/being_library.gd`). Each has **values** (routes it likes and dislikes), and its **interest** in you is your points in routes it likes minus routes it dislikes. Dialogue choices can also please or anger one directly (an `interest` effect). Accepting a blessing is always your choice.
-- **Placeholder roster:**
+- **26 beings from world mythologies** (placeholder numbers and lines; all of these are public-domain figures):
 
-| Being | Kind | Likes / dislikes | Gift (level 1 → 3) | Price (grows too) | Blessed skill |
-|---|---|---|---|---|---|
-| Astraea, God of Justice | god | Hero / Villain | +HLT +STA, more Holy damage | weak to Dark, less gold | Righteous Smite |
-| Solenne, Goddess of Mercy | god | Hero / Villain, Vigilante | heal after wins, +INT | −STR | Mercy's Embrace |
-| Vorak, Demon of Greed | demon | Villain / Hero | +gold, +LUCK | shop prices up, weak to Holy | Avarice Strike |
-| Ishra, Demon of Wrath | demon | Villain / Hero | +STR, more Fire damage | −STA, weak to Water (+Holy) | Hellfire |
-| Sable, Devil of Bargains | devil | Vigilante / — | +XP, +AGI | −HLT; costs **400 gold** | Devil's Due |
-| Corvin, Devil of Vengeance | devil | Vigilante / Hero | +LUCK, more Dark damage | −INT (+weak to Holy); costs a **promise** (Oath of Vengeance quest) | Vendetta |
+| Pantheon | Gods | Demons | Devils (bargains) |
+|---|---|---|---|
+| Norse | Odin, Thor | Hel | Loki (350 gold) |
+| Greek | Zeus, Athena, Hades | Typhon | — |
+| Egyptian | Ra, Anubis | Set, Apep | — |
+| Chinese | Guan Yu, Sun Wukong, Yama | — | Baigujing, the White Bone Demon (300 gold) |
+| Japanese | Amaterasu, Susanoo, Inari | Shuten-doji (oni king) | Tamamo-no-Mae (500 gold) |
+| Mesopotamian | Ishtar | Tiamat | — |
+| Celtic | — | — | The Morrigan (a promise: the Oath of Vengeance quest) |
+| Infernal (Abrahamic tradition / legend) | — | Mammon | Mephistopheles (400 gold) |
+
+- Each being has **likes/dislikes** (routes), a **blessed skill** (Mjolnir, Gungnir, Sun Disk, Kusanagi, Ruyi Staff...), and a level-1 **buff and curse** that scale ×2 and ×3 at levels 2 and 3 (`BeingLibrary.LEVEL_SCALE`). Some curses add something new at level 3. All of it is in `being_library.gd` (`SPECS`), so it's easy to tune.
+- **Sensitivity rule** (for the commercial release, may change later): figures from **living religions** (Shinto kami, Chinese folk/Buddhist/Taoist figures) are marked `living` and are **only ever gods**, with dignified costs. Demon and devil roles go to figures who are monsters, tricksters or villains in their own myths. The tests enforce this. **Hindu deities are left out** of the first roster on purpose: that's Hayden's call for later.
+- **Rivalries:** beings can be rivals (Odin & Thor vs Loki, Zeus vs Typhon & Hades, Ra vs Apep, Anubis vs Set, Amaterasu vs Susanoo, Sun Wukong vs Baigujing, Ishtar vs Tiamat). Rivalry counts both ways.
+  - While you're blessed by a rival, a being loses **15 interest** (`RIVAL_PENALTY`).
+  - If a rival **also wanted you** when you accept, it **curses you out of spite** for 5 floors.
+- **Shrines:** at most **3** per rest floor, for the most interested beings (`MAX_SHRINES`).
 
 - **Offers** come once a being's interest reaches **10** (`BlessingState.OFFER_INTEREST`), in three ways:
   - **shrines** on rest floors (gold = god, red = demon, violet = devil)
@@ -182,7 +191,7 @@ Open it with **Tab → Manage party**.
   - the being's curse stays on you for **5 floors** without the buff
   - that being never offers again (other beings still can)
 - **Effects** a blessing or curse can have: per-stat % (`stats`), more damage with an element (`element_power`), how you take hits (`affinities`, e.g. weak to Dark), `gold_mult`, `xp_mult`, `price_mult`, and `regen_pct` (heal after each won battle). The party is **never staggered**, so a cursed weakness costs damage, not turns.
-- **NPCs can be blessed too** (`"blessing": [being, level]` in `npc_library.gd`). Brakka follows Astraea. The Tab menu shows each character's blessing or curse (hover for details).
+- **NPCs can be blessed too** (`"blessing": [being, level]` in `npc_library.gd`). Brakka follows Thor. The Tab menu shows each character's blessing or curse (hover for details).
 - Blessings and curses reset in New Game+. DLC can add beings with `BeingLibrary.register_being()`.
 
 ## Class advancement (tier 2+)

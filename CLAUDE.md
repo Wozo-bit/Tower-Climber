@@ -28,7 +28,22 @@ Build in phases: (1) blessings — BUILT (BeingLibrary roster + register_being,
 BlessingState interest/offers/levels/warn/punish, blessing on CharacterData,
 shrines, boss visits, bargains, blessed NPCs, blessed skills); (2) guilds
 core + economy (absorbs "selling gear") — NEXT; (3) guild simulation AI,
-wars/theft, founding your own guild. Being names/numbers are placeholders.
+wars/theft, founding your own guild.
+- Roster = 26 figures from world mythologies (Norse, Greek, Egyptian,
+  Chinese, Japanese, Mesopotamian, Celtic, Infernal). Hayden wanted
+  mythology instead of invented beings. Rivalries (jealousy, spite curses).
+- SENSITIVITY RULE (Hayden: "respectful for now", may change; he wants to
+  maximize sales): "living": true figures (Shinto kami, Chinese folk/
+  Buddhist/Taoist) are only ever gods; demon/devil roles only for figures
+  who are monsters/tricksters in their own myths. Enforced by the tests.
+  Hindu deities deliberately left out — ask Hayden before adding (biggest
+  backlash risk, big market).
+- GUILD CONTRACTS (for phases 2-3): guilds are contracted/signed with a
+  god/demon/devil, and the patron shapes how the guild acts (its AI
+  personality, prices, taxes, jobs, aggression, who it allies with or
+  wars against, e.g. Mammon's guild = greedy taxes + theft, Athena's =
+  orderly and defensive). Rival patrons -> rival guilds. Use the being's
+  values/rivals as the guild's starting personality.
 
 BLESSINGS (manhwa-style: many beings take an interest; the player chooses):
 - Many gods / demons / devils, each with VALUES (like companions; e.g. a God
@@ -166,7 +181,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (13 suites, 747 checks at last run).
+Every change gets tests in tests/ (13 suites, 758 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
