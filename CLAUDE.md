@@ -53,7 +53,8 @@ grow with divinity (start: own guild + 1).
   ("Deity of X"); player picks god/demon/devil (LegacyRecord.god_kind);
   Wanderer gets Twilight/Fate/Wanderlust (+ any other); player-god buffs
   x1.25; Greed forbids alliances; STRICT: every domain approves or forbids
-  every guild action (validated).
+  every guild action (validated). A guild with any stance heeds your values
+  (forbidden acts -1.2 utility, rests rather than do them); Hayden picked this.
 - GOTCHA: Array.sort() on StringNames sorts by ADDRESS, not name (order
   changes between sessions). Use sort_custom(func(a, b): return String(a)
   < String(b)). Fixed everywhere 2026-10-25 (guild AI order, loot, NPCs).
@@ -342,7 +343,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1329 checks at last run).
+Every change gets tests in tests/ (22 suites, 1330 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

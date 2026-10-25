@@ -303,6 +303,11 @@ func test_judgement() -> void:
 	check(GameState.guilds.treasury_of(g) < treasury and dv.contracts[g].favor == 0 and not dv.contracts[g].warned,
 		"keep straying: you punish them (treasury), and they start over")
 	check(dv.messages.any(func(m): return m.contains("wrath")), "and you hear about it")
+	# Given a stance, a guild heeds your values: forbidden acts lose their pull.
+	check(dv.action_bias(g, &"war") == 0.0, "left to its own way, it isn't steered")
+	dv.set_stance(g, &"devout")
+	check(dv.action_bias(g, &"war") < 0.0 and dv.action_bias(g, &"ally") > 0.0,
+		"with a stance it avoids what you forbid and leans to what you approve")
 
 
 func test_smite_and_revoke() -> void:

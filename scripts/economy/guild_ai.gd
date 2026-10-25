@@ -93,7 +93,9 @@ static func _act(gs: GuildState, g: StringName, rng: RandomNumberGenerator) -> v
 	for a in options:
 		if options[a] < 0.0:
 			continue
-		var u: float = options[a] + rng.randf() * NOISE
+		var u: float = options[a] + rng.randf() * NOISE + GameState.divinity.action_bias(g, StringName(a))
+		if u < 0.0:
+			continue   # heeding its god: rather do nothing than this
 		if u > best_u:
 			best_u = u
 			best = a

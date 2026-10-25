@@ -66,6 +66,12 @@ const CURSES := {
 	&"zealotry": { "name": "Zealotry", "weight": 2, "desc": "Far more eager for war (aggression +0.25 per level)." },
 	&"isolation": { "name": "Isolation", "weight": 2, "desc": "No other guild will ally with it." },
 }
+## A guild you've given a stance (not "its own way") also heeds your values
+## (Hayden: stances steer harder): forbidden acts are much less tempting,
+## approved ones a little more (with nothing left it'd do, it rests that
+## turn). Left to its own way, it strays.
+const OBEY_FORBIDDEN := -1.2
+const OBEY_APPROVED := 0.15
 ## Stances: how a sponsored guild's AI leans (added to its personality).
 const STANCES := {
 	&"": { "name": "Its own way" },
@@ -394,6 +400,18 @@ func price_mult(g: StringName) -> float:
 
 func can_ally(g: StringName) -> bool:
 	return _curse(g, &"isolation") == 0
+
+
+## How much more (or less) a sponsored guild with a stance wants an action.
+func action_bias(g: StringName, action: StringName) -> float:
+	if not is_sponsor_of(g) or contracts[g].get("stance", &"") == &"":
+		return 0.0
+	var d := DomainLibrary.get_domain(domain)
+	if d.get("forbids", []).has(action):
+		return OBEY_FORBIDDEN
+	if d.get("approves", []).has(action):
+		return OBEY_APPROVED
+	return 0.0
 
 
 ## { "greed", "aggression", "honor", "fortify" } added to the guild's AI.
