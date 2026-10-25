@@ -217,6 +217,9 @@ func test_scaling_rules() -> void:
 	print("Scaling rules")
 	check(GameState.enemy_scale_for_floor(1) < GameState.enemy_scale_for_floor(10)
 		and GameState.enemy_scale_for_floor(10) < GameState.enemy_scale_for_floor(30), "enemies grow with the floor")
+	var step := func(f): return GameState.enemy_scale_for_floor(f + 1) - GameState.enemy_scale_for_floor(f)
+	check(is_equal_approx(step.call(20), step.call(30)) and step.call(45) > step.call(30) * 1.3,
+		"past floor 40 the curve gets steeper (tier 3 and big parties)")
 	check(GameState.reward_scale_for_floor(1) == 1.0 and GameState.reward_scale_for_floor(20) > GameState.reward_scale_for_floor(10),
 		"rewards grow with them")
 	GameState.start_new_game("Ophelius", "Cassia", 1)

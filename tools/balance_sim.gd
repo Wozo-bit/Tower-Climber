@@ -57,11 +57,15 @@ func _climb_report(diff: int, runs: int, floors: int) -> void:
 		_rng.seed = 1000 + i * 7919 + diff
 		seed(_rng.seed)
 		var t0 := Time.get_ticks_msec()
-		var res := _run(diff, floors, BUILDS[i % BUILDS.size()], BUILDS[(i + 2) % BUILDS.size()])
+		# only=rogue+warrior: every run uses that pairing (different seeds).
+		var pair: Array = [BUILDS[i % BUILDS.size()], BUILDS[(i + 2) % BUILDS.size()]]
+		if _args.has("only"):
+			pair = Array(String(_args.only).split("+")).map(func(x): return StringName(x))
+		var res := _run(diff, floors, pair[0], pair[1])
 		all.append(res)
-		print("   run %d (%s + %s): reached floor %d, wipes %s, %s, %.0fs" % [i + 1, BUILDS[i % BUILDS.size()],
-			BUILDS[(i + 2) % BUILDS.size()], GameState.floor_number, res.wipes_by_stage,
-			"CLEARED" if res.cleared else ("stuck on floor %d" % res.stuck_floor if res.stuck else "unfinished"),
+		print("   run %d (%s + %s): reached floor %d, wipes %s, %s, %.0fs" % [i + 1, pair[0],
+			pair[1], GameState.floor_number, res.wipes_by_stage,
+			"CLEARED" if res.cleared else ("stuck on floor %d (%s)" % [res.stuck_floor, res.stuck_theme] if res.stuck else "unfinished"),
 			(Time.get_ticks_msec() - t0) / 1000.0])
 	print("\n===== %s: %d runs, floors 1-%d =====" % [Difficulty.name_of(diff), runs, floors])
 	var stages := ceili(floors / 10.0)
@@ -77,6 +81,15 @@ func _climb_report(diff: int, runs: int, floors: int) -> void:
 		var pots := _avg(all, func(r): return r.potions_used[st])
 		print("Stage %d: wipes %.1f (boss %.1f, minibosses %.1f) | level at boss %.1f | normal fight: %.0f%% party HP lost, %.1f rounds | potions used %.1f | gold earned %.0f, held %.0f" % [
 			st + 1, w, wb, wm, lv, hp * 100, turns, pots, earned, gold])
+	# Which stage themes cost the wipes (themes are random per run).
+	var by_theme := {}
+	for r in all:
+		for t in r.theme_wipes:
+			by_theme[t] = by_theme.get(t, 0) + r.theme_wipes[t]
+	var theme_line := "Wipes by stage theme (total over all runs):"
+	for t in by_theme:
+		theme_line += "  %s %d" % [t, by_theme[t]]
+	print(theme_line)
 	var lv_line := "Party level on first reaching floor:"
 	for f in [10, 20, 30, 40, 50, 60]:
 		var reached := all.filter(func(r): return r.first_level.has(f))
@@ -106,7 +119,7 @@ func _run(diff: int, floors: int, build: StringName, friend_build: StringName) -
 		"level_at_boss": _zeros(stages), "hp_lost_normal": _zeros(stages), "rounds_normal": _zeros(stages),
 		"normal_fights": _zeros(stages), "gold_at_stage_end": _zeros(stages), "gold_earned": _zeros(stages),
 		"potions_used": _zeros(stages), "cleared": false, "stuck": false, "stuck_floor": 0, "party_size": 0,
-		"gold_at_16": 0, "first_level": {} }
+		"gold_at_16": 0, "first_level": {}, "theme_wipes": {}, "stuck_theme": "" }
 	var wipes_at := {}   # floor -> wipes there (gives up after MAX_WIPES_PER_FLOOR)
 	var last_floor := 0
 	var started := Time.get_ticks_msec()
@@ -144,6 +157,8 @@ func _run(diff: int, floors: int, build: StringName, friend_build: StringName) -
 			var res := _fight(i)
 			if res.outcome == BattleManager.Outcome.DEFEAT:
 				r.wipes_by_stage[st] += 1
+				var theme := String(StageLibrary.theme_id_for_floor(n))
+				r.theme_wipes[theme] = r.theme_wipes.get(theme, 0) + 1
 				if kind == "boss":
 					r.boss_wipes[st] += 1
 				elif kind == "miniboss":
@@ -163,6 +178,7 @@ func _run(diff: int, floors: int, build: StringName, friend_build: StringName) -
 			if wipes_at[n] >= int(_args.get("max_wipes", str(MAX_WIPES_PER_FLOOR))):
 				r.stuck = true
 				r.stuck_floor = n
+				r.stuck_theme = String(StageLibrary.theme_id_for_floor(n))
 				if _args.has("why"):
 					print("\n".join(_recent))
 				break
@@ -282,6 +298,11 @@ func _choose(battle: BattleManager, actor: Combatant) -> BattleAction:
 		for id in [&"advanced_potion", &"potion"]:
 			if inv.count(id) > 0:
 				return BattleAction.use_item(actor, ItemLibrary.get_item(id), hurt)
+	# Summoners keep their summon on the field.
+	for s in actor.skills:
+		if s.effect == SkillDef.Effect.SUMMON and actor.can_afford(s) \
+				and not allies.any(func(u): return u.summoned_by == actor and u.is_alive()):
+			return BattleAction.use_skill(actor, s, actor)
 	# Support play: keep up party buffs and taunts (once, while they last).
 	for s in actor.skills:
 		if s.effect != SkillDef.Effect.STATUS or not actor.can_afford(s) or s.status_id == &"":
@@ -377,8 +398,12 @@ func _level_up_everyone() -> void:
 				if EnemyFamilies.FAMILIES[family].affinities[el] == Element.Affinity.WEAK:
 					weak.append(el)
 			var fits := []
+			# A party with no way to heal takes a heal first (First Aid etc.).
+			var party_heals := _members().any(func(m): return m.all_skills().any(func(s): return s.effect == SkillDef.Effect.HEAL))
+			if not party_heals:
+				fits = pool.filter(func(s): return s.effect == SkillDef.Effect.HEAL)
 			for s in pool:
-				if s.effect == SkillDef.Effect.DAMAGE and s.elements.any(func(el): return weak.has(el)):
+				if fits.is_empty() and s.effect == SkillDef.Effect.DAMAGE and s.elements.any(func(el): return weak.has(el)):
 					fits.append(s)
 			if fits.is_empty():
 				for s in pool:

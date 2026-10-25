@@ -118,6 +118,9 @@ placeholders to confirm with Hayden. Hayden wants
 3-5 advancements over 100 floors: add tiers as gates + classes when the
 tower grows.
 Hayden will send tweaks to the enemy family table after playing it.
+Balance pass 2 (2026-10-25, NOT yet approved by Hayden): normal enemy HP
+follows party slots (NORMAL_PARTY_EXP 0.5), curve +0.02/floor past 40.
+Sim: Relaxed 20/20, Normal 17/20, Hard 10/20, Hell 9/20 (README table).
 
 ### Blessings + guilds/economy (designed with Hayden 2026-10-24)
 Build in phases: (1) blessings — BUILT (BeingLibrary roster + register_being,
@@ -299,7 +302,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (21 suites, 1228 checks at last run).
+Every change gets tests in tests/ (21 suites, 1229 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

@@ -485,14 +485,20 @@ Picked at **New Game** (and again when starting **New Game+**). During a run you
 - Numbers: `scripts/data/difficulty.gd`.
 
 ### What the balance simulator says
-`tools/balance_sim.tscn` plays whole runs with a bot: it fights everything, uses weaknesses, heals, buffs, recruits, equips gear and shops, but never grinds. It also skips roaming bosses, and it doesn't use rows, Defend or Guard, so a real player should do somewhat better. 20 runs per difficulty after the balance pass:
+`tools/balance_sim.tscn` plays whole runs with a bot: it fights everything, uses weaknesses, heals, buffs, keeps its summons up, takes a heal skill when the party has none, recruits, equips gear and shops, but never grinds. It also skips roaming bosses and never moves rows, Defends or Guards, so a real player should do somewhat better. The bot is noisy (battles roll their own dice), so compare 20+ runs.
 
-| | Runs cleared | Wipes per run (bot) | Party level reaching floor 10 / 20 / 30 |
-|---|---|---|---|
-| Relaxed | 20/20 | ~0.4 | 12 / 24 / 32 |
-| Normal | 20/20 | ~4.5 | 12 / 24 / 33 |
-| Hard | 20/20 | ~11 | 14 / 27 / 36 |
-| Hell | 14/20 (allowing 15 wipes a floor) | ~27 | 17 / 31 / 42 |
+**Balance pass 2** (2026-10-25, after the growing party and the 4 rows), 20 runs per difficulty over all 60 floors, giving up after 6 wipes on one floor (15 on Hell):
+
+| | Runs cleared | Wipes per run (bot) | Hardest stages | Party level reaching floor 10 / 30 / 60 |
+|---|---|---|---|---|
+| Relaxed | 20/20 | ~1 | — | 11 / 30 / 53 |
+| Normal | 17/20 | ~9 | 3–4 | 11 / 31 / 56 |
+| Hard | 10/20 | ~15 | 3–4 | 11 / 32 / 57 |
+| Hell | 9/20 | ~42 | 1–3 | 16 / 36 / 66 |
+
+- **Every enemy's HP follows the party slots**, not just bosses': normal enemies ×`pow(slots / 4, 0.5)` (`GameState.NORMAL_PARTY_EXP`): ×0.71 for 2 fighters, ×1.22 for 6, ×1.58 for 10. A duo's fights are swingier (one crit downs half the party) and a big party's were too easy.
+- **The curve steepens past floor 40** (`ENEMY_SCALE_LATE_PER_FLOOR` 0.02 per floor on top of the usual 0.05), for tier-3 classes (+20%) and bigger parties.
+- **Combos the bot can't always clear on Normal:** Rogue + Warrior (no heals, no Pierce) in Goblin Warrens or Slime Pits, and all-physical parties in the Elemental Rift. Both match the stage designs (slimes and elementals resist physical).
 
 Run it yourself (from the project folder):
 

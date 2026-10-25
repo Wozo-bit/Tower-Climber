@@ -598,6 +598,7 @@ func set_difficulty(level: int) -> bool:
 func configure_battle(battle: BattleManager) -> void:
 	battle.enemy_scale = pending_enemy_scale
 	battle.boss_hp_mult = guardian_hp_mult(party_size())
+	battle.normal_hp_mult = normal_hp_mult(party_size())
 	battle.enemy_skill_mult = Difficulty.value(difficulty, "ai")
 	var rewards := reward_scale_for_floor(floor_number)
 	if pending_battle_info.get("kind", "normal") in THEMED_KINDS:
@@ -620,6 +621,16 @@ const GUARDIAN_PARTY_EXP := 0.75
 
 static func guardian_hp_mult(slots: int) -> float:
 	return pow(slots / GUARDIAN_TUNED_PARTY, GUARDIAN_PARTY_EXP)
+
+
+## Normal enemies follow the party slots too, more gently: a duo's fights
+## are swingier (one crit downs half the party), a big party's are easier.
+## 2 -> x0.71, 6 -> x1.22, 10 -> x1.58 (balance pass 2, 2026-10-25).
+const NORMAL_PARTY_EXP := 0.5
+
+
+static func normal_hp_mult(slots: int) -> float:
+	return pow(slots / GUARDIAN_TUNED_PARTY, NORMAL_PARTY_EXP)
 
 
 ## How many can fight right now (player included); see PARTY_START_SIZE.
@@ -681,8 +692,15 @@ static func reward_scale_for_floor(n: int) -> float:
 	return pow(enemy_scale_for_floor(n) / enemy_scale_for_floor(1), REWARD_EXP)
 
 
+## Past LATE_SCALE_FROM the curve gets steeper: tier-3 classes (+20%) and
+## 6+ fighters made floors 41-60 too easy (balance pass 2, 2026-10-25).
+const LATE_SCALE_FROM := 40
+const ENEMY_SCALE_LATE_PER_FLOOR := 0.02
+
+
 static func enemy_scale_for_floor(n: int) -> float:
-	return ENEMY_SCALE_BASE + ENEMY_SCALE_PER_FLOOR * (n - 1)
+	return ENEMY_SCALE_BASE + ENEMY_SCALE_PER_FLOOR * (n - 1) \
+		+ ENEMY_SCALE_LATE_PER_FLOOR * maxi(0, n - LATE_SCALE_FROM)
 
 
 func enter_floor(n: int) -> void:

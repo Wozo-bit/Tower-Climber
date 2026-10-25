@@ -246,7 +246,8 @@ func test_party_grows() -> void:
 		b.enemy_scale = 1.0
 		b.setup([GameState.player] as Array[CharacterData], EnemyLibrary.build_group([&"goblin_captain", &"goblin"]), 1)
 		hp.append([b.enemies[0].max_hp, b.enemies[1].max_hp])
-	check(hp[1][0] > hp[0][0] * 3 and hp[1][1] == hp[0][1], "a big party faces a tougher boss; normal enemies are unchanged")
+	check(hp[1][0] > hp[0][0] * 3, "a big party faces a much tougher boss")
+	check(hp[1][1] > hp[0][1] * 2 and hp[1][1] < hp[1][0] / 1.5, "normal enemies follow the party size too, more gently")
 
 
 func test_save_roundtrip() -> void:
