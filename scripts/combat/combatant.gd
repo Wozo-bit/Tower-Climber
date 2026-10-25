@@ -20,6 +20,11 @@ const CLASS_COLORS := {
 	&"support": Color(0.9, 0.85, 0.6),
 	&"ashbound_knight": Color(0.85, 0.4, 0.2),
 	&"ascendant": Color(0.95, 0.95, 1.0),
+	&"warrior": Color(0.7, 0.35, 0.3),
+	&"monk": Color(0.85, 0.6, 0.3),
+	&"spellblade": Color(0.5, 0.4, 0.9),
+	&"magic_swordsman": Color(0.45, 0.6, 0.85),
+	&"summoner": Color(0.55, 0.75, 0.7),
 }
 
 var display_name: String
@@ -63,6 +68,8 @@ var gel_used := false
 var swarm_allies := 0
 ## Undying: has it already shrugged off its one killing blow this fight?
 var undying_used := false
+## A summon: who called it (null = a normal unit).
+var summoned_by: Combatant
 
 ## Weakness hits to stagger a normal enemy / a boss or miniboss. After each
 ## stagger it takes STAGGER_GROWTH more, so a boss can't be stun-locked.

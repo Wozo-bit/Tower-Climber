@@ -416,6 +416,43 @@ const DIALOGUES := {
 		},
 	},
 
+	# Demigods: an omen by the campfire, then a legendary quest chain.
+	&"recruit_legend": {
+		"start": [
+			{ "if": { "favor_done": true }, "node": "ready" },
+			{ "if": { "favor_active": true }, "node": "waiting" },
+			{ "node": "omen" },
+		],
+		"nodes": {
+			"omen": {
+				"speaker": "",
+				"text": "(Placeholder) The fire burns gold. A figure of legend steps out of the light.",
+				"next": "ask",
+			},
+			"ask": {
+				"speaker": "{recruit}",
+				"text": "{recruit_pitch}",
+				"choices": [
+					{ "text": "I accept the trial.", "next": "accepted", "effects": [{ "start_favor": true }] },
+					{ "text": "Not yet." },
+				],
+			},
+			"accepted": { "speaker": "{recruit}", "text": "(Placeholder) Then go. I will be watching from the fires above." },
+			"waiting": { "speaker": "{recruit}", "text": "(Placeholder) Your legend is not finished yet ({recruit_favor})." },
+			"ready": {
+				"speaker": "{recruit}",
+				"text": "(Placeholder) The gods have seen enough. I will climb with you.",
+				"choices": [
+					{ "text": "Climb with us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
+					{ "text": "Climb with us.", "next": "refused", "if": { "refuses_you": true } },
+					{ "text": "Not yet." },
+				],
+			},
+			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead, mortal. Try to keep up." },
+			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Your path has strayed from anything I would follow." },
+		},
+	},
+
 	# --- Any dismissed companion waiting by the campfire. ---
 	&"waiting_companion": {
 		"start": "hello",
@@ -458,7 +495,8 @@ const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_leve
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
-	"holds_captive", "can_pay_ransom", "favor_new", "favor_active", "favor_done", "can_pay_fee", "refuses_you"]
+	"holds_captive", "can_pay_ransom", "favor_new", "favor_active", "favor_done", "can_pay_fee", "refuses_you",
+	"patron_pantheon"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",

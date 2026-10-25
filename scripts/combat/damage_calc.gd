@@ -21,6 +21,7 @@ const DEFEND_MULT := 0.5
 const WARD_MULT := 0.7
 const GUARD_MULT := 0.7            # a guardian takes 30% less while guarding
 const HASTE_INITIATIVE_MULT := 2.0
+const FURY_MULT := 1.3             # "fury" status: deals 30% more damage
 
 
 static func attack_power(attacker: Combatant, type: int) -> float:
@@ -93,6 +94,8 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 		dmg *= WARD_MULT
 	if target.has_status(&"guarding"):
 		dmg *= GUARD_MULT
+	if attacker.has_status(&"fury"):
+		dmg *= FURY_MULT
 
 	# Traits
 	if attacker.has_trait(&"reckless") and attacker.hp * 2 < attacker.max_hp:

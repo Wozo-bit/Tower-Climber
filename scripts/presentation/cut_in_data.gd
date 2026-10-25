@@ -118,6 +118,12 @@ static func class_change(c: CharacterData, def: ClassDef, first_class: bool) -> 
 		"%s is now a %s" % [c.character_name, def.display_name], art, C_ADVANCE, "✦")
 
 
+## NG+ Ascension: a tier-3 line goes beyond mortal limits.
+static func ascension(c: CharacterData) -> Dictionary:
+	var art := Assets.portrait_for(c)
+	return make("advance", "ASCENDED", "%s is now %s" % [c.character_name, c.class_title()], art, C_ADVANCE, "✧")
+
+
 ## A war that involves your guild (or the guild you're in), either way round.
 static func war(attacker: StringName, defender: StringName, territory: int) -> Dictionary:
 	var gs: GuildState = GameState.guilds

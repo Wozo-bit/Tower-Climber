@@ -71,6 +71,7 @@ func _start_battle() -> void:
 	battle.round_started.connect(func(n): _round_label.text = "Round %d" % n)
 	battle.battle_ended.connect(_on_battle_ended)
 	battle.intents_changed.connect(_update_intents)
+	battle.unit_joined.connect(_on_unit_joined)
 
 	for card in _cards.values():
 		card.queue_free()
@@ -102,6 +103,14 @@ func _start_battle() -> void:
 func _cutins_done() -> void:
 	if CutIns.is_playing():
 		await CutIns.finished
+
+
+## A summon arrived: give it a card on its side.
+func _on_unit_joined(u: Combatant) -> void:
+	var card := UnitCard.new(u)
+	card.clicked.connect(_on_card_clicked)
+	_cards[u] = card
+	_layout_cards()
 
 
 func _layout_cards() -> void:

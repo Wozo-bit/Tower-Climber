@@ -57,6 +57,8 @@ const FAMILIES := {
 	&"celestial": { "name": "Celestials",
 		"affinities": { E.DARK: A.WEAK, E.HOLY: A.RESIST, E.LIGHTNING: A.RESIST },
 		"traits": [] },
+	# Summoned allies (the Summoner line's skills): no quirks.
+	&"spirit": { "name": "Spirits", "affinities": {}, "traits": [] },
 	&"dragon": { "name": "Dragons",
 		"affinities": { E.ICE: A.WEAK, E.PIERCE: A.WEAK, E.FIRE: A.RESIST, E.SLASH: A.RESIST },
 		"traits": [&"dragonscale"] },

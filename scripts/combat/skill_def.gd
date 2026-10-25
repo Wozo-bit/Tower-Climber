@@ -4,7 +4,9 @@ extends Resource
 
 ## GUARD: the user steps in front of an ally and takes single-target hits for
 ## them until the user's next turn. RESTORE_MP: restores `power` x max MP.
-enum Effect { DAMAGE, HEAL, STATUS, GUARD, RESTORE_MP }
+## SUMMON: calls `summon_id` (an EnemyLibrary "spirit" def) onto the user's
+## side for the rest of the fight (one per summoner; recasting refreshes it).
+enum Effect { DAMAGE, HEAL, STATUS, GUARD, RESTORE_MP, SUMMON }
 ## MELEE is affected by rows. RANGED and MAGIC ignore rows.
 ## MELEE and RANGED can be dodged; MAGIC cannot.
 enum DamageType { MELEE, RANGED, MAGIC }
@@ -41,6 +43,8 @@ enum Targeting { ENEMY_SINGLE, ENEMY_ALL, ALLY_SINGLE, ALLY_ALL, SELF }
 ## Status applied by STATUS skills (or as a rider on others).
 @export var status_id: StringName = &""
 @export var status_turns: int = 0
+## SUMMON skills: the EnemyDef id called onto the field.
+@export var summon_id: StringName = &""
 
 
 static func make(p_id: StringName, p_name: String, p_desc: String, props: Dictionary = {}) -> SkillDef:

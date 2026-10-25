@@ -481,6 +481,29 @@ static func _build() -> Dictionary:
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
+		# --- Summons (called by the Summoner line; scaled by the caster's INT) ---
+		EnemyDef.make(&"wisp", "Wisp", {
+			"family": &"spirit", "max_hp": 70, "stats": {S.INTELLIGENCE: 14, S.STAMINA: 6, S.AGILITY: 14},
+			"row": BACK, "basic_attack": &"attack_magic", "xp_reward": 0, "gold_reward": 0, "color": Color(0.7, 1.0, 0.95)}),
+		EnemyDef.make(&"spirit_wolf", "Spirit Wolf", {
+			"family": &"spirit", "max_hp": 110, "stats": {S.STRENGTH: 15, S.STAMINA: 8, S.AGILITY: 16},
+			"row": FRONT, "xp_reward": 0, "gold_reward": 0, "color": Color(0.7, 0.8, 1.0)}),
+		EnemyDef.make(&"guardian_spirit", "Guardian Spirit", {
+			"family": &"spirit", "max_hp": 180, "stats": {S.STRENGTH: 10, S.STAMINA: 16, S.AGILITY: 8},
+			"row": FRONT, "skills": [&"taunt"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 0, "gold_reward": 0, "color": Color(0.85, 0.9, 1.0)}),
+		EnemyDef.make(&"skeleton_thrall", "Skeleton Thrall", {
+			"family": &"spirit", "max_hp": 120, "stats": {S.STRENGTH: 14, S.STAMINA: 10, S.AGILITY: 10},
+			"row": FRONT, "xp_reward": 0, "gold_reward": 0, "color": Color(0.8, 0.78, 0.7)}),
+		EnemyDef.make(&"great_beast", "Great Spirit Beast", {
+			"family": &"spirit", "max_hp": 260, "stats": {S.STRENGTH: 20, S.STAMINA: 14, S.AGILITY: 14},
+			"row": FRONT, "skills": [&"smash"] as Array[StringName], "skill_chance": 0.4,
+			"xp_reward": 0, "gold_reward": 0, "color": Color(0.6, 0.75, 1.0)}),
+		EnemyDef.make(&"bone_colossus", "Bone Colossus", {
+			"family": &"spirit", "max_hp": 320, "stats": {S.STRENGTH: 21, S.STAMINA: 16, S.AGILITY: 6},
+			"row": FRONT, "skills": [&"smash"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 0, "gold_reward": 0, "color": Color(0.85, 0.8, 0.7)}),
+
 		# --- Guild fighters (guards that hunt you, territory champions) ---
 		EnemyDef.make(&"guild_guard", "Guild Guard", {
 			"family": &"human",

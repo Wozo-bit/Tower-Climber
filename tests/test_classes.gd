@@ -76,13 +76,23 @@ func _finish_trial(def: ClassDef) -> void:
 
 
 func test_tree_is_complete() -> void:
-	var tier2 := ClassRegistry.get_tier(2)
-	check(tier2.size() == 13, "13 tier-2 classes (2 per class + 3 route-only)")
-	for base in [&"tank", &"mage", &"archer", &"rogue", &"support"]:
+	var tier2 := ClassRegistry.get_tier(2).filter(func(d): return d.unique_to == &"")   # demigods' classes aside
+	var bases := [&"tank", &"mage", &"archer", &"rogue", &"support", &"warrior", &"monk", &"spellblade", &"magic_swordsman", &"summoner"]
+	check(ClassRegistry.get_tier(1).filter(func(d): return not d.is_secret).size() == bases.size(), "10 starting classes")
+	check(tier2.size() == 24, "24 tier-2 classes (2 per class + 4 route-only)")
+	for base in bases:
 		var normal := ClassRegistry.advancements_for(base).filter(func(d): return d.required_route == &"")
 		check(normal.size() == 2, "%s has 2 normal advancements" % base)
 	var routed := tier2.filter(func(d): return d.required_route != &"")
-	check(routed.size() == 3 and routed.all(func(d): return RouteLibrary.routes.has(d.required_route)), "3 route-only advancements on real routes")
+	check(routed.size() == 4 and routed.all(func(d): return RouteLibrary.routes.has(d.required_route)), "4 route-only advancements on real routes")
+	var tier3 := ClassRegistry.get_tier(3).filter(func(d): return d.unique_to == &"")
+	check(tier3.size() == tier2.size() and tier2.all(func(d): return ClassRegistry.advancements_for(d.id).size() == 1),
+		"every tier-2 class has a tier-3 mastery")
+	var t3_ok := true
+	for d in tier3:
+		t3_ok = t3_ok and d.required_route == ClassRegistry.get_class_def(d.advances_from).required_route \
+			and SkillLibrary.CLASS_SKILLS.get(d.id, []).size() == 1
+	check(t3_ok, "tier 3 keeps its route and adds a capstone skill")
 	var skills_ok := true
 	for def in tier2:
 		var ids: Array = SkillLibrary.CLASS_SKILLS.get(def.id, [])
@@ -90,11 +100,16 @@ func test_tree_is_complete() -> void:
 			skills_ok = false
 	check(skills_ok, "every advanced class has 2 real skills")
 	check(ClassRegistry.ADVANCEMENT_GATES.has(2), "tier 2 has a gate")
-	check(QuestLibrary.trials().size() == 13 and QuestLibrary.validate_all().is_empty(), "every advanced class has a valid trial quest")
+	var advanced := ClassRegistry.get_all().filter(func(d): return d.advances_from != &"")
+	check(QuestLibrary.trials().size() == advanced.size() and QuestLibrary.validate_all().is_empty(), "every advanced class has a valid trial quest")
 	check(SkillLibrary.get_skill(&"magma_burst").elements == [Element.Type.FIRE, Element.Type.EARTH], "deeper elements: Magma Burst = Fire + Earth")
 	check(GameState.FINAL_FLOOR == 60, "the climb now ends on floor 60")
-	check(ClassRegistry.advancements_for(&"pyromancer").is_empty() and ClassRegistry.advancements_for(&"ascendant").is_empty(),
-		"no tier 3 yet; secret/NG+ classes don't advance")
+	check(ClassRegistry.ADVANCEMENT_GATES.get(3, {}) == { "floor": 40, "level": 45 }, "tier 3: floor 40 + level 45")
+	check(ClassRegistry.advancements_for(&"pyromancer_t3").is_empty() and ClassRegistry.advancements_for(&"ascendant").is_empty(),
+		"tier 3 is the top for now; secret/NG+ classes don't advance")
+	var asc := ClassRegistry.get_class_def(&"ascendant")
+	var stronger := ClassRegistry.get_all().all(func(d): return d.id == &"ascendant" or d.stat_bonus_pct + ClassRegistry.ASCENSION_BONUS < asc.stat_bonus_pct)
+	check(stronger, "the Ascendant stays the strongest, even against Ascended lines")
 
 
 func test_lineage() -> void:

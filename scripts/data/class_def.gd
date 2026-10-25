@@ -27,6 +27,9 @@ const EPSILON := 0.0001
 ## Only on this route (RouteLibrary id, e.g. &"villain"). Empty = any route.
 ## Meant for tier-2 advancements; checked by CharacterData.
 @export var required_route: StringName = &""
+## Only this recruit (NpcLibrary id) can ever have this class: the demigods'
+## own classes. Never offered to anyone else.
+@export var unique_to: StringName = &""
 
 
 ## The tier a class advancing from `parent` gets (parent's tier + 1).

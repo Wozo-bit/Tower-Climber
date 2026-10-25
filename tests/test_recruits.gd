@@ -62,7 +62,7 @@ func test_roster() -> void:
 		names[n.name] = true
 		if ClassRegistry.get_class_def(r.get("class_id", &"")) == null:
 			problems.append("%s: class" % id)
-		if not r.get("meet", "") in ["campfire", "hire", "favor", "rescue", "captive"]:
+		if not r.get("meet", "") in ["campfire", "hire", "favor", "rescue", "captive", "legend"]:
 			problems.append("%s: meet" % id)
 		var ps := SkillLibrary.get_skill_or_null(r.get("personal_skill", &""))
 		if ps == null or ps.learnable:
@@ -75,7 +75,7 @@ func test_roster() -> void:
 			"hire":
 				if r.get("fee", 0) <= 0:
 					problems.append("%s: hire needs a fee" % id)
-			"favor":
+			"favor", "legend":
 				if QuestLibrary.get_quest(QuestLibrary.favor_id(id)).is_empty():
 					problems.append("%s: favor quest" % id)
 			"rescue":
@@ -92,7 +92,7 @@ func test_roster() -> void:
 	var meets := {}
 	for id in ids:
 		meets[NpcLibrary.recruit_info(id).meet] = true
-	check(meets.size() == 5, "all five ways of meeting someone are used")
+	check(meets.size() == 6, "all six ways of meeting someone are used (incl. demigod legends)")
 
 
 func test_wanderers() -> void:

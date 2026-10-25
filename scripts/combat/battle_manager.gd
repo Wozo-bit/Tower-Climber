@@ -20,6 +20,8 @@ signal action_resolved(result: Dictionary)
 signal battle_ended(outcome: int)
 ## Enemy intents changed (new round, a target died, someone taunted, ...).
 signal intents_changed
+## A summoned unit joined the field (the UI adds its card).
+signal unit_joined(unit: Combatant)
 
 enum Outcome { NONE, VICTORY, DEFEAT, FLED }
 
@@ -419,6 +421,10 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 				t.guarded_by = actor
 				actor.add_status(&"guarding", 1)
 				parts.append("%s will take hits for %s" % [actor.display_name, t.display_name])
+			SkillDef.Effect.SUMMON:
+				entry.kind = "status"
+				var summoned := _summon(actor, skill.summon_id)
+				parts.append("%s answers the call" % summoned.display_name if summoned else "nothing answers")
 			SkillDef.Effect.STATUS:
 				entry.kind = "status"
 				var turns := skill.status_turns
@@ -432,6 +438,30 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 
 	result.text = "%s uses %s: %s." % [actor.display_name, skill.display_name, ", ".join(parts)]
 	return true
+
+
+## Calls a summon to `actor`'s side for the rest of the fight. One per
+## summoner: calling again refreshes the one already there. Its strength
+## follows the summoner's Intelligence. Acts from the next round on.
+const SUMMON_INT_PER_SCALE := 18.0
+
+
+func _summon(actor: Combatant, summon_id: StringName) -> Combatant:
+	var def := EnemyLibrary.get_enemy_or_null(summon_id)
+	if def == null:
+		return null
+	var side := party if actor.side == Combatant.Side.PARTY else enemies
+	for u in side:
+		if u.summoned_by == actor and u.is_alive():
+			u.hp = u.max_hp
+			return u
+	var scale := maxf(0.3, actor.stats.get_total(Stats.Type.INTELLIGENCE) / SUMMON_INT_PER_SCALE)
+	var u := Combatant.from_enemy(def, scale)
+	u.side = actor.side
+	u.summoned_by = actor
+	side.append(u)
+	unit_joined.emit(u)
+	return u
 
 
 ## Writes what a hit revealed (element -> affinity) into the bestiary.

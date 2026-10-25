@@ -15,6 +15,7 @@ func _ready() -> void:
 	await test_battle_screen()
 	await test_captain_in_battle()
 	await test_title_screen()
+	await test_ascend_button()
 	CutIns.skip_all()
 	GameState.delete_slot(1)
 	GameState.reset_run()
@@ -42,6 +43,36 @@ func _fresh(floor_n: int) -> void:
 func _frames(n: int) -> void:
 	for i in n:
 		await get_tree().process_frame
+
+
+## Tab: a top-tier line in NG+ gets an "Ascend" button; pressing it (and
+## confirming) Ascends them and plays the cut-in.
+func test_ascend_button() -> void:
+	print("Ascend button")
+	_fresh(5)
+	CutIns.skip_all()
+	GameState.ng_plus_cycle = 1
+	GameState.highest_floor = 41
+	var p := GameState.player
+	while p.level < 50:
+		p.level_up()
+	p.class_id = ClassRegistry.get_tier(3).filter(func(d): return d.unique_to == &"")[0].id
+	p._apply_class_bonus()
+	var menu := PartyMenu.new()
+	add_child(menu)
+	menu.open()
+	await _frames(2)
+	var btns := menu.find_children("*", "Button", true, false).filter(func(b): return b.text == "✧ Ascend")
+	check(btns.size() == 1 and not btns[0].disabled, "a tier-3 line in NG+ can Ascend from Tab")
+	menu._confirm_ascend(p)
+	var dlg: ConfirmationDialog = menu.find_children("*", "ConfirmationDialog", true, false)[-1]
+	dlg.confirmed.emit()
+	await _frames(1)
+	check(p.ascended and CutIns.is_playing(), "confirming Ascends them, with a cut-in")
+	CutIns.skip_all()
+	menu.queue_free()
+	GameState.ng_plus_cycle = 0
+	await _frames(1)
 
 
 func test_floor_screen() -> void:

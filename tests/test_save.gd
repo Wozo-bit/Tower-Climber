@@ -195,7 +195,9 @@ func test_ascendant() -> void:
 	check(tank_unique != null and p.get_equipped(GearItem.Slot.WEAPON) == null and GameState.inventory.gear.has(tank_unique),
 		"the Tank-only Unique goes back to the bag on class change")
 	var raw := p.stats.get_base(Stats.Type.HEALTH) + p.stats.get_allocated(Stats.Type.HEALTH) + p.stats.get_gear_bonus(Stats.Type.HEALTH)
-	check(p.stats.get_total(Stats.Type.HEALTH) == roundi(raw * 1.2), "+20%% to every stat (Health %d -> %d)" % [raw, p.stats.get_total(Stats.Type.HEALTH)])
+	var asc_bonus := ClassRegistry.get_class_def(&"ascendant").stat_bonus_pct
+	check(p.stats.get_total(Stats.Type.HEALTH) == roundi(raw * (1.0 + asc_bonus)), "+%d%%%% to every stat (Health %d -> %d)" % [
+		roundi(asc_bonus * 100), raw, p.stats.get_total(Stats.Type.HEALTH)])
 	check(p.max_hp() == StatBlock.HP_BASE + p.stats.get_total(Stats.Type.HEALTH) * StatBlock.HP_PER_HEALTH
 		+ CharacterData.HP_PER_LEVEL * (p.level - 1) and p.current_hp() == p.max_hp(),
 		"max HP uses the boosted Health (and current HP stays full)")

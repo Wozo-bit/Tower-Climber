@@ -174,6 +174,7 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"skill_picks": c.skill_picks,
 		"skill_ranks": _stringify_keys(c.skill_ranks),
 		"personal_skill": String(c.personal_skill), "personal_unlocked": c.personal_unlocked,
+		"ascended": c.ascended,
 		"blessing": String(c.blessing_id), "blessing_level": c.blessing_level,
 		"curse": String(c.curse_id), "curse_level": c.curse_level, "curse_until_floor": c.curse_until_floor,
 		"equipment": equip,
@@ -223,6 +224,13 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 			if g and k is String and k.is_valid_int() and int(k) == g.slot:
 				c.equipment[g.slot] = g
 	c.class_id = _valid_class(_s(d, "class"))
+	# A demigod's class belongs to that demigod alone.
+	if c.get_class_def() and c.get_class_def().unique_to != &"" and c.get_class_def().unique_to != c.companion_id:
+		c.class_id = &""
+	# Ascension needs a top-tier class (a tampered flag on a lower class is dropped).
+	var cdef := c.get_class_def()
+	c.ascended = _b(d, "ascended", false) and cdef != null and cdef.tier >= ClassRegistry.ASCENSION_GATE.tier \
+		and c.class_id != &"ascendant"
 	# Rebuild derived bonuses (gear + class) from the data above.
 	c._refresh_gear_bonus()
 	c._apply_class_bonus()

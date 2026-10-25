@@ -21,7 +21,9 @@ extends RefCounted
 ##       "class_id":  class it takes at level 10+ (if its build qualifies)
 ##       "build":     Stats.Type -> weight; level-up points are split this way
 ##       "row":       (optional) Combatant.Row to start in
-##       "meet":      how you meet them (Hayden 2026-10-25):
+##       "meet":      how you meet them (Hayden 2026-10-25). "legend" = a
+##                    demigod: their "favor" is a legendary quest chain
+##                    (recruit_legend), and their class is their own. Or:
 ##                    "campfire" (sitting by a rest-floor campfire; dialogue
 ##                    recruit_campfire), "hire" (one-time "fee" in gold, near the
 ##                    merchant; recruit_hire), "favor" (do their "favor" quest
@@ -193,6 +195,124 @@ const NPCS := {
 		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
 	},
 
+	# =====================================================
+	# Demigods (Hayden 2026-10-25): rare, floor 30+, only when one of your
+	# patrons (blessing / guild patron) is from their pantheon. A legendary
+	# quest chain earns them; each has a class only they can have.
+	# =====================================================
+	&"heracles": {
+		"name": "Heracles", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"lionheart", "meet": "legend", "demigod": true, "personal_skill": &"nemean_roar",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 2 },
+			"pitch": "(Placeholder) Twelve labours, and the gods still want a thirteenth. Prove you can keep up.",
+			"favor": { "title": "Legend: Heracles", "desc": "(Placeholder) The gods want proof before Heracles will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Heracles: The Last Labour", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"zeus", 2],
+	},
+	&"perseus": {
+		"name": "Perseus", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"gorgonbane", "meet": "legend", "demigod": true, "personal_skill": &"winged_sandals",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 4, Stats.Type.LUCK: 2 },
+			"pitch": "(Placeholder) Athena told me a climber would come. Show me you are the one.",
+			"favor": { "title": "Legend: Perseus", "desc": "(Placeholder) The gods want proof before Perseus will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Perseus: The Last Labour", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"athena", 2],
+	},
+	&"achilles": {
+		"name": "Achilles", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"myrmidon_lord", "meet": "legend", "demigod": true, "personal_skill": &"heel_guard",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.HEALTH: 4, Stats.Type.STRENGTH: 2 },
+			"pitch": "(Placeholder) Glory or nothing. If you want me at your side, earn it.",
+			"favor": { "title": "Legend: Achilles", "desc": "(Placeholder) The gods want proof before Achilles will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Achilles: The Last Labour", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"hero"] },
+	},
+	&"gilgamesh": {
+		"name": "Gilgamesh", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Mesopotamian" },
+		"recruit": {
+			"class_id": &"king_of_uruk", "meet": "legend", "demigod": true, "personal_skill": &"gate_of_uruk",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.LUCK: 4, Stats.Type.HEALTH: 2 },
+			"pitch": "(Placeholder) A king does not follow. But he may walk beside someone worth watching.",
+			"favor": { "title": "Legend: Gilgamesh", "desc": "(Placeholder) The gods want proof before Gilgamesh will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Gilgamesh: The Last Labour", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"cu_chulainn": {
+		"name": "Cu Chulainn", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Celtic" },
+		"recruit": {
+			"class_id": &"hound_of_ulster", "meet": "legend", "demigod": true, "personal_skill": &"spear_storm",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.AGILITY: 4, Stats.Type.HEALTH: 2 },
+			"pitch": "(Placeholder) The Phantom Queen sent her crows to find you. Let us see why.",
+			"favor": { "title": "Legend: Cu Chulainn", "desc": "(Placeholder) The gods want proof before Cu Chulainn will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Cu Chulainn: The Last Labour", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"villain"] },
+		"blessing": [&"morrigan", 2],
+	},
+	&"sigurd": {
+		"name": "Sigurd", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Norse" },
+		"recruit": {
+			"class_id": &"dragonslayer", "meet": "legend", "demigod": true, "personal_skill": &"birdspeech",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.STAMINA: 4, Stats.Type.HEALTH: 2 },
+			"pitch": "(Placeholder) The birds say a climber means to reach the top. I have killed a dragon. Can you?",
+			"favor": { "title": "Legend: Sigurd", "desc": "(Placeholder) The gods want proof before Sigurd will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Sigurd: The Last Labour", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"odin", 2],
+	},
+
 	# --- Route content (placeholders) ---
 	&"black_market": {
 		"name": "Hooded trader", "kind": "npc", "dialogue": &"black_market", "color": Color(0.25, 0.2, 0.3),
@@ -319,10 +439,13 @@ static func make_recruit(id: StringName, level: int) -> CharacterData:
 		c.level_up()
 	if c.unspent_points > 0:
 		c.apply_allocation(split_points(c.unspent_points, r.build))
-	if c.can_choose_class():
-		var def := ClassRegistry.get_class_def(r.get("class_id", &""))
-		if def and not def.is_secret:
-			c.choose_class(def)
+	var cdef := ClassRegistry.get_class_def(r.get("class_id", &""))
+	if cdef and cdef.unique_to == id:
+		c.class_id = cdef.id   # a demigod's own class: theirs from the start
+		c._apply_class_bonus()
+	elif c.can_choose_class():
+		if cdef and not cdef.is_secret:
+			c.choose_class(cdef)
 	if r.has("row"):
 		c.battle_row = r.row
 	var blessing: Array = n.get("blessing", [])

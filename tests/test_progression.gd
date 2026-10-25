@@ -174,7 +174,8 @@ func test_near_misses() -> void:
 	var q := c.get_qualifying_classes()
 	var misses := ClassRegistry.get_near_misses(c.stats)
 	check(q.is_empty(), "even spread qualifies for nothing")
-	check(misses.size() == 5 and misses[0].points_short <= misses[-1].points_short, "near misses sorted closest first")
+	check(misses.size() == ClassRegistry.get_tier(1).filter(func(d): return not d.is_secret).size()
+		and misses[0].points_short <= misses[-1].points_short, "near misses sorted closest first")
 
 
 func test_rename() -> void:

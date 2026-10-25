@@ -64,6 +64,9 @@ const RESPEC_COST_MULTIPLIER := 2.0 # each paid respec costs this much more
 ## loyalty quest is done (personal_unlocked).
 @export var personal_skill: StringName = &""
 @export var personal_unlocked: bool = false
+## NG+: this character Ascended their top-tier class ("Ascended Pyromancer"):
+## +ClassRegistry.ASCENSION_BONUS to every stat and the Apotheosis skill.
+@export var ascended: bool = false
 ## Blessing from a god / demon / devil (BeingLibrary id; &"" = none) and its level.
 @export var blessing_id: StringName = &""
 @export var blessing_level: int = 0
@@ -298,6 +301,16 @@ func all_skills() -> Array[SkillDef]:
 		var s := SkillLibrary.get_skill_or_null(id)
 		if s and not out.any(func(o): return o.id == s.id):
 			out.append(SkillLibrary.ranked(s, skill_rank(s.id)))
+	if ascended:   # an Ascended line's capstone
+		var ap := SkillLibrary.get_skill_or_null(SkillLibrary.ASCENSION_SKILL)
+		if ap and not out.any(func(o): return o.id == ap.id):
+			out.append(SkillLibrary.ranked(ap, skill_rank(ap.id)))
+	if class_id == &"ascendant":   # the Ascendant grows with each advancement gate
+		for t in SkillLibrary.ASCENDANT_GATE_SKILLS:
+			if gate_open(t):
+				var gs := SkillLibrary.get_skill_or_null(SkillLibrary.ASCENDANT_GATE_SKILLS[t])
+				if gs and not out.any(func(o): return o.id == gs.id):
+					out.append(SkillLibrary.ranked(gs, skill_rank(gs.id)))
 	if personal_unlocked and personal_skill != &"":   # a recruit's own skill, after their loyalty quest
 		var ps := SkillLibrary.get_skill_or_null(personal_skill)
 		if ps and not out.any(func(o): return o.id == ps.id):
@@ -466,7 +479,7 @@ func can_choose_class() -> bool:
 func _apply_class_bonus() -> void:
 	var was_alive := not is_downed()
 	var def := get_class_def()
-	stats.class_bonus_pct = def.stat_bonus_pct if def else 0.0
+	stats.class_bonus_pct = (def.stat_bonus_pct if def else 0.0) + (ClassRegistry.ASCENSION_BONUS if ascended else 0.0)
 	if was_alive and current_hp() <= 0:
 		missing_hp = max_hp() - 1
 	missing_mp = mini(missing_mp, max_mp())
@@ -518,6 +531,46 @@ func choose_class(def: ClassDef) -> bool:
 # An advancement needs: its tier's gate (floor passed + level, ClassRegistry.
 # ADVANCEMENT_GATES), its stat build, its route (if any) and its trial quest.
 # You keep every skill from the classes you came from.
+
+## Has this character reached tier `t`'s advancement gate (floor + level)?
+func gate_open(t: int) -> bool:
+	var gate: Dictionary = ClassRegistry.ADVANCEMENT_GATES.get(t, {})
+	return not gate.is_empty() and GameState.highest_floor > gate.floor and level >= gate.level
+
+
+## "Ascended Pyromancer" / "Pyromancer" / "No class".
+func class_title() -> String:
+	var def := get_class_def()
+	if def == null:
+		return "No class"
+	return ("Ascended " if ascended else "") + def.display_name
+
+
+## NG+ Ascension: why this character can't Ascend yet ("" = they can).
+func ascension_refusal() -> String:
+	var g: Dictionary = ClassRegistry.ASCENSION_GATE
+	var def := get_class_def()
+	if ascended:
+		return "Already Ascended."
+	if GameState.ng_plus_cycle < 1:
+		return "Only in New Game+ (conquer the tower first)."
+	if def == null or def.tier < g.tier or class_id == &"ascendant":
+		return "Reach a tier-%d class first." % g.tier
+	if GameState.highest_floor <= g.floor:
+		return "Climb past floor %d." % g.floor
+	if level < g.level:
+		return "Reach level %d." % g.level
+	return ""
+
+
+func ascend() -> bool:
+	if ascension_refusal() != "":
+		return false
+	ascended = true
+	_apply_class_bonus()
+	stats_changed.emit()
+	return true
+
 
 ## The quest id of an advanced class's trial.
 static func trial_id(def: ClassDef) -> StringName:

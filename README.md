@@ -23,8 +23,8 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
   - All other gear, gold, consumables, tower progress and story flags.
   - Your childhood friend rejoins at level 1 with the same name.
   - Enemies are ×1.5 in NG+1, ×2.0 in NG+2, and so on (`NG_PLUS_SCALE_PER_CYCLE`).
-- **Ascendant** is a New Game+ only class for the player character, deliberately stronger than any first-run class:
-  - +20% to every stat and no stat requirement.
+- **Ascendant** is a New Game+ only class for the player character, deliberately stronger than any other class:
+  - No stat requirement, and its bonus **grows with the tiers**: the best tier bonus there is + 10% (`ASCENDANT_EDGE`), so +30% while tier 3 is the top. It also gains **Ascendant's Will** when the tier-2 gate opens and **Ascendant's Dominion** at the tier-3 gate (`SkillLibrary.ASCENDANT_GATE_SKILLS`).
   - Three skills: **Judgment** (a huge single hit using your higher of Strength or Intelligence, ignoring rows), **Sanctuary** (heals the whole party) and **Heaven's Fall** (hits every enemy, also using your higher stat).
   - You take it from **Tab → ✦ Ascendant**. Gear locked to your old class goes back in the bag.
 
@@ -84,7 +84,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/story/route_library.gd`, `route_state.gd` | Routes, endings (with priorities) and this run's route points / lock. |
 | `scripts/autoload/dlc_loader.gd` | Loads DLC packs and their `content.gd` at startup. |
 | `scripts/ui/advancement_panel.gd` | Tab → ✦ Advance: requirements checklist, begin trial, advance. |
-| `tests/test_classes.gd` | 42 advancement checks: the tree, lineage, gate, trials, keeping skills, builds, route-only classes, Uniques, saving. Run: `godot --headless res://tests/test_classes.tscn` |
+| `tests/test_classes.gd` | 52 advancement checks: the 10-class tree, tier 3, lineage, gate, trials, keeping skills, builds, route-only classes, Uniques, saving. Run: `godot --headless res://tests/test_classes.tscn` |
 | `scripts/story/being_library.gd`, `blessing_state.gd` | Gods, demons and devils (their values, blessing levels, buffs + curses, bargains) and this run's interest / refusals / punishment. |
 | `tests/test_blessings.gd` | 56 blessing checks: the roster and its sensitivity rule, rivalries, interest, offers, accepting, levels, buffs and curses in combat, warnings, punishment, bargains, shrines, boss visits, blessed NPCs, saving. Run: `godot --headless res://tests/test_blessings.tscn` |
 | `scripts/economy/guild_library.gd`, `guild_state.gd` | The guilds (patrons, taxes, prices, members' stock, ranks) and this run's territories, standing, membership, treasuries and market. |
@@ -102,11 +102,12 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/presentation/credits.gd`, `scripts/ui/credits_panel.gd`, `assets/credits.json` | Credits and license tracking, and the credits screen. |
 | `assets/README.md` | **The drop-in guide:** every art and sound file name the game looks for. |
 | `tests/test_presentation.gd` | 77 checks: palettes, art and audio hooks, music choice, cut-ins, system notices, battle sounds, dialogue portraits, credits/licenses, your guild declaring war. Run: `godot --headless res://tests/test_presentation.tscn` |
-| `tests/test_screens.gd` | 12 smoke checks that open the real floor, battle and title screens and drive the hooks on them (including a captain joining a fight). Run: `godot --headless res://tests/test_screens.tscn` |
+| `tests/test_screens.gd` | 14 smoke checks that open the real floor, battle and title screens and drive the hooks on them (including a captain joining a fight, and the Ascend button). Run: `godot --headless res://tests/test_screens.tscn` |
 | `scripts/data/difficulty.gd` | Difficulty modes (Relaxed / Normal / Hard / Hell). Ironman lives in `GameState`. |
 | `tools/balance_sim.gd` | The balance simulator (dev tool): a bot plays whole runs, or measures the guild world. See "What the balance simulator says". |
 | `tests/test_recruits.gd` | 33 checks: the roster data, campfire/hire/favor/rescue/captive meetings, wanderers, route refusals, loyalty quests and personal skills, saving. Run: `godot --headless res://tests/test_recruits.tscn` |
 | `tests/test_stages.gd` | 19 checks: every theme's data, the 60-floor ladder and the non-repeating pseudo-god slots, boss patrons (blessing, sensitivity rule, interest), the new traits, signature books. Run: `godot --headless res://tests/test_stages.tscn` |
+| `tests/test_demigods.gd` | 39 checks: demigod classes and recruits, pantheon omens, the legend chain, summons, Fury, NG+ Ascension, the Ascendant's gate skills, saving and tampering. Run: `godot --headless res://tests/test_demigods.tscn` |
 | `tests/test_difficulty.gd` | 45 checks: difficulty choice and lowering, battle multipliers, Hell extras, wipes, Ironman deaths and the fallen, Hall records, patron temper and feuds, scaling rules. Run: `godot --headless res://tests/test_difficulty.tscn` |
 
 ## Dialogue, NPCs and recruiting
@@ -150,6 +151,20 @@ Twelve recruits across the 60 floors. Their names follow each one's origin (the 
 - **Wanderers** (`"run_chance"`) are only in about half of runs. The roll is fixed per run.
 - **Values:** every recruit likes and dislikes routes. They refuse to join someone on a route they dislike, and they warn and leave like other companions.
 - **Loyalty quests:** joining starts their loyalty quest, themed on their backstory. Finishing it unlocks their **personal skill** (Thunder Charge, Hunter's Mark, Saint's Hymn, Dirty Work, Rain of Thorns, Valkyrie's Shield, Solar Flare, Thunder Oath, Lion's Grace, Stand Firm, Shadowstep, Frost Nova). Personal skills never come from books, and they can be ranked up. The favor and loyalty quests are generated from the recruit data (`QuestLibrary.recruit_quests`).
+- **Demigods** (Hayden 2026-10-25; "I will probably want to add more later"): rare legends with a class only they can have (`ClassDef.unique_to`).
+  - They appear by a rest-floor campfire on floors **30+**, in about a third of runs (`run_chance` 0.35), and **only if one of your patrons** (your blessing or your own guild's patron) **is from their pantheon** (dialogue condition `patron_pantheon`).
+  - Meet type **legend**: an omen, then a legendary quest chain (`recruit_legend`: defeat 2 minibosses, then a stage boss) before they join.
+  - Their class is tier-2 strength + 5% (`DEMIGOD_EDGE`) from the moment they join, and it advances to its own tier-3 form at the usual gate. Always below the Ascendant. A save that gives anyone else a demigod's class is corrected on load.
+
+| Demigod | Pantheon | Class → tier 3 | Personal skill | Blessed by |
+|---|---|---|---|---|
+| Heracles | Greek | Lionheart → Olympian Hero | Nemean Roar | Zeus |
+| Perseus | Greek | Gorgonbane → Starborn Hero | Winged Sandals | Athena |
+| Achilles | Greek | Myrmidon Lord → The Invulnerable | Heel Guard | |
+| Gilgamesh | Mesopotamian | King of Uruk → Two-Thirds Divine | Gate of Uruk | |
+| Cú Chulainn | Celtic | Hound of Ulster → Riastrad | Spear Storm | The Morrigan |
+| Sigurd | Norse | Dragonslayer → Fafnirsbane | Birdspeech | Odin |
+
 - **Solo runs** already work. You can bench or dismiss anyone, including your childhood friend, from floor 1 (just not on a floor whose miniboss or boss is still alive). Enemy groups shrink to your party's size.
 
 ## Party management
@@ -362,9 +377,9 @@ isn't one. **`assets/README.md`** lists every file name.
 - Blessings and curses reset in New Game+. DLC can add beings with `BeingLibrary.register_being()`.
 
 ## Class advancement (tier 2+)
-- **When:** each tier has a **gate** in `ClassRegistry.ADVANCEMENT_GATES`. Tier 2 needs you to have **beaten floor 20** and the character to be **level 25**. Once both are met, an **✦ Advance** button appears on that character in the Tab menu. More tiers (e.g. 3 at floor 40, 4 at 60, 5 at 80) are just a gate plus their classes; the design is 3–5 advancements over the full 100-floor climb.
+- **When:** each tier has a **gate** in `ClassRegistry.ADVANCEMENT_GATES`. Tier 2: **beat floor 20** + **level 25**. Tier 3: **beat floor 40** + **level 45** (Hayden: may change). Once both are met, an **✦ Advance** button appears on that character in the Tab menu. More tiers (e.g. 4 at 60, 5 at 80) are just a gate plus their classes; the design is 3–5 advancements over the full 100-floor climb.
 - **Each advancement also needs:** its **stat build** (a share of allocated points, like tier 1), its **route** if it's route-only, and its **trial quest**. Trials are placeholders: defeat 20 enemies, then a miniboss. Begin one from the Advance panel, and once it's done anyone who qualifies can take that class. The panel shows every requirement as ✔ / ✘.
-- **What you get:** you **keep every skill** (tier-1 class skills and learned ones) and gain **2 new skills**, plus **+10% to every stat** (`ADVANCED_STAT_BONUS`; Ascendant's +20% stays the strongest). Your basic attack, default row and your class's **Unique weapon** carry over. Unique drops treat you as your tier-1 class.
+- **What you get:** you **keep every skill** (tier-1 class skills and learned ones) and gain the new class's skills (2 at tier 2, a capstone at tier 3), plus a bonus to every stat: **+10% at tier 2, +20% at tier 3** (`ClassRegistry.TIER_STAT_BONUS`; the Ascendant always stays above). Your basic attack, default row and your class's **Unique weapon** carry over. Unique drops treat you as your tier-1 class.
 - **The tree** (placeholder names, in `class_registry.gd` and skills in `skill_library.gd`):
 
 | Tier 1 | Advancement | Advancement | Route-only |
@@ -374,6 +389,16 @@ isn't one. **`assets/README.md`** lists every file name.
 | Archer | Sharpshooter (AGI+LUCK): Deadeye, Armor Breaker | Ranger (AGI+STR): Gale Arrows, Wind Step | — |
 | Rogue | Assassin (AGI+STR): Shadow Strike, Vanish | Trickster (LUCK+AGI): Lucky Strike, Smoke Screen | Executioner (Vigilante, STR+AGI): Execute, Grim Resolve |
 | Support | Cleric (INT+HP): Holy Light, Divine Lance | Oracle (INT+LUCK): Foresight, Starfall | — |
+| Warrior (STR+HP) | Berserker (STR+HP) | Warlord (STR+LUCK) | — |
+| Monk (AGI+STR) | Grandmaster (AGI+STR) | Shadowfist (AGI+LUCK) | — |
+| Spellblade (STR+INT, offensive) | Stormblade (STR+INT) | Arcane Knight (INT+STA) | — |
+| Magic Swordsman (STR+STA, defensive duelist) | Blademaster (STR+AGI) | Runeguard (STA+INT) | — |
+| Summoner (INT+LUCK) | Beastcaller (INT+LUCK) | Spiritbinder (INT+HP) | Necromancer (Villain, INT+LUCK) |
+
+- The five newer lines (Warrior, Monk, Spellblade, Magic Swordsman, Summoner; Hayden 2026-10-25) have their skills in `SkillLibrary.CLASS_SKILLS`. Warrior lines use **Fury** (a status: +30% damage, `DamageCalc.FURY_MULT`).
+- **Tier 3** (placeholder names): every tier-2 class has one mastery with the same stats and route, and a capstone skill: Aegis Lord, Colossus, Templar, Inferno Sage, Tempest Sovereign, Archwarlock, Deadeye, Windwalker, Nightblade, Fortune's Fool, Headsman, Saint, Seer of Fates, Warbringer, Conqueror, Ascetic Master, Phantom Fist, Tempest Blade, Mystic Knight, Sword Saint, Rune Warden, Beast Lord, Soul Shepherd, Lich.
+- **Summons:** a skill with `effect: SUMMON` and a `summon_id` (an `EnemyDef` in the "spirit" family, 0 XP/gold) calls a unit to the caster's side for the rest of the fight. One per summoner (casting again heals it), strength follows the caster's Intelligence (`BattleManager.SUMMON_INT_PER_SCALE`). The battle screen adds its card when it joins.
+- **Ascension (NG+):** any line can Ascend. Needs New Game+, a **tier-3** class (not the Ascendant), **level 50** and floor **41+** (`ClassRegistry.ASCENSION_GATE`). Tab shows a **✧ Ascend** button (hover says what's missing). An Ascended character is titled "Ascended <class>", gets **+5%** to every stat (`ASCENSION_BONUS`) and the **Apotheosis** skill. Still below the Ascendant. Saved; a tampered flag on a lower class is dropped.
 
 - Route-only advancements are **hidden** unless you're on that route.
 - **The main questline** now continues to floor 30, where the climb ends for now.

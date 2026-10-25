@@ -102,10 +102,21 @@ Class advancement is BUILT as a multi-tier system: ClassRegistry.
 ADVANCEMENT_GATES (tier 2 = beat floor 20 + level 25), per-class stat build,
 route-only classes, auto-generated trial quests (QuestLibrary.trials()),
 lineage (advanced classes keep all skills, basic attack, row, Uniques).
-Tier 2 = 13 placeholder classes (names to confirm with Hayden). Hayden wants
+Classes expanded 2026-10-25 (Hayden): 10 starters (+ Warrior, Monk,
+Spellblade = offensive STR+INT, Magic Swordsman = defensive STR+STA duelist,
+Summoner); 24 tier-2 (2 per line + 4 route-only incl. villain Necromancer);
+tier 3 = floor 40 + level 45 ("could change"), one mastery per tier-2 class
+with a capstone skill. Stat bonus per tier: TIER_STAT_BONUS (+10%/+20%).
+Ascendant = BOTH: it scales (best tier bonus + 10%, gains a skill at each
+gate) AND any tier-3 line can Ascend in NG+ (level 50, floor 41+, +5%,
+Apotheosis; Tab -> Ascend). The Ascendant must stay the strongest (tested).
+Summons (SkillDef SUMMON, "spirit" family). Demigods: Heracles, Perseus,
+Achilles, Gilgamesh, Cu Chulainn, Sigurd ("will probably add more") — rare
+floor 30+ legends, only when a patron is from their pantheon, legendary
+quest chain, a class unique_to them. All class/demigod names are
+placeholders to confirm with Hayden. Hayden wants
 3-5 advancements over 100 floors: add tiers as gates + classes when the
-tower grows. Open question for later: tier 3+ may outclass Ascendant (+20%),
-which must stay the strongest (design rule) — decide with Hayden then.
+tower grows.
 Hayden will send tweaks to the enemy family table after playing it.
 
 ### Blessings + guilds/economy (designed with Hayden 2026-10-24)
@@ -224,7 +235,7 @@ Tutorial is deliberately deferred until the game is closer to complete.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
-FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability), tier-2 class names.
+FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability), tier-2/tier-3/demigod class names.
 
 ## Architecture
 - Autoloads: ClassRegistry, GameState, Settings. UI is built in code
@@ -277,7 +288,7 @@ FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (20 suites, 1140 checks at last run).
+Every change gets tests in tests/ (21 suites, 1191 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -288,7 +299,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

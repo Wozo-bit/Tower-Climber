@@ -32,7 +32,66 @@ const CLASS_SKILLS := {
 	&"executioner": [&"execute", &"grim_resolve"],
 	&"cleric": [&"holy_light", &"divine_lance"],
 	&"oracle": [&"foresight", &"starfall"],
+	# Added 2026-10-25: new classes, tier 3 and demigods.
+	&"warrior": [&"heavy_swing", &"battle_fury"],
+	&"monk": [&"flurry", &"inner_peace"],
+	&"spellblade": [&"flame_edge", &"storm_edge"],
+	&"magic_swordsman": [&"arcane_guard", &"enchanted_edge"],
+	&"summoner": [&"summon_wisp", &"spirit_bolt"],
+	&"berserker": [&"blood_frenzy", &"reckless_cleave"],
+	&"warlord": [&"battle_standard", &"commanding_strike"],
+	&"grandmaster": [&"hundred_fists", &"iron_body"],
+	&"shadowfist": [&"shadow_palm", &"mist_step"],
+	&"stormblade": [&"thunder_edge", &"tempest_slash"],
+	&"arcane_knight": [&"spell_bulwark", &"arcane_lance"],
+	&"blademaster": [&"iaido", &"blade_dance"],
+	&"runeguard": [&"rune_of_warding", &"rune_strike"],
+	&"beastcaller": [&"summon_wolf", &"pack_howl"],
+	&"spiritbinder": [&"summon_guardian", &"spirit_mend"],
+	&"necromancer_class": [&"raise_dead", &"death_bolt"],
+	&"bastion_t3": [&"unbreakable"],
+	&"juggernaut_t3": [&"earthsplitter"],
+	&"paladin_t3": [&"divine_judgment"],
+	&"pyromancer_t3": [&"phoenix_flame"],
+	&"stormcaller_t3": [&"heavens_wrath"],
+	&"warlock_t3": [&"abyssal_pact"],
+	&"sharpshooter_t3": [&"killshot"],
+	&"ranger_t3": [&"hurricane_volley"],
+	&"assassin_t3": [&"death_blossom"],
+	&"trickster_t3": [&"jackpot"],
+	&"executioner_t3": [&"final_verdict"],
+	&"cleric_t3": [&"miracle"],
+	&"oracle_t3": [&"fated_strike"],
+	&"berserker_t3": [&"world_breaker"],
+	&"warlord_t3": [&"conquerors_banner"],
+	&"grandmaster_t3": [&"nirvana_strike"],
+	&"shadowfist_t3": [&"phantom_barrage"],
+	&"stormblade_t3": [&"lightning_cleave"],
+	&"arcane_knight_t3": [&"aegis_of_runes"],
+	&"blademaster_t3": [&"one_cut"],
+	&"runeguard_t3": [&"rune_burst"],
+	&"beastcaller_t3": [&"summon_great_beast"],
+	&"spiritbinder_t3": [&"soul_chorus"],
+	&"necromancer_class_t3": [&"army_of_the_dead"],
+	&"lionheart": [&"lion_skin", &"club_of_heracles"],
+	&"lionheart_t3": [&"twelve_labors"],
+	&"gorgonbane": [&"harpe_strike", &"aegis_reflection"],
+	&"gorgonbane_t3": [&"medusas_gaze"],
+	&"myrmidon_lord": [&"swift_footed", &"spear_of_achilles"],
+	&"myrmidon_lord_t3": [&"wrath_of_achilles"],
+	&"king_of_uruk": [&"kings_challenge", &"cedar_axe"],
+	&"king_of_uruk_t3": [&"flood_of_ages"],
+	&"hound_of_ulster": [&"gae_bolg", &"salmon_leap"],
+	&"hound_of_ulster_t3": [&"riastrad_rage"],
+	&"dragonslayer": [&"gram_strike", &"dragons_blood"],
+	&"dragonslayer_t3": [&"fafnirs_end"],
 }
+
+## The Ascendant earns a new skill as each advancement gate opens for it
+## (tier -> skill), so it keeps pace with the tiers.
+const ASCENDANT_GATE_SKILLS := { 2: &"ascendant_will", 3: &"ascendant_dominion" }
+## Ascension (NG+): the capstone every Ascended line gets.
+const ASCENSION_SKILL := &"apotheosis"
 
 ## LEVEL-UP SKILL PICKS fit the class fantasy (Hayden 2026-10-25): each class
 ## line picks from its own pool of Common skills. Skill books still teach
@@ -46,6 +105,18 @@ const CLASS_PICK_POOLS := {
 	&"rogue": [&"quick_step", &"power_strike", &"focus", &"first_aid", &"guard"],
 	&"support": [&"first_aid", &"focus", &"guard", &"quick_step", &"splash", &"gust"],
 	&"ashbound_knight": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"ember"],
+	&"warrior": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"focus"],
+	&"monk": [&"quick_step", &"focus", &"first_aid", &"power_strike", &"gust"],
+	&"spellblade": [&"ember", &"frost_bolt", &"spark", &"power_strike", &"focus"],
+	&"magic_swordsman": [&"guard", &"power_strike", &"first_aid", &"focus", &"ember"],
+	&"summoner": [&"focus", &"first_aid", &"splash", &"stone_shot", &"gust", &"frost_bolt"],
+	# Demigods (their own class lines)
+	&"lionheart": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"focus"],
+	&"gorgonbane": [&"quick_step", &"power_strike", &"first_aid", &"focus", &"stone_shot"],
+	&"myrmidon_lord": [&"quick_step", &"power_strike", &"guard", &"focus", &"first_aid"],
+	&"king_of_uruk": [&"power_strike", &"guard", &"focus", &"splash", &"first_aid"],
+	&"hound_of_ulster": [&"quick_step", &"power_strike", &"focus", &"first_aid", &"gust"],
+	&"dragonslayer": [&"power_strike", &"guard", &"first_aid", &"focus", &"frost_bolt"],
 }
 ## Classes that may pick any Common skill (the NG+ Ascendant has mastered everything).
 const OPEN_POOL_CLASSES := [&"ascendant"]
@@ -67,10 +138,15 @@ const CLASS_BASIC_ATTACK := {
 	&"support": &"attack_magic",
 	&"ashbound_knight": &"attack_melee",
 	&"ascendant": &"attack_melee",
+	&"warrior": &"attack_melee",
+	&"monk": &"attack_melee",
+	&"spellblade": &"attack_novice",
+	&"magic_swordsman": &"attack_melee",
+	&"summoner": &"attack_magic",
 }
 
 ## Default row per class (the player can change it in battle).
-const CLASS_DEFAULT_BACK_ROW := [&"archer", &"mage", &"support"]
+const CLASS_DEFAULT_BACK_ROW := [&"archer", &"mage", &"support", &"summoner"]
 
 
 static func _build() -> Dictionary:
@@ -368,6 +444,231 @@ static func _build() -> Dictionary:
 			"bonus_crit": 0.15}),
 		SkillDef.make(&"frost_nova", "Frost Nova", "Vesna freezes the air around every enemy.",
 			{"elements": [EL.ICE] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.4}),
+
+		# =====================================================
+		# Classes added 2026-10-25 (Hayden): new tier-1 classes, their tier 2,
+		# tier-3 capstones, demigods, the Ascendant's gate skills, Ascension.
+		# Placeholder names and numbers.
+		# =====================================================
+		# warrior
+		SkillDef.make(&"heavy_swing", "Heavy Swing", "A huge two-handed blow.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 4, "damage_type": D.MELEE, "power": 1.6}),
+		SkillDef.make(&"battle_fury", "Battle Fury", "Rage: deal 30% more damage for 3 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"fury", "status_turns": 3}),
+		# monk
+		SkillDef.make(&"flurry", "Flurry", "A storm of fists. +30% crit chance.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 4, "damage_type": D.MELEE, "power": 1.4, "bonus_crit": 0.3}),
+		SkillDef.make(&"inner_peace", "Inner Peace", "Breathe: recover 25% of your max HP.",
+			{"mp_cost": 6, "effect": E.HEAL, "targeting": T.SELF, "power": 0.0, "heal_pct_max_hp": 0.25}),
+		# spellblade
+		SkillDef.make(&"flame_edge", "Flame Edge", "A burning strike with your stronger of STR or INT.",
+			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 5, "damage_type": D.MELEE, "power": 1.5, "adaptive": true}),
+		SkillDef.make(&"storm_edge", "Storm Edge", "Lightning leaps off your blade to every enemy.",
+			{"elements": [EL.LIGHTNING] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 0.9, "adaptive": true, "targeting": T.ENEMY_ALL}),
+		# magic_swordsman
+		SkillDef.make(&"arcane_guard", "Arcane Guard", "Enchanted armour: take 30% less damage for 3 turns.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3}),
+		SkillDef.make(&"enchanted_edge", "Enchanted Edge", "A glowing cut that ignores 20% of defense.",
+			{"elements": [EL.HOLY, EL.SLASH] as Array[int], "mp_cost": 5, "damage_type": D.MELEE, "power": 1.5, "def_pierce": 0.2}),
+		# summoner
+		SkillDef.make(&"summon_wisp", "Summon Wisp", "Call a wisp that fights beside you until it falls.",
+			{"mp_cost": 10, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"wisp"}),
+		SkillDef.make(&"spirit_bolt", "Spirit Bolt", "A bolt of spirit light. Ignores rows.",
+			{"mp_cost": 4, "damage_type": D.MAGIC, "power": 1.3}),
+		# berserker
+		SkillDef.make(&"blood_frenzy", "Blood Frenzy", "Deal 30% more damage for 4 turns.",
+			{"mp_cost": 8, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"fury", "status_turns": 4}),
+		SkillDef.make(&"reckless_cleave", "Reckless Cleave", "Hits every enemy you can reach.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 1.0, "targeting": T.ENEMY_ALL}),
+		# warlord
+		SkillDef.make(&"battle_standard", "Battle Standard", "The whole party deals 30% more damage for 2 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"fury", "status_turns": 2}),
+		SkillDef.make(&"commanding_strike", "Commanding Strike", "A leader's blow.",
+			{"mp_cost": 7, "damage_type": D.MELEE, "power": 1.8}),
+		# grandmaster
+		SkillDef.make(&"hundred_fists", "Hundred Fists", "A blur of strikes. +20% crit chance.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 2.2, "bonus_crit": 0.2}),
+		SkillDef.make(&"iron_body", "Iron Body", "Take 30% less damage for 3 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3}),
+		# shadowfist
+		SkillDef.make(&"shadow_palm", "Shadow Palm", "A dark palm strike past any front line.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 7, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true}),
+		SkillDef.make(&"mist_step", "Mist Step", "+30% dodge for 3 turns.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"evasive", "status_turns": 3}),
+		# stormblade
+		SkillDef.make(&"thunder_edge", "Thunder Edge", "Lightning and steel, with your stronger of STR or INT.",
+			{"elements": [EL.LIGHTNING, EL.SLASH] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 2.0, "adaptive": true}),
+		SkillDef.make(&"tempest_slash", "Tempest Slash", "Wind and lightning cut every enemy.",
+			{"elements": [EL.WIND, EL.LIGHTNING] as Array[int], "mp_cost": 13, "damage_type": D.MELEE, "power": 1.1, "adaptive": true, "targeting": T.ENEMY_ALL}),
+		# arcane_knight
+		SkillDef.make(&"spell_bulwark", "Spell Bulwark", "The whole party takes 30% less damage for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 2}),
+		SkillDef.make(&"arcane_lance", "Arcane Lance", "A lance of force. Ignores rows.",
+			{"mp_cost": 8, "damage_type": D.MAGIC, "power": 1.8}),
+		# blademaster
+		SkillDef.make(&"iaido", "Iaido", "Draw and cut in one motion. +25% crit chance.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 10, "damage_type": D.MELEE, "power": 2.4, "bonus_crit": 0.25}),
+		SkillDef.make(&"blade_dance", "Blade Dance", "Cuts every enemy you can reach.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 10, "damage_type": D.MELEE, "power": 1.0, "targeting": T.ENEMY_ALL}),
+		# runeguard
+		SkillDef.make(&"rune_of_warding", "Rune of Warding", "The whole party takes 30% less damage for 3 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
+		SkillDef.make(&"rune_strike", "Rune Strike", "An earth rune bursts on impact.",
+			{"elements": [EL.EARTH] as Array[int], "mp_cost": 7, "damage_type": D.MELEE, "power": 1.7}),
+		# beastcaller
+		SkillDef.make(&"summon_wolf", "Call the Pack", "A spirit wolf fights beside you.",
+			{"mp_cost": 12, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"spirit_wolf"}),
+		SkillDef.make(&"pack_howl", "Pack Howl", "The whole party acts sooner for 2 rounds.",
+			{"mp_cost": 10, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"haste", "status_turns": 2}),
+		# spiritbinder
+		SkillDef.make(&"summon_guardian", "Bind Guardian", "A guardian spirit stands in front of the party.",
+			{"mp_cost": 12, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"guardian_spirit"}),
+		SkillDef.make(&"spirit_mend", "Spirit Mend", "Spirits heal the whole party.",
+			{"mp_cost": 12, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 0.8, "heal_pct_max_hp": 0.1}),
+		# necromancer_class
+		SkillDef.make(&"raise_dead", "Raise Dead", "A skeleton thrall rises to fight for you.",
+			{"mp_cost": 12, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"skeleton_thrall"}),
+		SkillDef.make(&"death_bolt", "Death Bolt", "Raw death magic on one enemy.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 9, "damage_type": D.MAGIC, "power": 1.9}),
+		# bastion_t3
+		SkillDef.make(&"unbreakable", "Unbreakable", "The whole party takes 30% less damage for 4 turns.",
+			{"mp_cost": 18, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 4}),
+		# juggernaut_t3
+		SkillDef.make(&"earthsplitter", "Earthsplitter", "Splits the ground under every enemy, any row.",
+			{"elements": [EL.EARTH, EL.BLUNT] as Array[int], "mp_cost": 18, "damage_type": D.MELEE, "power": 1.5, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# paladin_t3
+		SkillDef.make(&"divine_judgment", "Divine Judgment", "Holy wrath with your stronger of STR or INT.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "power": 2.6, "adaptive": true, "ignores_row": true}),
+		# pyromancer_t3
+		SkillDef.make(&"phoenix_flame", "Phoenix Flame", "Undying fire on every enemy.",
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 22, "damage_type": D.MAGIC, "power": 1.8, "targeting": T.ENEMY_ALL}),
+		# stormcaller_t3
+		SkillDef.make(&"heavens_wrath", "Heaven's Wrath", "The storm breaks over every enemy.",
+			{"elements": [EL.LIGHTNING, EL.WIND] as Array[int], "mp_cost": 22, "damage_type": D.MAGIC, "power": 1.8, "targeting": T.ENEMY_ALL}),
+		# warlock_t3
+		SkillDef.make(&"abyssal_pact", "Abyssal Pact", "Every pact called in on one enemy.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 20, "damage_type": D.MAGIC, "power": 3.0}),
+		# sharpshooter_t3
+		SkillDef.make(&"killshot", "Killshot", "The perfect shot. +30% crit chance.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 18, "damage_type": D.RANGED, "power": 3.0, "bonus_crit": 0.3}),
+		# ranger_t3
+		SkillDef.make(&"hurricane_volley", "Hurricane Volley", "Storm-borne arrows hit every enemy.",
+			{"elements": [EL.WIND, EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.RANGED, "power": 1.6, "targeting": T.ENEMY_ALL}),
+		# assassin_t3
+		SkillDef.make(&"death_blossom", "Death Blossom", "Blades bloom across every enemy, any row.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.4, "ignores_row": true, "bonus_crit": 0.2, "targeting": T.ENEMY_ALL}),
+		# trickster_t3
+		SkillDef.make(&"jackpot", "Jackpot", "The luckiest strike ever thrown. +60% crit chance.",
+			{"mp_cost": 14, "damage_type": D.MELEE, "power": 2.0, "bonus_crit": 0.6}),
+		# executioner_t3
+		SkillDef.make(&"final_verdict", "Final Verdict", "One last, enormous swing.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 3.2}),
+		# cleric_t3
+		SkillDef.make(&"miracle", "Miracle", "A great heal for the whole party.",
+			{"mp_cost": 24, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.4, "heal_pct_max_hp": 0.25}),
+		# oracle_t3
+		SkillDef.make(&"fated_strike", "Fated Strike", "The blow fate already chose. Holy.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "power": 2.4, "bonus_crit": 0.3}),
+		# berserker_t3
+		SkillDef.make(&"world_breaker", "World Breaker", "A blow that cracks the floor.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 3.2}),
+		# warlord_t3
+		SkillDef.make(&"conquerors_banner", "Conqueror's Banner", "The whole party deals 30% more damage for 3 turns.",
+			{"mp_cost": 20, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"fury", "status_turns": 3}),
+		# grandmaster_t3
+		SkillDef.make(&"nirvana_strike", "Nirvana Strike", "A perfect strike. +30% crit chance.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 16, "damage_type": D.MELEE, "power": 2.8, "bonus_crit": 0.3}),
+		# shadowfist_t3
+		SkillDef.make(&"phantom_barrage", "Phantom Barrage", "Unseen blows hit every enemy, any row.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.4, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# stormblade_t3
+		SkillDef.make(&"lightning_cleave", "Lightning Cleave", "Lightning cleaves every enemy.",
+			{"elements": [EL.LIGHTNING, EL.SLASH] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.6, "adaptive": true, "targeting": T.ENEMY_ALL}),
+		# arcane_knight_t3
+		SkillDef.make(&"aegis_of_runes", "Aegis of Runes", "The whole party takes 30% less damage for 4 turns.",
+			{"mp_cost": 18, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 4}),
+		# blademaster_t3
+		SkillDef.make(&"one_cut", "One Cut", "The only cut that matters.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 22, "damage_type": D.MELEE, "power": 3.5}),
+		# runeguard_t3
+		SkillDef.make(&"rune_burst", "Rune Burst", "Every rune bursts at once over every enemy.",
+			{"elements": [EL.EARTH] as Array[int], "mp_cost": 20, "damage_type": D.MAGIC, "power": 1.6, "targeting": T.ENEMY_ALL}),
+		# beastcaller_t3
+		SkillDef.make(&"summon_great_beast", "Call the Great Beast", "A great spirit beast joins the fight.",
+			{"mp_cost": 22, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"great_beast"}),
+		# spiritbinder_t3
+		SkillDef.make(&"soul_chorus", "Soul Chorus", "Spirits sing the whole party back to strength.",
+			{"mp_cost": 22, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.2, "heal_pct_max_hp": 0.2}),
+		# necromancer_class_t3
+		SkillDef.make(&"army_of_the_dead", "Bone Colossus", "A colossus of bone rises to fight for you.",
+			{"mp_cost": 24, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"bone_colossus"}),
+		# lionheart
+		SkillDef.make(&"lion_skin", "Nemean Hide", "The lion's hide: take 30% less damage for 4 turns.",
+			{"mp_cost": 8, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 4}),
+		SkillDef.make(&"club_of_heracles", "Olive-Wood Club", "A blow that once killed a lion.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.2}),
+		# lionheart_t3
+		SkillDef.make(&"twelve_labors", "Twelve Labors", "Every labour in one fight: hits every enemy.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# gorgonbane
+		SkillDef.make(&"harpe_strike", "Harpe Strike", "The sickle that took the Gorgon's head. +20% crit chance.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.0, "bonus_crit": 0.2}),
+		SkillDef.make(&"aegis_reflection", "Mirror Shield", "The whole party gets +30% dodge for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 2}),
+		# gorgonbane_t3
+		SkillDef.make(&"medusas_gaze", "Gorgon's Gaze", "Stone creeps over every enemy.",
+			{"elements": [EL.EARTH] as Array[int], "mp_cost": 20, "damage_type": D.MAGIC, "power": 1.6, "targeting": T.ENEMY_ALL}),
+		# myrmidon_lord
+		SkillDef.make(&"swift_footed", "Swift-Footed", "Much more likely to act first for 3 rounds.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"haste", "status_turns": 3}),
+		SkillDef.make(&"spear_of_achilles", "Pelian Spear", "A spear throw that reaches any row.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.2, "ignores_row": true}),
+		# myrmidon_lord_t3
+		SkillDef.make(&"wrath_of_achilles", "Wrath of Achilles", "A grief-fuelled, enormous blow.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 3.2}),
+		# king_of_uruk
+		SkillDef.make(&"kings_challenge", "King's Challenge", "Deal 30% more damage for 3 turns.",
+			{"mp_cost": 8, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"fury", "status_turns": 3}),
+		SkillDef.make(&"cedar_axe", "Cedar-Forest Axe", "The axe that felled Humbaba's forest.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.0}),
+		# king_of_uruk_t3
+		SkillDef.make(&"flood_of_ages", "Flood of Ages", "The great flood, on every enemy.",
+			{"elements": [EL.WATER] as Array[int], "mp_cost": 20, "damage_type": D.MAGIC, "power": 1.7, "adaptive": true, "targeting": T.ENEMY_ALL}),
+		# hound_of_ulster
+		SkillDef.make(&"gae_bolg", "Gae Bolg", "The barbed spear. +20% crit chance.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 2.4, "bonus_crit": 0.2}),
+		SkillDef.make(&"salmon_leap", "Salmon Leap", "+30% dodge for 3 turns.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"evasive", "status_turns": 3}),
+		# hound_of_ulster_t3
+		SkillDef.make(&"riastrad_rage", "Warp Spasm", "A terrible battle-frenzy hits every enemy.",
+			{"mp_cost": 20, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# dragonslayer
+		SkillDef.make(&"gram_strike", "Gram", "The reforged sword.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.2}),
+		SkillDef.make(&"dragons_blood", "Dragon's Blood", "Recover 30% of your max HP.",
+			{"mp_cost": 8, "effect": E.HEAL, "targeting": T.SELF, "power": 0.0, "heal_pct_max_hp": 0.3}),
+		# dragonslayer_t3
+		SkillDef.make(&"fafnirs_end", "Fafnir's End", "The blow that slew the dragon.",
+			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 3.0}),
+		# Demigods' personal skills (their loyalty quests unlock them)
+		SkillDef.make(&"nemean_roar", "Nemean Roar", "Heracles roars: the whole party deals 30% more damage for 2 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"fury", "status_turns": 2}),
+		SkillDef.make(&"winged_sandals", "Winged Sandals", "Hermes' gift: the whole party acts sooner for 2 rounds.",
+			{"mp_cost": 10, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"haste", "status_turns": 2}),
+		SkillDef.make(&"heel_guard", "Dipped in the Styx", "Achilles shrugs off harm: 30% less damage for 4 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 4}),
+		SkillDef.make(&"gate_of_uruk", "Walls of Uruk", "Gilgamesh's walls: the whole party takes 30% less damage for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 2}),
+		SkillDef.make(&"spear_storm", "Spear Storm", "Cu Chulainn hurls spears at every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 14, "damage_type": D.RANGED, "power": 1.3, "targeting": T.ENEMY_ALL}),
+		SkillDef.make(&"birdspeech", "Birdspeech", "Sigurd heeds the birds: the whole party gets +30% dodge for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 2}),
+		SkillDef.make(&"ascendant_will", "Ascendant's Will", "The whole party takes 30% less damage for 3 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
+		SkillDef.make(&"ascendant_dominion", "Dominion", "A conqueror's strike on every enemy, with your stronger of STR or INT.",
+			{"mp_cost": 24, "damage_type": D.MAGIC, "power": 2.0, "adaptive": true, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		SkillDef.make(&"apotheosis", "Apotheosis", "A god's blow, with your stronger of STR or INT, from any row.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 25, "damage_type": D.MAGIC, "power": 3.0, "adaptive": true, "ignores_row": true}),
 
 		# --- Enemy-only ---
 		# Smash and Firebolt are enemy moves, but their books can drop, so they're learnable too.

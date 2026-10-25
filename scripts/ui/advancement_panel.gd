@@ -48,7 +48,8 @@ func _init() -> void:
 	_list.add_theme_constant_override("separation", 10)
 	root.add_child(_list)
 	var hint := Label.new()
-	hint.text = "You keep every skill you have and gain the new class's skills, plus +10% to every stat. Your class's Unique weapon still fits."
+	hint.text = "You keep every skill you have and gain the new class's skills, and every stat grows (tier 2: +%d%%, tier 3: +%d%%). Your class's Unique weapon still fits." % [
+		roundi(ClassRegistry.tier_bonus(2) * 100), roundi(ClassRegistry.tier_bonus(3) * 100)]
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.modulate = Color(1, 1, 1, 0.55)
 	root.add_child(hint)

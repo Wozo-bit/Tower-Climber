@@ -212,9 +212,8 @@ func _rebuild() -> void:
 	if not GameState.reserve.is_empty():
 		_members_box.add_child(_heading("Reserve"))
 		for member in GameState.reserve:
-			var def := member.get_class_def()
 			_members_box.add_child(_note("%s   Lv %d   %s   (swap in from Manage party)" % [
-				member.character_name, member.level, def.display_name if def else "No class"]))
+				member.character_name, member.level, member.class_title()]))
 
 	# --- Items ---
 	_actions_box.add_child(_heading("Items"))
@@ -282,7 +281,7 @@ func _member_row(member: CharacterData) -> Control:
 	row.add_child(info)
 	var def := member.get_class_def()
 	var name_l := Label.new()
-	name_l.text = "%s   Lv %d   %s" % [member.character_name, member.level, def.display_name if def else "No class"]
+	name_l.text = "%s   Lv %d   %s" % [member.character_name, member.level, member.class_title()]
 	info.add_child(name_l)
 	if member.is_blessed() or member.curse_id != &"":
 		var bl := Label.new()
@@ -363,7 +362,35 @@ func _member_row(member: CharacterData) -> Control:
 			adv_btn.tooltip_text = "Advance to a stronger class (needs its trial)."
 			adv_btn.pressed.connect(func(): _advance_panel.open(member))
 			row.add_child(adv_btn)
+		# NG+ Ascension: shown on a top-tier line once you're in New Game+.
+		if GameState.ng_plus_cycle >= 1 and def and def.tier >= ClassRegistry.ASCENSION_GATE.tier 				and member.class_id != &"ascendant" and not member.ascended:
+			var asc_btn := Button.new()
+			asc_btn.text = "✧ Ascend"
+			asc_btn.modulate = Color(1, 0.9, 0.5)
+			var why := member.ascension_refusal()
+			asc_btn.disabled = why != ""
+			asc_btn.tooltip_text = why if why != "" else 				"Ascend: +%d%% to every stat and the Apotheosis skill. Once per character." % roundi(ClassRegistry.ASCENSION_BONUS * 100)
+			asc_btn.pressed.connect(_confirm_ascend.bind(member))
+			row.add_child(asc_btn)
 	return panel
+
+
+func _confirm_ascend(member: CharacterData) -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.title = "Ascend"
+	dlg.dialog_text = "%s Ascends beyond the %s?
+
++%d%% to every stat and the Apotheosis skill. This can't be undone." % [
+		member.character_name, member.get_class_def().display_name, roundi(ClassRegistry.ASCENSION_BONUS * 100)]
+	dlg.confirmed.connect(func():
+		if member.ascend():
+			_say("%s has Ascended!" % member.character_name)
+			CutIns.play(CutInData.ascension(member))
+		_rebuild()
+		dlg.queue_free())
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()
 
 
 func _open_rename(member: CharacterData) -> void:

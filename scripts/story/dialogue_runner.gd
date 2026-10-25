@@ -182,6 +182,8 @@ static func check(cond: Dictionary) -> bool:
 			"favor_done": ok = gs.quests.is_done(QuestLibrary.favor_id(context_recruit)) == v
 			"can_pay_fee": ok = (gs.player.gold >= NpcLibrary.recruit_info(context_recruit).get("fee", 0)) == v
 			"refuses_you": ok = gs.npc_refuses(context_recruit) == v
+			# One of your patrons (blessing / guild patron) is from this pantheon.
+			"patron_pantheon": ok = gs.guilds.your_patrons().any(func(b): return BeingLibrary.get_being(b).get("pantheon", "") == v)
 			"can_pay_ransom": ok = gs.guilds.can_pay_ransom(context_guild) == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)

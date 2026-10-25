@@ -22,7 +22,7 @@ const MAX_RUN_MSEC := 240000
 ## Roaming bosses are optional: the bot avoids them until its average level
 ## is this many times the floor.
 const ROAMER_LEVEL_RATIO := 2.5
-const BUILDS := [&"tank", &"mage", &"archer", &"rogue", &"support"]
+const BUILDS := [&"tank", &"mage", &"archer", &"rogue", &"support", &"warrior", &"monk", &"spellblade", &"magic_swordsman", &"summoner"]
 const POTION_STOCK := { &"potion": 10, &"advanced_potion": 5, &"ether": 4 }
 
 var _args := {}
