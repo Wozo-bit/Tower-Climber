@@ -151,8 +151,9 @@ GUILDS + ECONOMY:
 
 ### Layout rule
 Every screen must fit the 1280x720 design size (the window scales via
-stretch mode canvas_items/expand). The battle field scrolls instead of
-growing so the command buttons are always on screen. If Hayden still sees
+stretch mode canvas_items/expand). The battle field never scrolls: crowded
+rows wrap into columns and the field scales down to fit, so every unit and
+the command buttons are always on screen. If Hayden still sees
 cut-off screens, ask for his resolution + Windows display scaling.
 
 ### Quests + routes (designed with Hayden 2026-10-24)
