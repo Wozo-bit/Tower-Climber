@@ -49,6 +49,9 @@ var loot_level := 1
 var owned_unique_classes: Array = []
 ## Multiplies enemy HP/stats (floor difficulty). Set BEFORE setup().
 var enemy_scale := 1.0
+## Extra HP for bosses, minibosses and roamers (set from the party size:
+## GameState.guardian_hp_mult). They fight a whole party on their own.
+var boss_hp_mult := 1.0
 ## Where element discoveries are written (GameState.bestiary). Optional.
 var bestiary: Bestiary
 ## Gold actually paid to the leader by apply_rewards (after blessings), for taxes.
@@ -75,6 +78,9 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 		party.append(Combatant.from_character(c))
 	for e in enemy_defs:
 		var u := Combatant.from_enemy(e, enemy_scale)
+		if e.is_boss or e.is_roaming:
+			u.max_hp = maxi(1, roundi(u.max_hp * boss_hp_mult))
+			u.hp = u.max_hp
 		u.skill_chance = clampf(u.skill_chance * enemy_skill_mult, 0.0, 1.0)
 		enemies.append(u)
 		if bestiary:

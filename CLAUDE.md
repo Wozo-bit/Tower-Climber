@@ -247,7 +247,8 @@ FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability)
 - Dialogue/NPCs: conversations are data in scripts/story/dialogue_library.gd
   (validated by the tests), NPCs/lore objects in npc_library.gd, played by
   DialogueRunner. Recruits join at player level - 1.
-- Party: GameState.companions (fighting, max 3 + player), reserve (bench,
+- Party: GameState.companions (fighting: party_size() - 1, which grows 2 -> 4
+  -> 6 -> 8 -> 10 every 20 floors, Hayden 2026-10-25), reserve (bench,
   max RESERVE_CAP), waiting (dismissed / overflow; they stand by rest-floor
   campfires and rejoin via the waiting_companion dialogue). UI in
   scripts/ui/party_manage_panel.gd (Tab -> Manage party).
@@ -288,7 +289,7 @@ FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (21 suites, 1191 checks at last run).
+Every change gets tests in tests/ (21 suites, 1206 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

@@ -112,7 +112,7 @@ func test_legend_chain() -> void:
 	r.start(&"recruit_legend", null, &"", &"", &"perseus")
 	check(r.node_id == "ready", "2 minibosses + a boss: the legend is proven")
 	r.choose(r.choices()[0].index)
-	var c: Array = GameState.companions.filter(func(m): return m.companion_id == &"perseus")
+	var c: Array = (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"perseus")
 	check(not c.is_empty() and c[0].class_id == &"gorgonbane", "Perseus joins as a Gorgonbane")
 
 
@@ -221,7 +221,7 @@ func test_saving() -> void:
 	GameState.save_game()
 	GameState.load_game(1)
 	check(GameState.player.ascended and GameState.player.class_title().begins_with("Ascended"), "Ascension is saved")
-	check(GameState.companions.any(func(m): return m.companion_id == &"heracles" and m.class_id == &"lionheart"),
+	check((GameState.companions + GameState.reserve).any(func(m): return m.companion_id == &"heracles" and m.class_id == &"lionheart"),
 		"a demigod's class is saved")
 	var d := SaveSerializer.read_json(GameState.slot_path(1))
 	d.player["class"] = "lionheart"

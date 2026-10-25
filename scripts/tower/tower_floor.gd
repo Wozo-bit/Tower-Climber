@@ -58,7 +58,7 @@ var _rng := RandomNumberGenerator.new()
 # UI
 var _hud: CanvasLayer
 var _floor_label: Label
-var _party_strip: HBoxContainer
+var _party_strip: HFlowContainer
 var _toast: Label
 ## The main toast sits in a system window; system notices stack under it.
 var _toast_panel: PanelContainer
@@ -712,12 +712,15 @@ func _build_hud() -> void:
 	_tracker.add_theme_constant_override("outline_size", 4)
 	_hud.add_child(_tracker)
 
-	_party_strip = HBoxContainer.new()
+	# Wraps onto more lines (growing upward) once the party gets big (up to 10).
+	_party_strip = HFlowContainer.new()
 	_party_strip.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_party_strip.offset_left = 16
+	_party_strip.offset_right = -16
 	_party_strip.offset_top = -40
 	_party_strip.offset_bottom = -8
-	_party_strip.add_theme_constant_override("separation", 28)
+	_party_strip.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_party_strip.add_theme_constant_override("h_separation", 28)
 	_hud.add_child(_party_strip)
 
 	# Toast (floor intro, "Victory!", ...) in a system window, notices stacked below.

@@ -41,7 +41,7 @@ func _init() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(980, 520)
+	panel.custom_minimum_size = Vector2(980, 600)
 	UIStyle.apply(panel)
 	center.add_child(panel)
 	var margin := MarginContainer.new()
@@ -98,10 +98,15 @@ func _init() -> void:
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_theme_constant_override("separation", 20)
 	root.add_child(body)
+	# Scrolls: later in the climb up to 10 fight (plus the reserve list).
+	var members_scroll := ScrollContainer.new()
+	members_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	members_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body.add_child(members_scroll)
 	_members_box = VBoxContainer.new()
 	_members_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_members_box.add_theme_constant_override("separation", 8)
-	body.add_child(_members_box)
+	members_scroll.add_child(_members_box)
 	_actions_box = VBoxContainer.new()
 	_actions_box.custom_minimum_size.x = 320
 	body.add_child(_actions_box)

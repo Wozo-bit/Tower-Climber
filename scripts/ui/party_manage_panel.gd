@@ -127,7 +127,7 @@ func _rebuild() -> void:
 	var locked := gs.party_locked()
 	_lock_label.text = "Locked: " + gs.party_lock_reason() + " You can still change the order and rows." if locked else ""
 	_lock_label.visible = locked
-	_party_title.text = "Party  (%d / %d)" % [gs.battle_party().size(), gs.MAX_PARTY_SIZE]
+	_party_title.text = "Party  (%d / %d)" % [gs.battle_party().size(), gs.party_size()]
 	_reserve_title.text = "Reserve  (%d / %d)   ·   gets %d%% XP" % [gs.reserve.size(), gs.RESERVE_CAP,
 		roundi(gs.RESERVE_XP_SHARE * 100)]
 
@@ -163,7 +163,7 @@ func _rebuild() -> void:
 				"The reserve is full." if bench_full else "Move to the reserve."))
 			btns.append(_dismiss_button(c, locked))
 		_party_box.add_child(_member_row(c, btns))
-	for i in gs.MAX_PARTY_SIZE - gs.battle_party().size():
+	for i in gs.party_size() - gs.battle_party().size():
 		_party_box.add_child(_note("— empty slot —"))
 
 	# --- Reserve ---
@@ -171,7 +171,7 @@ func _rebuild() -> void:
 		_reserve_box.add_child(_note("Nobody on the reserve. Recruits go here\nwhen the party is full."))
 	for c in gs.reserve:
 		var btns: Array = []
-		if gs.companions.size() < gs.MAX_PARTY_SIZE - 1:
+		if gs.companions.size() < gs.party_size() - 1:
 			var join := func():
 				if gs.unbench(c):
 					_say("%s joined the party." % c.character_name)

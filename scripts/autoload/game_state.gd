@@ -2,7 +2,13 @@ extends Node
 ## Autoload "GameState": everything that survives scene changes — the party,
 ## the item bag, where you are in the tower, and the battle hand-off.
 
-const MAX_PARTY_SIZE := 4
+## How many fight (player included): 2 on floors 1-20, then 2 more every 20
+## floors (Hayden 2026-10-25: 2 -> 4 -> 6 -> 8 -> 10 over the 100-floor
+## climb). It follows the highest floor reached, so a wipe doesn't shrink it.
+const PARTY_START_SIZE := 2
+const PARTY_GROWTH := 2
+const PARTY_GROWTH_FLOORS := 20
+const MAX_PARTY_SIZE := 10
 const BATTLE_SCENE := "res://scenes/battle.tscn"
 const TOWER_SCENE := "res://scenes/tower_floor.tscn"
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -369,11 +375,6 @@ func load_game(slot: int = -1) -> bool:
 	for cd in S._a(d, "waiting"):
 		if cd is Dictionary:
 			waiting.append(S.character_from_dict(cd))
-	# A tampered save can't field more than a full party or overfill the bench.
-	while companions.size() > MAX_PARTY_SIZE - 1:
-		reserve.append(companions.pop_back())
-	while reserve.size() > RESERVE_CAP:
-		waiting.append(reserve.pop_back())
 	inventory = S.inventory_from_dict(S._d(d, "inventory"))
 	floor_number = S._i(d, "floor_number", 1, 1, 100000)
 	checkpoint_floor = S._i(d, "checkpoint_floor", 1, 1, floor_number)
@@ -386,6 +387,11 @@ func load_game(slot: int = -1) -> bool:
 	floor_player_pos = Vector2i(int(pos[0]), int(pos[1])) if pos.size() == 2 else Vector2i(-1, -1)
 	# Older saves: assume the current floor is the highest reached.
 	highest_floor = S._i(d, "highest_floor", floor_number, floor_number, 100000)
+	# A tampered save can't field more than a full party or overfill the bench.
+	while companions.size() > party_size() - 1:
+		reserve.push_front(companions.pop_back())
+	while reserve.size() > RESERVE_CAP:
+		waiting.append(reserve.pop_back())
 	for id in S._a(d, "defeated_roamers"):
 		if id is String:
 			defeated_roamers.append(StringName(id))
@@ -591,6 +597,7 @@ func set_difficulty(level: int) -> bool:
 ## bag, loot level and bestiary (the battle screen and the simulator use it).
 func configure_battle(battle: BattleManager) -> void:
 	battle.enemy_scale = pending_enemy_scale
+	battle.boss_hp_mult = guardian_hp_mult(party_size())
 	battle.enemy_skill_mult = Difficulty.value(difficulty, "ai")
 	var rewards := reward_scale_for_floor(floor_number)
 	if pending_battle_info.get("kind", "normal") in THEMED_KINDS:
@@ -604,11 +611,31 @@ func configure_battle(battle: BattleManager) -> void:
 	battle.bestiary = bestiary
 
 
-## Player first, then companions, capped at MAX_PARTY_SIZE.
+## Bosses, minibosses and roamers were tuned against GUARDIAN_TUNED_PARTY
+## fighters; their HP follows how many can fight now (the party slots, so
+## a solo run still faces the full boss): 2 -> x0.59, 6 -> x1.36, 10 -> x2.0.
+const GUARDIAN_TUNED_PARTY := 4.0
+const GUARDIAN_PARTY_EXP := 0.75
+
+
+static func guardian_hp_mult(slots: int) -> float:
+	return pow(slots / GUARDIAN_TUNED_PARTY, GUARDIAN_PARTY_EXP)
+
+
+## How many can fight right now (player included); see PARTY_START_SIZE.
+func party_size() -> int:
+	return party_size_at(highest_floor)
+
+
+static func party_size_at(floor_n: int) -> int:
+	return mini(MAX_PARTY_SIZE, PARTY_START_SIZE + PARTY_GROWTH * ((maxi(floor_n, 1) - 1) / PARTY_GROWTH_FLOORS))
+
+
+## Player first, then companions, capped at party_size().
 func battle_party() -> Array[CharacterData]:
 	var out: Array[CharacterData] = [player]
 	for c in companions:
-		if out.size() >= MAX_PARTY_SIZE:
+		if out.size() >= party_size():
 			break
 		out.append(c)
 	return out
@@ -660,7 +687,10 @@ static func enemy_scale_for_floor(n: int) -> float:
 
 func enter_floor(n: int) -> void:
 	floor_number = n
+	var room_before := party_size()
 	highest_floor = maxi(highest_floor, n)
+	if party_size() > room_before:
+		_party_grows()
 	floor_seed = randi()
 	floor_ready = false
 	floor_enemies.clear()
@@ -902,9 +932,23 @@ func _free_captives(boss_id: StringName) -> void:
 			quests.messages.append("%s is free and joins you!" % c.character_name)
 
 
+## The party just got bigger: the reserve fills the new places (in bench
+## order), and a notice says so.
+func _party_grows() -> void:
+	var filled := []
+	while companions.size() < party_size() - 1 and not reserve.is_empty():
+		var c: CharacterData = reserve.pop_front()
+		companions.append(c)
+		filled.append(c.character_name)
+	var msg := "Your party can now field %d fighters!" % party_size()
+	if not filled.is_empty():
+		msg += " %s step%s up from the reserve." % [", ".join(filled), "s" if filled.size() == 1 else ""]
+	quests.messages.append(msg)
+
+
 ## Party if there's room, then the reserve, then waiting at rest floors.
 func _add_member(c: CharacterData) -> void:
-	if companions.size() < MAX_PARTY_SIZE - 1:
+	if companions.size() < party_size() - 1:
 		companions.append(c)
 	elif reserve.size() < RESERVE_CAP:
 		reserve.append(c)
@@ -941,7 +985,7 @@ func bench(c: CharacterData) -> bool:
 
 ## Reserve -> party. False if locked, not on the reserve, or the party is full.
 func unbench(c: CharacterData) -> bool:
-	if party_locked() or not reserve.has(c) or companions.size() >= MAX_PARTY_SIZE - 1:
+	if party_locked() or not reserve.has(c) or companions.size() >= party_size() - 1:
 		return false
 	reserve.erase(c)
 	companions.append(c)
@@ -1000,7 +1044,7 @@ func dismiss(c: CharacterData) -> bool:
 func rejoin(c: CharacterData) -> bool:
 	if party_locked() or not waiting.has(c) or refuses_to_rejoin(c):
 		return false
-	if companions.size() >= MAX_PARTY_SIZE - 1 and reserve.size() >= RESERVE_CAP:
+	if companions.size() >= party_size() - 1 and reserve.size() >= RESERVE_CAP:
 		return false
 	waiting.erase(c)
 	_add_member(c)

@@ -16,6 +16,7 @@ func _ready() -> void:
 	await test_captain_in_battle()
 	await test_title_screen()
 	await test_ascend_button()
+	await test_big_party()
 	CutIns.skip_all()
 	GameState.delete_slot(1)
 	GameState.reset_run()
@@ -72,6 +73,43 @@ func test_ascend_button() -> void:
 	CutIns.skip_all()
 	menu.queue_free()
 	GameState.ng_plus_cycle = 0
+	await _frames(1)
+
+
+## Floor 81+: 10 fight. Every card of a 10-vs-10 battle and the floor's party
+## strip stay on the 1280x720 screen.
+func test_big_party() -> void:
+	print("A party of 10")
+	get_tree().root.size = Vector2i(1280, 720)   # the design size (headless starts square)
+	_fresh(81)
+	CutIns.skip_all()
+	while GameState.companions.size() < GameState.party_size() - 1:
+		GameState.companions.append(GameState.make_premade("M%d" % GameState.companions.size(), &"tank",
+			{ Stats.Type.HEALTH: 20, Stats.Type.STAMINA: 15 }))
+	check(GameState.battle_party().size() == 10, "10 fight on floor 81")
+	var ids: Array[StringName] = []
+	for i in 10:
+		ids.append(&"goblin")
+	GameState.pending_encounter = EnemyLibrary.build_group(ids)
+	GameState.pending_battle_info = { "kind": "normal" }
+	GameState.return_scene = ""
+	var battle_scene: Node = load(GameState.BATTLE_SCENE).instantiate()
+	add_child(battle_scene)
+	await _frames(3)
+	var screen := get_viewport().get_visible_rect()
+	var cards: Array = battle_scene.find_children("*", "UnitCard", true, false)
+	var off := cards.filter(func(c): return not screen.encloses(c.get_global_rect().grow(-1)))
+	check(screen.size == Vector2(1280, 720), "checked at 1280x720")
+	check(cards.size() == 20 and off.is_empty(), "all 20 cards fit on screen (%d cards, %d off)" % [cards.size(), off.size()])
+	battle_scene.queue_free()
+	GameState.pending_battle_info = {}
+	await _frames(1)
+	var floor_scene: Node = load(GameState.TOWER_SCENE).instantiate()
+	add_child(floor_scene)
+	await _frames(3)
+	var strip: Control = floor_scene._party_strip
+	check(strip.get_child_count() == 10 and screen.encloses(strip.get_global_rect()), "the floor's party strip wraps and fits")
+	floor_scene.queue_free()
 	await _frames(1)
 
 

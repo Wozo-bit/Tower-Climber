@@ -47,6 +47,7 @@ func _cleanup() -> void:
 
 func _fresh(floor_n: int = 5) -> void:
 	GameState.reset_run()
+	GameState.highest_floor = 21   # room for 4 (the party grows every 20 floors)
 	GameState.player.rename("Ophelius")
 	GameState.player.legacy_id = "route-test"
 	GameState.companions.append(GameState.make_childhood_friend("Cassia"))

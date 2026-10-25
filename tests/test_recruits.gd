@@ -212,13 +212,13 @@ func test_saving() -> void:
 	GameState.current_layout()
 	GameState.save_game()
 	GameState.load_game(1)
-	var back := GameState.companions.filter(func(m): return m.companion_id == &"brakka")
+	var back := (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"brakka")
 	check(not back.is_empty() and back[0].personal_unlocked and back[0].personal_skill == &"thunder_charge",
 		"personal skills are saved")
 	check(GameState.floor_enemies.any(func(e): return e.kind == "rescue" and e.get("recruit") == &"tamsin"),
 		"a rescue fight on the floor is saved")
 	var d := SaveSerializer.read_json(GameState.slot_path(1))
-	for m in d.companions:
+	for m in d.companions + d.reserve:
 		if m.get("companion_id") == "brakka":
 			m["personal_skill"] = "meteor"
 	for e in d.floor_enemies:
@@ -226,6 +226,6 @@ func test_saving() -> void:
 			e["recruit"] = "nobody"
 	SaveSerializer.write_json(GameState.slot_path(1), d)
 	GameState.load_game(1)
-	back = GameState.companions.filter(func(m): return m.companion_id == &"brakka")
+	back = (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"brakka")
 	check(back[0].personal_skill == &"", "tampered save: a personal skill that isn't theirs is dropped")
 	check(not GameState.floor_enemies.any(func(e): return e.kind == "rescue"), "...and a fake rescue becomes a normal fight")

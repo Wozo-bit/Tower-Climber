@@ -36,6 +36,7 @@ func check(cond: bool, label: String) -> void:
 
 func _fresh(floor_n: int = 1) -> void:
 	GameState.reset_run()
+	GameState.highest_floor = 21   # room for 4 (the party grows every 20 floors)
 	GameState.player.rename("Ophelius")
 	GameState.companions.append(GameState.make_childhood_friend("Cassia"))
 	GameState.floor_number = floor_n
@@ -171,7 +172,7 @@ func test_recruiting() -> void:
 func test_reserve_when_full() -> void:
 	_fresh(5)
 	GameState.ensure_test_companions()   # leaves friend + 3 = full
-	while GameState.companions.size() < GameState.MAX_PARTY_SIZE - 1:
+	while GameState.companions.size() < GameState.party_size() - 1:
 		GameState.companions.append(CharacterData.new())
 	var count := GameState.companions.size()
 	var c := GameState.recruit(&"brakka")
@@ -252,6 +253,7 @@ func test_clues_unlock_secret_path() -> void:
 
 func test_save_roundtrip() -> void:
 	GameState.start_new_game("Ophelius", "Cassia", 1)
+	GameState.highest_floor = 21
 	GameState.floor_number = 5
 	GameState.recruit(&"brakka")
 	GameState.reserve.append(NpcLibrary.make_recruit(&"brakka", 3))

@@ -505,11 +505,16 @@ func _refresh_all() -> void:
 	_fit_field.call_deferred()   # cards grow and shrink with intents / statuses
 
 
+## The turn order shows this many upcoming units, then "+N".
+const TURN_STRIP_MAX := 8
+
+
 func _update_turn_strip() -> void:
 	for c in _turn_strip.get_children():
 		c.queue_free()
 	var first := true
-	for u in battle.turn_order_preview():
+	var order := battle.turn_order_preview()
+	for u in order.slice(0, TURN_STRIP_MAX):
 		var l := Label.new()
 		l.text = ("▶ " if first else "") + u.display_name
 		l.add_theme_color_override("font_color",
@@ -518,6 +523,11 @@ func _update_turn_strip() -> void:
 			l.add_theme_font_size_override("font_size", 18)
 		_turn_strip.add_child(l)
 		first = false
+	if order.size() > TURN_STRIP_MAX:
+		var more := Label.new()
+		more.text = "+%d" % (order.size() - TURN_STRIP_MAX)
+		more.modulate = Color(1, 1, 1, 0.5)
+		_turn_strip.add_child(more)
 
 
 ## Commands stay on screen (so the layout doesn't jump) but are disabled
@@ -580,9 +590,15 @@ func _build_ui() -> void:
 	order_title.text = "  Turn order:"
 	order_title.modulate = Color(1, 1, 1, 0.6)
 	top.add_child(order_title)
+	# Clipped, so a long turn order (up to 10 a side) never widens the screen.
+	var strip_clip := Control.new()
+	strip_clip.clip_contents = true
+	strip_clip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	strip_clip.custom_minimum_size.y = 26
+	top.add_child(strip_clip)
 	_turn_strip = HBoxContainer.new()
 	_turn_strip.add_theme_constant_override("separation", 14)
-	top.add_child(_turn_strip)
+	strip_clip.add_child(_turn_strip)
 
 	# --- Middle: battlefield ---
 	# Never scrolls: crowded rows wrap, and the field shrinks to fit if it

@@ -19,6 +19,7 @@ func _ready() -> void:
 	test_reserve_xp()
 	test_benched_friend_keeps_name()
 	test_save_roundtrip()
+	test_party_grows()
 	GameState.delete_slot(1)
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
@@ -34,9 +35,11 @@ func check(cond: bool, label: String) -> void:
 		printerr("  FAIL  ", label)
 
 
-## Player + friend + 2 others on a normal floor (never locked).
+## Player + friend + 2 others on a normal floor (never locked). Past floor 20
+## (4 can fight) so the party is full.
 func _fresh() -> void:
 	GameState.reset_run()
+	GameState.highest_floor = 21
 	GameState.player.rename("Ophelius")
 	GameState.companions.append(GameState.make_childhood_friend("Cassia"))
 	GameState.companions.append(_member("Bo"))
@@ -209,8 +212,46 @@ func test_benched_friend_keeps_name() -> void:
 	check(GameState.childhood_friend() == friend, "friend can be dismissed too (and is still found)")
 
 
+## Hayden 2026-10-25: 2 fight on floors 1-20, then 2 more every 20 floors.
+func test_party_grows() -> void:
+	var sizes := [1, 20, 21, 40, 41, 61, 81, 100, 500].map(func(f): return GameState.party_size_at(f))
+	check(sizes == [2, 2, 4, 4, 6, 8, 10, 10, 10], "2 -> 4 -> 6 -> 8 -> 10 every 20 floors, 10 at most (%s)" % [sizes])
+	GameState.start_new_game("Ophelius", "Cassia", 1)
+	check(GameState.battle_party().size() == 2, "a new game: you and your childhood friend")
+	var bo := _member("Bo")
+	GameState._add_member(bo)
+	check(GameState.reserve.has(bo) and not GameState.unbench(bo), "a third member waits on the reserve")
+	var di := _member("Di")
+	GameState._add_member(di)
+	GameState.enter_floor(20)
+	check(GameState.battle_party().size() == 2, "still 2 on floor 20")
+	GameState.quests.messages.clear()
+	GameState.enter_floor(21)
+	check(GameState.battle_party().size() == 4 and GameState.companions.has(bo) and GameState.companions.has(di),
+		"floor 21: room for 4, and the reserve steps up")
+	check(GameState.quests.messages.any(func(m): return m.contains("4 fighters")), "a notice says so")
+	GameState.enter_floor(15)   # back at a checkpoint after a wipe
+	check(GameState.battle_party().size() == 4, "a wipe back to an earlier floor doesn't shrink it")
+	GameState.save_game()
+	GameState.load_game(1)
+	check(GameState.party_size() == 4 and GameState.companions.size() == 3, "saved")
+	# Bosses fight the whole party alone: their HP follows the party slots.
+	check(GameState.guardian_hp_mult(4) == 1.0 and GameState.guardian_hp_mult(2) < 0.65
+		and GameState.guardian_hp_mult(10) > 1.9, "boss HP: x0.59 for 2, x1 for 4, x2 for 10")
+	var hp := []
+	for floor_n in [1, 81]:
+		GameState.highest_floor = floor_n
+		var b := BattleManager.new()
+		GameState.configure_battle(b)
+		b.enemy_scale = 1.0
+		b.setup([GameState.player] as Array[CharacterData], EnemyLibrary.build_group([&"goblin_captain", &"goblin"]), 1)
+		hp.append([b.enemies[0].max_hp, b.enemies[1].max_hp])
+	check(hp[1][0] > hp[0][0] * 3 and hp[1][1] == hp[0][1], "a big party faces a tougher boss; normal enemies are unchanged")
+
+
 func test_save_roundtrip() -> void:
 	GameState.start_new_game("Ophelius", "Cassia", 1)
+	GameState.highest_floor = 21
 	GameState.companions.append(_member("Bo"))
 	var di := _member("Di")
 	GameState.companions.append(di)
@@ -232,7 +273,7 @@ func test_save_roundtrip() -> void:
 		d.reserve.append(SaveSerializer.character_to_dict(_member("R%d" % i)))
 	SaveSerializer.write_json(GameState.slot_path(1), d)
 	GameState.load_game(1)
-	check(GameState.companions.size() == GameState.MAX_PARTY_SIZE - 1 and GameState.reserve.size() == GameState.RESERVE_CAP,
+	check(GameState.companions.size() == GameState.party_size() - 1 and GameState.reserve.size() == GameState.RESERVE_CAP,
 		"tampered save: party and reserve trimmed to their caps")
 	check(GameState.companions.size() + GameState.reserve.size() + GameState.waiting.size() == 3 + 5 + 1 + 10 + 1,
 		"nobody is lost when trimming (extras wait at rest floors)")
