@@ -12,6 +12,8 @@ func _ready() -> void:
 	test_guard()
 	test_focus_first_aid_haste()
 	test_skill_picks()
+	test_class_pools()
+	test_skill_ranks()
 	test_book_odds()
 	test_book_drops()
 	test_books_teach()
@@ -188,6 +190,85 @@ func test_skill_picks() -> void:
 	c.choose_class(ClassRegistry.get_class_def(&"tank"))
 	var ids := c.all_skills().map(func(s): return s.id)
 	check(ids.has(&"shield_bash") and ids.has(&"first_aid"), "class skills and shared skills together (%s)" % [ids])
+
+
+func _classed(class_id: StringName, alloc: Dictionary) -> CharacterData:
+	var c := CharacterData.new()
+	while c.level < CharacterData.CLASS_UNLOCK_LEVEL:
+		c.level_up()
+	c.apply_allocation(alloc)
+	c.choose_class(ClassRegistry.get_class_def(class_id))
+	return c
+
+
+func test_class_pools() -> void:
+	var bolts := [&"ember", &"frost_bolt", &"splash", &"spark", &"stone_shot", &"gust"]
+	var ok := true
+	for cid in SkillLibrary.CLASS_PICK_POOLS:
+		for id in SkillLibrary.CLASS_PICK_POOLS[cid]:
+			var s := SkillLibrary.get_skill_or_null(id)
+			ok = ok and s != null and SkillLibrary.pick_pool().has(s)
+	for id in SkillLibrary.NOVICE_POOL:
+		ok = ok and SkillLibrary.pick_pool().has(SkillLibrary.get_skill_or_null(id))
+	check(ok, "every pool lists real Common skills")
+	var novice := CharacterData.new()
+	check(SkillLibrary.pick_pool_for(&"").size() == SkillLibrary.NOVICE_POOL.size() and not novice.pick_skill(&"frost_bolt")
+		and novice.pick_skill(&"ember"), "before a class: a small novice pool")
+	var tank := _classed(&"tank", {Stats.Type.HEALTH: 18, Stats.Type.STAMINA: 17})
+	var tank_pool := SkillLibrary.pick_pool_for(&"tank").map(func(s): return s.id)
+	check(not bolts.any(func(b): return tank_pool.has(b)) and tank_pool.has(&"guard") and tank_pool.has(&"first_aid")
+		and tank_pool.has(&"quick_step"), "tanks pick bruiser skills, no elemental bolts")
+	check(not tank.pick_skill(&"frost_bolt"), "a tank can't pick a bolt")
+	var mage_pool := SkillLibrary.pick_pool_for(&"mage").map(func(s): return s.id)
+	check(bolts.all(func(b): return mage_pool.has(b)), "mages can pick every elemental bolt")
+	check(SkillLibrary.pick_pool_for(&"bastion") == SkillLibrary.pick_pool_for(&"tank"), "advanced classes use their line's pool")
+	check(SkillLibrary.pick_pool_for(&"ascendant").size() == SkillLibrary.pick_pool().size(), "the Ascendant may pick anything")
+	check(tank.learn_skill(&"frost_bolt"), "skill books still teach anyone anything")
+	novice.skill_picks = 0
+	var kept := CharacterData.new()
+	kept.pick_skill(&"ember")
+	while kept.level < CharacterData.CLASS_UNLOCK_LEVEL:
+		kept.level_up()
+	kept.apply_allocation({Stats.Type.HEALTH: 18, Stats.Type.STAMINA: 17})
+	kept.choose_class(ClassRegistry.get_class_def(&"tank"))
+	check(kept.all_skills().any(func(s): return s.id == &"ember"), "skills picked before the class are kept")
+	var before := tank.pickable_skills().size()
+	tank.skill_picks = 1
+	tank.pick_skill(tank.pickable_skills()[0].id)
+	check(tank.pickable_skills().size() == before - 1, "the pool shrinks as you learn it")
+
+
+func test_skill_ranks() -> void:
+	var tank := _classed(&"tank", {Stats.Type.HEALTH: 18, Stats.Type.STAMINA: 17})
+	tank.skill_picks = 0
+	check(not tank.can_rank_up(&"shield_bash"), "ranking up costs a skill pick")
+	tank.skill_picks = 5
+	var base := SkillLibrary.get_skill(&"shield_bash")
+	check(tank.rank_up_skill(&"shield_bash") and tank.skill_rank(&"shield_bash") == 2 and tank.skill_picks == 4, "rank up a class skill")
+	var r2: SkillDef = tank.all_skills().filter(func(s): return s.id == &"shield_bash")[0]
+	check(r2.power > base.power and r2.mp_cost <= base.mp_cost and r2.display_name == "Shield Bash II", "rank II: stronger, cheaper (%s)" % r2.display_name)
+	check(base.power == 1.4 and base.display_name == "Shield Bash", "the shared skill itself is unchanged")
+	tank.rank_up_skill(&"shield_bash")
+	check(not tank.rank_up_skill(&"shield_bash") and tank.skill_rank(&"shield_bash") == SkillLibrary.MAX_SKILL_RANK, "ranks stop at %d" % SkillLibrary.MAX_SKILL_RANK)
+	check(not tank.rank_up_skill(&"meteor"), "only skills you know")
+	tank.bless(&"thor", 1)
+	check(not tank.can_rank_up(&"mjolnir"), "blessed skills can't be ranked (they're the being's)")
+	var u := Combatant.from_character(tank)
+	check(u.skills.any(func(s): return s.id == &"shield_bash" and s.display_name.ends_with("III")), "battles use the ranked skill")
+	var heal := _classed(&"support", {Stats.Type.INTELLIGENCE: 20, Stats.Type.HEALTH: 15})
+	heal.skill_picks = 1
+	heal.pick_skill(&"first_aid")
+	heal.skill_picks = 1
+	heal.rank_up_skill(&"first_aid")
+	var fa: SkillDef = heal.all_skills().filter(func(s): return s.id == &"first_aid")[0]
+	check(fa.heal_pct_max_hp > SkillLibrary.get_skill(&"first_aid").heal_pct_max_hp, "ranked heals heal more")
+	var d := SaveSerializer.character_to_dict(tank)
+	var back := SaveSerializer.character_from_dict(JSON.parse_string(JSON.stringify(d)))
+	check(back.skill_rank(&"shield_bash") == SkillLibrary.MAX_SKILL_RANK, "ranks are saved")
+	d["skill_ranks"] = { "shield_bash": 99, "hack_everything": 3 }
+	back = SaveSerializer.character_from_dict(d)
+	check(back.skill_rank(&"shield_bash") == SkillLibrary.MAX_SKILL_RANK and not back.skill_ranks.has(&"hack_everything"),
+		"tampered ranks are capped and unknown skills dropped")
 
 
 func test_book_odds() -> void:

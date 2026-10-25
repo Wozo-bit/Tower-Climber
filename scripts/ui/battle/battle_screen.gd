@@ -28,7 +28,12 @@ var _pending_item: ItemDef
 # UI refs
 var _turn_strip: HBoxContainer
 var _round_label: Label
-var _cols := {}               # "enemy_back", "enemy_front", "party_front", "party_back" -> VBoxContainer
+var _cols := {}               # "enemy_back", "enemy_front", "party_front", "party_back" -> GridContainer
+## The battlefield and the space it has (it's scaled down to fit, never scrolled).
+var _field: HBoxContainer
+var _field_area: Control
+## Cards stacked in one column before a row wraps into another column.
+const CARDS_PER_COLUMN := 2
 var _command_box: VBoxContainer
 var _skill_box: VBoxContainer
 var _prompt: Label
@@ -108,6 +113,27 @@ func _layout_cards() -> void:
 		var key := ("party_" if u.side == Combatant.Side.PARTY else "enemy_") \
 			+ ("front" if u.row == Combatant.Row.FRONT else "back")
 		_cols[key].add_child(_cards[u])
+	# A crowded row wraps into more columns (2 cards tall at most)...
+	for grid: GridContainer in _cols.values():
+		grid.columns = maxi(1, ceili(grid.get_child_count() / float(CARDS_PER_COLUMN)))
+	# ...and if the whole field still doesn't fit, it shrinks to fit. No scrolling.
+	_fit_field.call_deferred()
+
+
+## Scales the battlefield down (never up) so every unit is on screen.
+func _fit_field() -> void:
+	if _field == null or _field_area == null:
+		return
+	_field.scale = Vector2.ONE
+	_field.reset_size()
+	var need := _field.get_combined_minimum_size()
+	var room := _field_area.size
+	if need.x <= 0 or need.y <= 0 or room.x <= 0 or room.y <= 0:
+		return
+	var s := minf(1.0, minf(room.x / need.x, room.y / need.y))
+	_field.size = Vector2(maxf(need.x, room.x / s), need.y)
+	_field.scale = Vector2(s, s)
+	_field.position = Vector2(0, (room.y - need.y * s) / 2.0)
 
 
 # =========================================================
@@ -467,6 +493,7 @@ func _refresh_all() -> void:
 			card.set_known(GameState.bestiary.summary(u.source_enemy))
 		card.refresh()
 	_update_intents()
+	_fit_field.call_deferred()   # cards grow and shrink with intents / statuses
 
 
 func _update_turn_strip() -> void:
@@ -549,16 +576,18 @@ func _build_ui() -> void:
 	top.add_child(_turn_strip)
 
 	# --- Middle: battlefield ---
-	# Scrolls (rarely) instead of growing, so the commands below always stay on screen.
-	var field_scroll := ScrollContainer.new()
-	field_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	field_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	root.add_child(field_scroll)
+	# Never scrolls: crowded rows wrap, and the field shrinks to fit if it
+	# must (_fit_field), so every unit AND the commands below stay on screen.
+	_field_area = Control.new()
+	_field_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_field_area.clip_contents = true
+	_field_area.resized.connect(func(): _fit_field.call_deferred())
+	root.add_child(_field_area)
 	var field := HBoxContainer.new()
-	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	field.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	field.add_theme_constant_override("separation", 18)
-	field_scroll.add_child(field)
+	field.alignment = BoxContainer.ALIGNMENT_CENTER
+	_field_area.add_child(field)
+	_field = field
 	for key in ["enemy_back", "enemy_front"]:
 		field.add_child(_make_column(key))
 	var spacer := Control.new()
@@ -632,7 +661,11 @@ func _make_column(key: String) -> VBoxContainer:
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header.modulate = Color(1, 1, 1, 0.4)
 	col.add_child(header)
-	_cols[key] = col
+	var grid := GridContainer.new()   # cards go here; extra columns when crowded
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	col.add_child(grid)
+	_cols[key] = grid
 	return col
 
 

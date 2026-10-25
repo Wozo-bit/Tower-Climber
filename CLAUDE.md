@@ -14,6 +14,14 @@ hooks, guild captains, the balance pass). Deferred until the story exists:
 route thresholds (depend on how many choices the story gives) and per-skill
 tuning of tier-2 classes. Re-balance with tools/balance_sim after big changes.
 
+### Skill picks + battle layout (Hayden 2026-10-25)
+Hayden: skills should fit the class fantasy (mages need every bolt; tanks/
+bruisers only Guard, First Aid, Quick Step...). Built: per-class pick pools
+(SkillLibrary.CLASS_PICK_POOLS, novice pool before a class, placeholder
+lists), books still teach anyone anything, spare picks rank skills up (I-III).
+Battle screen never scrolls: rows wrap into columns, field shrinks to fit
+(must hold for release: every unit on screen at 1280x720).
+
 ### Balance pass (2026-10-25; Hayden approved all changes below)
 Hayden's targets: difficulty modes (Relaxed = story/dopamine, Normal = a
 couple of wipes, Hard = challenging but fair, Hell = manhwa grind), an
@@ -241,7 +249,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (18 suites, 1067 checks at last run).
+Every change gets tests in tests/ (18 suites, 1088 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

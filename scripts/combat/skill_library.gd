@@ -34,6 +34,30 @@ const CLASS_SKILLS := {
 	&"oracle": [&"foresight", &"starfall"],
 }
 
+## LEVEL-UP SKILL PICKS fit the class fantasy (Hayden 2026-10-25): each class
+## line picks from its own pool of Common skills. Skill books still teach
+## anyone anything (the rare way to break the mold). Advanced classes use the
+## pool of the class they came from. Placeholder lists, easy to change.
+const NOVICE_POOL := [&"first_aid", &"power_strike", &"guard", &"ember"]   # before a class (levels 1-9)
+const CLASS_PICK_POOLS := {
+	&"tank": [&"power_strike", &"guard", &"first_aid", &"focus", &"quick_step"],
+	&"mage": [&"ember", &"frost_bolt", &"splash", &"spark", &"stone_shot", &"gust", &"focus"],
+	&"archer": [&"quick_step", &"focus", &"first_aid", &"gust", &"spark"],
+	&"rogue": [&"quick_step", &"power_strike", &"focus", &"first_aid", &"guard"],
+	&"support": [&"first_aid", &"focus", &"guard", &"quick_step", &"splash", &"gust"],
+	&"ashbound_knight": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"ember"],
+}
+## Classes that may pick any Common skill (the NG+ Ascendant has mastered everything).
+const OPEN_POOL_CLASSES := [&"ascendant"]
+
+## SKILL RANKS: a skill pick can rank up a skill you know instead (up to
+## MAX_SKILL_RANK). Each rank above 1: +RANK_POWER power (and heal %), and
+## -RANK_MP of its MP cost. Blessed skills can't be ranked (they're the being's).
+const MAX_SKILL_RANK := 3
+const RANK_POWER := 0.15
+const RANK_MP := 0.1
+const RANK_NUMERALS := ["", "", " II", " III", " IV", " V"]
+
 ## Default basic attack per class. Classless characters use attack_novice.
 const CLASS_BASIC_ATTACK := {
 	&"tank": &"attack_melee",
@@ -321,6 +345,40 @@ static func learnable_skills(tier: int = -1) -> Array[SkillDef]:
 ## What level-up skill picks can choose from: every Common shared skill.
 static func pick_pool() -> Array[SkillDef]:
 	return learnable_skills(SkillTier.Tier.COMMON)
+
+
+## What a character of `class_id` can choose with a skill pick (before a class:
+## the novice pool; advanced classes: their tier-1 class's pool).
+static func pick_pool_for(class_id: StringName) -> Array[SkillDef]:
+	if class_id == &"":
+		return _skills_of(NOVICE_POOL)
+	var root := ClassRegistry.root_of(class_id)
+	if OPEN_POOL_CLASSES.has(class_id) or OPEN_POOL_CLASSES.has(root):
+		return pick_pool()
+	return _skills_of(CLASS_PICK_POOLS.get(class_id, CLASS_PICK_POOLS.get(root, NOVICE_POOL)))
+
+
+static func _skills_of(ids: Array) -> Array[SkillDef]:
+	var out: Array[SkillDef] = []
+	for id in ids:
+		var s := get_skill_or_null(id)
+		if s:
+			out.append(s)
+	return out
+
+
+## A copy of `s` at `rank` (1 = as written): stronger and cheaper per rank,
+## with "II"/"III" on its name.
+static func ranked(s: SkillDef, rank: int) -> SkillDef:
+	if rank <= 1:
+		return s
+	var r := s.duplicate() as SkillDef
+	var steps := rank - 1
+	r.power = s.power * (1.0 + RANK_POWER * steps)
+	r.heal_pct_max_hp = s.heal_pct_max_hp * (1.0 + RANK_POWER * steps)
+	r.mp_cost = maxi(0, roundi(s.mp_cost * (1.0 - RANK_MP * steps)))
+	r.display_name = s.display_name + RANK_NUMERALS[clampi(rank, 0, RANK_NUMERALS.size() - 1)]
+	return r
 
 
 static func get_skill_or_null(id: StringName) -> SkillDef:

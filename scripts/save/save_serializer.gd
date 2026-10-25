@@ -172,6 +172,7 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"allocated": _stat_dict_out(c.stats.allocated),
 		"learned_skills": c.learned_skills.map(func(id): return String(id)),
 		"skill_picks": c.skill_picks,
+		"skill_ranks": _stringify_keys(c.skill_ranks),
 		"blessing": String(c.blessing_id), "blessing_level": c.blessing_level,
 		"curse": String(c.curse_id), "curse_level": c.curse_level, "curse_until_floor": c.curse_until_floor,
 		"equipment": equip,
@@ -200,6 +201,12 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 			if s and s.learnable and not c.learned_skills.has(s.id):
 				c.learned_skills.append(s.id)
 	c.skill_picks = _i(d, "skill_picks", CharacterData.STARTING_SKILL_PICKS, 0, 999)
+	var ranks := _d(d, "skill_ranks")
+	for id in ranks:
+		if id is String and SkillLibrary.get_skill_or_null(StringName(id)) != null:
+			var r := _i(ranks, id, 1, 1, SkillLibrary.MAX_SKILL_RANK)
+			if r > 1:
+				c.skill_ranks[StringName(id)] = r
 	for stat in Stats.all():
 		if not c.stats.allocated.has(stat):
 			c.stats.allocated[stat] = 0

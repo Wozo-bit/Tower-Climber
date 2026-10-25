@@ -358,9 +358,16 @@ func _level_up_everyone() -> void:
 				c.choose_class(def)
 	for c in _members():
 		while c.skill_picks > 0:
-			var pool := SkillLibrary.pick_pool().filter(func(s): return not c.learned_skills.has(s.id))
+			var pool: Array = c.pickable_skills()
 			if pool.is_empty():
-				break
+				# Pool finished: rank up the strongest attack (or anything rankable).
+				var best: SkillDef = null
+				for s in c.all_skills():
+					if c.can_rank_up(s.id) and (best == null or (s.effect == SkillDef.Effect.DAMAGE and s.power > best.power)):
+						best = s
+				if best == null or not c.rank_up_skill(best.id):
+					break
+				continue
 			# Like a player who reads the stage hints: an attack that hits this
 			# stage's weakness, else one that fits the build.
 			var magic: bool = c.stats.get_total(Stats.Type.INTELLIGENCE) > c.stats.get_total(Stats.Type.STRENGTH)

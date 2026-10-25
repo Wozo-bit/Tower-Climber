@@ -58,6 +58,8 @@ const RESPEC_COST_MULTIPLIER := 2.0 # each paid respec costs this much more
 ## Unspent skill picks. Everyone starts with 1 (a "starting skill") and gets
 ## another every SKILL_PICK_EVERY levels.
 @export var skill_picks: int = STARTING_SKILL_PICKS
+## Ranked-up skills: skill id -> rank (2..SkillLibrary.MAX_SKILL_RANK).
+@export var skill_ranks: Dictionary = {}
 ## Blessing from a god / demon / devil (BeingLibrary id; &"" = none) and its level.
 @export var blessing_id: StringName = &""
 @export var blessing_level: int = 0
@@ -232,12 +234,12 @@ func learn_skill(id: StringName) -> bool:
 	return true
 
 
-## Spend a skill pick on a Common shared skill.
+## Spend a skill pick on a skill from your class's pool (SkillLibrary.pick_pool_for).
 func pick_skill(id: StringName) -> bool:
 	if skill_picks <= 0:
 		return false
 	var s := SkillLibrary.get_skill_or_null(id)
-	if s == null or not SkillLibrary.pick_pool().has(s) or learned_skills.has(id):
+	if s == null or not SkillLibrary.pick_pool_for(class_id).has(s) or learned_skills.has(id):
 		return false
 	learned_skills.append(id)
 	skill_picks -= 1
@@ -245,16 +247,55 @@ func pick_skill(id: StringName) -> bool:
 	return true
 
 
-## Class skills first, then learned shared skills.
+## Pool skills you could still pick.
+func pickable_skills() -> Array[SkillDef]:
+	var out: Array[SkillDef] = []
+	for s in SkillLibrary.pick_pool_for(class_id):
+		if not learned_skills.has(s.id):
+			out.append(s)
+	return out
+
+
+## A skill's rank (1 = as learned).
+func skill_rank(id: StringName) -> int:
+	return skill_ranks.get(id, 1)
+
+
+## Can a skill pick rank this skill up? (Known, not maxed, not a blessed skill.)
+func can_rank_up(id: StringName) -> bool:
+	return skill_picks > 0 and knows_skill(id) and skill_rank(id) < SkillLibrary.MAX_SKILL_RANK \
+		and not _is_blessed_skill(id)
+
+
+## Spend a skill pick to rank up a skill you know.
+func rank_up_skill(id: StringName) -> bool:
+	if not can_rank_up(id):
+		return false
+	skill_ranks[id] = skill_rank(id) + 1
+	skill_picks -= 1
+	stats_changed.emit()
+	return true
+
+
+func _is_blessed_skill(id: StringName) -> bool:
+	for b in BeingLibrary.beings.values():
+		if StringName(str(b.get("skill", ""))) == id:
+			return true
+	return false
+
+
+## Class skills first, then learned shared skills (each at its rank).
 func all_skills() -> Array[SkillDef]:
-	var out := SkillLibrary.skills_for_class(class_id)
+	var out: Array[SkillDef] = []
+	for s in SkillLibrary.skills_for_class(class_id):
+		out.append(SkillLibrary.ranked(s, skill_rank(s.id)))
 	for id in learned_skills:
 		var s := SkillLibrary.get_skill_or_null(id)
-		if s and not out.has(s):
-			out.append(s)
+		if s and not out.any(func(o): return o.id == s.id):
+			out.append(SkillLibrary.ranked(s, skill_rank(s.id)))
 	if is_blessed():   # the blessed skill, while the blessing lasts
 		var bs := SkillLibrary.get_skill_or_null(BeingLibrary.get_being(blessing_id).get("skill", &""))
-		if bs and not out.has(bs):
+		if bs and not out.any(func(o): return o.id == bs.id):
 			out.append(bs)
 	return out
 

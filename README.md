@@ -131,7 +131,16 @@ Open it with **Tab → Manage party**.
 ## Enemy intent, shared skills and skill books
 - **Enemy intent:** at the start of each round, every enemy decides its move. Its card shows it (e.g. "Smash → Cassia" or "Volley → everyone"), and targeted allies get a red **⚠ Targeted** marker (x2 if two enemies are aiming at them). React with Defend, Guard, Ward, heals or a row change. If the target falls, or someone starts **taunting**, the intent re-plans and the markers update. An enemy can hide its intent (`hide_intent`, shown as "Intent: ???"); none do yet.
 - **Shared skills:** anyone can learn these, whatever their class (or with no class). They're kept when you change class and carried into New Game+.
-  - **Skill picks:** everyone starts with **1** (a starting skill) and gets another at levels **3, 6, 9, 12…**. Picks choose from the **Common** skills: Power Strike, First Aid, Guard, Focus, Quick Step, and the six elemental bolts (Ember, Frost Bolt, Splash, Spark, Stone Shot, Gust). Spend them in **Tab → Skills**.
+  - **Skill picks:** everyone starts with **1** (a starting skill) and gets another at levels **3, 6, 9, 12…**. Spend them in **Tab → Skills**.
+    - **Picks fit the class fantasy:** each class line has its own pool of Common skills (`SkillLibrary.CLASS_PICK_POOLS`; advanced classes use their line's pool).
+      - Before a class (levels 1–9): First Aid, Power Strike, Guard and Ember.
+      - Tank: Power Strike, Guard, First Aid, Focus, Quick Step.
+      - Mage: all six elemental bolts and Focus.
+      - Archer, Rogue and Support each get their own mix.
+      - The NG+ Ascendant can pick anything.
+      - Skills picked before your class stay with you.
+    - **Skill books still teach anyone anything.** They're the rare way to break the mold.
+    - **Rank up:** a pick can instead rank up any skill you know, up to rank **III**. Each rank adds **+15% power** (and heal %) and takes **10% off** the MP cost (`MAX_SKILL_RANK`, `RANK_POWER`, `RANK_MP`). Blessed skills can't be ranked.
   - **Guard** takes single-target hits aimed at an ally (30% less) until your next turn. **Focus** restores 25% MP. **First Aid** heals 15% of max HP plus a little. **Quick Step** makes acting first much more likely next round.
 - **Skill books** teach any shared skill, including Rare, Epic, Legendary and Unique ones, only through books. Use them from **Tab → Items**. They can't be read mid-battle, and a book isn't used up on someone who already knows the skill.
   - **Who drops what:** monsters drop books that fit them, including skills they actually use (an Orc Brute can drop Smash). Each enemy's list is in `scripts/skills/skill_books.gd`.

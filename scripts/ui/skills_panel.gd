@@ -1,7 +1,8 @@
 class_name SkillsPanel
 extends Control
 ## A character's skills: class skills, learned shared skills, and spending
-## skill picks on Common shared skills. (Skill books are used from Items.)
+## skill picks: learn a skill from your class's pool, or rank up one you know.
+## (Skill books are used from Items, and teach anyone anything.)
 
 signal closed
 
@@ -108,23 +109,21 @@ func _rebuild() -> void:
 		c.queue_free()
 	_title.text = "%s's Skills" % member.character_name
 
-	var class_skills := SkillLibrary.skills_for_class(member.class_id)
-	if class_skills.is_empty():
+	var class_ids := SkillLibrary.skills_for_class(member.class_id).map(func(x): return x.id)
+	if class_ids.is_empty():
 		_known_box.add_child(_note("Class skills: none yet (choose a class at level %d)." % CharacterData.CLASS_UNLOCK_LEVEL))
-	for s in class_skills:
-		_known_box.add_child(_skill_line(s, "Class"))
 	if member.learned_skills.is_empty():
 		_known_box.add_child(_note("No shared skills learned yet."))
-	for id in member.learned_skills:
-		var s := SkillLibrary.get_skill_or_null(id)
-		if s:
-			_known_box.add_child(_skill_line(s, SkillTier.name_of(s.tier)))
+	for s in member.all_skills():   # already at their ranks
+		var tag := "Class" if class_ids.has(s.id) else SkillTier.name_of(s.tier)
+		_known_box.add_child(_known_row(s, tag))
 
-	_picks_label.text = ("Skill picks available: %d  (you get one every %d levels)" % [
-		member.skill_picks, CharacterData.SKILL_PICK_EVERY])
-	for s in SkillLibrary.pick_pool():
-		if member.learned_skills.has(s.id):
-			continue
+	var pool := member.pickable_skills()
+	_picks_label.text = ("Skill picks available: %d  (you get one every %d levels)\nSpend one to learn a skill your class can use, or to rank up a skill you know (up to rank %d)." % [
+		member.skill_picks, CharacterData.SKILL_PICK_EVERY, SkillLibrary.MAX_SKILL_RANK])
+	if pool.is_empty():
+		_pick_box.add_child(_note("You've learned everything your class can pick. Spend picks on rank-ups."))
+	for s in pool:
 		var row := HBoxContainer.new()
 		var l := Label.new()
 		l.text = "%s (%d MP) — %s" % [s.display_name, s.mp_cost, s.description]
@@ -139,6 +138,26 @@ func _rebuild() -> void:
 			_rebuild())
 		row.add_child(b)
 		_pick_box.add_child(row)
+
+
+## A known skill, with a Rank up button when it can go higher.
+func _known_row(s: SkillDef, tag: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	var l := _skill_line(s, tag)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(l)
+	var rank := member.skill_rank(s.id)
+	if rank < SkillLibrary.MAX_SKILL_RANK and not member._is_blessed_skill(s.id):
+		var b := Button.new()
+		b.text = "Rank up"
+		b.tooltip_text = "Rank %d -> %d: +%d%% power, -%d%% MP cost (1 skill pick)." % [rank, rank + 1,
+			roundi(SkillLibrary.RANK_POWER * 100), roundi(SkillLibrary.RANK_MP * 100)]
+		b.disabled = not member.can_rank_up(s.id)
+		b.pressed.connect(func():
+			member.rank_up_skill(s.id)
+			_rebuild())
+		row.add_child(b)
+	return row
 
 
 func _skill_line(s: SkillDef, tag: String) -> Label:
