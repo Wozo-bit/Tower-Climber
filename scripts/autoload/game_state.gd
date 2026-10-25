@@ -68,6 +68,9 @@ var route := RouteState.new()
 ## Conversations a companion wants to have about your route, shown by the
 ## tower when nothing else is open: [{ "dialogue": id, "companion": CharacterData }].
 var pending_talks: Array = []
+## Gods, demons and devils: interest, refusals, scorn. Per run. (The blessing
+## itself is on each CharacterData.)
+var blessings := BlessingState.new()
 ## The stage theme picked for each StageLibrary slot this run (e.g. floors
 ## 1-10 = Slime Pits). Rolled on New Game / New Game+, saved with the run.
 var stage_themes: Array = []:
@@ -163,6 +166,7 @@ func reset_run() -> void:
 	bestiary = Bestiary.new()
 	quests = QuestLog.new()
 	route = RouteState.new()
+	blessings = BlessingState.new()
 	pending_talks = []
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
@@ -209,6 +213,8 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1) -> void:
 	for eq_slot in player.equipment.keys():
 		if not player.get_equipped(eq_slot).carries_into_ng_plus():
 			player.unequip(eq_slot)
+	player.unbless()      # blessings and curses are story: earned again each run
+	player.lift_curse()
 	player.full_restore()
 	if player.legacy_id == "":
 		player.legacy_id = record.legacy_id
@@ -305,6 +311,7 @@ func save_game() -> bool:
 		"bestiary": bestiary.to_dict(),
 		"quests": quests.to_dict(),
 		"route": route.to_dict(),
+		"blessings": blessings.to_dict(),
 		"stage_themes": stage_themes.map(func(t): return String(t)),
 	}
 	var ok := SaveSerializer.write_json(slot_path(current_slot), d)
@@ -360,6 +367,7 @@ func load_game(slot: int = -1) -> bool:
 	bestiary = Bestiary.from_dict(S._d(d, "bestiary"))
 	quests = QuestLog.from_dict(S._d(d, "quests"))
 	route = RouteState.from_dict(S._d(d, "route"))
+	blessings = BlessingState.from_dict(S._d(d, "blessings"))
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	run_active = true
@@ -531,6 +539,7 @@ func enter_floor(n: int) -> void:
 	if is_rest_floor(n):
 		checkpoint_floor = n
 	quests.update()   # "reach floor" steps, and quests that expire past a floor
+	blessings.update()   # lingering curses run out by floor
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies
@@ -603,6 +612,17 @@ func place_npcs(layout: FloorLayout) -> void:
 			var id := waiting_npc_id(c)
 			if layout.place_npc(id, rng_for.call(id), layout.campfire).x < 0:
 				layout.place_npc(id, rng_for.call(id))
+	# Shrines of beings ready to offer you a blessing (rest floors only).
+	if kind == "rest":
+		for being in blessings.offering_beings():
+			var sid := StringName("shrine:" + String(being))
+			layout.place_npc(sid, rng_for.call(sid))
+
+
+## The being behind a floor shrine id ("shrine:astraea"), or &"".
+static func shrine_being(npc_id: StringName) -> StringName:
+	var s := String(npc_id)
+	return StringName(s.trim_prefix("shrine:")) if s.begins_with("shrine:") else &""
 
 
 ## Floor NPC id for a waiting companion: "waiting:<companion_id>".
@@ -763,6 +783,7 @@ const VILLAIN_PRICE_MULT := 1.25
 func add_route_points(id: StringName, amount: int) -> void:
 	route.add(id, amount)
 	_check_companions()
+	blessings.update()   # beings react to what you do
 
 
 ## A key story choice. False if a route is already locked.
@@ -770,6 +791,7 @@ func lock_route(id: StringName) -> bool:
 	var ok := route.lock(id)
 	if ok:
 		_check_companions()
+		blessings.update()
 	return ok
 
 
@@ -829,10 +851,12 @@ func leave_over_route(c: CharacterData) -> void:
 
 ## What the merchant charges you (route discounts / markups).
 func shop_price(item: ItemDef) -> int:
+	var mult := 1.0
 	match route.current():
-		&"hero": return roundi(item.price * HERO_PRICE_MULT)
-		&"villain": return roundi(item.price * VILLAIN_PRICE_MULT)
-	return item.price
+		&"hero": mult = HERO_PRICE_MULT
+		&"villain": mult = VILLAIN_PRICE_MULT
+	mult += player.effect_sum("price_mult")   # e.g. the Demon of Greed's curse
+	return roundi(item.price * maxf(0.1, mult))
 
 
 ## After a won battle: everyone on the reserve gets their share of the XP.
@@ -976,6 +1000,16 @@ func finish_battle(outcome: int) -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.randomize()
 		quests.on_battle_won(pending_encounter, rng)   # defeat counts + quest-item drops
+		# Blessings that heal after a win ("regen_pct").
+		for m in battle_party():
+			var regen := m.effect_sum("regen_pct")
+			if regen > 0.0 and not m.is_downed():
+				m.heal(roundi(m.max_hp() * regen))
+		# A stage boss falls: an interested being may come calling.
+		if pending_encounter.any(func(d): return SkillBooks.enemy_kind(d) == "boss"):
+			var offers := blessings.offering_beings()
+			if not offers.is_empty():
+				pending_talks.append({ "dialogue": &"blessing_offer", "being": offers[0] })
 	if outcome == BattleManager.Outcome.DEFEAT:
 		handle_defeat()
 	pending_encounter = []

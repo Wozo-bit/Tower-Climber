@@ -230,6 +230,22 @@ static func _build() -> Dictionary:
 		SkillDef.make(&"starfall", "Starfall", "Holy starlight falls on every enemy.",
 			{"elements": [EL.HOLY] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0}),
 
+		# =====================================================
+		# Blessed skills: usable only while blessed by that being (BeingLibrary)
+		# =====================================================
+		SkillDef.make(&"righteous_smite", "Righteous Smite", "Astraea's judgment falls on one enemy.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 8, "damage_type": D.MAGIC, "power": 1.6}),
+		SkillDef.make(&"mercys_embrace", "Mercy's Embrace", "Solenne's warmth heals the whole party.",
+			{"mp_cost": 14, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.0, "heal_pct_max_hp": 0.1}),
+		SkillDef.make(&"avarice_strike", "Avarice Strike", "Vorak's greed made sharp. +25% crit chance.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 1.6, "bonus_crit": 0.25}),
+		SkillDef.make(&"hellfire", "Hellfire", "Ishra's rage burns every enemy.",
+			{"elements": [EL.FIRE] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0}),
+		SkillDef.make(&"devils_due", "Devil's Due", "Sable collects from one enemy.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 10, "damage_type": D.MAGIC, "power": 1.8}),
+		SkillDef.make(&"vendetta", "Vendetta", "Corvin guides a strike past any guard.",
+			{"elements": [EL.DARK, EL.PIERCE] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 1.7, "ignores_row": true}),
+
 		# --- Enemy-only ---
 		# Smash and Firebolt are enemy moves, but their books can drop, so they're learnable too.
 		SkillDef.make(&"smash", "Smash", "A crushing overhead blow.",

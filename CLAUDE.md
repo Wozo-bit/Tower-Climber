@@ -23,9 +23,12 @@ tower grows. Open question for later: tier 3+ may outclass Ascendant (+20%),
 which must stay the strongest (design rule) — decide with Hayden then.
 Hayden will send tweaks to the enemy family table after playing it.
 
-### NEXT: Blessings + guilds/economy (designed with Hayden 2026-10-24, not built)
-Build in phases: (1) blessings, (2) guilds core + economy (absorbs "selling
-gear"), (3) guild simulation AI, wars/theft, founding your own guild.
+### Blessings + guilds/economy (designed with Hayden 2026-10-24)
+Build in phases: (1) blessings — BUILT (BeingLibrary roster + register_being,
+BlessingState interest/offers/levels/warn/punish, blessing on CharacterData,
+shrines, boss visits, bargains, blessed NPCs, blessed skills); (2) guilds
+core + economy (absorbs "selling gear") — NEXT; (3) guild simulation AI,
+wars/theft, founding your own guild. Being names/numbers are placeholders.
 
 BLESSINGS (manhwa-style: many beings take an interest; the player chooses):
 - Many gods / demons / devils, each with VALUES (like companions; e.g. a God
@@ -163,7 +166,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (12 suites, 702 checks at last run).
+Every change gets tests in tests/ (13 suites, 747 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -173,7 +176,7 @@ Run headless from the project folder:
 C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
-test_routes, test_classes. All must pass before handing work back.
+test_routes, test_classes, test_blessings. All must pass before handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 
 ## Working with Hayden

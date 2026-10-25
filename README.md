@@ -85,6 +85,8 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/autoload/dlc_loader.gd` | Loads DLC packs and their `content.gd` at startup. |
 | `scripts/ui/advancement_panel.gd` | Tab → ✦ Advance: requirements checklist, begin trial, advance. |
 | `tests/test_classes.gd` | 42 advancement checks: the tree, lineage, gate, trials, keeping skills, builds, route-only classes, Uniques, saving. Run: `godot --headless res://tests/test_classes.tscn` |
+| `scripts/story/being_library.gd`, `blessing_state.gd` | Gods, demons and devils (their values, blessing levels, buffs + curses, bargains) and this run's interest / refusals / punishment. |
+| `tests/test_blessings.gd` | 45 blessing checks: interest, offers, accepting, levels, buffs and curses in combat, warnings, punishment, bargains, shrines, boss visits, blessed NPCs, saving. Run: `godot --headless res://tests/test_blessings.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
@@ -154,6 +156,34 @@ Open it with **Tab → Manage party**.
   - **The Torn Map**: a map on floors 2–9 leads to a hidden cache from floor 6, which pays out a Cartographer's Charm.
   - **Slime Survey** (board, floor 5+): defeat 8 slimes, and the reward reveals all slime weaknesses.
 - Bounty pay (`QuestLog.BOUNTY_*`): 10 gold + 2 per floor and 15 XP + 2 per floor, per enemy asked for. The balance pass can tune it.
+
+## Blessings (gods, demons and devils)
+- **Many beings watch the climb** (`scripts/story/being_library.gd`). Each has **values** (routes it likes and dislikes), and its **interest** in you is your points in routes it likes minus routes it dislikes. Dialogue choices can also please or anger one directly (an `interest` effect). Accepting a blessing is always your choice.
+- **Placeholder roster:**
+
+| Being | Kind | Likes / dislikes | Gift (level 1 → 3) | Price (grows too) | Blessed skill |
+|---|---|---|---|---|---|
+| Astraea, God of Justice | god | Hero / Villain | +HLT +STA, more Holy damage | weak to Dark, less gold | Righteous Smite |
+| Solenne, Goddess of Mercy | god | Hero / Villain, Vigilante | heal after wins, +INT | −STR | Mercy's Embrace |
+| Vorak, Demon of Greed | demon | Villain / Hero | +gold, +LUCK | shop prices up, weak to Holy | Avarice Strike |
+| Ishra, Demon of Wrath | demon | Villain / Hero | +STR, more Fire damage | −STA, weak to Water (+Holy) | Hellfire |
+| Sable, Devil of Bargains | devil | Vigilante / — | +XP, +AGI | −HLT; costs **400 gold** | Devil's Due |
+| Corvin, Devil of Vengeance | devil | Vigilante / Hero | +LUCK, more Dark damage | −INT (+weak to Holy); costs a **promise** (Oath of Vengeance quest) | Vendetta |
+
+- **Offers** come once a being's interest reaches **10** (`BlessingState.OFFER_INTEREST`), in three ways:
+  - **shrines** on rest floors (gold = god, red = demon, violet = devil)
+  - a **visit after a stage boss**
+  - **bargains:** devils ask for gold or a promise (a quest)
+  The offer shows exactly what you get and what it costs. Refuse, and that being waits 5 floors before asking again.
+- **Blessings grow:** level 2 at 25 interest and level 3 at 45. The **buff and the curse grow together**. Accepting another being's offer replaces your blessing.
+- **Equal punishment:** act against a being's values and it warns you once its interest drops to 0. At −10 it **punishes** you:
+  - the blessing is taken
+  - the whole party loses 30% of its current HP
+  - the being's curse stays on you for **5 floors** without the buff
+  - that being never offers again (other beings still can)
+- **Effects** a blessing or curse can have: per-stat % (`stats`), more damage with an element (`element_power`), how you take hits (`affinities`, e.g. weak to Dark), `gold_mult`, `xp_mult`, `price_mult`, and `regen_pct` (heal after each won battle). The party is **never staggered**, so a cursed weakness costs damage, not turns.
+- **NPCs can be blessed too** (`"blessing": [being, level]` in `npc_library.gd`). Brakka follows Astraea. The Tab menu shows each character's blessing or curse (hover for details).
+- Blessings and curses reset in New Game+. DLC can add beings with `BeingLibrary.register_being()`.
 
 ## Class advancement (tier 2+)
 - **When:** each tier has a **gate** in `ClassRegistry.ADVANCEMENT_GATES`. Tier 2 needs you to have **beaten floor 20** and the character to be **level 25**. Once both are met, an **✦ Advance** button appears on that character in the Tab menu. More tiers (e.g. 3 at floor 40, 4 at 60, 5 at 80) are just a gate plus their classes; the design is 3–5 advancements over the full 100-floor climb.

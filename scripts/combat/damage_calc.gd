@@ -102,6 +102,12 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 		target.gel_used = true
 
 	# Elements: weak / resist / immune / absorb
+	# Blessings: more damage with favoured elements (adds up across elements).
+	var boost := 0.0
+	for e in elements:
+		boost += attacker.element_power.get(e, 0.0)
+	dmg *= 1.0 + boost
+
 	var aff := Element.resolve(elements, target.affinities)
 	var amount: int
 	if aff.absorbed:

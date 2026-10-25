@@ -56,11 +56,95 @@ const RESPEC_COST_MULTIPLIER := 2.0 # each paid respec costs this much more
 ## Unspent skill picks. Everyone starts with 1 (a "starting skill") and gets
 ## another every SKILL_PICK_EVERY levels.
 @export var skill_picks: int = STARTING_SKILL_PICKS
+## Blessing from a god / demon / devil (BeingLibrary id; &"" = none) and its level.
+@export var blessing_id: StringName = &""
+@export var blessing_level: int = 0
+## A punishment curse that lingers after a blessing is taken away.
+@export var curse_id: StringName = &""
+@export var curse_level: int = 0
+## The curse lifts once you climb past this floor (0 = no curse).
+@export var curse_until_floor: int = 0
 
 
 func _init() -> void:
 	if stats == null:
 		stats = StatBlock.new()
+
+
+# =========================================================
+# Blessings and curses (see BeingLibrary / BlessingState)
+# =========================================================
+
+func is_blessed() -> bool:
+	return blessing_id != &""
+
+
+func bless(id: StringName, level: int) -> void:
+	blessing_id = id
+	blessing_level = clampi(level, 1, BlessingState.LEVEL_INTEREST.size())
+	refresh_blessing()
+
+
+func unbless() -> void:
+	blessing_id = &""
+	blessing_level = 0
+	refresh_blessing()
+
+
+func curse(id: StringName, level: int, until_floor: int) -> void:
+	curse_id = id
+	curse_level = level
+	curse_until_floor = until_floor
+	refresh_blessing()
+
+
+func lift_curse() -> void:
+	curse_id = &""
+	curse_level = 0
+	curse_until_floor = 0
+	refresh_blessing()
+
+
+## Every effect dictionary active on this character: the blessing's buff and
+## curse, plus a lingering punishment curse.
+func active_effects() -> Array:
+	var out := []
+	if is_blessed():
+		var lv := BeingLibrary.level_effects(blessing_id, blessing_level)
+		out.append(lv.get("buff", {}))
+		out.append(lv.get("curse", {}))
+	if curse_id != &"":
+		out.append(BeingLibrary.level_effects(curse_id, curse_level).get("curse", {}))
+	return out
+
+
+## Sum of a number effect ("gold_mult", "xp_mult", "price_mult", "regen_pct").
+func effect_sum(key: String) -> float:
+	var total := 0.0
+	for e in active_effects():
+		total += e.get(key, 0.0)
+	return total
+
+
+## Merged dictionary effect ("stats", "element_power" add up; "affinities" — later wins).
+func effect_map(key: String) -> Dictionary:
+	var out := {}
+	for e in active_effects():
+		var m: Dictionary = e.get(key, {})
+		for k in m:
+			out[k] = m[k] if key == "affinities" else out.get(k, 0.0) + m[k]
+	return out
+
+
+## Applies blessing/curse stat changes. Keeps current HP/MP sensible.
+func refresh_blessing() -> void:
+	var was_alive := not is_downed()
+	stats.blessing_pct = effect_map("stats")
+	if was_alive and current_hp() <= 0:
+		missing_hp = max_hp() - 1
+	missing_hp = mini(missing_hp, max_hp())
+	missing_mp = mini(missing_mp, max_mp())
+	stats_changed.emit()
 
 
 # =========================================================
@@ -166,6 +250,10 @@ func all_skills() -> Array[SkillDef]:
 		var s := SkillLibrary.get_skill_or_null(id)
 		if s and not out.has(s):
 			out.append(s)
+	if is_blessed():   # the blessed skill, while the blessing lasts
+		var bs := SkillLibrary.get_skill_or_null(BeingLibrary.get_being(blessing_id).get("skill", &""))
+		if bs and not out.has(bs):
+			out.append(bs)
 	return out
 
 

@@ -378,7 +378,8 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 						entry.resisted = roll.resisted
 						entry.killed = not t.is_alive()
 						t.last_attacker = actor
-						entry.staggered = roll.weak and t.add_stagger()
+						# Only enemies stagger (a cursed weakness costs the party damage, not turns).
+						entry.staggered = roll.weak and t.side == Combatant.Side.ENEMY and t.add_stagger()
 						if entry.staggered:
 							intents.erase(t)
 						parts.append("%s takes %d%s%s%s%s" % [t.display_name, entry.amount,
@@ -500,14 +501,17 @@ func _end(result: int) -> void:
 
 
 ## Gives XP to every surviving party member and gold to the leader.
+## Blessings and curses can change both (each member's own "xp_mult", the
+## leader's "gold_mult").
 func apply_rewards() -> void:
 	if outcome != Outcome.VICTORY:
 		return
 	for u in party:
 		if u.is_alive() and u.source_character:
-			u.source_character.add_xp(rewards.xp)
+			u.source_character.add_xp(maxi(0, roundi(rewards.xp * (1.0 + u.source_character.effect_sum("xp_mult")))))
 	if not party.is_empty() and party[0].source_character:
-		party[0].source_character.gold += rewards.gold
+		var leader := party[0].source_character
+		leader.gold += maxi(0, roundi(rewards.gold * (1.0 + leader.effect_sum("gold_mult"))))
 	if inventory:
 		for id in rewards.items:
 			inventory.add(id, rewards.items[id])

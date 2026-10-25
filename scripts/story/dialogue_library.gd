@@ -111,6 +111,36 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Gods, demons and devils ({being...} = the being you're talking to). ---
+	# Started at a shrine, after a stage boss, or by a devil's bargain.
+	&"blessing_offer": {
+		"start": "offer",
+		"nodes": {
+			"offer": {
+				"speaker": "{being}",
+				"text": "{being_offer}\n\nBlessing: {being_gifts}",
+				"choices": [
+					{ "text": "I accept.", "next": "accepted", "effects": [{ "accept_blessing": true }],
+						"if": { "has_bargain": false } },
+					{ "text": "Deal. ({being_bargain})", "next": "accepted", "effects": [{ "accept_blessing": true }],
+						"if": { "has_bargain": true, "can_pay_bargain": true } },
+					{ "text": "(You can't pay: {being_bargain})", "if": { "has_bargain": true, "can_pay_bargain": false },
+						"effects": [{ "refuse_blessing": true }] },
+					{ "text": "No.", "effects": [{ "refuse_blessing": true }] },
+				],
+			},
+			"accepted": { "speaker": "{being}", "text": "(Placeholder) Then we are bound. Don't make me regret it." },
+		},
+	},
+	&"blessing_warning": {
+		"start": "warn",
+		"nodes": { "warn": { "speaker": "{being}", "text": "{being_warn}" } },
+	},
+	&"blessing_punish": {
+		"start": "punish",
+		"nodes": { "punish": { "speaker": "{being}", "text": "{being_punish}" } },
+	},
+
 	# --- Route reactions from companions ({npc} = the companion). ---
 	&"companion_warning": {
 		"start": "warn",
@@ -292,10 +322,10 @@ const DIALOGUES := {
 
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
-	"quest_on_step", "route", "not_route", "route_locked", "no_route"]
+	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
-	"route_points", "lock_route"]
+	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:
@@ -406,6 +436,9 @@ static func _validate_effects(where: String, effects: Array) -> PackedStringArra
 		for r in e.get("route_points", {}):
 			if not RouteLibrary.routes.has(r):
 				problems.append("%s: unknown route '%s'" % [where, r])
+		for b in e.get("interest", {}):
+			if not BeingLibrary.beings.has(b):
+				problems.append("%s: unknown being '%s'" % [where, b])
 		if e.get("open_shop") is String and not ItemLibrary.SHOPS.has(StringName(e.open_shop)):
 			problems.append("%s: unknown shop '%s'" % [where, e.open_shop])
 	return problems

@@ -151,13 +151,14 @@ func _process(delta: float) -> void:
 	if not _dialogue.visible:
 		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
-	if not GameState.quests.messages.is_empty() or not GameState.route.messages.is_empty():
+	if not GameState.quests.messages.is_empty() or not GameState.route.messages.is_empty() \
+			or not GameState.blessings.messages.is_empty():
 		_show_quest_messages()
 	# A companion wants a word about your route (warning, or leaving).
 	if not GameState.pending_talks.is_empty() and not _menus_open() and _player_t >= 1.0:
 		var talk_req: Dictionary = GameState.pending_talks.pop_front()
 		_talk_cooldown = 0.0
-		talk(talk_req.dialogue, talk_req.companion)
+		talk(talk_req.dialogue, talk_req.get("companion"), talk_req.get("being", &""))
 
 	if not _menus_open():
 		_update_player(delta)
@@ -224,8 +225,11 @@ func try_move(dir: Vector2i) -> bool:
 		return false
 	if layout.npcs.has(target):
 		var waiting := GameState.waiting_companion(layout.npcs[target])
+		var being := GameState.shrine_being(layout.npcs[target])
 		if waiting:
 			talk(&"waiting_companion", waiting)
+		elif being != &"":
+			talk(&"blessing_offer", null, being)
 		else:
 			talk(NpcLibrary.get_npc(layout.npcs[target]).dialogue)
 		return false
@@ -360,10 +364,10 @@ func _go_upstairs() -> void:
 
 
 ## Opens a conversation (public so tests/automation can use it).
-func talk(dialogue_id: StringName, with: CharacterData = null) -> void:
+func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"") -> void:
 	if _talk_cooldown > 0.0 or _dialogue.visible:
 		return
-	_dialogue.open(dialogue_id, with)
+	_dialogue.open(dialogue_id, with, being)
 
 
 func _on_dialogue_finished(runner: DialogueRunner) -> void:
@@ -531,8 +535,13 @@ func _draw() -> void:
 	for p: Vector2i in layout.npcs:
 		var npc := NpcLibrary.get_npc(layout.npcs[p])
 		var waiting := GameState.waiting_companion(layout.npcs[p])
+		var being := GameState.shrine_being(layout.npcs[p])
 		if waiting:   # one of your dismissed companions: drawn in the player's colour
 			npc = { "name": waiting.character_name, "kind": "npc", "color": C_PLAYER.darkened(0.2) }
+		elif being != &"":   # a shrine: gold for gods, red for demons, violet for devils
+			var col: Color = { "god": Color(1.0, 0.9, 0.5), "demon": Color(0.8, 0.2, 0.2), "devil": Color(0.6, 0.3, 0.8) }.get(
+				BeingLibrary.get_being(being).kind, Color.WHITE)
+			npc = { "name": BeingLibrary.get_being(being).name, "kind": "object", "color": col }
 		var center := _tile_px(p) + Vector2(TILE, TILE) / 2
 		var col: Color = npc.get("color", Color.GRAY)
 		if npc.get("kind") == "object":
@@ -753,9 +762,10 @@ func _show_toast(text: String) -> void:
 
 ## Quest news ("Quest updated: ...") gets its own line so it never hides other toasts.
 func _show_quest_messages() -> void:
-	_quest_toast.text = "\n".join(GameState.quests.messages + GameState.route.messages)
+	_quest_toast.text = "\n".join(GameState.quests.messages + GameState.route.messages + GameState.blessings.messages)
 	GameState.quests.messages.clear()
 	GameState.route.messages.clear()
+	GameState.blessings.messages.clear()
 	_quest_toast.modulate.a = 1.0
 	var tw := _quest_toast.create_tween()
 	tw.tween_interval(3.0)

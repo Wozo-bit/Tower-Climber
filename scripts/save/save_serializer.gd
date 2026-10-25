@@ -172,6 +172,8 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"allocated": _stat_dict_out(c.stats.allocated),
 		"learned_skills": c.learned_skills.map(func(id): return String(id)),
 		"skill_picks": c.skill_picks,
+		"blessing": String(c.blessing_id), "blessing_level": c.blessing_level,
+		"curse": String(c.curse_id), "curse_level": c.curse_level, "curse_until_floor": c.curse_until_floor,
 		"equipment": equip,
 	}
 
@@ -211,6 +213,18 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 	# Rebuild derived bonuses (gear + class) from the data above.
 	c._refresh_gear_bonus()
 	c._apply_class_bonus()
+	# Blessing / curse: only real beings, levels clamped.
+	var max_level := BlessingState.LEVEL_INTEREST.size()
+	var bid := StringName(_s(d, "blessing"))
+	if BeingLibrary.beings.has(bid):
+		c.blessing_id = bid
+		c.blessing_level = _i(d, "blessing_level", 1, 1, max_level)
+	var cid := StringName(_s(d, "curse"))
+	if BeingLibrary.beings.has(cid):
+		c.curse_id = cid
+		c.curse_level = _i(d, "curse_level", 1, 1, max_level)
+		c.curse_until_floor = _i(d, "curse_until_floor", 0, 0, 100000)
+	c.stats.blessing_pct = c.effect_map("stats")
 	c.missing_hp = _i(d, "missing_hp", 0, 0, c.max_hp())
 	c.missing_mp = _i(d, "missing_mp", 0, 0, c.max_mp())
 	return c

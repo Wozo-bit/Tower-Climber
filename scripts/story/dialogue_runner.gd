@@ -18,12 +18,17 @@ var messages: Array[String] = []
 ## Who you're talking to, when it's one of your own companions (a dismissed
 ## companion waiting by the campfire). Used by {npc} and the "rejoin" effect.
 var companion: CharacterData
+## The god / demon / devil this conversation is with (blessing offers,
+## warnings, punishment). Static so conditions and {being} text can see it;
+## only one conversation runs at a time.
+static var context_being: StringName = &""
 
 var _nodes: Dictionary = {}
 
 
 ## Starts a conversation. Returns false if the id doesn't exist.
-func start(id: StringName, with: CharacterData = null) -> bool:
+func start(id: StringName, with: CharacterData = null, being: StringName = &"") -> bool:
+	context_being = being
 	var d := DialogueLibrary.get_dialogue(id)
 	companion = with
 	requests.clear()
@@ -139,6 +144,10 @@ static func check(cond: Dictionary) -> bool:
 			"not_route": ok = gs.route.current() != v
 			"route_locked": ok = ((gs.route.locked != &"") == v) if v is bool else gs.route.locked == v
 			"no_route": ok = (gs.route.current() == &"") == v
+			# Blessing offers (about the being this conversation is with).
+			"has_bargain": ok = (not BeingLibrary.get_being(context_being).get("bargain", {}).is_empty()) == v
+			"can_pay_bargain": ok = gs.blessings.can_pay(context_being) == v
+			"blessed": ok = gs.player.is_blessed() == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
 				ok = false
@@ -188,6 +197,14 @@ func _apply_effects(effects: Array) -> void:
 		if e.has("route_points"):
 			for r in e.route_points:
 				gs.add_route_points(r, e.route_points[r])
+		if e.has("accept_blessing") and context_being != &"":
+			if not gs.blessings.accept(context_being):
+				messages.append("You can't pay what %s asks." % BeingLibrary.get_being(context_being).name)
+		if e.has("refuse_blessing") and context_being != &"":
+			gs.blessings.refuse(context_being)
+		if e.has("interest"):
+			for b in e.interest:
+				gs.blessings.add_interest(b, e.interest[b])
 		if e.has("lock_route"):
 			gs.lock_route(e.lock_route)
 		if e.has("take_item"):
@@ -204,11 +221,42 @@ func _npc_name() -> String:
 	return companion.character_name if companion else ""
 
 
-## Swaps {player}, {friend} and {npc} for the current names, and {stage_hint}
-## for a hint about the stage ahead (StageLibrary theme "hint").
+## Swaps {player}, {friend} and {npc} for the current names, {stage_hint} for
+## a hint about the stage ahead (StageLibrary theme "hint"), and the {being...}
+## tokens for the god/demon/devil this conversation is with.
 static func fill(s: String, npc_name: String = "") -> String:
 	var friend := GameState.childhood_friend()
-	return s.replace("{player}", GameState.player.character_name) \
+	var out := s.replace("{player}", GameState.player.character_name) \
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
+	if context_being != &"" and out.contains("{being"):
+		var b := BeingLibrary.get_being(context_being)
+		out = out.replace("{being}", BeingLibrary.full_name(context_being)) \
+			.replace("{being_offer}", b.get("offer", "")).replace("{being_warn}", b.get("warn", "")) \
+			.replace("{being_punish}", b.get("punish", "")) \
+			.replace("{being_bargain}", BlessingState.bargain_text(context_being)) \
+			.replace("{being_gifts}", blessing_summary(context_being, 1))
+	return out
+
+
+## "+5% HEA, +5% STA, +20% Holy damage / Weak to Dark" for a being's level.
+static func blessing_summary(id: StringName, level: int) -> String:
+	var lv := BeingLibrary.level_effects(id, level)
+	return "%s  /  Price: %s" % [effects_text(lv.get("buff", {})), effects_text(lv.get("curse", {}))]
+
+
+static func effects_text(e: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	for st in e.get("stats", {}):
+		parts.append("%+d%% %s" % [roundi(e.stats[st] * 100), Stats.short_name_of(st)])
+	for el in e.get("element_power", {}):
+		parts.append("%+d%% %s damage" % [roundi(e.element_power[el] * 100), Element.name_of(el)])
+	for el in e.get("affinities", {}):
+		parts.append("%s %s" % [Element.affinity_name(e.affinities[el]).replace("Weak", "Weak to"), Element.name_of(el)])
+	for k in [["gold_mult", "gold"], ["xp_mult", "XP"], ["price_mult", "shop prices"]]:
+		if e.has(k[0]):
+			parts.append("%+d%% %s" % [roundi(e[k[0]] * 100), k[1]])
+	if e.has("regen_pct"):
+		parts.append("heal %d%% HP after each win" % roundi(e.regen_pct * 100))
+	return ", ".join(parts)

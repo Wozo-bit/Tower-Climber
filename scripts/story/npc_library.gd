@@ -34,6 +34,8 @@ const NPCS := {
 		},
 		# Routes he likes / won't stand for (placeholder). See GameState routes.
 		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		# NPCs can be blessed too (personality): [being id, level].
+		"blessing": [&"astraea", 1],
 	},
 	# --- Route content (placeholders) ---
 	&"black_market": {
@@ -141,6 +143,9 @@ static func make_recruit(id: StringName, level: int) -> CharacterData:
 			c.choose_class(def)
 	if r.has("row"):
 		c.battle_row = r.row
+	var blessing: Array = n.get("blessing", [])
+	if blessing.size() == 2 and BeingLibrary.beings.has(blessing[0]):
+		c.bless(blessing[0], blessing[1])
 	return c
 
 

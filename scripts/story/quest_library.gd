@@ -77,6 +77,16 @@ const QUESTS := {
 				"desc": "(Placeholder) It always points somewhere interesting." } },
 	},
 
+	# --- A devil's bargain: Corvin's blessing costs this promise ---
+	&"oath_of_vengeance": {
+		"title": "Oath of Vengeance", "kind": "side", "giver": "Corvin, Devil of Vengeance",
+		"desc": "(Placeholder) You swore that the tower's tyrants would pay. Corvin is watching.",
+		"steps": [
+			{ "text": "Defeat the tower's minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+		],
+		"rewards": { "route_points": { &"vigilante": 3 } },
+	},
+
 	# --- Hand-written notice board job ---
 	&"slime_survey": {
 		"title": "Slime Survey", "kind": "side", "giver": "Notice board",

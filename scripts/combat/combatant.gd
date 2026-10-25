@@ -45,6 +45,8 @@ var traits: Array[StringName] = []
 var weapon_kind := -1
 ## Elemental weapon: added to basic attacks. -1 = none.
 var weapon_element := -1
+## Blessings: extra damage with an element (Element.Type -> +pct).
+var element_power: Dictionary = {}
 ## Weakness hits fill this; at stagger_max the unit loses its next turn.
 var stagger := 0
 var stagger_max := STAGGER_HITS
@@ -81,6 +83,9 @@ static func from_character(c: CharacterData) -> Combatant:
 	var weapon := c.get_equipped(GearItem.Slot.WEAPON)
 	u.weapon_kind = weapon.weapon_kind() if weapon else Element.Type.BLUNT   # fists are blunt
 	u.weapon_element = weapon.element if weapon else -1
+	# Blessings and curses: element boosts, and how this character takes hits.
+	u.element_power = c.effect_map("element_power")
+	u.affinities = c.effect_map("affinities")
 	return u
 
 

@@ -276,6 +276,19 @@ func _member_row(member: CharacterData) -> Control:
 	var name_l := Label.new()
 	name_l.text = "%s   Lv %d   %s" % [member.character_name, member.level, def.display_name if def else "No class"]
 	info.add_child(name_l)
+	if member.is_blessed() or member.curse_id != &"":
+		var bl := Label.new()
+		bl.add_theme_font_size_override("font_size", 13)
+		if member.is_blessed():
+			bl.text = "✦ Blessed by %s (level %d)" % [BeingLibrary.full_name(member.blessing_id), member.blessing_level]
+			bl.modulate = Color(1.0, 0.9, 0.6)
+			bl.tooltip_text = DialogueRunner.blessing_summary(member.blessing_id, member.blessing_level)
+		else:
+			bl.text = "✖ Cursed by %s (until floor %d)" % [BeingLibrary.full_name(member.curse_id), member.curse_until_floor]
+			bl.modulate = Color(1.0, 0.5, 0.5)
+			bl.tooltip_text = DialogueRunner.effects_text(BeingLibrary.level_effects(member.curse_id, member.curse_level).get("curse", {}))
+		bl.mouse_filter = Control.MOUSE_FILTER_PASS
+		info.add_child(bl)
 	var hp_l := Label.new()
 	if member.is_downed():
 		hp_l.text = "DOWNED   MP %d/%d" % [member.current_mp(), member.max_mp()]

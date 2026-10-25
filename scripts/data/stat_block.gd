@@ -26,6 +26,9 @@ const CRIT_CAP := 0.75
 ## Multiplier from the character's class (e.g. 0.2 = +20% to every stat total).
 ## Only special classes use it. Doesn't touch class thresholds either.
 @export var class_bonus_pct: float = 0.0
+## Per-stat change from blessings and curses: Stats.Type -> pct (+0.1 / -0.05).
+## Set by CharacterData.refresh_blessing(). Doesn't touch class thresholds.
+@export var blessing_pct: Dictionary = {}
 
 
 func _init() -> void:
@@ -48,9 +51,10 @@ func get_allocated(stat: int) -> int:
 
 func get_total(stat: int) -> int:
 	var raw := get_base(stat) + get_allocated(stat) + get_gear_bonus(stat)
-	if class_bonus_pct == 0.0:
+	var pct: float = class_bonus_pct + blessing_pct.get(stat, 0.0)
+	if pct == 0.0:
 		return raw
-	return roundi(raw * (1.0 + class_bonus_pct))
+	return maxi(1, roundi(raw * (1.0 + pct)))
 
 
 func get_gear_bonus(stat: int) -> int:
