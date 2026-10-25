@@ -42,6 +42,15 @@ const RESPEC_COST_MULTIPLIER := 2.0 # each paid respec costs this much more
 ## The one free class change (Hayden 2026-10-25), offered once the tier-2
 ## gate's floor is beaten, while still in a tier-1 class.
 @export var class_change_used: bool = false
+## Hired by the floor (Hayden 2026-10-25): gold owed every floor (0 = paid
+## up front or not hired), floors in a row it went unpaid, and gold owed.
+@export var wage: int = 0
+@export var wage_missed: int = 0
+@export var wage_owed: int = 0
+## An earned title shown with the name ("the Lone Climber"). Only EPITHETS.
+@export var epithet: String = ""
+const SOLO_EPITHET := "the Lone Climber"
+const EPITHETS := [SOLO_EPITHET]
 ## Battle row (Combatant.Row). -1 = use the class default. Saved when changed in battle.
 @export var battle_row: int = -1
 ## HP/MP carry over between battles. Stored as "missing" amounts so that
@@ -562,6 +571,11 @@ func choose_class(def: ClassDef) -> bool:
 func gate_open(t: int) -> bool:
 	var gate: Dictionary = ClassRegistry.ADVANCEMENT_GATES.get(t, {})
 	return not gate.is_empty() and GameState.highest_floor > gate.floor and level >= gate.level
+
+
+## "Ophelius the Lone Climber" (or just the name).
+func full_name() -> String:
+	return character_name + (" " + epithet if epithet != "" else "")
 
 
 ## "Ascended Pyromancer" / "Pyromancer" / "No class".

@@ -376,12 +376,15 @@ const DIALOGUES := {
 				"choices": [
 					{ "text": "Deal. ({recruit_fee} gold)", "next": "hired", "effects": [{ "pay_fee": true }, { "recruit_here": true }],
 						"if": { "can_pay_fee": true, "refuses_you": false } },
+					{ "text": "By the floor: {recruit_down} now, {recruit_wage} a floor.", "next": "hired_wage",
+						"effects": [{ "hire_wage": true }], "if": { "can_pay_down": true, "refuses_you": false } },
 					{ "text": "(You can't afford {recruit_fee} gold.)", "if": { "can_pay_fee": false } },
 					{ "text": "Deal.", "next": "refused", "if": { "can_pay_fee": true, "refuses_you": true } },
 					{ "text": "Not right now." },
 				],
 			},
 			"hired": { "speaker": "{recruit}", "text": "(Placeholder) Pleasure doing business." },
+			"hired_wage": { "speaker": "{recruit}", "text": "(Placeholder) Pay me every floor and we'll get along fine. Miss twice and I walk." },
 			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Your gold's no good. Not after what I've heard about you." },
 		},
 	},
@@ -419,6 +422,7 @@ const DIALOGUES := {
 	# Demigods: an omen by the campfire, then a legendary quest chain.
 	&"recruit_legend": {
 		"start": [
+			{ "if": { "demigod_unlocked": true }, "node": "returning" },
 			{ "if": { "favor_done": true }, "node": "ready" },
 			{ "if": { "favor_active": true }, "node": "waiting" },
 			{ "node": "omen" },
@@ -449,6 +453,16 @@ const DIALOGUES := {
 				],
 			},
 			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead, mortal. Try to keep up." },
+			# Unlocked in an earlier run: they remember, and just join.
+			"returning": {
+				"speaker": "{recruit}",
+				"text": "(Placeholder) We've climbed this tower together before, in another life. I remember. Shall we?",
+				"choices": [
+					{ "text": "Climb with us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
+					{ "text": "Climb with us.", "next": "refused", "if": { "refuses_you": true } },
+					{ "text": "Not yet." },
+				],
+			},
 			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Your path has strayed from anything I would follow." },
 		},
 	},
@@ -461,7 +475,10 @@ const DIALOGUES := {
 				"speaker": "{npc}",
 				"text": "(Placeholder) {player}! Ready to climb together again?",
 				"choices": [
-					{ "text": "Rejoin us.", "effects": [{ "rejoin": true }] },
+					{ "text": "Rejoin us.", "effects": [{ "rejoin": true }], "if": { "owes_wage": false } },
+					{ "text": "Here's what I owe you ({wage_owed} gold). Rejoin us.", "effects": [{ "pay_owed": true }, { "rejoin": true }],
+						"if": { "can_pay_owed": true } },
+					{ "text": "(You owe them {wage_owed} gold and can't pay.)", "if": { "owes_wage": true, "can_pay_owed": false } },
 					{ "text": "Not yet." },
 				],
 			},
@@ -511,12 +528,12 @@ const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_leve
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
 	"holds_captive", "can_pay_ransom", "favor_new", "favor_active", "favor_done", "can_pay_fee", "refuses_you",
-	"patron_pantheon"]
+	"patron_pantheon", "can_pay_down", "owes_wage", "can_pay_owed", "demigod_unlocked"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",
 	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom",
-	"recruit_here", "pay_fee", "start_favor"]
+	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:

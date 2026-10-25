@@ -125,6 +125,15 @@ func _register_demigods() -> void:
 		[&"gilgamesh", &"king_of_uruk", "King of Uruk", "Two-thirds divine, one-third legend.", [S.STRENGTH, S.LUCK], "Two-Thirds Divine"],
 		[&"cu_chulainn", &"hound_of_ulster", "Hound of Ulster", "The Morrigan's chosen, terrible in battle.", [S.STRENGTH, S.AGILITY], "Riastrad"],
 		[&"sigurd", &"dragonslayer", "Dragonslayer", "Of Odin's line, slayer of Fafnir.", [S.STRENGTH, S.STAMINA], "Fafnirsbane"],
+		# Added 2026-10-25 (Hayden's picks)
+		[&"theseus", &"labyrinth_hero", "Labyrinth Hero", "Slayer of the Minotaur, who found the way out by a thread.", [S.AGILITY, S.STRENGTH], "King of Athens"],
+		[&"hippolyta", &"amazon_queen", "Amazon Queen", "Queen of the Amazons, daughter of Ares.", [S.STRENGTH, S.HEALTH], "War-Queen of Themiscyra"],
+		[&"orpheus", &"songweaver", "Songweaver", "The bard whose song moved the dead.", [S.INTELLIGENCE, S.LUCK], "Voice of the Underworld"],
+		[&"atalanta", &"swift_huntress", "Swift Huntress", "The huntress no one could outrun.", [S.AGILITY, S.LUCK], "Calydonian Huntress"],
+		[&"enkidu", &"wild_man", "Wild Man", "Made by the gods to match Gilgamesh, and became his brother.", [S.STRENGTH, S.HEALTH], "Bull-Breaker"],
+		[&"fionn", &"fianna_captain", "Fianna Captain", "Leader of the Fianna, who tasted the Salmon of Wisdom.", [S.STRENGTH, S.INTELLIGENCE], "Salmon-Sage"],
+		[&"momotaro", &"oni_slayer", "Oni Slayer", "Born from a peach, sent to end the oni.", [S.STRENGTH, S.AGILITY], "Hero of Onigashima"],
+		[&"bellerophon", &"sky_lancer", "Sky Lancer", "Rider of Pegasus, slayer of the Chimera.", [S.AGILITY, S.STRENGTH], "Chimera's Bane"],
 	]
 	for d in demigods:
 		var stats: Array[int] = []

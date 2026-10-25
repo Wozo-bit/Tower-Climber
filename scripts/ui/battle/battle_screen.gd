@@ -91,6 +91,8 @@ func _start_battle() -> void:
 	_layout_cards()
 	_log.clear()
 	_log_line("[color=salmon]Enemies appear![/color]")
+	for line in battle.start_lines:   # bonds, the Lone Climber
+		_log_line("[color=#%s]%s[/color]" % [UITheme.hex("accent"), line])
 	for c in fighters:
 		if GameState.guilds.is_captain(c):
 			_log_line("[color=#%s]Captain %s joins the fight on their floors![/color]" % [UITheme.hex("accent"), c.character_name])

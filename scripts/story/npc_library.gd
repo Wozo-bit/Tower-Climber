@@ -312,6 +312,153 @@ const NPCS := {
 		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
 		"blessing": [&"odin", 2],
 	},
+	# Added 2026-10-25 (Hayden's picks)
+	&"theseus": {
+		"name": "Theseus", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"labyrinth_hero", "meet": "legend", "demigod": true, "personal_skill": &"ariadnes_thread",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 4, Stats.Type.LUCK: 2 },
+			"pitch": "(Placeholder) I walked into the labyrinth and came back out. This tower is just a taller maze.",
+			"favor": { "title": "Legend: Theseus", "desc": "(Placeholder) The gods want proof before Theseus will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Theseus: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"athena", 1],
+	},
+	&"hippolyta": {
+		"name": "Hippolyta", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"amazon_queen", "meet": "legend", "demigod": true, "personal_skill": &"girdle_of_ares",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.HEALTH: 4, Stats.Type.AGILITY: 2 },
+			"pitch": "(Placeholder) My warriors follow strength, not titles. Show me yours.",
+			"favor": { "title": "Legend: Hippolyta", "desc": "(Placeholder) The gods want proof before Hippolyta will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Hippolyta: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"villain"] },
+	},
+	&"orpheus": {
+		"name": "Orpheus", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"songweaver", "meet": "legend", "demigod": true, "personal_skill": &"charm_of_hades",
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.LUCK: 4, Stats.Type.HEALTH: 2 },
+			"pitch": "(Placeholder) I sang my way out of the underworld once. A tower should be easier.",
+			"favor": { "title": "Legend: Orpheus", "desc": "(Placeholder) The gods want proof before Orpheus will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Orpheus: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	&"atalanta": {
+		"name": "Atalanta", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"swift_huntress", "meet": "legend", "demigod": true, "personal_skill": &"golden_apple",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.LUCK: 4, Stats.Type.STRENGTH: 2 },
+			"pitch": "(Placeholder) Race me to the next stairs. If you keep up, I'll climb with you.",
+			"favor": { "title": "Legend: Atalanta", "desc": "(Placeholder) The gods want proof before Atalanta will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Atalanta: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"villain"] },
+	},
+	&"enkidu": {
+		"name": "Enkidu", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Mesopotamian" },
+		"recruit": {
+			"class_id": &"wild_man", "meet": "legend", "demigod": true, "personal_skill": &"brothers_oath",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 2 },
+			"pitch": "(Placeholder) The gods made me from clay to be someone's equal. Let's see if you are.",
+			"favor": { "title": "Legend: Enkidu", "desc": "(Placeholder) The gods want proof before Enkidu will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Enkidu: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"villain"] },
+	},
+	&"fionn": {
+		"name": "Fionn mac Cumhaill", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Celtic" },
+		"recruit": {
+			"class_id": &"fianna_captain", "meet": "legend", "demigod": true, "personal_skill": &"thumb_of_knowledge",
+			"build": { Stats.Type.STRENGTH: 4, Stats.Type.INTELLIGENCE: 4, Stats.Type.AGILITY: 3 },
+			"pitch": "(Placeholder) One taste of the salmon and I knew everything. Including that you'd come.",
+			"favor": { "title": "Legend: Fionn mac Cumhaill", "desc": "(Placeholder) The gods want proof before Fionn mac Cumhaill will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Fionn mac Cumhaill: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	&"momotaro": {
+		"name": "Momotaro", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Japanese" },
+		"recruit": {
+			"class_id": &"oni_slayer", "meet": "legend", "demigod": true, "personal_skill": &"kibi_dango",
+			"build": { Stats.Type.STRENGTH: 5, Stats.Type.AGILITY: 4, Stats.Type.HEALTH: 2 },
+			"pitch": "(Placeholder) My dog, my monkey and my pheasant say you're trustworthy. They're usually right.",
+			"favor": { "title": "Legend: Momotaro", "desc": "(Placeholder) The gods want proof before Momotaro will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Momotaro: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	&"bellerophon": {
+		"name": "Bellerophon", "kind": "npc", "dialogue": &"recruit_legend", "color": Color(1.0, 0.85, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 9999, "near": "campfire", "run_chance": 0.35,
+		"if": { "patron_pantheon": "Greek" },
+		"recruit": {
+			"class_id": &"sky_lancer", "meet": "legend", "demigod": true, "personal_skill": &"wings_of_pegasus",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 4, Stats.Type.STAMINA: 2 },
+			"pitch": "(Placeholder) Pegasus doesn't like stairs. Lucky for you, I do.",
+			"favor": { "title": "Legend: Bellerophon", "desc": "(Placeholder) The gods want proof before Bellerophon will follow you.",
+				"steps": [
+					{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
+					{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
+				] },
+			"loyalty": { "title": "Bellerophon: The Last Deed", "desc": "(Placeholder) A demigod's legend needs one more great deed.",
+				"steps": [{ "text": "Defeat 2 stage bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"athena", 1],
+	},
 
 	# --- Route content (placeholders) ---
 	&"black_market": {
@@ -430,6 +577,37 @@ static func npcs_for_floor(floor_n: int, floor_kind: String, rng_for: Callable) 
 			continue
 		out.append(id)
 	return out
+
+
+## Demigods who know each other (Hayden 2026-10-25): when both fight, each
+## deals BOND_DEALT more damage, and the battle log has a line (placeholder).
+const BOND_DEALT := 1.1
+const BONDS := [
+	{ "pair": [&"gilgamesh", &"enkidu"], "line": "(Placeholder) Gilgamesh and Enkidu fight back to back, as they did in the Cedar Forest." },
+	{ "pair": [&"perseus", &"bellerophon"], "line": "(Placeholder) Perseus and Bellerophon: the slayer of Medusa and the rider of her son Pegasus." },
+	{ "pair": [&"heracles", &"theseus"], "line": "(Placeholder) Heracles and Theseus trade a grin. Old friends, older monsters." },
+	{ "pair": [&"cu_chulainn", &"fionn"], "line": "(Placeholder) Cu Chulainn and Fionn: two heroes of Ireland, one battle-cry." },
+	{ "pair": [&"orpheus", &"atalanta"], "line": "(Placeholder) Orpheus plays and Atalanta runs, the way they did aboard the Argo." },
+]
+
+
+## The bonds formed by these companion ids (each a BONDS entry).
+static func bonds_among(ids: Array) -> Array:
+	return BONDS.filter(func(b): return ids.has(b.pair[0]) and ids.has(b.pair[1]))
+
+
+## Hiring by the floor (Hayden 2026-10-25): this share of the fee up front,
+## then the fee / WAGE_FLOORS every floor (a 600g hire: 150 now, 30 a floor).
+const HIRE_DOWN_SHARE := 0.25
+const WAGE_FLOORS := 20
+
+
+static func hire_down(id: StringName) -> int:
+	return roundi(recruit_info(id).get("fee", 0) * HIRE_DOWN_SHARE)
+
+
+static func hire_wage(id: StringName) -> int:
+	return maxi(1, roundi(recruit_info(id).get("fee", 0) / float(WAGE_FLOORS))) if recruit_info(id).has("fee") else 0
 
 
 ## Builds a recruit at `level` with points split by its build and its class

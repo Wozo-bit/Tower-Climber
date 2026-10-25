@@ -300,7 +300,7 @@ func _member_row(member: CharacterData) -> Control:
 	row.add_child(info)
 	var def := member.get_class_def()
 	var name_l := Label.new()
-	name_l.text = "%s   Lv %d   %s" % [member.character_name, member.level, member.class_title()]
+	name_l.text = "%s   Lv %d   %s" % [member.full_name(), member.level, member.class_title()]
 	info.add_child(name_l)
 	if member.is_blessed() or member.curse_id != &"":
 		var bl := Label.new()

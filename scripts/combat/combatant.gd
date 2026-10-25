@@ -31,6 +31,9 @@ const CLASS_COLORS := {
 }
 
 var display_name: String
+## Fight-long multipliers (the Lone Climber's perk, demigod bonds).
+var damage_dealt_mult := 1.0
+var damage_taken_mult := 1.0
 var side: int = Side.PARTY
 var row: int = Row.FRONT
 var stats: StatBlock

@@ -28,6 +28,9 @@ static var context_guild: StringName = &""
 ## The recruit NPC this conversation is with (NpcLibrary id; the generic
 ## recruit_* dialogues use it), or &"".
 static var context_recruit: StringName = &""
+## The companion this conversation is with (static copy of `companion`, for
+## conditions and {wage_owed}).
+static var context_companion: CharacterData
 
 var _nodes: Dictionary = {}
 
@@ -40,6 +43,7 @@ func start(id: StringName, with: CharacterData = null, being: StringName = &"", 
 	context_recruit = recruit
 	var d := DialogueLibrary.get_dialogue(id)
 	companion = with
+	context_companion = with
 	requests.clear()
 	messages.clear()
 	if d.is_empty():
@@ -181,6 +185,10 @@ static func check(cond: Dictionary) -> bool:
 			"favor_active": ok = gs.quests.is_active(QuestLibrary.favor_id(context_recruit)) == v
 			"favor_done": ok = gs.quests.is_done(QuestLibrary.favor_id(context_recruit)) == v
 			"can_pay_fee": ok = (gs.player.gold >= NpcLibrary.recruit_info(context_recruit).get("fee", 0)) == v
+			"demigod_unlocked": ok = gs.is_demigod_unlocked(context_recruit) == v
+			"can_pay_down": ok = (gs.player.gold >= NpcLibrary.hire_down(context_recruit)) == v
+			"owes_wage": ok = (context_companion != null and context_companion.wage_owed > 0) == v
+			"can_pay_owed": ok = (context_companion != null and context_companion.wage_owed > 0 				and gs.player.gold >= context_companion.wage_owed) == v
 			"refuses_you": ok = gs.npc_refuses(context_recruit) == v
 			# One of your patrons (blessing / guild patron) is from this pantheon.
 			"patron_pantheon": ok = gs.guilds.your_patrons().any(func(b): return BeingLibrary.get_being(b).get("pantheon", "") == v)
@@ -212,6 +220,16 @@ func _apply_effects(effects: Array) -> void:
 			gs.player.gold = maxi(0, gs.player.gold - e.take_gold)
 		if e.has("pay_fee") and context_recruit != &"":
 			gs.player.gold = maxi(0, gs.player.gold - NpcLibrary.recruit_info(context_recruit).get("fee", 0))
+		# Hired by the floor: the down payment now, then a wage every floor.
+		if e.has("hire_wage") and context_recruit != &"" and not gs.npc_refuses(context_recruit):
+			gs.player.gold = maxi(0, gs.player.gold - NpcLibrary.hire_down(context_recruit))
+			var hired := gs.recruit(context_recruit)
+			if hired:
+				hired.wage = NpcLibrary.hire_wage(context_recruit)
+				messages.append("%s joins for %d gold a floor." % [hired.character_name, hired.wage])
+		if e.has("pay_owed") and companion:
+			if gs.pay_owed(companion):
+				messages.append("You pay %s what you owe." % companion.character_name)
 		if e.has("start_favor") and context_recruit != &"":
 			gs.quests.start(QuestLibrary.favor_id(context_recruit))
 		if e.has("recruit") or (e.has("recruit_here") and context_recruit != &""):
@@ -291,6 +309,8 @@ static func fill(s: String, npc_name: String = "") -> String:
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
+	if context_companion and out.contains("{wage_owed}"):
+		out = out.replace("{wage_owed}", str(context_companion.wage_owed))
 	if out.contains("{tower_news}"):
 		var headlines := GameState.guilds.latest_news(3)
 		out = out.replace("{tower_news}", headlines if headlines != "" else "(Placeholder) Quiet lately. Too quiet.")
@@ -310,6 +330,8 @@ static func fill(s: String, npc_name: String = "") -> String:
 		var n := NpcLibrary.get_npc(context_recruit)
 		var r := NpcLibrary.recruit_info(context_recruit)
 		out = out.replace("{recruit_pitch}", r.get("pitch", "")).replace("{recruit_fee}", str(r.get("fee", 0))) \
+			.replace("{recruit_down}", str(NpcLibrary.hire_down(context_recruit))) \
+			.replace("{recruit_wage}", str(NpcLibrary.hire_wage(context_recruit))) \
 			.replace("{recruit_favor}", r.get("favor", {}).get("title", "")) \
 			.replace("{recruit}", n.get("name", "?"))
 	if context_being != &"" and out.contains("{being"):

@@ -10,6 +10,7 @@ var _failed := 0
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_classes"
+	GameState.unlocks_path = "user://test_saves_classes_unlocks.json"
 	test_tree_is_complete()
 	test_lineage()
 	test_gate_and_trial()

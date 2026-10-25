@@ -167,7 +167,8 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"class": String(c.class_id), "gold": c.gold,
 		"free_respec_pre_used": c.free_respec_pre_class_used,
 		"free_respec_post_used": c.free_respec_post_class_used,
-		"class_change_used": c.class_change_used,
+		"class_change_used": c.class_change_used, "epithet": c.epithet,
+		"wage": c.wage, "wage_missed": c.wage_missed, "wage_owed": c.wage_owed,
 		"paid_respecs": c.paid_respec_count, "battle_row": c.battle_row, "rows": 4,
 		"missing_hp": c.missing_hp, "missing_mp": c.missing_mp,
 		"legacy_id": c.legacy_id, "companion_id": String(c.companion_id),
@@ -195,12 +196,19 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 	c.free_respec_pre_class_used = _b(d, "free_respec_pre_used", false)
 	c.free_respec_post_class_used = _b(d, "free_respec_post_used", false)
 	c.class_change_used = _b(d, "class_change_used", false)
+	var ep := _s(d, "epithet", "", 64)
+	c.epithet = ep if CharacterData.EPITHETS.has(ep) else ""
 	c.paid_respec_count = _i(d, "paid_respecs", 0, 0, 999)
 	c.battle_row = _i(d, "battle_row", -1, -1, Combatant.Row.BACK)
 	if _i(d, "rows", 2, 2, 4) == 2 and c.battle_row == 1:
 		c.battle_row = Combatant.Row.BACK   # saved before the 4-row layout
 	c.legacy_id = _s(d, "legacy_id", "", 64)
 	c.companion_id = StringName(_s(d, "companion_id", "", 64))
+	# A wage only for someone you can hire, and never more than their deal says.
+	var max_wage := NpcLibrary.hire_wage(c.companion_id) if NpcLibrary.recruit_info(c.companion_id).get("meet", "") == "hire" else 0
+	c.wage = _i(d, "wage", 0, 0, max_wage)
+	c.wage_missed = _i(d, "wage_missed", 0, 0, GameState.WAGE_GRACE) if c.wage > 0 else 0
+	c.wage_owed = _i(d, "wage_owed", 0, 0, 1000000) if c.wage > 0 else 0
 	c.stats.allocated = _stat_dict_in(_d(d, "allocated"), 0, 99999)
 	for id in _a(d, "learned_skills"):
 		if id is String:

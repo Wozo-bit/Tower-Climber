@@ -87,6 +87,22 @@ const CLASS_SKILLS := {
 	&"hound_of_ulster_t3": [&"riastrad_rage"],
 	&"dragonslayer": [&"gram_strike", &"dragons_blood"],
 	&"dragonslayer_t3": [&"fafnirs_end"],
+	&"labyrinth_hero": [&"labyrinth_step", &"minotaur_slayer"],
+	&"labyrinth_hero_t3": [&"athenian_charge"],
+	&"amazon_queen": [&"amazon_spear", &"shield_maiden"],
+	&"amazon_queen_t3": [&"queens_charge"],
+	&"songweaver": [&"lyre_song", &"dirge"],
+	&"songweaver_t3": [&"song_of_return"],
+	&"swift_huntress": [&"boar_arrow", &"outrun"],
+	&"swift_huntress_t3": [&"calydonian_volley"],
+	&"wild_man": [&"wild_grapple", &"steppe_hide"],
+	&"wild_man_t3": [&"bull_of_heaven"],
+	&"fianna_captain": [&"birgha", &"fianna_rally"],
+	&"fianna_captain_t3": [&"fianna_hunt"],
+	&"oni_slayer": [&"peach_blade", &"loyal_companions"],
+	&"oni_slayer_t3": [&"onigashima_raid"],
+	&"sky_lancer": [&"pegasus_dive", &"golden_bridle"],
+	&"sky_lancer_t3": [&"chimera_fall"],
 }
 
 ## The Ascendant earns a new skill as each advancement gate opens for it
@@ -119,6 +135,14 @@ const CLASS_PICK_POOLS := {
 	&"king_of_uruk": [&"power_strike", &"guard", &"focus", &"splash", &"first_aid"],
 	&"hound_of_ulster": [&"quick_step", &"power_strike", &"focus", &"first_aid", &"gust"],
 	&"dragonslayer": [&"power_strike", &"guard", &"first_aid", &"focus", &"frost_bolt"],
+	&"labyrinth_hero": [&"quick_step", &"power_strike", &"first_aid", &"focus", &"gust"],
+	&"amazon_queen": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"focus"],
+	&"songweaver": [&"focus", &"first_aid", &"splash", &"ember", &"frost_bolt"],
+	&"swift_huntress": [&"quick_step", &"power_strike", &"first_aid", &"focus", &"stone_shot"],
+	&"wild_man": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"focus"],
+	&"fianna_captain": [&"quick_step", &"power_strike", &"first_aid", &"focus", &"gust"],
+	&"oni_slayer": [&"power_strike", &"guard", &"first_aid", &"quick_step", &"focus"],
+	&"sky_lancer": [&"quick_step", &"power_strike", &"first_aid", &"focus", &"gust"],
 }
 ## Classes that may pick any Common skill (the NG+ Ascendant has mastered everything).
 const OPEN_POOL_CLASSES := [&"ascendant"]
@@ -163,6 +187,7 @@ const CLASS_ROWS := {
 	# Demigods
 	&"lionheart": 0, &"gorgonbane": 1, &"myrmidon_lord": 0, &"king_of_uruk": 2,
 	&"hound_of_ulster": 1, &"dragonslayer": 0,
+	&"labyrinth_hero": 1, &"amazon_queen": 0, &"songweaver": 3, &"swift_huntress": 2, &"wild_man": 0, &"fianna_captain": 1, &"oni_slayer": 0, &"sky_lancer": 1,
 }
 
 
@@ -705,6 +730,70 @@ static func _build() -> Dictionary:
 		# dragonslayer_t3
 		SkillDef.make(&"fafnirs_end", "Fafnir's End", "The blow that slew the dragon.",
 			{"elements": [EL.FIRE, EL.SLASH] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 3.0}),
+		# labyrinth_hero
+		SkillDef.make(&"labyrinth_step", "Labyrinth Step", "+30% dodge for 3 turns.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"evasive", "status_turns": 3}),
+		SkillDef.make(&"minotaur_slayer", "Minotaur Slayer", "The blow that ended the beast of the maze.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.2}),
+		# labyrinth_hero_t3
+		SkillDef.make(&"athenian_charge", "Athenian Charge", "A king leads the charge into every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# amazon_queen
+		SkillDef.make(&"amazon_spear", "Amazon Spear", "A queen's spear-thrust.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.1}),
+		SkillDef.make(&"shield_maiden", "Shield Maiden", "Take 30% less damage for 4 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 4}),
+		# amazon_queen_t3
+		SkillDef.make(&"queens_charge", "Queen's Charge", "The Amazons ride over every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# songweaver
+		SkillDef.make(&"lyre_song", "Lyre Song", "A song that heals the whole party.",
+			{"mp_cost": 14, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.0, "heal_pct_max_hp": 0.1}),
+		SkillDef.make(&"dirge", "Dirge", "A mournful song that hurts every enemy.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 14, "damage_type": D.MAGIC, "power": 1.0, "targeting": T.ENEMY_ALL}),
+		# songweaver_t3
+		SkillDef.make(&"song_of_return", "Song of Return", "The song that moved Hades: heals the whole party for 30% of their max HP.",
+			{"mp_cost": 22, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.2, "heal_pct_max_hp": 0.3}),
+		# swift_huntress
+		SkillDef.make(&"boar_arrow", "Boar-Slayer Arrow", "The first arrow to strike the Calydonian Boar.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 8, "damage_type": D.RANGED, "power": 2.1}),
+		SkillDef.make(&"outrun", "Outrun", "Much more likely to act first for 3 rounds.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"haste", "status_turns": 3}),
+		# swift_huntress_t3
+		SkillDef.make(&"calydonian_volley", "Calydonian Volley", "Arrows on every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.RANGED, "power": 1.7, "targeting": T.ENEMY_ALL}),
+		# wild_man
+		SkillDef.make(&"wild_grapple", "Wild Grapple", "A grip that wrestled a king to a draw.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.2}),
+		SkillDef.make(&"steppe_hide", "Steppe Hide", "Take 30% less damage for 4 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 4}),
+		# wild_man_t3
+		SkillDef.make(&"bull_of_heaven", "Bull of Heaven", "He threw down the Bull of Heaven; every enemy feels it.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# fianna_captain
+		SkillDef.make(&"birgha", "Birgha", "The spear of the Fianna.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.1, "adaptive": true}),
+		SkillDef.make(&"fianna_rally", "Fianna Rally", "The whole party acts sooner for 2 rounds.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"haste", "status_turns": 2}),
+		# fianna_captain_t3
+		SkillDef.make(&"fianna_hunt", "The Great Hunt", "The Fianna run down every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.RANGED, "power": 1.7, "targeting": T.ENEMY_ALL}),
+		# oni_slayer
+		SkillDef.make(&"peach_blade", "Peach-Wood Blade", "A sword blessed against the oni.",
+			{"elements": [EL.SLASH, EL.HOLY] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 2.1}),
+		SkillDef.make(&"loyal_companions", "Loyal Companions", "His faithful dog joins the fight.",
+			{"mp_cost": 12, "effect": E.SUMMON, "targeting": T.SELF, "summon_id": &"spirit_wolf"}),
+		# oni_slayer_t3
+		SkillDef.make(&"onigashima_raid", "Onigashima Raid", "He storms the oni island: hits every enemy.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 20, "damage_type": D.MELEE, "power": 1.8, "ignores_row": true, "targeting": T.ENEMY_ALL}),
+		# sky_lancer
+		SkillDef.make(&"pegasus_dive", "Pegasus Dive", "A diving lance from the sky, past any guard.",
+			{"elements": [EL.PIERCE, EL.WIND] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 2.1, "ignores_row": true}),
+		SkillDef.make(&"golden_bridle", "Golden Bridle", "Much more likely to act first for 3 rounds.",
+			{"mp_cost": 5, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"haste", "status_turns": 3}),
+		# sky_lancer_t3
+		SkillDef.make(&"chimera_fall", "Chimera's Fall", "Lead-tipped lances rain on every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 20, "damage_type": D.RANGED, "power": 1.8, "targeting": T.ENEMY_ALL}),
 		# Demigods' personal skills (their loyalty quests unlock them)
 		SkillDef.make(&"nemean_roar", "Nemean Roar", "Heracles roars: the whole party deals 30% more damage for 2 turns.",
 			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"fury", "status_turns": 2}),
@@ -718,6 +807,22 @@ static func _build() -> Dictionary:
 			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 14, "damage_type": D.RANGED, "power": 1.3, "targeting": T.ENEMY_ALL}),
 		SkillDef.make(&"birdspeech", "Birdspeech", "Sigurd heeds the birds: the whole party gets +30% dodge for 2 turns.",
 			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 2}),
+		SkillDef.make(&"ariadnes_thread", "Ariadne's Thread", "Theseus knows the way out: the whole party gets +30% dodge for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"evasive", "status_turns": 2}),
+		SkillDef.make(&"girdle_of_ares", "Girdle of Ares", "Her father's war-belt: the whole party deals 30% more damage for 2 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"fury", "status_turns": 2}),
+		SkillDef.make(&"charm_of_hades", "Charm of the Underworld", "Even the dead listen: the whole party takes 30% less damage for 2 turns.",
+			{"mp_cost": 12, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 2}),
+		SkillDef.make(&"golden_apple", "Golden Apples", "Who could resist? The whole party acts sooner for 2 rounds.",
+			{"mp_cost": 10, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"haste", "status_turns": 2}),
+		SkillDef.make(&"brothers_oath", "Brother's Oath", "Enkidu draws every enemy to himself for 3 turns.",
+			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"taunt", "status_turns": 3}),
+		SkillDef.make(&"thumb_of_knowledge", "Thumb of Knowledge", "Fionn knows exactly where to strike: Holy light on every enemy.",
+			{"elements": [EL.HOLY] as Array[int], "mp_cost": 14, "damage_type": D.MAGIC, "power": 1.3, "targeting": T.ENEMY_ALL}),
+		SkillDef.make(&"kibi_dango", "Kibi Dango", "Millet dumplings for everyone: heals the whole party for 15% of their max HP.",
+			{"mp_cost": 10, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 0.5, "heal_pct_max_hp": 0.15}),
+		SkillDef.make(&"wings_of_pegasus", "Wings of Pegasus", "A storm of wings: Wind on every enemy.",
+			{"elements": [EL.WIND] as Array[int], "mp_cost": 14, "damage_type": D.RANGED, "power": 1.3, "targeting": T.ENEMY_ALL}),
 		SkillDef.make(&"ascendant_will", "Ascendant's Will", "The whole party takes 30% less damage for 3 turns.",
 			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
 		SkillDef.make(&"ascendant_dominion", "Dominion", "A conqueror's strike on every enemy, with your stronger of STR or INT.",

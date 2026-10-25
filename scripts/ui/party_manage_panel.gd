@@ -210,6 +210,8 @@ func _member_row(c: CharacterData, buttons: Array, extra: String = "") -> Contro
 	info.text = "%s   Lv %d   %s%s\n%s" % [c.character_name, c.level, def.display_name if def else "No class",
 		"   " + extra if extra != "" else "",
 		"DOWNED" if c.is_downed() else "HP %d/%d   MP %d/%d" % [c.current_hp(), c.max_hp(), c.current_mp(), c.max_mp()]]
+	if c.wage > 0:   # hired by the floor
+		info.text += "   ·   wage %d/floor%s" % [c.wage, ("   ⚠ UNPAID (%d owed)" % c.wage_owed) if c.wage_owed > 0 else ""]
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info)
 	for b in buttons:

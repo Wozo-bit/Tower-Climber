@@ -34,6 +34,10 @@ extends Resource
 @export var god_title: String = ""
 ## What they became: "god", "demon" or "devil" (Hayden: the player chooses).
 @export var god_kind: String = "god"
+## Cleared with nobody ever fighting beside them (Hayden 2026-10-25), and the
+## hardest difficulty they did it on.
+@export var solo_cleared: bool = false
+@export var solo_best_difficulty: int = -1
 
 
 func is_god() -> bool:
@@ -60,13 +64,15 @@ func class_display() -> String:
 
 ## One-line summary for lists: "Ophelius — Lv 24 Ashbound Knight — cleared 2x (NG+1)"
 func summary() -> String:
-	var s := "%s — Lv %d %s" % [display_name(), character.level, class_display()]
+	var s := "%s — Lv %d %s" % [character.full_name() if character else "?", character.level, class_display()]
 	if times_cleared > 0:
 		s += " — cleared %dx" % times_cleared
 		if highest_cycle_cleared > 0:
 			s += " (up to NG+%d)" % highest_cycle_cleared
 		if best_difficulty >= 0:
 			s += " on %s" % Difficulty.label(best_difficulty, ironman_cleared)
+	if solo_cleared:
+		s += " — SOLO (%s)" % Difficulty.name_of(solo_best_difficulty)
 	if fallen:
 		s += " — FALLEN on floor %d (%s + Ironman)" % [fallen_floor, Difficulty.name_of(fallen_difficulty)]
 	return s

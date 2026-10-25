@@ -11,6 +11,7 @@ var _failed := 0
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_stages"
+	GameState.unlocks_path = "user://test_saves_stages_unlocks.json"
 	test_theme_data()
 	test_slots()
 	test_boss_patrons()

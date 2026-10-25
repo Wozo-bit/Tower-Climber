@@ -15,6 +15,7 @@ var _failed := 0
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_blessings"
+	GameState.unlocks_path = "user://test_saves_blessings_unlocks.json"
 	GameState.legacy_path = "user://test_hall_blessings.json"
 	test_roster_is_valid()
 	test_interest_and_offers()
@@ -50,6 +51,7 @@ func _fresh(floor_n: int = 5) -> void:
 	GameState.player = GameState.make_premade("Ophelius", &"mage", { Stats.Type.INTELLIGENCE: 20, Stats.Type.HEALTH: 15 })
 	GameState.companions.append(GameState.make_childhood_friend("Cassia"))
 	GameState.floor_number = floor_n
+	GameState.solo_run = false   # (these runs never fight; the solo bonus is tested in test_party)
 
 
 ## Offer + accept through the real dialogue.

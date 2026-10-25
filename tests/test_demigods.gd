@@ -6,11 +6,15 @@ extends Node
 var _passed := 0
 var _failed := 0
 
-const DEMIGODS := [&"heracles", &"perseus", &"achilles", &"gilgamesh", &"cu_chulainn", &"sigurd"]
+const DEMIGODS := [&"heracles", &"perseus", &"achilles", &"gilgamesh", &"cu_chulainn", &"sigurd",
+	&"theseus", &"hippolyta", &"orpheus", &"atalanta", &"enkidu", &"fionn", &"momotaro", &"bellerophon"]
 
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_demigods"
+	GameState.unlocks_path = "user://test_saves_demigods_unlocks.json"
+	if FileAccess.file_exists(GameState.unlocks_path):
+		DirAccess.remove_absolute(GameState.unlocks_path)
 	test_demigod_classes()
 	test_omen()
 	test_legend_chain()
@@ -19,6 +23,8 @@ func _ready() -> void:
 	test_ascension()
 	test_ascendant_gates()
 	test_saving()
+	test_unlocks()
+	test_bonds()
 	GameState.delete_slot(1)
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
@@ -74,7 +80,7 @@ func test_demigod_classes() -> void:
 			problems.append("%s: needs a tier-3 form" % id)
 		if not NpcLibrary.get_npc(id).get("if", {}).has("patron_pantheon"):
 			problems.append("%s: tied to a pantheon" % id)
-	check(problems.is_empty(), "six demigods, each with a class only they can have %s" % [problems])
+	check(problems.is_empty(), "%d demigods, each with a class only they can have %s" % [DEMIGODS.size(), problems])
 	var lion := ClassRegistry.get_class_def(&"lionheart")
 	var p := _hero(&"", 30)
 	check(not ClassRegistry.get_qualifying(p.stats, 1, GameState.unlocked_secret_classes()).has(lion),
@@ -234,3 +240,53 @@ func test_saving() -> void:
 	SaveSerializer.write_json(GameState.slot_path(1), d)
 	GameState.load_game(1)
 	check(not GameState.player.ascended, "tampered save: Ascension below tier 3 is dropped")
+
+
+## Hayden 2026-10-25: a demigod who joined you once waits on floor 20 in
+## every later run (any character), and joins without the legend chain.
+func test_unlocks() -> void:
+	print("Unlocked demigods")
+	if FileAccess.file_exists(GameState.unlocks_path):
+		DirAccess.remove_absolute(GameState.unlocks_path)
+	_fresh()
+	check(GameState.unlocked_demigods().is_empty(), "nothing unlocked at first")
+	GameState.recruit(&"theseus")
+	check(GameState.is_demigod_unlocked(&"theseus") and not GameState.is_demigod_unlocked(&"orpheus"), "recruiting one unlocks them")
+	GameState.recruit(&"daphne")
+	check(not GameState.unlocked_demigods().has(&"daphne"), "only demigods are remembered")
+	# A brand-new character, no Greek patron at all.
+	GameState.start_new_game("Brenna", "Cassia", 2)
+	GameState.enter_floor(GameState.UNLOCKED_DEMIGOD_FLOOR)
+	var layout := GameState.current_layout()
+	check(not layout.npcs.values().has(&"theseus"), "not while the floor-20 boss lives")
+	GameState.floor_enemies[0].alive = false
+	layout = GameState.current_layout()
+	check(layout.npcs.values().has(&"theseus"), "after it falls, Theseus waits by the campfire")
+	var r := DialogueRunner.new()
+	r.start(&"recruit_legend", null, &"", &"", &"theseus")
+	check(r.node_id == "returning", "he remembers you (no omen, no trial)")
+	r.choose(r.choices()[0].index)
+	check(GameState.has_recruited(&"theseus"), "and joins")
+	GameState.enter_floor(25)
+	check(not GameState.current_layout().npcs.values().has(&"theseus"), "...only once a run")
+	var d := SaveSerializer.read_json(GameState.unlocks_path)
+	d.demigods.append("garrick")
+	d.demigods.append("zeus")
+	SaveSerializer.write_json(GameState.unlocks_path, d)
+	check(GameState.unlocked_demigods() == [&"theseus"], "a tampered unlock file only counts real demigods")
+
+
+func test_bonds() -> void:
+	print("Bonds")
+	check(NpcLibrary.BONDS.all(func(b): return DEMIGODS.has(b.pair[0]) and DEMIGODS.has(b.pair[1])), "every bond is between demigods")
+	var g := NpcLibrary.make_recruit(&"gilgamesh", 30)
+	var e := NpcLibrary.make_recruit(&"enkidu", 30)
+	var h := NpcLibrary.make_recruit(&"heracles", 30)
+	var b := BattleManager.new()
+	b.setup([g, e, h] as Array[CharacterData], EnemyLibrary.build_group([&"slime"]), 1)
+	var mult := b.party.map(func(u): return u.damage_dealt_mult)
+	check(mult == [NpcLibrary.BOND_DEALT, NpcLibrary.BOND_DEALT, 1.0], "Gilgamesh and Enkidu fight better together (Heracles alone doesn't)")
+	check(b.start_lines.size() == 1 and b.start_lines[0].contains("Enkidu"), "and the log says so")
+	var b2 := BattleManager.new()
+	b2.setup([g, h] as Array[CharacterData], EnemyLibrary.build_group([&"slime"]), 1)
+	check(b2.party.all(func(u): return u.damage_dealt_mult == 1.0), "no pair, no bond")

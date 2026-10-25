@@ -25,8 +25,11 @@ recruit_campfire/hire/favor; quests generated in QuestLibrary.recruit_quests.
 Hayden is happy to be hands-on with recruits/quests: ASK him for direction.
 PLANNED (Hayden): rare demigod recruits (Heracles, Perseus...) with their own
 unique classes: design them with the classes/advanced-classes work.
-Solo runs already possible (bench/dismiss anyone from floor 1); a "Solo"
-badge in the Hall is a possible extra.
+Solo runs: BUILT 2026-10-25 (solo_run tracking, Hall SOLO badge, epithet
+"the Lone Climber", NG+ +5%/-5% alone, gods +5 interest while solo).
+Hire wages BUILT (fee or down payment + wage/floor; warn, walk off, debt).
+14 demigods (8 added); unlocked demigods (user://unlocks.json, whole save
+file) wait on floor 20 in later runs and join free; 5 bonds (+10% dmg).
 
 ### Stages + 60-floor climb (Hayden 2026-10-25)
 Hayden's arc: the player climbs to become a "God". Slots: Slimes/Goblins ->
@@ -343,7 +346,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1337 checks at last run).
+Every change gets tests in tests/ (22 suites, 1370 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

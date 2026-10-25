@@ -97,6 +97,7 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 		dmg *= GUARD_MULT
 	if attacker.has_status(&"fury"):
 		dmg *= FURY_MULT
+	dmg *= attacker.damage_dealt_mult * target.damage_taken_mult
 
 	# Traits
 	if attacker.has_trait(&"reckless") and attacker.hp * 2 < attacker.max_hp:

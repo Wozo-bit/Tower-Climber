@@ -36,6 +36,7 @@ func _ready() -> void:
 		var kv := String(a).split("=")
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	GameState.save_dir = "user://sim_saves"
+	GameState.unlocks_path = "user://sim_saves_unlocks.json"
 	Settings.cutins = false
 	if _args.has("guilds"):
 		_guild_world(int(_args.get("runs", "40")))

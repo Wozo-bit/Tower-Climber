@@ -10,6 +10,7 @@ var _failed := 0
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_party"
+	GameState.unlocks_path = "user://test_saves_party_unlocks.json"
 	test_bench_and_swap()
 	test_order_and_rows()
 	test_caps_and_overflow()
@@ -20,6 +21,7 @@ func _ready() -> void:
 	test_benched_friend_keeps_name()
 	test_save_roundtrip()
 	test_party_grows()
+	test_solo()
 	GameState.delete_slot(1)
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
@@ -285,3 +287,51 @@ func test_save_roundtrip() -> void:
 		"tampered save: party and reserve trimmed to their caps")
 	check(GameState.companions.size() + GameState.reserve.size() + GameState.waiting.size() == 3 + 5 + 1 + 10 + 1,
 		"nobody is lost when trimming (extras wait at rest floors)")
+
+
+## Hayden 2026-10-25: a Solo clear = nobody ever fought beside you.
+func test_solo() -> void:
+	var hall := GameState.legacy_path
+	GameState.legacy_path = "user://test_hall_party.json"
+	GameState.start_new_game("Ophelius", "Cassia", 1)
+	GameState.enter_floor(2)
+	var friend := GameState.childhood_friend()
+	check(GameState.solo_run, "a run starts solo")
+	var with_solo := GameState.blessings.interest(&"odin")
+	GameState.return_scene = ""
+	GameState.finish_battle(BattleManager.Outcome.VICTORY, [GameState.player])
+	check(GameState.solo_run, "fighting alone keeps it")
+	GameState.solo_run = false
+	check(with_solo - GameState.blessings.interest(&"odin") == BlessingState.SOLO_INTEREST, "the gods watch a lone climber more closely")
+	GameState.solo_run = true
+	GameState.finish_battle(BattleManager.Outcome.VICTORY, [GameState.player, friend])
+	check(not GameState.solo_run, "one fight with company and it's gone")
+	GameState.save_game()
+	GameState.load_game(1)
+	check(not GameState.solo_run, "saved")
+	GameState.solo_run = true
+	var rec := GameState.complete_run()
+	check(rec.solo_cleared and rec.character.epithet == CharacterData.SOLO_EPITHET and rec.summary().contains("SOLO")
+		and rec.summary().contains("the Lone Climber"), "a solo clear: Hall badge and title (%s)" % rec.summary())
+	GameState.start_new_game_plus(rec, 1)
+	var p := GameState.player
+	check(p.full_name() == "Ophelius the Lone Climber", "the title stays with them")
+	GameState.pending_battle_info = { "kind": "normal" }
+	var b := BattleManager.new()
+	GameState.configure_battle(b)
+	b.setup([p] as Array[CharacterData], EnemyLibrary.build_group([&"goblin"]), 1)
+	check(b.party[0].damage_dealt_mult > 1.0 and b.party[0].damage_taken_mult < 1.0, "NG+ perk: stronger alone")
+	var b2 := BattleManager.new()
+	GameState.configure_battle(b2)
+	b2.setup([p, GameState.childhood_friend()] as Array[CharacterData], EnemyLibrary.build_group([&"goblin"]), 1)
+	check(b2.party[0].damage_dealt_mult == 1.0, "...but only alone")
+	GameState.save_game()
+	var d := SaveSerializer.read_json(GameState.slot_path(1))
+	d.player["epithet"] = "Emperor of Everything"
+	SaveSerializer.write_json(GameState.slot_path(1), d)
+	GameState.load_game(1)
+	check(GameState.player.epithet == "", "tampered save: no made-up titles")
+	GameState.pending_battle_info = {}
+	if FileAccess.file_exists(GameState.legacy_path):
+		DirAccess.remove_absolute(GameState.legacy_path)
+	GameState.legacy_path = hall

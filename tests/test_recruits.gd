@@ -10,10 +10,12 @@ var _failed := 0
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_recruits"
+	GameState.unlocks_path = "user://test_saves_recruits_unlocks.json"
 	test_roster()
 	test_wanderers()
 	test_campfire_and_loyalty()
 	test_hire()
+	test_wages()
 	test_favor()
 	test_rescue()
 	test_captives()
@@ -229,3 +231,55 @@ func test_saving() -> void:
 	back = (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"brakka")
 	check(back[0].personal_skill == &"", "tampered save: a personal skill that isn't theirs is dropped")
 	check(not GameState.floor_enemies.any(func(e): return e.kind == "rescue"), "...and a fake rescue becomes a normal fight")
+
+
+## Hayden 2026-10-25: hire by the floor; unpaid twice and they walk off.
+func test_wages() -> void:
+	print("Wages")
+	_fresh()
+	GameState.highest_floor = 21
+	GameState.player.gold = 1000
+	var r := DialogueRunner.new()
+	r.start(&"recruit_hire", null, &"", &"", &"garrick")
+	var by_floor: Array = r.choices().filter(func(ch): return ch.text.begins_with("By the floor"))
+	check(by_floor.size() == 1 and by_floor[0].text.contains("150") and by_floor[0].text.contains("30"),
+		"the offer: 150 now, 30 a floor (%s)" % (by_floor[0].text if by_floor else "none"))
+	r.choose(by_floor[0].index)
+	var g: CharacterData = (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"garrick")[0]
+	check(GameState.player.gold == 850 and g.wage == 30, "they join for the down payment")
+	GameState.enter_floor(6)
+	check(GameState.player.gold == 820 and g.wage_owed == 0, "paid every floor")
+	GameState.player.gold = 0
+	GameState.enter_floor(7)
+	check((GameState.companions + GameState.reserve).has(g) and g.wage_owed == 30
+		and GameState.quests.messages.any(func(m): return m.contains("couldn't pay")), "unpaid once: a warning")
+	GameState.enter_floor(8)
+	check(GameState.waiting.has(g) and g.wage_owed == 60, "unpaid twice: they walk off (60 owed)")
+	check(not GameState.rejoin(g), "they won't come back unpaid")
+	r.start(&"waiting_companion", g)
+	check(r.choices().any(func(ch): return ch.text.contains("owe them 60")), "the campfire talk says what you owe")
+	GameState.player.gold = 100
+	r.start(&"waiting_companion", g)
+	var pay: Array = r.choices().filter(func(ch): return ch.text.begins_with("Here's what I owe"))
+	r.choose(pay[0].index)
+	check(not GameState.waiting.has(g) and GameState.player.gold == 40 and g.wage_owed == 0, "pay up and they're back")
+	GameState.save_game()
+	var d := SaveSerializer.read_json(GameState.slot_path(1))
+	for m in d.companions + d.reserve:
+		if m.get("companion_id") == "garrick":
+			m["wage"] = 1
+	SaveSerializer.write_json(GameState.slot_path(1), d)
+	GameState.load_game(1)
+	var back: Array = (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"garrick")
+	check(not back.is_empty() and back[0].wage == 1, "wages are saved")
+	d = SaveSerializer.read_json(GameState.slot_path(1))
+	for m in d.companions + d.reserve:
+		if m.get("companion_id") == "garrick":
+			m["wage"] = 99999
+		if m.get("companion_id") == "childhood_friend":
+			m["wage"] = 50
+	SaveSerializer.write_json(GameState.slot_path(1), d)
+	GameState.load_game(1)
+	back = (GameState.companions + GameState.reserve).filter(func(m): return m.companion_id == &"garrick")
+	check(back[0].wage == NpcLibrary.hire_wage(&"garrick") and GameState.childhood_friend().wage == 0,
+		"tampered: no wage above the deal, none for people you didn't hire")

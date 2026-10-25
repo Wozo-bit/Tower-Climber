@@ -102,6 +102,14 @@ var ng_plus_cycle := 0
 ## and the run ends if you die (the save is deleted, the Hall records it).
 var difficulty: int = Difficulty.DEFAULT
 var ironman := false
+## Nobody has fought beside you this run (yet): a Solo clear if it holds to
+## the end. Gods take more interest in a lone climber (BlessingState).
+var solo_run := true
+## Hired by the floor: a wage missed this many floors in a row and they walk off.
+const WAGE_GRACE := 2
+## The Lone Climber (a solo clear's epithet) fights better alone in New Game+.
+const LONE_DEALT := 1.05
+const LONE_TAKEN := 0.95
 ## Companions lost in this Ironman run (names, for the Hall and the log).
 var fallen_companions: Array[String] = []
 ## Set when an Ironman run has just ended (the title screen shows it).
@@ -120,6 +128,11 @@ var pending_completion := false
 const SLOT_COUNT := 3
 var save_dir := "user://saves"
 var legacy_path := "user://hall_of_climbers.json"
+## Unlocks kept across every run and character (Hayden 2026-10-25): the
+## demigods who have ever joined you. JSON, validated on read.
+var unlocks_path := "user://unlocks.json"
+## Unlocked demigods wait by the campfire on this floor (after its boss) in every later run.
+const UNLOCKED_DEMIGOD_FLOOR := 20
 ## Which of the 3 save slots this run lives in.
 var current_slot := 1
 
@@ -206,6 +219,7 @@ func reset_run() -> void:
 	ng_plus_cycle = 0
 	difficulty = Difficulty.DEFAULT
 	ironman = false
+	solo_run = true
 	fallen_companions = []
 	play_time_sec = 0.0
 	pending_completion = false
@@ -357,7 +371,7 @@ func save_game() -> bool:
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
 		"ng_plus_cycle": ng_plus_cycle,
 		"difficulty": difficulty,
-		"ironman": ironman,
+		"ironman": ironman, "solo_run": solo_run,
 		"fallen_companions": fallen_companions.duplicate(),
 		"bestiary": bestiary.to_dict(),
 		"quests": quests.to_dict(),
@@ -430,6 +444,7 @@ func load_game(slot: int = -1) -> bool:
 	ng_plus_cycle = S._i(d, "ng_plus_cycle", 0, 0, 999)
 	difficulty = S._i(d, "difficulty", Difficulty.DEFAULT, 0, Difficulty.Level.HELL)
 	ironman = S._b(d, "ironman", false)
+	solo_run = S._b(d, "solo_run", false)   # older saves can't prove it
 	for n in S._a(d, "fallen_companions"):
 		if n is String:
 			fallen_companions.append(CharacterData.clean_name(n))
@@ -490,6 +505,8 @@ func load_legacy() -> LegacyBook:
 		r.slot = S._i(rd, "slot", 1, 1, SLOT_COUNT)
 		r.best_difficulty = S._i(rd, "best_difficulty", -1, -1, Difficulty.Level.HELL)
 		r.ironman_cleared = S._b(rd, "ironman_cleared", false)
+		r.solo_cleared = S._b(rd, "solo_cleared", false) and r.times_cleared > 0
+		r.solo_best_difficulty = S._i(rd, "solo_best_difficulty", -1, -1, Difficulty.Level.HELL) if r.solo_cleared else -1
 		r.fallen = S._b(rd, "fallen", false)
 		r.fallen_floor = S._i(rd, "fallen_floor", 0, 0, 100000)
 		r.fallen_difficulty = S._i(rd, "fallen_difficulty", Difficulty.DEFAULT, 0, Difficulty.Level.HELL)
@@ -523,6 +540,7 @@ func save_legacy(book: LegacyBook) -> bool:
 			"endings_seen": r.endings_seen.map(func(e): return String(e)),
 			"vault": r.vault.map(SaveSerializer.gear_to_dict),
 			"best_difficulty": r.best_difficulty, "ironman_cleared": r.ironman_cleared,
+			"solo_cleared": r.solo_cleared, "solo_best_difficulty": r.solo_best_difficulty,
 			"fallen": r.fallen, "fallen_floor": r.fallen_floor, "fallen_difficulty": r.fallen_difficulty,
 			"god_domain": String(r.god_domain), "god_title": r.god_title, "god_kind": r.god_kind,
 		})
@@ -541,6 +559,10 @@ func record_completion() -> LegacyRecord:
 		rec.legacy_id = player.legacy_id
 		rec.first_cleared_at = now
 		book.records.append(rec)
+	if solo_run:   # nobody ever fought beside you
+		player.epithet = CharacterData.SOLO_EPITHET
+		rec.solo_cleared = true
+		rec.solo_best_difficulty = maxi(rec.solo_best_difficulty, difficulty)
 	rec.character = player.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	rec.character.full_restore()
 	rec.slot = current_slot
@@ -718,6 +740,7 @@ func set_difficulty(level: int) -> bool:
 func configure_battle(battle: BattleManager) -> void:
 	battle.enemy_scale = pending_enemy_scale
 	battle.boss_hp_mult = guardian_hp_mult(party_size()) * divinity.boss_hp_mult(pending_encounter)
+	battle.lone_climber = player.epithet == CharacterData.SOLO_EPITHET
 	battle.faith_box = { "faith": divinity.faith } if divinity.active else {}
 	battle.normal_hp_mult = normal_hp_mult(party_size())
 	battle.enemy_skill_mult = Difficulty.value(difficulty, "ai")
@@ -848,6 +871,7 @@ func enter_floor(n: int) -> void:
 	guild_rng.seed = ("%s:%d:guilds" % [player.legacy_id, n]).hash()
 	guilds.on_floor(guild_rng)
 	divinity.on_floor()   # tithes from the guilds you sponsor
+	pay_wages()
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies
@@ -940,6 +964,12 @@ func place_npcs(layout: FloorLayout) -> void:
 		var rng: RandomNumberGenerator = rng_for.call(id)
 		rng.randf()   # skip the roll used for "chance"
 		put.call(id, rng, near)
+	# Unlocked demigods wait by the floor-20 campfire (after its boss), whatever your patrons.
+	if floor_number == UNLOCKED_DEMIGOD_FLOOR and layout.campfire.x >= 0:
+		for id in unlocked_demigods():
+			if not has_recruited(id) and not layout.npcs.values().has(id):
+				if put.call(id, rng_for.call(id), layout.campfire).x < 0:
+					put.call(id, rng_for.call(id))
 	# Dismissed companions wait by the campfire (anywhere, if it's crowded).
 	if layout.campfire.x >= 0:
 		for c in waiting:
@@ -1061,6 +1091,7 @@ func recruit(npc_id: StringName) -> CharacterData:
 ## quest starts (finishing it unlocks their personal skill).
 func _welcome(c: CharacterData) -> void:
 	_add_member(c)
+	unlock_demigod(c.companion_id)
 	quests.start(QuestLibrary.loyalty_id(c.companion_id))
 
 
@@ -1106,6 +1137,34 @@ func _party_grows() -> void:
 	if not filled.is_empty():
 		msg += " %s step%s up from the reserve." % [", ".join(filled), "s" if filled.size() == 1 else ""]
 	quests.messages.append(msg)
+
+
+# =========================================================
+# Unlocks (kept across runs)
+# =========================================================
+
+## Demigods who have joined you in any run (only real demigod NPC ids).
+func unlocked_demigods() -> Array:
+	var out := []
+	for id in SaveSerializer._a(SaveSerializer.read_json(unlocks_path), "demigods"):
+		if id is String and NpcLibrary.recruit_info(StringName(id)).get("demigod", false) and not out.has(StringName(id)):
+			out.append(StringName(id))
+	return out
+
+
+func is_demigod_unlocked(id: StringName) -> bool:
+	return unlocked_demigods().has(id)
+
+
+## A demigod joined: remembered for every later run.
+func unlock_demigod(id: StringName) -> void:
+	if not NpcLibrary.recruit_info(id).get("demigod", false) or is_demigod_unlocked(id):
+		return
+	var list := unlocked_demigods().map(func(x): return String(x))
+	list.append(String(id))
+	SaveSerializer.write_json(unlocks_path, { "version": SaveSerializer.FORMAT_VERSION, "demigods": list })
+	quests.messages.append("%s will remember you: from now on they wait on floor %d in every run." % [
+		NpcLibrary.get_npc(id).get("name", "?"), UNLOCKED_DEMIGOD_FLOOR])
 
 
 ## Party if there's room, then the reserve, then waiting at rest floors.
@@ -1201,10 +1260,51 @@ func dismiss(c: CharacterData) -> bool:
 	return true
 
 
+## Hired hands on a wage get paid every floor (what's owed first). Miss it
+## once: a warning. WAGE_GRACE floors in a row: they walk off and wait at a
+## campfire until you pay what you owe.
+func pay_wages() -> void:
+	for c in (companions + reserve).duplicate():
+		if c.wage <= 0:
+			continue
+		var due: int = c.wage + c.wage_owed
+		if player.gold >= due:
+			player.gold -= due
+			c.wage_owed = 0
+			c.wage_missed = 0
+			continue
+		c.wage_owed += c.wage
+		c.wage_missed += 1
+		if c.wage_missed >= WAGE_GRACE:
+			_walk_off(c)
+			quests.messages.append("%s wasn't paid again and walks off. (You owe %d gold.)" % [c.character_name, c.wage_owed])
+		else:
+			quests.messages.append("You couldn't pay %s (%d gold). Pay next floor or they'll leave." % [c.character_name, due])
+
+
+## An unpaid hire leaves for the campfires (like a dismissal, even on a locked floor).
+func _walk_off(c: CharacterData) -> void:
+	for slot in c.equipment.keys():
+		unequip_to_bag(c, slot)
+	companions.erase(c)
+	reserve.erase(c)
+	waiting.append(c)
+
+
+## Pay an unpaid hire what you owe (they'll come back). False if you can't.
+func pay_owed(c: CharacterData) -> bool:
+	if c == null or c.wage_owed <= 0 or player.gold < c.wage_owed:
+		return false
+	player.gold -= c.wage_owed
+	c.wage_owed = 0
+	c.wage_missed = 0
+	return true
+
+
 ## A waiting companion comes back: party if there's room, else the reserve.
-## False if locked or there's no room anywhere.
+## False if locked, there's no room anywhere, or you still owe them wages.
 func rejoin(c: CharacterData) -> bool:
-	if party_locked() or not waiting.has(c) or refuses_to_rejoin(c):
+	if party_locked() or not waiting.has(c) or refuses_to_rejoin(c) or c.wage_owed > 0:
 		return false
 	if companions.size() >= party_size() - 1 and reserve.size() >= RESERVE_CAP:
 		return false
@@ -1581,6 +1681,8 @@ func finish_battle(outcome: int, fighters: Array = []) -> void:
 		end_ironman_run()
 		return
 	last_battle_outcome = outcome
+	if fighters.size() > 1:
+		solo_run = false   # someone fought beside you
 	if outcome == BattleManager.Outcome.VICTORY and active_enemy_index >= 0 \
 			and active_enemy_index < floor_enemies.size():
 		var e: Dictionary = floor_enemies[active_enemy_index]

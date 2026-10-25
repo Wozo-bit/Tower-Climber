@@ -24,6 +24,8 @@ const REOFFER_FLOORS := 5
 const RIVAL_PENALTY := 15
 ## Most shrines on one rest floor (the most interested beings).
 const MAX_SHRINES := 3
+## A lone climber (nobody has fought beside you this run) draws the gods' eye.
+const SOLO_INTEREST := 5
 
 ## being id -> { "bonus": int, "scorned": bool, "refused_floor": int, "warned": bool }
 var beings: Dictionary = {}
@@ -48,6 +50,8 @@ func interest(id: StringName) -> int:
 		total += r.points_of(route_id)
 	for route_id in b.values.get("dislikes", []):
 		total -= r.points_of(route_id)
+	if GameState.solo_run and GameState.floor_number > 1:
+		total += SOLO_INTEREST
 	var blessed_by: StringName = GameState.player.blessing_id
 	if blessed_by != &"" and blessed_by != id and BeingLibrary.rivals_of(id).has(blessed_by):
 		total -= RIVAL_PENALTY   # jealous of the rival you chose

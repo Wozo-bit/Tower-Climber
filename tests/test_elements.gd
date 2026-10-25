@@ -13,6 +13,7 @@ var _failed := 0
 
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_elements"
+	GameState.unlocks_path = "user://test_saves_elements_unlocks.json"
 	test_resolve()
 	test_data_is_consistent()
 	test_attack_elements()

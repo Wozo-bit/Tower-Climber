@@ -57,6 +57,10 @@ var boss_hp_mult := 1.0
 ## A god's faith for miracles ({ "faith": n }; empty = no god in this fight).
 ## The player's unit gets the miracle skills. Written back after the fight.
 var faith_box: Dictionary = {}
+## The Lone Climber (solo clear) fighting alone: hits harder, takes less.
+var lone_climber := false
+## "X and Y fight as one!" lines for the log (bonds formed at setup).
+var start_lines: Array[String] = []
 ## HP for everyone else (GameState.normal_hp_mult, from the party size).
 var normal_hp_mult := 1.0
 ## Where element discoveries are written (GameState.bestiary). Optional.
@@ -88,6 +92,17 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 			for id in DivinityState.MIRACLES:
 				pu.skills.append(SkillLibrary.get_skill(id))
 		party.append(pu)
+	# Demigods who know each other fight better side by side.
+	var ids := party.map(func(u): return u.source_character.companion_id if u.source_character else &"")
+	for bond in NpcLibrary.bonds_among(ids):
+		for u in party:
+			if u.source_character and bond.pair.has(u.source_character.companion_id):
+				u.damage_dealt_mult *= NpcLibrary.BOND_DEALT
+		start_lines.append(bond.line)
+	if lone_climber and party.size() == 1:
+		party[0].damage_dealt_mult *= GameState.LONE_DEALT
+		party[0].damage_taken_mult *= GameState.LONE_TAKEN
+		start_lines.append("%s fights alone, as always." % party[0].display_name)
 	for e in enemy_defs:
 		var u := Combatant.from_enemy(e, enemy_scale)
 		var hp_mult := boss_hp_mult if e.is_boss or e.is_roaming else normal_hp_mult
