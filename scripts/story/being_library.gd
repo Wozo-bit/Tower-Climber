@@ -193,6 +193,28 @@ const DEFAULT_PUNISH := {
 	"devil": "(Placeholder) Contract void. %s collects the penalty.",
 }
 
+## TEMPER: how warlike a being is (0 = peaceful, 1 = lives for war). Your
+## patrons' temper (your blessing + your guild's patron) sets how often the
+## guilds around you go to war (GuildAI). A spec can override it with "temper".
+const TEMPER := {
+	&"odin": 0.6, &"thor": 0.7, &"loki": 0.85, &"hel": 0.4,
+	&"zeus": 0.6, &"athena": 0.35, &"hades": 0.3, &"typhon": 0.95,
+	&"ra": 0.4, &"anubis": 0.15, &"set": 0.8, &"apep": 0.9,
+	&"guan_yu": 0.5, &"sun_wukong": 0.7, &"yama": 0.2, &"baigujing": 0.6,
+	&"amaterasu": 0.45, &"susanoo": 0.8, &"inari": 0.1, &"shuten_doji": 0.85, &"tamamo": 0.5,
+	&"ishtar": 0.8, &"tiamat": 0.95, &"morrigan": 0.85,
+	&"mammon": 0.5, &"mephistopheles": 0.4,
+}
+const DEFAULT_TEMPER := { "god": 0.4, "demon": 0.7, "devil": 0.55 }
+
+
+static func temper_of(id: StringName) -> float:
+	var b := get_being(id)
+	if b.is_empty():
+		return 0.5
+	return clampf(float(b.get("temper", TEMPER.get(id, DEFAULT_TEMPER.get(b.get("kind", "god"), 0.5)))), 0.0, 1.0)
+
+
 const EFFECT_KEYS := ["stats", "element_power", "affinities", "gold_mult", "xp_mult", "price_mult", "regen_pct"]
 
 ## Live table: the base roster (expanded) plus anything DLC registered.
@@ -305,6 +327,8 @@ static func validate() -> PackedStringArray:
 				for k in lv.get(side, {}):
 					if not k in EFFECT_KEYS:
 						problems.append("%s: unknown effect '%s'" % [id, k])
+		if b.has("temper") and not (b.temper is float or b.temper is int):
+			problems.append("%s: temper must be a number 0-1" % id)
 		var bargain: Dictionary = b.get("bargain", {})
 		if bargain.has("quest") and QuestLibrary.get_quest(bargain.quest).is_empty():
 			problems.append("%s: bargain quest %s doesn't exist" % [id, bargain.quest])

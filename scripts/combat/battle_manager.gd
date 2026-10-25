@@ -51,6 +51,11 @@ var enemy_scale := 1.0
 var bestiary: Bestiary
 ## Gold actually paid to the leader by apply_rewards (after blessings), for taxes.
 var gold_given := 0
+## Difficulty / floor knobs (GameState.configure_battle sets them). Set BEFORE setup().
+## enemy_skill_mult: how often enemies use skills; xp_mult / gold_mult: rewards.
+var enemy_skill_mult := 1.0
+var xp_mult := 1.0
+var gold_mult := 1.0
 
 var _queue: Array[Combatant] = []
 
@@ -67,7 +72,9 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 	for c in party_chars:
 		party.append(Combatant.from_character(c))
 	for e in enemy_defs:
-		enemies.append(Combatant.from_enemy(e, enemy_scale))
+		var u := Combatant.from_enemy(e, enemy_scale)
+		u.skill_chance = clampf(u.skill_chance * enemy_skill_mult, 0.0, 1.0)
+		enemies.append(u)
 		if bestiary:
 			bestiary.record_seen(e)
 	_dedupe_enemy_names()
@@ -473,8 +480,8 @@ func _check_end() -> bool:
 		for e in enemies:
 			if bestiary:
 				bestiary.record_defeat(e.source_enemy)
-			rewards.xp += e.source_enemy.xp_reward
-			rewards.gold += e.source_enemy.gold_reward
+			rewards.xp += roundi(e.source_enemy.xp_reward * xp_mult)
+			rewards.gold += roundi(e.source_enemy.gold_reward * gold_mult)
 			var loot := LootTable.roll_enemy_loot(e.source_enemy, party_luck(), loot_level, rng,
 				party_classes(), owned_unique_classes)
 			rewards.gear.append_array(loot)
@@ -488,6 +495,9 @@ func _check_end() -> bool:
 				if rng.randf() < drop.get("chance", 1.0):
 					var id: StringName = drop.item
 					rewards.items[id] = rewards.items.get(id, 0) + drop.get("count", 1)
+			# Ordinary enemies sometimes carry a potion (healing between rest floors).
+			if not e.source_enemy.is_boss and rng.randf() < LootTable.NORMAL_POTION_DROP:
+				rewards.items[&"potion"] = rewards.items.get(&"potion", 0) + 1
 		_end(Outcome.VICTORY)
 		return true
 	if living(party).is_empty():

@@ -48,7 +48,7 @@ func test_new_game() -> void:
 	check(GameState.player.character_name == "Ophelius" and GameState.player.level == 1, "new game: named level-1 player")
 	check(GameState.companions.size() == 1 and GameState.companions[0].companion_id == &"childhood_friend"
 		and GameState.companions[0].level == 1, "starts with the childhood friend (lv 1)")
-	check(GameState.floor_number == 1 and GameState.inventory.count(&"potion") == 3, "floor 1 with starting items")
+	check(GameState.floor_number == 1 and GameState.inventory.count(&"potion") == GameState.STARTING_ITEMS[&"potion"], "floor 1 with starting items")
 	check(GameState.run_active and GameState.has_save(), "a real run, saved immediately")
 	check(GameState.player.legacy_id != "", "character gets a legacy id")
 	check(GameState.companions[0].character_name == GameState.CHILDHOOD_FRIEND_NAME, "friend gets the default name when left blank")
@@ -173,7 +173,7 @@ func test_new_game_plus() -> void:
 	check(weapon != null and weapon.rarity == Rarity.Tier.UNIQUE, "equipped Unique carries over")
 	check(p.get_equipped(GearItem.Slot.ARMOR) == null, "equipped non-Unique gear does not")
 	check(GameState.inventory.gear.size() == 1 and GameState.inventory.gear[0].class_lock == &"mage", "vaulted Unique lands in the bag; Legendary + quest Unique don't")
-	check(p.gold == 0 and GameState.inventory.count(&"goddess_tear") == 0 and GameState.inventory.count(&"potion") == 3, "gold and consumables reset")
+	check(p.gold == 0 and GameState.inventory.count(&"goddess_tear") == 0 and GameState.inventory.count(&"potion") == GameState.STARTING_ITEMS[&"potion"], "gold and consumables reset")
 	check(GameState.floor_number == 1 and GameState.story_flags.is_empty(), "tower progress and story flags reset")
 	check(GameState.companions.size() == 1 and GameState.companions[0].level == 1, "childhood friend rejoins at level 1")
 	check(GameState.childhood_friend().character_name == "Cassia", "and keeps the name you gave them")
@@ -196,7 +196,8 @@ func test_ascendant() -> void:
 		"the Tank-only Unique goes back to the bag on class change")
 	var raw := p.stats.get_base(Stats.Type.HEALTH) + p.stats.get_allocated(Stats.Type.HEALTH) + p.stats.get_gear_bonus(Stats.Type.HEALTH)
 	check(p.stats.get_total(Stats.Type.HEALTH) == roundi(raw * 1.2), "+20%% to every stat (Health %d -> %d)" % [raw, p.stats.get_total(Stats.Type.HEALTH)])
-	check(p.max_hp() == StatBlock.HP_BASE + p.stats.get_total(Stats.Type.HEALTH) * StatBlock.HP_PER_HEALTH and p.current_hp() == p.max_hp(),
+	check(p.max_hp() == StatBlock.HP_BASE + p.stats.get_total(Stats.Type.HEALTH) * StatBlock.HP_PER_HEALTH
+		+ CharacterData.HP_PER_LEVEL * (p.level - 1) and p.current_hp() == p.max_hp(),
 		"max HP uses the boosted Health (and current HP stays full)")
 	var u := Combatant.from_character(p)
 	check(u.skills.size() == 3, "3 skills (other classes have 2)")

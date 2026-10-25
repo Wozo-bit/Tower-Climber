@@ -20,6 +20,18 @@ extends Resource
 @export var slot: int = 1
 ## Ending ids this character has reached (RouteLibrary), across all their runs.
 @export var endings_seen: Array[StringName] = []
+## Hardest difficulty (Difficulty.Level) they've cleared on (-1 = none yet),
+## and whether they've cleared with Ironman on.
+@export var best_difficulty: int = -1
+@export var ironman_cleared: bool = false
+## Died in an Ironman run: remembered, but no New Game+ from them.
+@export var fallen: bool = false
+@export var fallen_floor: int = 0
+@export var fallen_difficulty: int = 1
+
+
+func can_continue() -> bool:
+	return not fallen and times_cleared > 0
 
 
 func display_name() -> String:
@@ -33,9 +45,15 @@ func class_display() -> String:
 
 ## One-line summary for lists: "Ophelius — Lv 24 Ashbound Knight — cleared 2x (NG+1)"
 func summary() -> String:
-	var s := "%s — Lv %d %s — cleared %dx" % [display_name(), character.level, class_display(), times_cleared]
-	if highest_cycle_cleared > 0:
-		s += " (up to NG+%d)" % highest_cycle_cleared
+	var s := "%s — Lv %d %s" % [display_name(), character.level, class_display()]
+	if times_cleared > 0:
+		s += " — cleared %dx" % times_cleared
+		if highest_cycle_cleared > 0:
+			s += " (up to NG+%d)" % highest_cycle_cleared
+		if best_difficulty >= 0:
+			s += " on %s" % Difficulty.label(best_difficulty, ironman_cleared)
+	if fallen:
+		s += " — FALLEN on floor %d (%s + Ironman)" % [fallen_floor, Difficulty.name_of(fallen_difficulty)]
 	return s
 
 

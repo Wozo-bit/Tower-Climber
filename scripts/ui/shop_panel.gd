@@ -137,7 +137,8 @@ static func price_of(shop: StringName, item: ItemDef) -> int:
 ## A guild shop's price: the item's price x the guild's markup x your discount.
 static func guild_price(id: StringName, item: ItemDef) -> int:
 	var g := GuildLibrary.get_guild(id)
-	return roundi(item.price * g.get("price_mult", 1.0) * (1.0 - GuildLibrary.RANK_DISCOUNT[GameState.guilds.rank]))
+	return roundi(item.price * g.get("price_mult", 1.0) * (1.0 - GuildLibrary.RANK_DISCOUNT[GameState.guilds.rank])
+		* GameState.difficulty_price_mult())
 
 
 ## Items in a guild's members' stock at your rank.
@@ -164,6 +165,8 @@ func _rebuild() -> void:
 		return
 	var stock: Array = guild_stock(guild_id) if guild_id != &"" else ItemLibrary.SHOPS[shop_id].stock
 	for id in stock:
+		if not GameState.for_sale(id):
+			continue   # e.g. no Scouting Lens on Hell
 		var item := ItemLibrary.get_item(id)
 		var price := guild_price(guild_id, item) if guild_id != &"" else price_of(shop_id, item)
 		var b := _row("%s — %s  (have %d)" % [item.display_name, item.description, GameState.inventory.count(id)])

@@ -21,6 +21,10 @@ const FLOORS_PER_STAGE := 10
 ## `miniboss_floors`: floor numbers WITHIN the stage (1 = first floor of it).
 ## `boss`: the encounter on the stage's last floor (boss first, escorts after).
 ## `hint`: what the merchant and wall scrawls say about this stage (placeholder).
+## `power`: (optional, default 1.0) how strong this theme's enemies are by
+##   their own stats, compared to the goblins. Floor scaling divides it out
+##   (and rewards with it), so any theme fits any slot: the floor sets the
+##   difficulty, the theme just changes who you fight.
 const THEMES := {
 	&"goblin_warrens": {
 		"name": "Goblin Warrens", "family": &"goblin",
@@ -55,7 +59,7 @@ const THEMES := {
 		"boss": [&"king_slime", &"bubble_slime", &"bubble_slime"],
 	},
 	&"orc_stronghold": {
-		"name": "Orc Stronghold", "family": &"orc",
+		"name": "Orc Stronghold", "family": &"orc", "power": 1.4,
 		"hint": "(Placeholder) Orc hide shrugs off a hammer, but a spear point or a hard frost gets through. Their shamans hate holy light.",
 		"early_encounters": [[&"orc_brute"]],
 		"encounters": [
@@ -146,14 +150,20 @@ const ROAMING_BOSSES := [
 ]
 
 
-## Minibosses/bosses are balanced by hand for their stage (scale 1.0). When the
-## stage list repeats (floor 30+ with 2 stages), they come back this much stronger.
-const GUARDIAN_SCALE_PER_REPEAT := 0.6
+## Minibosses and bosses (and their escorts) follow the same floor curve as
+## everyone else (GameState.enemy_scale_for_floor, about 1.0 at floor 10);
+## their own stats already make them the big fight. This multiplies it.
+## (Tuned with tools/balance_sim.)
+const GUARDIAN_MULT := 0.9
 
 
 static func guardian_scale(floor_n: int) -> float:
-	var repeat := (stage_number(floor_n) - 1) / STAGE_SLOTS.size()
-	return 1.0 + GUARDIAN_SCALE_PER_REPEAT * repeat
+	return GameState.enemy_scale_for_floor(floor_n) * GUARDIAN_MULT
+
+
+## How strong this floor's stage theme is by its own stats (THEMES "power").
+static func theme_power(floor_n: int) -> float:
+	return float(stage_for_floor(floor_n).get("power", 1.0))
 
 
 # =========================================================

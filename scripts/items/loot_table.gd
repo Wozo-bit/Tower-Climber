@@ -10,6 +10,9 @@ const X := GearItem.Slot.ACCESSORY
 
 const K := Element.Type
 
+## Chance an ordinary (non-boss) enemy drops a Potion when beaten.
+const NORMAL_POTION_DROP := 0.08
+
 ## Base item types. `stats` = the stats this item favours (primary lines).
 ## Weapons have a `kind` (Slash / Pierce / Blunt) that physical attacks use.
 const BASES := {

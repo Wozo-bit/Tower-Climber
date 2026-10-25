@@ -54,7 +54,7 @@ static func generate(seed_value: int, p_floor: int, p_rest: bool, p_guardian: bo
 
 
 static func enemy_count_for_floor(n: int) -> int:
-	return mini(3 + n / 2, 8)
+	return mini(2 + n / 5, 4)
 
 
 # =========================================================

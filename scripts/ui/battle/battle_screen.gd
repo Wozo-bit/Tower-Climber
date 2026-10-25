@@ -17,6 +17,8 @@ const COLOR_WEAK := Color(1, 0.45, 0.25)
 const COLOR_RESIST := Color(0.65, 0.65, 0.75)
 
 var battle: BattleManager
+## The characters in this fight (party + a guest captain), for Ironman deaths.
+var _fighters: Array = []
 var _cards: Dictionary = {}   # Combatant -> UnitCard
 
 # Targeting state
@@ -55,12 +57,9 @@ func _start_battle() -> void:
 		encounter = EnemyLibrary.random_test_encounter()
 
 	battle = BattleManager.new()
-	battle.enemy_scale = GameState.pending_enemy_scale
-	battle.inventory = GameState.inventory
-	battle.loot_level = GameState.floor_number
-	battle.owned_unique_classes = GameState.owned_unique_classes()
-	battle.bestiary = GameState.bestiary
+	GameState.configure_battle(battle)
 	var fighters := GameState.fighting_party()
+	_fighters = fighters.duplicate()
 	battle.setup(fighters, encounter)
 	battle.turn_started.connect(_on_turn_started)
 	battle.action_resolved.connect(_on_action_resolved)
@@ -222,9 +221,10 @@ func _on_battle_ended(outcome: int) -> void:
 			_result_label.text = "Defeat..."
 			if GameState.return_scene == GameState.TOWER_SCENE:
 				_result_label.text += "\nYou wake at floor %d, fully healed.\nLost %d%% of your gold." % [
-					GameState.checkpoint_floor, roundi(GameState.DEFEAT_GOLD_PENALTY * 100)]
+					GameState.checkpoint_floor, roundi(Difficulty.value(GameState.difficulty, "wipe_gold") * 100)]
 		BattleManager.Outcome.FLED:
 			_result_label.text = "Escaped!"
+	_announce_ironman_deaths(outcome)
 	if GameState.return_scene != "":
 		_add_result_button("Continue", _return)
 	else:
@@ -261,7 +261,23 @@ func _restart() -> void:
 
 
 func _return() -> void:
-	GameState.finish_battle(battle.outcome)
+	GameState.finish_battle(battle.outcome, _fighters)
+
+
+## Ironman: whoever is still down when the fight ends is gone for good.
+func _announce_ironman_deaths(outcome: int) -> void:
+	var dead := GameState.ironman_deaths(_fighters, outcome)
+	if dead.is_empty():
+		return
+	if dead.has(GameState.player):
+		_result_label.text = "You have fallen.\nThe climb ends here. (Ironman)"
+		return
+	for c in dead:
+		var l := Label.new()
+		l.text = "☠ %s has fallen. (Ironman)" % c.character_name
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+		_result_loot.add_child(l)
 
 
 # =========================================================

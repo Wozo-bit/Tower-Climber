@@ -10,11 +10,10 @@ extends RefCounted
 
 ## Generated bounties per rest-floor notice board.
 const BOUNTIES_PER_BOARD := 3
-## Bounty rewards per enemy asked for, plus a bit per floor.
-const BOUNTY_GOLD_PER_KILL := 10
-const BOUNTY_GOLD_PER_FLOOR := 2
-const BOUNTY_XP_PER_KILL := 15
-const BOUNTY_XP_PER_FLOOR := 2
+## Bounty rewards per enemy asked for, at floor 1. They grow with the floor
+## like battle rewards (about a fight and a half's worth for a typical job).
+const BOUNTY_GOLD_PER_KILL := 12
+const BOUNTY_XP_PER_KILL := 30
 
 ## id -> { "step": int, "progress": int }   (progress = defeat count on that step)
 var active: Dictionary = {}
@@ -338,8 +337,10 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 		label = EnemyLibrary.get_enemy(target).display_name + "s"
 	var n: int = goal.count
 	var id := StringName("bounty_%d_%d" % [floor_n, index])
-	var rewards := { "gold": n * (BOUNTY_GOLD_PER_KILL + BOUNTY_GOLD_PER_FLOOR * floor_n),
-		"xp": n * (BOUNTY_XP_PER_KILL + BOUNTY_XP_PER_FLOOR * floor_n) }
+	# Paid like battle rewards: they grow with the floor (GameState.reward_scale_for_floor).
+	var scale := GameState.reward_scale_for_floor(floor_n + 1)
+	var rewards := { "gold": roundi(n * BOUNTY_GOLD_PER_KILL * pow(scale, GameState.GOLD_REWARD_EXP)),
+		"xp": roundi(n * BOUNTY_XP_PER_KILL * scale) }
 	var title := "Bounty: %s" % label.capitalize()
 	var desc := "(Placeholder) Someone wants %d %s gone." % [n, label]
 	# Some jobs lean a route (the family bounty never does).

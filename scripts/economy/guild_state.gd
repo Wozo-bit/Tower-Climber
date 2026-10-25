@@ -121,6 +121,10 @@ const CAPTAIN_HOLD_XP := 150
 ## They join your fights on their territory's floors, but not stage bosses
 ## or minibosses (plan the party for those, as usual).
 const CAPTAIN_HELPS_GUARDIANS := false
+## Patrons and the wars around you (Hayden: a warlike patron drags you into
+## wars; rival beings' guilds feud with you, and those wars don't end in a
+## truce). Temper with no patron at all:
+const NEUTRAL_TEMPER := 0.5
 ## Ransom for a captured captain: base + per level.
 const RANSOM_BASE := 200
 const RANSOM_PER_LEVEL := 25
@@ -505,7 +509,7 @@ func _settle(w: Dictionary) -> void:
 		if w.defender == GuildLibrary.PLAYER_GUILD and captains.has(w.territory):
 			captains[w.territory].add_xp(CAPTAIN_HOLD_XP)
 			messages.append("Captain %s held the line! (+%d XP)" % [captains[w.territory].character_name, CAPTAIN_HOLD_XP])
-	elif w.ticks >= WAR_MAX_TICKS:
+	elif w.ticks >= WAR_MAX_TICKS and not is_feud_war(w):   # feuds are fought to the end
 		add_news("%s and %s call a truce." % [a, d], yours)
 	else:
 		return
@@ -853,6 +857,52 @@ func player_guild_income() -> void:
 	var income := held * (PLAYER_INCOME_BASE + roundi(player_guild.tax * PLAYER_INCOME_PER_TAX)) \
 		+ PLAYER_INCOME_PER_MEMBER * GameState.member_count() + CAPTAIN_INCOME * captains.size()
 	treasury[GuildLibrary.PLAYER_GUILD] = treasury_of(GuildLibrary.PLAYER_GUILD) + income
+
+
+# =========================================================
+# Your patrons: how warlike things get around you
+# =========================================================
+
+## Beings you answer to: the one who blessed you and your own guild's patron.
+func your_patrons() -> Array:
+	var out := []
+	for b in [GameState.player.blessing_id if GameState.player else &"", player_guild.get("patron", &"")]:
+		if b != &"" and BeingLibrary.beings.has(b) and not out.has(b):
+			out.append(b)
+	return out
+
+
+## 0..1: how warlike your patrons are (the most warlike one counts).
+func patron_temper() -> float:
+	var patrons := your_patrons()
+	if patrons.is_empty():
+		return NEUTRAL_TEMPER
+	var t := 0.0
+	for b in patrons:
+		t = maxf(t, BeingLibrary.temper_of(b))
+	return t
+
+
+## The guilds you stand with: the one you're in (your own, if you founded one).
+func your_side() -> Array:
+	return [member] if member != &"" else []
+
+
+## Guilds whose patron is a rival of one of your patrons: they feud with you.
+func feud_guilds() -> Array:
+	var out := []
+	for b in your_patrons():
+		for g in GuildLibrary.guilds:
+			if g != member and not out.has(g) and BeingLibrary.rivals_of(b).has(GuildLibrary.get_guild(g).get("patron", &"")):
+				out.append(g)
+	return out
+
+
+## A war between your side and a guild that feuds with you.
+func is_feud_war(w: Dictionary) -> bool:
+	var side := your_side()
+	var feuds := feud_guilds()
+	return (side.has(w.attacker) and feuds.has(w.defender)) or (side.has(w.defender) and feuds.has(w.attacker))
 
 
 # =========================================================

@@ -92,7 +92,7 @@ func test_defeat_sends_to_checkpoint() -> void:
 func test_enemy_scaling() -> void:
 	var def := EnemyLibrary.get_enemy(&"goblin")
 	var weak := Combatant.from_enemy(def, GameState.enemy_scale_for_floor(1))
-	var strong := Combatant.from_enemy(def, GameState.enemy_scale_for_floor(10))
+	var strong := Combatant.from_enemy(def, GameState.enemy_scale_for_floor(30))
 	check(weak.max_hp < def.max_hp and strong.max_hp > def.max_hp, "enemies scale with floor (%d / %d / %d HP)" % [weak.max_hp, def.max_hp, strong.max_hp])
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5
@@ -104,8 +104,9 @@ func test_enemy_scaling() -> void:
 
 
 func test_shop() -> void:
-	GameState.player.gold = 50
+	var price := GameState.shop_price(ItemLibrary.get_item(&"potion"))   # 40g, more during a guild war
+	GameState.player.gold = price + 10
 	var before := GameState.inventory.count(&"potion")
-	check(GameState.buy_item(&"potion") and GameState.player.gold == 10, "buy Potion for 40g")
+	check(GameState.buy_item(&"potion") and GameState.player.gold == 10, "buy a Potion (%dg)" % price)
 	check(GameState.inventory.count(&"potion") == before + 1, "potion added to bag")
 	check(not GameState.buy_item(&"potion"), "can't buy without gold")

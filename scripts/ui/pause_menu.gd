@@ -7,6 +7,7 @@ signal closed
 var _settings: SettingsPanel
 var _message: Label
 var _save_btn: Button
+var _difficulty_btn: Button
 
 
 func _init() -> void:
@@ -41,6 +42,7 @@ func _init() -> void:
 	_save_btn = _add(box, "Save Game", func():
 		_message.text = "Game saved." if GameState.save_game() else "Save failed!")
 	_add(box, "Settings", func(): _settings.open())
+	_difficulty_btn = _add(box, "Difficulty", _open_difficulty)
 	_add(box, "Quit to Title", func():
 		if GameState.run_active:
 			GameState.save_game()
@@ -65,6 +67,9 @@ func open() -> void:
 	_message.text = ""
 	_save_btn.disabled = not GameState.run_active
 	_save_btn.tooltip_text = "" if GameState.run_active else "Test sessions (dev sandbox) aren't saved."
+	_difficulty_btn.text = "Difficulty: %s" % Difficulty.label(GameState.difficulty, GameState.ironman)
+	_difficulty_btn.disabled = GameState.difficulty == Difficulty.Level.RELAXED
+	_difficulty_btn.tooltip_text = "Lower the difficulty for the rest of this run (it can't be raised again)."
 	GameState.clock_paused = true
 	show()
 
@@ -90,3 +95,31 @@ func _add(parent: Node, text: String, cb: Callable) -> Button:
 	b.pressed.connect(cb)
 	parent.add_child(b)
 	return b
+
+
+## Lower the difficulty (never raise it) for the rest of the run.
+func _open_difficulty() -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.title = "Lower the difficulty"
+	dlg.ok_button_text = "Lower it"
+	var box := VBoxContainer.new()
+	var l := Label.new()
+	l.text = "Currently: %s. You can lower it, but you can't raise it again this run." % Difficulty.name_of(GameState.difficulty)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 380
+	box.add_child(l)
+	var opt := OptionButton.new()
+	for level in Difficulty.all():
+		if level < GameState.difficulty:
+			opt.add_item(Difficulty.name_of(level), level)
+	box.add_child(opt)
+	dlg.add_child(box)
+	dlg.confirmed.connect(func():
+		if opt.item_count > 0 and GameState.set_difficulty(opt.get_selected_id()):
+			GameState.save_game()
+			_message.text = "Difficulty is now %s." % Difficulty.name_of(GameState.difficulty)
+			_difficulty_btn.text = "Difficulty: %s" % Difficulty.label(GameState.difficulty, GameState.ironman)
+		dlg.queue_free())
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()

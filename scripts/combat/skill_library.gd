@@ -34,7 +34,7 @@ const CLASS_SKILLS := {
 	&"oracle": [&"foresight", &"starfall"],
 }
 
-## Default basic attack per class. Classless characters punch things.
+## Default basic attack per class. Classless characters use attack_novice.
 const CLASS_BASIC_ATTACK := {
 	&"tank": &"attack_melee",
 	&"rogue": &"attack_melee",
@@ -58,6 +58,10 @@ static func _build() -> Dictionary:
 			{"damage_type": D.RANGED}),
 		SkillDef.make(&"attack_magic", "Magic Bolt", "A weak bolt of magic. Ignores rows, can't be dodged.",
 			{"damage_type": D.MAGIC, "power": 0.8}),
+		# Before a class (levels 1-9): uses your stronger of Strength or
+		# Intelligence, so a future mage isn't stuck punching.
+		SkillDef.make(&"attack_novice", "Attack", "A basic strike with your stronger of Strength or Intelligence.",
+			{"damage_type": D.MELEE, "adaptive": true}),
 
 		# --- Tank ---
 		SkillDef.make(&"shield_bash", "Shield Bash", "Heavy melee blow.",
@@ -347,6 +351,8 @@ static func skills_for_class(class_id: StringName) -> Array[SkillDef]:
 ## Advanced classes use their tier-1 class's basic attack and row.
 static func basic_attack_for_class(class_id: StringName) -> SkillDef:
 	var root := ClassRegistry.root_of(class_id) if class_id != &"" else class_id
+	if class_id == &"":
+		return get_skill(&"attack_novice")
 	return get_skill(CLASS_BASIC_ATTACK.get(class_id, CLASS_BASIC_ATTACK.get(root, &"attack_melee")))
 
 

@@ -17,16 +17,15 @@ const NG_PLUS_SCALE_PER_CYCLE := 0.5
 ## A rest floor (campfire + merchant, no enemies) every N floors.
 const REST_FLOOR_INTERVAL := 5
 ## Enemy HP/stat multiplier: floor 1 = 0.7, +0.08 per floor. Placeholder curve.
-const ENEMY_SCALE_BASE := 0.7
-const ENEMY_SCALE_PER_FLOOR := 0.08
+const ENEMY_SCALE_BASE := 0.42
+const ENEMY_SCALE_PER_FLOOR := 0.05
 ## Fraction of the leader's gold lost on a party wipe.
-const DEFEAT_GOLD_PENALTY := 0.2
 
 ## Bench size, and the share of battle XP benched members get.
 const RESERVE_CAP := 6
 const RESERVE_XP_SHARE := 0.5
 
-const STARTING_ITEMS :={ &"potion": 3, &"ether": 1 }
+const STARTING_ITEMS := { &"potion": 5, &"ether": 1 }
 ## Every run starts with your childhood friend (story canon). The player names
 ## them on the New Game screen; this is the default if they leave it blank.
 const CHILDHOOD_FRIEND_NAME := "Rowan"
@@ -84,6 +83,15 @@ var stage_themes: Array = []:
 # --- Run / meta ---
 ## 0 = normal game, 1 = first New Game+, ...
 var ng_plus_cycle := 0
+## Difficulty (Difficulty.Level): picked at New Game / New Game+, can only be
+## lowered during a run. Ironman: anyone still down when a fight ends is dead,
+## and the run ends if you die (the save is deleted, the Hall records it).
+var difficulty: int = Difficulty.DEFAULT
+var ironman := false
+## Companions lost in this Ironman run (names, for the Hall and the log).
+var fallen_companions: Array[String] = []
+## Set when an Ironman run has just ended (the title screen shows it).
+var ironman_ended_message := ""
 var play_time_sec := 0.0
 ## True during a real run (New Game / Continue / New Game+). False on the title
 ## screen and in the dev sandbox, so test sessions never overwrite your save.
@@ -178,6 +186,9 @@ func reset_run() -> void:
 	pending_talks = []
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
+	difficulty = Difficulty.DEFAULT
+	ironman = false
+	fallen_companions = []
 	play_time_sec = 0.0
 	pending_completion = false
 	clock_paused = false
@@ -188,8 +199,11 @@ func reset_run() -> void:
 
 ## Fresh run with a new level-1 character and their childhood friend, in `slot`.
 ## A blank `friend_name` uses the default (CHILDHOOD_FRIEND_NAME).
-func start_new_game(character_name: String, friend_name: String = "", slot: int = 1) -> void:
+func start_new_game(character_name: String, friend_name: String = "", slot: int = 1,
+		p_difficulty: int = Difficulty.DEFAULT, p_ironman := false) -> void:
 	reset_run()
+	difficulty = p_difficulty if Difficulty.is_valid(p_difficulty) else Difficulty.DEFAULT
+	ironman = p_ironman
 	current_slot = clampi(slot, 1, SLOT_COUNT)
 	player.rename(character_name)
 	player.legacy_id = _new_legacy_id()
@@ -213,8 +227,11 @@ func roll_stage_themes() -> void:
 ## Keeps level, stats and class, plus Unique gear (not questline rewards).
 ## Other gear, gold, consumables, tower progress and story flags reset, the
 ## childhood friend rejoins at level 1, and enemies get tougher each cycle.
-func start_new_game_plus(record: LegacyRecord, slot: int = -1) -> void:
+func start_new_game_plus(record: LegacyRecord, slot: int = -1, p_difficulty: int = Difficulty.DEFAULT,
+		p_ironman := false) -> void:
 	reset_run()
+	difficulty = p_difficulty if Difficulty.is_valid(p_difficulty) else Difficulty.DEFAULT
+	ironman = p_ironman
 	current_slot = clampi(slot, 1, SLOT_COUNT) if slot > 0 else ng_plus_slot_for(record)
 	player = record.character.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
 	player.gold = 0
@@ -316,6 +333,9 @@ func save_game() -> bool:
 		"highest_floor": highest_floor,
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
 		"ng_plus_cycle": ng_plus_cycle,
+		"difficulty": difficulty,
+		"ironman": ironman,
+		"fallen_companions": fallen_companions.duplicate(),
 		"bestiary": bestiary.to_dict(),
 		"quests": quests.to_dict(),
 		"route": route.to_dict(),
@@ -373,6 +393,11 @@ func load_game(slot: int = -1) -> bool:
 		if f is String:
 			story_flags[StringName(f)] = true
 	ng_plus_cycle = S._i(d, "ng_plus_cycle", 0, 0, 999)
+	difficulty = S._i(d, "difficulty", Difficulty.DEFAULT, 0, Difficulty.Level.HELL)
+	ironman = S._b(d, "ironman", false)
+	for n in S._a(d, "fallen_companions"):
+		if n is String:
+			fallen_companions.append(CharacterData.clean_name(n))
 	bestiary = Bestiary.from_dict(S._d(d, "bestiary"))
 	guilds = GuildState.from_dict(S._d(d, "guilds"))   # before quests: rescue quests live here
 	quests = QuestLog.from_dict(S._d(d, "quests"))
@@ -420,6 +445,11 @@ func load_legacy() -> LegacyBook:
 		r.best_play_time_sec = S._f(rd, "best_play_time_sec", 0.0, 0.0)
 		r.friend_name = CharacterData.clean_name(S._s(rd, "friend_name"))
 		r.slot = S._i(rd, "slot", 1, 1, SLOT_COUNT)
+		r.best_difficulty = S._i(rd, "best_difficulty", -1, -1, Difficulty.Level.HELL)
+		r.ironman_cleared = S._b(rd, "ironman_cleared", false)
+		r.fallen = S._b(rd, "fallen", false)
+		r.fallen_floor = S._i(rd, "fallen_floor", 0, 0, 100000)
+		r.fallen_difficulty = S._i(rd, "fallen_difficulty", Difficulty.DEFAULT, 0, Difficulty.Level.HELL)
 		for e in S._a(rd, "endings_seen"):
 			# Unknown ids are kept only if they look sane: a DLC ending may not be loaded right now.
 			if e is String and e.length() <= 64 and not r.endings_seen.has(StringName(e)):
@@ -443,6 +473,8 @@ func save_legacy(book: LegacyBook) -> bool:
 			"best_play_time_sec": r.best_play_time_sec, "friend_name": r.friend_name, "slot": r.slot,
 			"endings_seen": r.endings_seen.map(func(e): return String(e)),
 			"vault": r.vault.map(SaveSerializer.gear_to_dict),
+			"best_difficulty": r.best_difficulty, "ironman_cleared": r.ironman_cleared,
+			"fallen": r.fallen, "fallen_floor": r.fallen_floor, "fallen_difficulty": r.fallen_difficulty,
 		})
 	return SaveSerializer.write_json(legacy_path, { "version": SaveSerializer.FORMAT_VERSION, "records": records })
 
@@ -478,9 +510,35 @@ func record_completion() -> LegacyRecord:
 			rec.vault.append(g.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
 	rec.times_cleared += 1
 	rec.highest_cycle_cleared = maxi(rec.highest_cycle_cleared, ng_plus_cycle)
+	rec.best_difficulty = maxi(rec.best_difficulty, difficulty)
+	rec.ironman_cleared = rec.ironman_cleared or ironman
 	rec.last_cleared_at = now
 	if rec.best_play_time_sec <= 0.0 or play_time_sec < rec.best_play_time_sec:
 		rec.best_play_time_sec = play_time_sec
+	if not save_legacy(book):
+		push_error("Couldn't save the Hall of Climbers")
+	return rec
+
+
+## Ironman death: the character goes into the Hall as Fallen (no New Game+ from it).
+func record_fallen() -> LegacyRecord:
+	var book := load_legacy()
+	if player.legacy_id == "":
+		player.legacy_id = _new_legacy_id()
+	var rec := book.find(player.legacy_id)
+	if rec == null:
+		rec = LegacyRecord.new()
+		rec.legacy_id = player.legacy_id
+		book.records.append(rec)
+	rec.character = player.duplicate_deep(Resource.DEEP_DUPLICATE_ALL)
+	rec.slot = current_slot
+	rec.fallen = true
+	rec.fallen_floor = floor_number
+	rec.fallen_difficulty = difficulty
+	rec.last_cleared_at = Time.get_datetime_string_from_system(false, true)
+	var friend := childhood_friend()
+	if friend:
+		rec.friend_name = friend.character_name
 	if not save_legacy(book):
 		push_error("Couldn't save the Hall of Climbers")
 	return rec
@@ -514,6 +572,31 @@ func fighting_party() -> Array[CharacterData]:
 	return out
 
 
+## Lowers the difficulty mid-run (it can never be raised until New Game+).
+func set_difficulty(level: int) -> bool:
+	if not Difficulty.is_valid(level) or level > difficulty:
+		return false
+	difficulty = level
+	return true
+
+
+## Sets up a battle for this run: floor/difficulty enemy scale, rewards,
+## bag, loot level and bestiary (the battle screen and the simulator use it).
+func configure_battle(battle: BattleManager) -> void:
+	battle.enemy_scale = pending_enemy_scale
+	battle.enemy_skill_mult = Difficulty.value(difficulty, "ai")
+	var rewards := reward_scale_for_floor(floor_number)
+	if pending_battle_info.get("kind", "normal") in THEMED_KINDS:
+		rewards /= StageLibrary.theme_power(floor_number)   # their bigger rewards are scaled back too
+	battle.xp_mult = Difficulty.value(difficulty, "xp") * rewards
+	# Gold grows a little slower than XP, so shop prices still matter higher up.
+	battle.gold_mult = Difficulty.value(difficulty, "gold") * pow(rewards, GOLD_REWARD_EXP)
+	battle.inventory = inventory
+	battle.loot_level = floor_number
+	battle.owned_unique_classes = owned_unique_classes()
+	battle.bestiary = bestiary
+
+
 ## Player first, then companions, capped at MAX_PARTY_SIZE.
 func battle_party() -> Array[CharacterData]:
 	var out: Array[CharacterData] = [player]
@@ -543,6 +626,23 @@ func full_restore_party() -> void:
 ## Every 5th floor, except stage-boss floors (those get a campfire AFTER the boss).
 static func is_rest_floor(n: int) -> bool:
 	return n % REST_FLOOR_INTERVAL == 0 and not StageLibrary.is_boss_floor(n)
+
+
+## Normal enemy groups never outnumber your party by more than this
+## (groups are written for a full party; a pair meets smaller ones).
+const MAX_EXTRA_ENEMIES := 0
+## Fights against the stage theme's own enemies (StageLibrary "power" applies).
+const THEMED_KINDS := ["normal", "miniboss", "boss"]
+
+## Battle XP and gold grow with the enemies' strength (relative to floor 1),
+## to this power, so levelling and income keep pace higher up.
+const REWARD_EXP := 1.0
+## Gold's share of that growth (1.0 = same as XP).
+const GOLD_REWARD_EXP := 0.7
+
+
+static func reward_scale_for_floor(n: int) -> float:
+	return pow(enemy_scale_for_floor(n) / enemy_scale_for_floor(1), REWARD_EXP)
 
 
 static func enemy_scale_for_floor(n: int) -> float:
@@ -580,14 +680,20 @@ func current_layout() -> FloorLayout:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = floor_seed + 7919
 		floor_enemies.clear()
+		var max_group := battle_party().size() + MAX_EXTRA_ENEMIES
 		for spawn in layout.enemy_spawns:
-			floor_enemies.append({ "pos": spawn, "alive": true, "kind": "normal",
-				"group": EnemyLibrary.encounter_for_floor(n, rng) })
+			var group := EnemyLibrary.encounter_for_floor(n, rng)
+			group.resize(mini(group.size(), max_group))   # a small party meets smaller groups
+			floor_enemies.append({ "pos": spawn, "alive": true, "kind": "normal", "group": group })
 		if layout.guardian_spot.x >= 0:
 			var boss_floor := StageLibrary.is_boss_floor(n)
+			var group: Array[StringName] = StageLibrary.boss_for_floor(n) if boss_floor else StageLibrary.miniboss_for_floor(n)
+			var full_size := group.size()
+			group.resize(mini(full_size, maxi(1, max_group)))   # escorts match your party's size too
+			if boss_floor and Difficulty.is_hell(difficulty) and full_size > 1:
+				group.append(StageLibrary.boss_for_floor(n)[-1])   # Hell: stage bosses bring an extra escort
 			floor_enemies.append({ "pos": layout.guardian_spot, "alive": true,
-				"kind": "boss" if boss_floor else "miniboss",
-				"group": StageLibrary.boss_for_floor(n) if boss_floor else StageLibrary.miniboss_for_floor(n) })
+				"kind": "boss" if boss_floor else "miniboss", "group": group })
 		_maybe_spawn_roamer(layout, rng)
 		_maybe_spawn_guild_fighters(layout, rng)
 		floor_player_pos = layout.start
@@ -948,7 +1054,17 @@ func shop_price(item: ItemDef) -> int:
 	mult += player.effect_sum("price_mult")   # e.g. the Demon of Greed's curse
 	mult *= guilds.price_mult(floor_number)
 	mult *= guilds.buy_mult(GuildLibrary.territory_of(floor_number), GuildState.good_key(item.id))
-	return roundi(item.price * maxf(0.1, mult))
+	return roundi(item.price * maxf(0.1, mult) * difficulty_price_mult())
+
+
+## Hell: consumables cost more.
+func difficulty_price_mult() -> float:
+	return Difficulty.HELL_CONSUMABLE_PRICE if Difficulty.is_hell(difficulty) else 1.0
+
+
+## False for items traders won't sell on this difficulty (Hell: Scouting Lens).
+func for_sale(id: StringName) -> bool:
+	return not (Difficulty.is_hell(difficulty) and Difficulty.HELL_BANNED_ITEMS.has(id))
 
 
 # =========================================================
@@ -1110,6 +1226,13 @@ func stairs_locked() -> bool:
 
 
 func start_floor_battle(enemy_index: int) -> void:
+	prepare_floor_battle(enemy_index)
+	get_tree().change_scene_to_file(BATTLE_SCENE)
+
+
+## Sets up the fight with floor enemy `enemy_index` (encounter, scale, kind)
+## without changing scene. The balance simulator calls this directly.
+func prepare_floor_battle(enemy_index: int) -> void:
 	var e: Dictionary = floor_enemies[enemy_index]
 	var kind := enemy_kind(e)
 	# Minibosses and bosses are hand-tuned for their stage, so they use the
@@ -1117,8 +1240,10 @@ func start_floor_battle(enemy_index: int) -> void:
 	# scale with the floor.
 	var scale := StageLibrary.guardian_scale(floor_number) if kind == "miniboss" or kind == "boss" \
 		else enemy_scale_for_floor(floor_number)
-	scale *= ng_plus_scale(ng_plus_cycle)
-	start_battle(EnemyLibrary.build_group(e.group), TOWER_SCENE, scale, enemy_index,
+	scale *= ng_plus_scale(ng_plus_cycle) * Difficulty.value(difficulty, "enemy")
+	if kind in THEMED_KINDS:
+		scale /= StageLibrary.theme_power(floor_number)   # stronger themes get scaled back to the floor
+	set_pending_battle(EnemyLibrary.build_group(e.group), TOWER_SCENE, scale, enemy_index,
 		{ "kind": kind, "guild": e.get("guild", &""), "roamer_id": e.get("roamer_id", &"") })
 
 
@@ -1129,17 +1254,67 @@ func start_floor_battle(enemy_index: int) -> void:
 ## `enemy_index` = which floor enemy started it (-1 for test battles).
 func start_battle(encounter: Array[EnemyDef], return_to: String = "", scale: float = 1.0,
 		enemy_index: int = -1, info: Dictionary = {}) -> void:
+	set_pending_battle(encounter, return_to, scale, enemy_index, info)
+	get_tree().change_scene_to_file(BATTLE_SCENE)
+
+
+## The next battle's setup (read by the battle screen / configure_battle).
+func set_pending_battle(encounter: Array[EnemyDef], return_to: String, scale: float, enemy_index: int,
+		info: Dictionary) -> void:
 	active_enemy_index = enemy_index
 	pending_battle_info = info
 	pending_encounter = encounter
 	pending_enemy_scale = scale
 	return_scene = return_to
 	last_battle_outcome = -1
-	get_tree().change_scene_to_file(BATTLE_SCENE)
+
+
+## Ironman: who dies if this fight ends now (anyone in it still down).
+## `fighters` = the characters that fought (GameState.fighting_party()).
+func ironman_deaths(fighters: Array, outcome: int) -> Array:
+	if not ironman:
+		return []
+	if outcome == BattleManager.Outcome.DEFEAT:
+		return fighters.duplicate()
+	return fighters.filter(func(c): return c.is_downed())
+
+
+## Ironman: buries the fallen. Returns true if the run is over (you died).
+func apply_ironman_deaths(dead: Array) -> bool:
+	if dead.has(player):
+		return true
+	for c in dead:
+		for slot in c.equipment.keys():
+			unequip_to_bag(c, slot)
+		companions.erase(c)
+		reserve.erase(c)
+		for t in guilds.captains.keys():
+			if guilds.captains[t] == c:
+				guilds.captains.erase(t)
+		fallen_companions.append(c.character_name)
+		guilds.add_news("%s has fallen." % c.character_name)
+	return false
+
+
+## Ironman: you died. The Hall records it, the save is deleted, back to title.
+func end_ironman_run(to_title := true) -> void:
+	record_fallen()
+	ironman_ended_message = "%s has fallen on floor %d.\n\n(%s) The run is over: the save is gone, but the Hall of Climbers remembers." % [
+		player.character_name, floor_number, Difficulty.label(difficulty, ironman)]
+	delete_slot(current_slot)
+	run_active = false
+	pending_encounter = []
+	return_scene = ""
+	if to_title and is_inside_tree():
+		get_tree().change_scene_to_file(TITLE_SCENE)
 
 
 ## Called by the battle screen when the player leaves the result screen.
-func finish_battle(outcome: int) -> void:
+## `fighters` = who fought (for Ironman deaths).
+func finish_battle(outcome: int, fighters: Array = []) -> void:
+	if ironman and apply_ironman_deaths(ironman_deaths(fighters, outcome)):
+		end_ironman_run()
+		return
 	last_battle_outcome = outcome
 	if outcome == BattleManager.Outcome.VICTORY and active_enemy_index >= 0 \
 			and active_enemy_index < floor_enemies.size():
@@ -1181,7 +1356,7 @@ func finish_battle(outcome: int) -> void:
 
 ## Party wipe: lose some gold, wake up fully healed at the last rest floor.
 func handle_defeat() -> void:
-	var lost := roundi(player.gold * DEFEAT_GOLD_PENALTY)
+	var lost := roundi(player.gold * Difficulty.value(difficulty, "wipe_gold"))
 	player.gold -= lost
 	full_restore_party()
 	enter_floor(checkpoint_floor)

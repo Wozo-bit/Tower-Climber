@@ -7,6 +7,9 @@ enum Side { PARTY, ENEMY }
 enum Row { FRONT, BACK }
 
 const EVASIVE_DODGE_BONUS := 0.3
+## Every enemy's HP is multiplied by this (shorter fights = less attrition;
+## tuned with tools/balance_sim).
+const ENEMY_HP_MULT := 0.8
 
 ## Placeholder "sprite" colours for party members until real art exists.
 const CLASS_COLORS := {
@@ -98,7 +101,7 @@ static func from_enemy(def: EnemyDef, scale: float = 1.0) -> Combatant:
 	u.stats = StatBlock.new()
 	for stat in Stats.all():
 		u.stats.base[stat] = maxi(1, roundi(def.stats.get(stat, Stats.BASE_VALUE) * scale))
-	u.max_hp = maxi(1, roundi(def.max_hp * scale))
+	u.max_hp = maxi(1, roundi(def.max_hp * scale * ENEMY_HP_MULT))
 	u.hp = u.max_hp
 	u.max_mp = u.stats.max_mp()
 	u.mp = u.max_mp

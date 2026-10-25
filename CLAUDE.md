@@ -9,10 +9,28 @@ before changing gameplay.
 Building the **Skeleton** (every system working) before the **Meat** (story,
 quests, relationships). Don't write story content unless asked.
 
-Skeleton items still open: the balance pass (incl. bounty rewards, route
-thresholds, tier-2 skills, guild taxes/prices, market numbers, guild AI
-activity — raids happen nearly every floor right now). Selling gear, all 3
-guild phases and the art/sound hooks are DONE.
+The Skeleton is essentially DONE (selling gear, all 3 guild phases, art/sound
+hooks, guild captains, the balance pass). Deferred until the story exists:
+route thresholds (depend on how many choices the story gives) and per-skill
+tuning of tier-2 classes. Re-balance with tools/balance_sim after big changes.
+
+### Balance pass (2026-10-25, Hayden asleep for most of it — confirm with him)
+Hayden's targets: difficulty modes (Relaxed = story/dopamine, Normal = a
+couple of wipes, Hard = challenging but fair, Hell = manhwa grind), an
+IRONMAN toggle for any difficulty (anyone down after a fight is dead; you
+die -> save deleted, Hall records Fallen, no NG+), difficulty picked at New
+Game/NG+ and only LOWERED mid-run; clearing floors = enough XP (no grind);
+gold "meaningful choices"; guild world "something every few floors" with
+your patrons (blessing + own guild's patron) steering it: warlike patron ->
+more wars, rival patrons' guilds feud with you (no truce).
+Tool: tools/balance_sim.tscn (bot plays runs; "guilds" mode for the AI).
+Changes I made that Hayden should OK (flag them if he hasn't): +10 max HP per
+level (CharacterData.HP_PER_LEVEL); pre-class basic attack uses the higher
+of STR/INT (attack_novice); enemy groups capped at party size
+(MAX_EXTRA_ENEMIES 0) incl. guardian escorts; 5 starting potions + 8% potion
+drops; theme "power" (orcs 1.4) divided out of scaling; XP_BASE 100 -> 25;
+fewer fights per floor (2/3/4). The melee-only Slime Pits run (rogue+tank)
+is the one combo the bot can't clear on Normal (by Hayden's slime design).
 
 ### Art/sound hooks (built with Hayden 2026-10-24)
 Hayden has no art/music skills: plan is free commercial-safe assets (Kenney
@@ -223,7 +241,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (17 suites, 1022 checks at last run).
+Every change gets tests in tests/ (18 suites, 1067 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -234,7 +252,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens). All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

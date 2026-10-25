@@ -193,6 +193,8 @@ func test_reserve_xp() -> void:
 	GameState.bench(bo)
 	var w := _member("W")
 	GameState.waiting.append(w)
+	bo.level = 10   # so 40 XP doesn't level them up (and reset the XP counter)
+	bo.xp = 0
 	check(GameState.grant_reserve_xp(80) == 40 and bo.xp == 40, "reserve gets half the battle XP")
 	check(w.xp == 0, "waiting companions get none")
 	check(GameState.grant_reserve_xp(1) == 0, "rounds down")

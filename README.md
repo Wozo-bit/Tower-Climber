@@ -103,6 +103,9 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `assets/README.md` | **The drop-in guide:** every art and sound file name the game looks for. |
 | `tests/test_presentation.gd` | 77 checks: palettes, art and audio hooks, music choice, cut-ins, system notices, battle sounds, dialogue portraits, credits/licenses, your guild declaring war. Run: `godot --headless res://tests/test_presentation.tscn` |
 | `tests/test_screens.gd` | 12 smoke checks that open the real floor, battle and title screens and drive the hooks on them (including a captain joining a fight). Run: `godot --headless res://tests/test_screens.tscn` |
+| `scripts/data/difficulty.gd` | Difficulty modes (Relaxed / Normal / Hard / Hell). Ironman lives in `GameState`. |
+| `tools/balance_sim.gd` | The balance simulator (dev tool): a bot plays whole runs, or measures the guild world. See "What the balance simulator says". |
+| `tests/test_difficulty.gd` | 45 checks: difficulty choice and lowering, battle multipliers, Hell extras, wipes, Ironman deaths and the fallen, Hall records, patron temper and feuds, scaling rules. Run: `godot --headless res://tests/test_difficulty.tscn` |
 
 ## Dialogue, NPCs and recruiting
 - **Walk into** an NPC (coloured square with an initial), a lore object (diamond with **?**) or the merchant to talk. Choices are buttons; Enter/Space picks, and Esc works as "Next".
@@ -212,13 +215,18 @@ Open it with **Tab → Manage party**.
 - Saved with the run, reset in New Game+. DLC can add guilds with `GuildLibrary.register_guild()`.
 
 ### The guild AI, wars and theft
-- **The guilds think for themselves** (`scripts/economy/guild_ai.gd`; a local simulation, no online AI). Every floor you climb, every guild earns **60 gold per territory**, then (half the time) takes one action picked from its personality (greed, aggression, honor) and situation:
+- **The guilds think for themselves** (`scripts/economy/guild_ai.gd`; a local simulation, no online AI). Every floor you climb, every guild earns **60 gold per territory**, then (40% of the time) takes one action picked from its personality (greed, aggression, honor) and situation. Quiet trade is the usual pick; with no patron something makes the news about every 2 floors, and there are about 1.4 wars per 10 floors. The options:
   - **trade** (safe income)
   - **fortify** (defense, more likely when threatened)
   - **raid** another treasury (greedy guilds, rivals first; yours too)
   - **ally** (honorable guilds whose patrons share values)
   - **declare war** on a neighbor or rival for one of its territories (aggressive guilds)
   It's seeded per run and floor, so a run replays the same way.
+- **Your patrons steer the wars around you** (Hayden's design). Your patrons are the being who blessed you and your own guild's patron. Every being has a **temper** from calm to warlike (`BeingLibrary.TEMPER`: Inari 0.1, Anubis 0.15, Athena 0.35, Loki 0.85, Typhon and Tiamat 0.95; 0.5 with no patron).
+  - A warlike patron pulls the guild you're in toward war; a calm one keeps attackers away from your floors.
+  - **Feuds:** guilds whose patron is a **rival** of yours want war with your side above all else. For example, Ra's blessing puts Apep's Serpent Coil at your throat. Feud wars **never end in a truce**: they're fought until someone wins.
+  - A **newly founded guild** next door is a tempting target, so your own guild is attacked about once every 10 floors with no patron.
+  - Measured with `tools/balance_sim.tscn -- guilds`.
 - **Tower News:** everything goes in the news (Tab → Guilds shows the latest), big events (wars, territory changes, raids on your guild) pop up as toasts, and the merchant passes on rumors ("Heard any news?").
 - **Wars** are simulated every floor. Strength comes from treasury, territories, aggression, defenses and allies. At **+6** the attacker takes the territory, at **−6** the defender holds, and after 8 floors it's a truce. Prices in a contested territory are **20% higher** while it lasts.
 - **Fighting in a war:** if your guild is at war, or you've **hired on as a mercenary** with a warring guild's agent ("Need a sword in your war?"), the enemy's **guards** hunt you on the contested floors. Every guard group you beat swings the war **1.5** your way, and a champion swings it **4**. Mercenaries earn **40 gold per fight**, and the contract ends with the war.
@@ -377,10 +385,47 @@ Plan your party on floors 1–9 for the boss on floor 10.
 - **Goddess Tears** are rare. Bosses drop them, and the merchant sells them for 1500g (a Potion is 40g). The merchant also sells the Scouting Lens (200g, carry 3).
 - **Bosses and minibosses** can't be fled from; roaming bosses can. The sandbox has test buttons for all three kinds.
 - **Every 5th floor is a rest floor** (except boss floors), with a campfire, a merchant and no enemies. Reaching one makes it your checkpoint. Beating a stage boss also makes its floor your checkpoint.
-- **A party wipe** sends you back to your last checkpoint (floor 1 before your first rest floor), fully healed, and costs 20% of your gold.
+- **A party wipe** sends you back to your last checkpoint (floor 1 before your first rest floor), fully healed, and costs some gold (20% on Normal; see Difficulty).
 - **Enemies** wander around and chase you when you're within 5 tiles. Touching one starts the fight with its group; the number on an enemy is how many are in its group.
 - **Beating an enemy** removes it from the floor. **Fleeing** leaves it there, but it's stunned for a moment so you can get away.
-- **Enemy strength** scales with the floor: ×0.7 on floor 1, +0.08 per floor. Floors 1–3 have smaller groups.
+- **Enemies per floor:** 2 on floors 1–4, 3 on floors 5–9, then 4 (`FloorLayout.enemy_count_for_floor`).
+- **Group size follows your party:** a normal group never has more enemies than your party has members (`GameState.MAX_EXTRA_ENEMIES` = 0). Minibosses and bosses always come, but their escorts are trimmed the same way. The groups in `StageLibrary` are written for a full party of four.
+- **Enemy strength** scales with the floor: ×0.42 on floor 1, +0.05 per floor (×0.87 on floor 10, ×1.87 on floor 30). Minibosses and bosses follow the same curve (×0.9; `StageLibrary.GUARDIAN_MULT`). Every enemy's HP is also ×0.8 (`Combatant.ENEMY_HP_MULT`).
+- **Stage themes have a `power` rating** (Orc Stronghold 1.4: orcs are stronger than goblins by their own stats). Floor scaling and rewards are divided by it, so any theme fits any slot and the floor alone sets the difficulty.
+- **Rewards grow with the floor:** battle XP grows with enemy strength (×1 on floor 1, ×4.4 on floor 30), gold a little slower (to the power 0.7), so shop prices still matter higher up. Bounty rewards follow the same curve.
+- **Healing between rest floors:** you start with 5 Potions, ordinary enemies drop one 8% of the time (`LootTable.NORMAL_POTION_DROP`), and every level adds 10 max HP on top of Health (`CharacterData.HP_PER_LEVEL`).
+- **Before a class (levels 1–9)** the basic attack uses your stronger of Strength or Intelligence (`attack_novice`), so a future mage isn't stuck punching.
+
+## Difficulty and Ironman
+Picked at **New Game** (and again when starting **New Game+**). During a run you can **lower** it (pause menu → Difficulty) but never raise it.
+
+| | Enemies | Enemy skills | XP | Gold | Gold lost on a wipe | Extras |
+|---|---|---|---|---|---|---|
+| **Relaxed** | ×0.75 | ×0.75 | ×1.25 | ×1.25 | none | |
+| **Normal** | ×1 | ×1 | ×1 | ×1 | 20% | |
+| **Hard** | ×1.1 | ×1.15 | ×0.95 | ×0.9 | 25% | |
+| **Hell** | ×1.35 | ×1.4 | ×0.85 | ×0.75 | 40% | no Scouting Lens for sale, consumables ×1.5, stage bosses bring an extra escort |
+
+- **Ironman** is a checkbox that works with any difficulty and can't be turned off. Anyone still down when a fight ends is **dead**: companions are gone for good (their gear goes to the bag), and if **you** die, or the party is wiped out, the run is over. The save is deleted and the Hall of Climbers records the character as **Fallen on floor X** (no New Game+ from them).
+- The Hall shows the hardest difficulty each character has cleared on, and whether they did it on Ironman.
+- Numbers: `scripts/data/difficulty.gd`.
+
+### What the balance simulator says
+`tools/balance_sim.tscn` plays whole runs with a bot: it fights everything, uses weaknesses, heals, buffs, recruits, equips gear and shops, but never grinds. It also skips roaming bosses, and it doesn't use rows, Defend or Guard, so a real player should do somewhat better. 20 runs per difficulty after the balance pass:
+
+| | Runs cleared | Wipes per run (bot) | Party level reaching floor 10 / 20 / 30 |
+|---|---|---|---|
+| Relaxed | 20/20 | ~0.4 | 12 / 24 / 32 |
+| Normal | 20/20 | ~4.5 | 12 / 24 / 33 |
+| Hard | 20/20 | ~11 | 14 / 27 / 36 |
+| Hell | 14/20 (allowing 15 wipes a floor) | ~27 | 17 / 31 / 42 |
+
+Run it yourself (from the project folder):
+
+    godot --headless --path . res://tools/balance_sim.tscn -- runs=20 difficulty=all
+    godot --headless --path . res://tools/balance_sim.tscn -- runs=40 guilds
+
+Options: `difficulty=0..3` (Relaxed..Hell) or `all`, `runs=N`, `floors=N`, `max_wipes=N` (give up after this many wipes on one floor), `why` (print the last fights of runs that gave up), `debug` (print every fight). The `guilds` mode measures how busy the guild world is with different patrons.
 
 ## Stages, bosses & loot
 The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_library.gd`. Each stage has a **theme** (an enemy family), normal enemies and minibosses from that family, and a **boss on its last floor**. The structure is data, not a hard rule: you can change the number of floors per stage, how many minibosses a theme has, or which floors they're on. Floors past the last stage slot reuse the slots in order.
@@ -397,7 +442,7 @@ The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_
 
 - **Minibosses and bosses guard the stairs.** They don't move, the stairs stay locked until you win, and you can't flee.
 - **A boss floor is an arena** with no regular enemies. Beating the boss lights a **campfire** and brings the **merchant**, and that floor becomes your checkpoint. Normal **rest floors** are every 5th floor except boss floors (5, 15, 25…).
-- **Minibosses and bosses are tuned by hand for their stage** rather than scaled per floor. They come back 60% stronger each time the stage list repeats. Against the level-10 test party with no gear: Goblin Captain 100% wins, Hobgoblin 100%, Goblin King 65%, Labyrinth Minotaur 39%.
+- **Minibosses and bosses** have their own (bigger) stats and follow the same floor curve as everyone else (×0.9), so a repeated stage's bosses come back stronger on higher floors.
 - **Roaming bosses** are lore bosses that broke loose from their home floor. They only appear on normal combat floors, at most one per floor. They're faster than other enemies, chase from 8 tiles away, and have a pulsing purple ring. **You can flee from them**, and once beaten they're gone for good. Each one has a spawn type (set in `stage_library.gd`):
   - **Story** (keep to exactly one): guaranteed on every normal floor from its story floor onward, within its range, until you beat it. It can optionally wait for a story flag. *Labyrinth Minotaur:* escaped from floor 30, guaranteed from floor 7, roams floors 6–19.
   - **Secret**: the **final step of a secret-class questline**. It **never appears** until you've found the path's clues; after that it's **guaranteed** on normal floors in its range until you beat it. The HUD only says "Something stalks this floor". *Ashen Wyrmling:* escaped from floor 40, floors 12–29.
@@ -423,7 +468,11 @@ The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_
 - **Gear slots** are Weapon, Armor and Accessory. Gear stats don't count toward class requirements.
 
 ## Placeholder numbers to tune
-- XP curve: `100 * level^1.5` (`CharacterData.XP_BASE / XP_EXPONENT`)
+Most of these were set by the balance pass with `tools/balance_sim` (see Difficulty and Ironman). Re-run it after changing them.
+- XP curve: `25 * level^1.5` (`CharacterData.XP_BASE / XP_EXPONENT`), plus `HP_PER_LEVEL`
+- Difficulty modes: `scripts/data/difficulty.gd`
+- Enemy curve, rewards and group size: top of `game_state.gd` (`ENEMY_SCALE_*`, `REWARD_EXP`, `GOLD_REWARD_EXP`, `MAX_EXTRA_ENEMIES`); `Combatant.ENEMY_HP_MULT`; `StageLibrary.GUARDIAN_MULT` and each theme's `power`
+- Guild AI activity: top of `guild_ai.gd` (`ACT_CHANCE`, `*_WEIGHT`, `PATRON_PULL`, `FEUD_WAR_BONUS`, `UPSTART_WAR_BONUS`); beings' `TEMPER` in `being_library.gd`
 - Respec cost: 500 gold, doubling each paid respec (`RESPEC_BASE_COST / RESPEC_COST_MULTIPLIER`)
 - Derived stat rates: top of `stat_block.gd`
 - Combat math: top of `damage_calc.gd`

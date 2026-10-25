@@ -30,6 +30,8 @@ var _new_step2: VBoxContainer   # name your childhood friend
 var _friend_prompt: Label
 var _friend_warning: Label
 var _new_warning: Label
+var _new_difficulty: OptionButton
+var _new_ironman: CheckBox
 
 # New Game+ panel
 var _ng_panel: Control
@@ -39,6 +41,8 @@ var _ng_begin: Button
 var _ng_warning: Label
 var _ng_selected: LegacyRecord
 var _ng_group := ButtonGroup.new()
+var _ng_difficulty: OptionButton
+var _ng_ironman: CheckBox
 
 
 func _ready() -> void:
@@ -46,6 +50,13 @@ func _ready() -> void:
 	GameState.clock_paused = false
 	_build()
 	_refresh()
+	if GameState.ironman_ended_message != "":   # an Ironman run just ended
+		var dlg := AcceptDialog.new()
+		dlg.title = "Fallen"
+		dlg.dialog_text = GameState.ironman_ended_message
+		GameState.ironman_ended_message = ""
+		add_child(dlg)
+		dlg.popup_centered.call_deferred()
 
 
 func _refresh() -> void:
@@ -57,8 +68,9 @@ func _refresh() -> void:
 			used += 1
 	_save_info.text = "%d of %d save slots in use" % [used, GameState.SLOT_COUNT] if used > 0 else "No saved games"
 	var book := GameState.load_legacy()
-	_ngplus_btn.disabled = book.records.is_empty()
-	_ngplus_btn.tooltip_text = ("Climb again with a character from the Hall of Climbers." if not book.records.is_empty()
+	var can_ng := book.records.any(func(r): return r.can_continue())
+	_ngplus_btn.disabled = not can_ng
+	_ngplus_btn.tooltip_text = ("Climb again with a character from the Hall of Climbers." if can_ng
 		else "Conquer the tower (beat the floor %d boss) to unlock New Game+." % GameState.FINAL_FLOOR)
 	var first := _continue_btn if has_save else _menu.get_node("NewGame")
 	first.grab_focus.call_deferred()
@@ -217,7 +229,8 @@ func _confirm_player_name(_t: String = "") -> void:
 
 ## Step 2: start the run. A blank friend name uses the default.
 func _begin_new_game(_t: String = "") -> void:
-	GameState.start_new_game(_name_edit.text, _friend_edit.text, _new_game_slot)
+	GameState.start_new_game(_name_edit.text, _friend_edit.text, _new_game_slot,
+		_new_difficulty.get_selected_id(), _new_ironman.button_pressed)
 	get_tree().change_scene_to_file(GameState.TOWER_SCENE)
 
 
@@ -241,6 +254,7 @@ func _open_ng_plus() -> void:
 		b.button_group = _ng_group
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.text = rec.summary()
+		b.disabled = not rec.can_continue()   # the fallen are remembered, not continued
 		b.pressed.connect(_select_record.bind(rec))
 		_ng_list.add_child(b)
 	_ng_panel.show()
@@ -289,7 +303,7 @@ func _confirm_ng_plus_slot(slot: int) -> void:
 		"New Game+ with %s will use Save Slot %d, %s.\n\n%s\n\nContinue?" % [
 			rec.display_name(), slot, where, now_text],
 		func():
-			GameState.start_new_game_plus(rec, slot)
+			GameState.start_new_game_plus(rec, slot, _ng_difficulty.get_selected_id(), _ng_ironman.button_pressed)
 			get_tree().change_scene_to_file(GameState.TOWER_SCENE))
 
 
@@ -439,6 +453,9 @@ func _build_new_game_panel() -> void:
 	_name_edit.max_length = CharacterData.NAME_MAX_LENGTH
 	_name_edit.text_submitted.connect(_confirm_player_name)
 	_new_step1.add_child(_name_edit)
+	var picks := difficulty_picker(_new_step1)
+	_new_difficulty = picks[0]
+	_new_ironman = picks[1]
 	_new_warning = Label.new()
 	_new_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_new_warning.modulate = Color(1, 0.75, 0.4)
@@ -512,6 +529,9 @@ func _build_ng_plus_panel() -> void:
 	_ng_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_ng_detail.custom_minimum_size.y = 150
 	box.add_child(_ng_detail)
+	var picks := difficulty_picker(box)
+	_ng_difficulty = picks[0]
+	_ng_ironman = picks[1]
 	_ng_warning = Label.new()
 	_ng_warning.modulate = Color(1, 0.75, 0.4)
 	_ng_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -557,6 +577,38 @@ func _overlay_panel(width: float) -> VBoxContainer:
 	margin.add_child(box)
 	box.set_meta("overlay", overlay)
 	return box
+
+
+## Difficulty dropdown (with a description) + the Ironman checkbox.
+## Returns [OptionButton, CheckBox].
+static func difficulty_picker(parent: Control) -> Array:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	parent.add_child(row)
+	var l := Label.new()
+	l.text = "Difficulty"
+	row.add_child(l)
+	var opt := OptionButton.new()
+	for level in Difficulty.all():
+		opt.add_item(Difficulty.name_of(level), level)
+	opt.select(opt.get_item_index(Difficulty.DEFAULT))
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(opt)
+	var desc := Label.new()
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.custom_minimum_size.x = 440
+	desc.add_theme_font_size_override("font_size", 13)
+	desc.modulate = Color(1, 1, 1, 0.65)
+	desc.text = Difficulty.desc_of(Difficulty.DEFAULT) + "\nYou can lower it later, but never raise it."
+	opt.item_selected.connect(func(i):
+		desc.text = Difficulty.desc_of(opt.get_item_id(i)) + "\nYou can lower it later, but never raise it.")
+	parent.add_child(desc)
+	var iron := CheckBox.new()
+	iron.text = "Ironman: anyone still down after a fight is dead; if you die, the save is deleted."
+	iron.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	iron.custom_minimum_size.x = 440
+	parent.add_child(iron)
+	return [opt, iron]
 
 
 func _menu_button(text: String, cb: Callable) -> Button:

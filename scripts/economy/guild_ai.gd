@@ -17,7 +17,7 @@ extends RefCounted
 
 const INCOME_PER_TERRITORY := 60
 ## Chance a guild does anything at all on a given floor (beyond income).
-const ACT_CHANCE := 0.5
+const ACT_CHANCE := 0.4
 const TRADE_GOLD := 120
 const FORTIFY_COST := 200
 const MAX_DEFENSE := 5
@@ -25,6 +25,19 @@ const RAID_SHARE := 0.08
 const RAID_MIN_TREASURY := 300
 const WAR_COST := 600
 const NOISE := 0.3
+## Base utilities of each action (tuned with tools/balance_sim "guilds" mode:
+## with no patron, something notable every 2-4 floors and 1-2 wars per 10).
+const TRADE_WEIGHT := 0.6
+const FORTIFY_WEIGHT := 0.0
+const RAID_WEIGHT := -0.35
+const WAR_WEIGHT := 0.0
+const ALLY_WEIGHT := 0.15
+## Your patron's temper pulls the guild you're in toward (or away from) war.
+const PATRON_PULL := 0.6
+## Guilds that feud with your patrons want war with your side this much more.
+const FEUD_WAR_BONUS := 0.5
+## A guild next to your new guild is tempted to take its floors.
+const UPSTART_WAR_BONUS := 0.2
 
 
 ## One tick for every guild. `rng` should be seeded per run + floor so a run
@@ -50,16 +63,26 @@ static func _act(gs: GuildState, g: StringName, rng: RandomNumberGenerator) -> v
 	var greed: float = p.get("greed", 0.5)
 	var aggression: float = p.get("aggression", 0.5)
 	var honor: float = p.get("honor", 0.5)
+	var temper := gs.patron_temper()
+	var feud := gs.feud_guilds().has(g)
+	if gs.your_side().has(g):   # your patron's mood rubs off on your guild
+		aggression = lerpf(aggression, temper, PATRON_PULL)
 	var options := {}
-	options["trade"] = 0.5 + (1.0 - greed) * 0.3
-	options["fortify"] = 0.25 + (0.5 if gs.is_at_war(g) else 0.0) \
+	# Quiet business (trade) is the usual choice; the rest makes the news.
+	options["trade"] = TRADE_WEIGHT + (1.0 - greed) * 0.3
+	options["fortify"] = FORTIFY_WEIGHT + (0.5 if gs.is_at_war(g) else 0.0) \
 		if gs.treasury_of(g) >= FORTIFY_COST and gs.defense_of(g) < MAX_DEFENSE else -1.0
 	var raid_target := _raid_target(gs, g)
-	options["raid"] = greed * 0.8 + aggression * 0.2 - honor * 0.4 if raid_target != &"" else -1.0
+	options["raid"] = RAID_WEIGHT + greed * 0.8 + aggression * 0.2 - honor * 0.6 if raid_target != &"" else -1.0
 	var war_target := _war_target(gs, g)
-	options["war"] = aggression * 0.9 - honor * 0.2 if war_target.size() == 2 and gs.treasury_of(g) >= WAR_COST else -1.0
+	options["war"] = WAR_WEIGHT + aggression * 0.9 - honor * 0.2 \
+		if war_target.size() == 2 and gs.treasury_of(g) >= WAR_COST else -1.0
+	if options["war"] >= 0.0 and gs.your_side().has(war_target[0]):
+		# Attacking you: a calm patron keeps them off, a warlike one invites it; feuds come anyway.
+		options["war"] = options["war"] * (0.5 + temper) + (FEUD_WAR_BONUS if feud else 0.0) \
+			+ (UPSTART_WAR_BONUS if war_target[0] == GuildLibrary.PLAYER_GUILD else 0.0)
 	var ally := _ally_target(gs, g)
-	options["ally"] = honor * 0.5 if ally != &"" else -1.0
+	options["ally"] = ALLY_WEIGHT + honor * 0.5 if ally != &"" else -1.0
 	var best := ""
 	var best_u := -INF
 	for a in options:
@@ -105,6 +128,7 @@ static func _war_target(gs: GuildState, g: StringName) -> Array:
 	if gs.is_at_war(g):
 		return []
 	var mine := gs.territories_of(g)
+	var feud := gs.feud_guilds().has(g)
 	var candidates := []
 	for t in gs.owners.size():
 		var owner: StringName = gs.owners[t]
@@ -112,7 +136,11 @@ static func _war_target(gs: GuildState, g: StringName) -> Array:
 			continue
 		var rival := GuildLibrary.rivals_of(g).has(owner)
 		var near := mine.any(func(m): return absi(m - t) == 1)
-		if rival or near:
+		if feud and gs.your_side().has(owner):
+			candidates.append([owner, t, 3])   # a feud: your floors first
+		elif near and owner == GuildLibrary.PLAYER_GUILD:
+			candidates.append([owner, t, 2])   # an upstart guild next door is tempting
+		elif rival or near:
 			candidates.append([owner, t, 2 if rival else 1])
 	if candidates.is_empty():
 		return []

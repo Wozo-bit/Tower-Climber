@@ -20,7 +20,9 @@ const STARTING_SKILL_PICKS := 1
 const SKILL_PICK_EVERY := 3        # levels 3, 6, 9, 12, ...
 
 # --- XP curve (placeholder) ---
-const XP_BASE := 100
+const XP_BASE := 25
+## Max HP every level gives on top of Health (see max_hp()).
+const HP_PER_LEVEL := 10
 const XP_EXPONENT := 1.5
 
 # --- Respec rules ---
@@ -261,8 +263,10 @@ func all_skills() -> Array[SkillDef]:
 # HP / MP (persistent between battles)
 # =========================================================
 
+## Stats decide most of your HP; every level adds a little on top, so
+## levelling up always makes you sturdier (balance pass).
 func max_hp() -> int:
-	return stats.max_hp()
+	return stats.max_hp() + HP_PER_LEVEL * (level - 1)
 
 
 func max_mp() -> int:

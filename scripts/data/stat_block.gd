@@ -5,7 +5,7 @@ extends Resource
 ## thresholds ignore base stats, and lets a respec refund exactly what was spent.
 
 # --- Balance knobs for derived stats (placeholders until combat math is designed) ---
-const HP_BASE := 50
+const HP_BASE := 80
 const HP_PER_HEALTH := 10
 const MP_BASE := 10
 const MP_PER_INTELLIGENCE := 3
