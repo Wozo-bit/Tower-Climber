@@ -118,7 +118,7 @@ placeholders to confirm with Hayden. Hayden wants
 3-5 advancements over 100 floors: add tiers as gates + classes when the
 tower grows.
 Hayden will send tweaks to the enemy family table after playing it.
-Balance pass 2 (2026-10-25, NOT yet approved by Hayden): normal enemy HP
+Balance pass 2 (2026-10-25, approved by Hayden: "real players do better than the bot"): normal enemy HP
 follows party slots (NORMAL_PARTY_EXP 0.5), curve +0.02/floor past 40.
 Sim: Relaxed 20/20, Normal 17/20, Hard 10/20, Hell 9/20 (README table).
 
