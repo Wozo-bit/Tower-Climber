@@ -22,7 +22,13 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
   - **Stance:** Aggressive, Defensive, Greedy or Devout leans the guild's AI each floor.
   - **Tithes:** every floor each sponsored guild pays 3 faith per territory and a quarter of its territory income in gold.
   - Your own god is in your run's roster (so guilds can take you as patron) but never courts you. Every guild gets its own patron back in a new run.
-- `scripts/story/domain_library.gd` holds the domains (placeholder names and text; DLC can `register_domain`). Still to come: blessing people, warnings / smiting / revoking, miracles, champions fighting for you, rival gods reacting.
+  - **Your values judge your guilds:** each domain approves and forbids guild actions (e.g. Mercy approves alliances, forbids wars and raids). A sponsored guild gains favor (+3) or loses it (-6) for what it does each floor: at -5 it's **warned**, at -15 you **punish** it automatically (-20% treasury, -1 defense) and it starts over.
+  - **Smite** any guild (40 faith): -25% treasury, -1 defense, its wars swing against it; its patron takes offence. **Revoke** a contract: the guild returns to its old patron and feuds with you as a **renegade** for the rest of the run (sign it again to end the feud).
+  - **Bless people** (40 faith): party and reserve members can take your domain's blessing (buff, curse and skill) at your divinity level, growing with it. Anyone whose values clash with your domain refuses.
+  - **Miracles:** in battle the god has Miracle: Mend (party heal 30%), Wrath (huge holy hit) and Aegis (party ward), paid in **faith**, not MP (`SkillDef.faith_cost`).
+  - **Champions:** on floors held by a guild you sponsor, its champion fights miniboss and boss fights beside you (a guest; never an Ironman loss).
+  - **Other gods react by values:** like-minded gods warm to you once per run; rivals (opposite values, plus patrons you spurned) feud with your guilds, a jealous rival curses you for 5 floors whenever your divinity grows, and bosses sponsored by a rival have 15% more HP.
+- `scripts/story/domain_library.gd` holds the domains, `scripts/story/divinity_state.gd` everything you do as a god (placeholder names, text and numbers; DLC can `register_domain`).
 
 ## Saving, the Hall of Climbers and New Game+
 - **Autosave** happens when a run starts, on every floor, after every battle and at campfires. You can also save from the pause menu. Slots are `user://saves/slot_1.json` to `slot_3.json`.
@@ -119,7 +125,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tools/balance_sim.gd` | The balance simulator (dev tool): a bot plays whole runs, or measures the guild world. See "What the balance simulator says". |
 | `tests/test_recruits.gd` | 33 checks: the roster data, campfire/hire/favor/rescue/captive meetings, wanderers, route refusals, loyalty quests and personal skills, saving. Run: `godot --headless res://tests/test_recruits.tscn` |
 | `tests/test_stages.gd` | 19 checks: every theme's data, the 60-floor ladder and the non-repeating pseudo-god slots, boss patrons (blessing, sensitivity rule, interest), the new traits, signature books. Run: `godot --headless res://tests/test_stages.tscn` |
-| `tests/test_divinity.gd` | 58 checks: domains, apotheosis, past gods as beings in other runs (offers, skill, rivals, never courting themselves), saves and tampered Hall records; climbing as a god: faith, levels, contracts, spurned patrons, boons/curses, stances, tithes, your own guild, saving and tampering. Run: `godot --headless res://tests/test_divinity.tscn` |
+| `tests/test_divinity.gd` | 88 checks: domains, apotheosis, past gods as beings in other runs (offers, skill, rivals, never courting themselves), saves and tampered Hall records; climbing as a god: faith, levels, contracts, spurned patrons, boons/curses, stances, tithes, your own guild, saving and tampering; judging guilds, smite/revoke, blessing people, miracles, champions, rival gods. Run: `godot --headless res://tests/test_divinity.tscn` |
 | `tests/test_demigods.gd` | 39 checks: demigod classes and recruits, pantheon omens, the legend chain, summons, Fury, NG+ Ascension, the Ascendant's gate skills, saving and tampering. Run: `godot --headless res://tests/test_demigods.tscn` |
 | `tests/test_difficulty.gd` | 45 checks: difficulty choice and lowering, battle multipliers, Hell extras, wipes, Ironman deaths and the fallen, Hall records, patron temper and feuds, scaling rules. Run: `godot --headless res://tests/test_difficulty.tscn` |
 
