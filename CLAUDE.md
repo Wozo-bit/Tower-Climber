@@ -14,7 +14,7 @@ hooks, guild captains, the balance pass). Deferred until the story exists:
 route thresholds (depend on how many choices the story gives) and per-skill
 tuning of tier-2 classes. Re-balance with tools/balance_sim after big changes.
 
-### Balance pass (2026-10-25, Hayden asleep for most of it — confirm with him)
+### Balance pass (2026-10-25; Hayden approved all changes below)
 Hayden's targets: difficulty modes (Relaxed = story/dopamine, Normal = a
 couple of wipes, Hard = challenging but fair, Hell = manhwa grind), an
 IRONMAN toggle for any difficulty (anyone down after a fight is dead; you
@@ -24,7 +24,7 @@ gold "meaningful choices"; guild world "something every few floors" with
 your patrons (blessing + own guild's patron) steering it: warlike patron ->
 more wars, rival patrons' guilds feud with you (no truce).
 Tool: tools/balance_sim.tscn (bot plays runs; "guilds" mode for the AI).
-Changes I made that Hayden should OK (flag them if he hasn't): +10 max HP per
+Design-level changes (approved by Hayden 2026-10-25): +10 max HP per
 level (CharacterData.HP_PER_LEVEL); pre-class basic attack uses the higher
 of STR/INT (attack_novice); enemy groups capped at party size
 (MAX_EXTRA_ENEMIES 0) incl. guardian escorts; 5 starting potions + 8% potion
