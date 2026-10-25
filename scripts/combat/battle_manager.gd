@@ -4,10 +4,12 @@ extends RefCounted
 ## the UI (or a test) drives it by calling advance() for AI turns and
 ## submit() for player turns, and listens to the signals.
 ##
-## ROW RULES
-## - Melee attacks can't target a back-row unit while its side has a living
-##   front-row unit (unless the skill ignores rows, e.g. Backstab).
-## - Melee attacks made FROM the back row deal 50% damage.
+## ROW RULES (4 rows: Front, Middle, Rear, Back)
+## - Single-target melee only reaches the nearest row that still has someone
+##   standing: a Middle unit is safe while its Front row lives, and so on
+##   (unless the skill ignores rows, e.g. Backstab).
+## - Melee made FROM further back deals less (DamageCalc.MELEE_ROW_MULT:
+##   100% / 90% / 70% / 50%).
 ## - Ranged and magic ignore rows entirely.
 ##
 ## TURN ORDER
@@ -197,12 +199,10 @@ static func living(units: Array[Combatant]) -> Array[Combatant]:
 	return out
 
 
-## True if `target` is in the back row and shielded by a living front row.
+## True if someone on `target`'s side stands in a row in front of it.
 func is_protected(target: Combatant) -> bool:
-	if target.row != Combatant.Row.BACK:
-		return false
 	for ally in allies_of(target):
-		if ally.is_alive() and ally.row == Combatant.Row.FRONT:
+		if ally.is_alive() and ally.row < target.row:
 			return true
 	return false
 
@@ -249,7 +249,11 @@ func submit(action: BattleAction) -> bool:
 			current.add_status(&"defend", 1)
 			result.text = "%s defends." % current.display_name
 		BattleAction.Type.SWAP_ROW:
-			current.row = Combatant.Row.BACK if current.row == Combatant.Row.FRONT else Combatant.Row.FRONT
+			# A chosen row (action.row), else the next one back (wrapping to the front).
+			var to := action.row if action.row >= 0 else (current.row + 1) % Combatant.Row.size()
+			if to == current.row or to < 0 or to >= Combatant.Row.size():
+				return false
+			current.row = to
 			if current.source_character:
 				current.source_character.battle_row = current.row
 			result.text = "%s moves to the %s row." % [current.display_name, current.row_name().to_lower()]

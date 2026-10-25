@@ -1,7 +1,10 @@
 extends Control
-## FF-style battle screen with front/back rows.
+## FF-style battle screen (Hayden 2026-10-25): a flat battlefield on top,
+## four rows a side, and a menu window along the bottom.
 ##
-##   [enemy back] [enemy front]      [party front] [party back]
+##   [round · turn order ......................................]
+##   [Back][Rear][Middle][Front]        [Front][Middle][Rear][Back]
+##   [ commands | skills / items / rows, or the log | party status ]
 ##
 ## Flow: AI turns play automatically with a short delay; on a party turn the
 ## command menu appears. Pick a command -> (pick a target) -> it resolves.
@@ -28,14 +31,19 @@ var _pending_item: ItemDef
 # UI refs
 var _turn_strip: HBoxContainer
 var _round_label: Label
-var _cols := {}               # "enemy_back", "enemy_front", "party_front", "party_back" -> GridContainer
+var _cols := {}               # "enemy_0".."enemy_3", "party_0".."party_3" (Combatant.Row) -> GridContainer
 ## The battlefield and the space it has (it's scaled down to fit, never scrolled).
 var _field: HBoxContainer
 var _field_area: Control
-## Cards stacked in one column before a row wraps into another column.
-const CARDS_PER_COLUMN := 2
+## Units stacked in one lane before it wraps into another column.
+const CARDS_PER_COLUMN := 4
+## Party status list: one column up to this many members, then two.
+const STATUS_ONE_COLUMN_MAX := 5
 var _command_box: VBoxContainer
 var _skill_box: VBoxContainer
+## The menu window's middle pane shows the skill/item/row list, or the log.
+var _sub_pane: Control
+var _status_grid: GridContainer
 var _prompt: Label
 var _log: RichTextLabel
 var _result_panel: PanelContainer
@@ -119,10 +127,9 @@ func _layout_cards() -> void:
 			if child is UnitCard:
 				col.remove_child(child)
 	for u in _cards:
-		var key := ("party_" if u.side == Combatant.Side.PARTY else "enemy_") \
-			+ ("front" if u.row == Combatant.Row.FRONT else "back")
+		var key := ("party_" if u.side == Combatant.Side.PARTY else "enemy_") + str(u.row)
 		_cols[key].add_child(_cards[u])
-	# A crowded row wraps into more columns (2 cards tall at most)...
+	# A crowded row wraps into more columns (CARDS_PER_COLUMN tall at most)...
 	for grid: GridContainer in _cols.values():
 		grid.columns = maxi(1, ceili(grid.get_child_count() / float(CARDS_PER_COLUMN)))
 	# ...and if the whole field still doesn't fit, it shrinks to fit. No scrolling.
@@ -343,7 +350,7 @@ func _cmd_skills() -> void:
 		b.disabled = not actor.can_afford(s) or battle.valid_targets(actor, s).is_empty()
 		b.pressed.connect(_begin_skill.bind(s))
 		_skill_box.add_child(b)
-	_skill_box.show()
+	_open_submenu()
 
 
 func _cmd_items() -> void:
@@ -362,11 +369,11 @@ func _cmd_items() -> void:
 		_set_icon(b, Assets.texture("items", item.id))
 		b.pressed.connect(_begin_item.bind(item))
 		_skill_box.add_child(b)
-	_skill_box.show()
+	_open_submenu()
 
 
 func _begin_item(item: ItemDef) -> void:
-	_skill_box.hide()
+	_close_submenu()
 	_pending_skill = null
 	_pending_item = item
 	var valid: Array[Combatant] = []
@@ -391,6 +398,7 @@ func _highlight_targets(valid: Array[Combatant]) -> void:
 			card.set_highlight(UnitCard.Highlight.ACTIVE)
 		else:
 			card.set_highlight(UnitCard.Highlight.DIMMED)
+	_refresh_status()   # party rows in the menu window are clickable targets too
 
 
 func _cmd_simple(type: int) -> void:
@@ -399,7 +407,7 @@ func _cmd_simple(type: int) -> void:
 
 
 func _begin_skill(skill: SkillDef) -> void:
-	_skill_box.hide()
+	_close_submenu()
 	var actor := battle.current
 	if not skill.is_single_target():
 		battle.submit(BattleAction.use_skill(actor, skill))
@@ -426,7 +434,7 @@ func _on_card_clicked(u: Combatant) -> void:
 func _cancel_targeting() -> void:
 	_pending_skill = null
 	_pending_item = null
-	_skill_box.hide()
+	_close_submenu()
 	_refresh_all()
 	if battle and battle.is_player_turn():
 		_prompt.text = "%s's turn — choose a command." % battle.current.display_name
@@ -502,6 +510,7 @@ func _refresh_all() -> void:
 			card.set_known(GameState.bestiary.summary(u.source_enemy))
 		card.refresh()
 	_update_intents()
+	_refresh_status()
 	_fit_field.call_deferred()   # cards grow and shrink with intents / statuses
 
 
@@ -537,13 +546,112 @@ func _show_commands(on: bool) -> void:
 	for b in _command_box.get_children():
 		b.disabled = not on
 	if not on:
-		_skill_box.hide()
+		_close_submenu()
 	if on:
 		var flee_btn: Button = _command_box.get_node("Flee")
 		flee_btn.disabled = not battle.can_flee
 		flee_btn.tooltip_text = "%d%% chance" % roundi(battle.flee_chance() * 100) if battle.can_flee else "Can't flee from a boss!"
 		var row_btn: Button = _command_box.get_node("Row")
-		row_btn.text = "Move to %s row" % ("back" if battle.current.row == Combatant.Row.FRONT else "front")
+		row_btn.text = "Row (%s)" % battle.current.row_name()
+
+
+## The submenu (skills, items, rows) takes the log's place in the menu window.
+func _open_submenu() -> void:
+	_skill_box.show()
+	_log.hide()
+
+
+func _close_submenu() -> void:
+	_skill_box.hide()
+	_log.show()
+
+
+## Row command: pick any of the four rows (the class's recommended one starred).
+func _cmd_row() -> void:
+	for c in _skill_box.get_children():
+		c.queue_free()
+	var actor := battle.current
+	var rec := SkillLibrary.default_row_for_class(actor.source_character.class_id) if actor.source_character else -1
+	for r in Combatant.ROW_NAMES.size():
+		var b := Button.new()
+		b.text = "%s row%s%s" % [Combatant.ROW_NAMES[r], "  ★" if r == rec else "", "  (here)" if r == actor.row else ""]
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.disabled = r == actor.row
+		b.tooltip_text = "Melee only reaches the nearest row with someone standing. Melee from this row hits for %d%%." % \
+			roundi(DamageCalc.MELEE_ROW_MULT[r] * 100)
+		b.pressed.connect(func():
+			_cancel_targeting()
+			battle.submit(BattleAction.move_row(actor, r)))
+		_skill_box.add_child(b)
+	_open_submenu()
+
+
+## The party's HP / MP / row in the menu window. A row is clickable when that
+## member is a valid target (heals, items, guard...).
+func _refresh_status() -> void:
+	if _status_grid == null or battle == null:
+		return
+	for c in _status_grid.get_children():
+		_status_grid.remove_child(c)
+		c.queue_free()
+	_status_grid.columns = 1 if battle.party.size() <= STATUS_ONE_COLUMN_MAX else 2
+	for u in battle.party:
+		_status_grid.add_child(_status_row(u))
+
+
+func _status_row(u: Combatant) -> Control:
+	# A plain panel (not a Button) so the cells give the row its real width.
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var card: UnitCard = _cards.get(u)
+	var targetable := card != null and card._highlight == UnitCard.Highlight.TARGETABLE
+	if targetable:
+		panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		panel.gui_input.connect(func(e):
+			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+				_on_card_clicked(u))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(row)
+	var col := Color(1, 1, 1)
+	if u == battle.current:
+		col = UnitCard.COLOR_ACTIVE
+	elif targetable:
+		col = UnitCard.COLOR_TARGET
+	elif not u.is_alive():
+		col = Color(1, 0.45, 0.45)
+	# Two columns (6+ members) use the compact layout.
+	var compact := _status_grid.columns > 1
+	var cells := [
+		[("▶ " if u == battle.current else "") + u.display_name, 100 if compact else 140],
+		["DOWN" if not u.is_alive() else ("%d/%d" if compact else "HP %d/%d") % [u.hp, u.max_hp], 70 if compact else 110],
+		[("%d/%d" if compact else "MP %d/%d") % [u.mp, u.max_mp], 54 if compact else 84],
+		[u.row_name(), 52],
+	]
+	for cell in cells:
+		var l := Label.new()
+		l.text = cell[0]
+		l.custom_minimum_size.x = cell[1]
+		l.clip_text = true
+		l.add_theme_font_size_override("font_size", 13 if compact else 15)
+		l.add_theme_color_override("font_color", col)
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(l)
+	var hp := ProgressBar.new()
+	hp.show_percentage = false
+	hp.custom_minimum_size = Vector2(30, 6)
+	hp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hp.max_value = maxi(u.max_hp, 1)
+	hp.value = u.hp
+	hp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.3, 0.8, 0.45) if u.hp > u.max_hp * 0.35 else Color(0.9, 0.5, 0.2)
+	hp.add_theme_stylebox_override("fill", fill)
+	row.add_child(hp)
+	return panel
 
 
 func _log_line(text: String) -> void:
@@ -600,9 +708,9 @@ func _build_ui() -> void:
 	_turn_strip.add_theme_constant_override("separation", 14)
 	strip_clip.add_child(_turn_strip)
 
-	# --- Middle: battlefield ---
+	# --- Battlefield: four lanes a side, enemies on the left facing the party ---
 	# Never scrolls: crowded rows wrap, and the field shrinks to fit if it
-	# must (_fit_field), so every unit AND the commands below stay on screen.
+	# must (_fit_field), so every unit AND the menu below stay on screen.
 	_field_area = Control.new()
 	_field_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_field_area.clip_contents = true
@@ -613,45 +721,65 @@ func _build_ui() -> void:
 	field.alignment = BoxContainer.ALIGNMENT_CENTER
 	_field_area.add_child(field)
 	_field = field
-	for key in ["enemy_back", "enemy_front"]:
-		field.add_child(_make_column(key))
+	for r in [Combatant.Row.BACK, Combatant.Row.REAR, Combatant.Row.MIDDLE, Combatant.Row.FRONT]:
+		field.add_child(_make_column("enemy", r))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.custom_minimum_size.x = 24
 	field.add_child(spacer)
-	for key in ["party_front", "party_back"]:
-		field.add_child(_make_column(key))
+	for r in [Combatant.Row.FRONT, Combatant.Row.MIDDLE, Combatant.Row.REAR, Combatant.Row.BACK]:
+		field.add_child(_make_column("party", r))
 
 	# --- Prompt ---
 	_prompt = Label.new()
 	_prompt.add_theme_font_size_override("font_size", 18)
 	root.add_child(_prompt)
 
-	# --- Bottom: commands | skills | log ---
+	# --- The menu window: commands | submenu or log | party status ---
+	var window := PanelContainer.new()
+	window.custom_minimum_size.y = 196
+	UIStyle.apply(window)
+	root.add_child(window)
 	var bottom := HBoxContainer.new()
-	bottom.custom_minimum_size.y = 210
-	bottom.add_theme_constant_override("separation", 16)
-	root.add_child(bottom)
+	bottom.add_theme_constant_override("separation", 14)
+	window.add_child(bottom)
 
 	_command_box = VBoxContainer.new()
-	_command_box.custom_minimum_size.x = 170
+	_command_box.custom_minimum_size.x = 150
+	_command_box.add_theme_constant_override("separation", 2)
 	bottom.add_child(_command_box)
 	_add_command("Attack", _cmd_attack)
 	_add_command("Skills", _cmd_skills)
 	_add_command("Items", _cmd_items)
 	_add_command("Defend", _cmd_simple.bind(BattleAction.Type.DEFEND))
-	_add_command("Row", _cmd_simple.bind(BattleAction.Type.SWAP_ROW))
+	_add_command("Row", _cmd_row)
 	_add_command("Flee", _cmd_simple.bind(BattleAction.Type.FLEE))
+	bottom.add_child(VSeparator.new())
 
+	_sub_pane = Control.new()
+	_sub_pane.custom_minimum_size.x = 330
+	_sub_pane.clip_contents = true
+	bottom.add_child(_sub_pane)
+	var sub_scroll := ScrollContainer.new()
+	sub_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sub_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_sub_pane.add_child(sub_scroll)
 	_skill_box = VBoxContainer.new()
-	_skill_box.custom_minimum_size.x = 210
+	_skill_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_skill_box.hide()
-	bottom.add_child(_skill_box)
-
+	sub_scroll.add_child(_skill_box)
 	_log = RichTextLabel.new()
 	_log.bbcode_enabled = true
 	_log.scroll_following = true
-	_log.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom.add_child(_log)
+	_log.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_sub_pane.add_child(_log)
+	bottom.add_child(VSeparator.new())
+
+	_status_grid = GridContainer.new()
+	_status_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_status_grid.add_theme_constant_override("h_separation", 18)
+	_status_grid.add_theme_constant_override("v_separation", 0)
+	bottom.add_child(_status_grid)
 
 	# --- Result overlay ---
 	_result_panel = PanelContainer.new()
@@ -677,13 +805,16 @@ func _build_ui() -> void:
 	rbox.add_child(_result_buttons)
 
 
-func _make_column(key: String) -> VBoxContainer:
+func _make_column(side: String, r: int) -> VBoxContainer:
+	var key := "%s_%d" % [side, r]
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 6)
+	col.custom_minimum_size.x = 48   # an empty lane still shows where it is
 	var header := Label.new()
-	header.text = key.split("_")[1].capitalize() + " row"
+	header.text = Combatant.ROW_NAMES[r]
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header.add_theme_font_size_override("font_size", 12)
 	header.modulate = Color(1, 1, 1, 0.4)
 	col.add_child(header)
 	var grid := GridContainer.new()   # cards go here; extra columns when crowded

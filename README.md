@@ -209,12 +209,16 @@ Open it with **Tab → Manage party**.
 
   - **If an enemy has no book of the rolled tier,** it steps down to the next tier it does have. A slime only ever drops Common books, but the Goblin King can drop its Unique **King's Decree**.
 
-## Combat rules (FF-style menus with front and back rows)
-- **Melee** can't hit a back-row unit while its side still has a living front-row unit. Backstab is the exception.
-- **Melee from the back row** deals 50% damage.
+## Combat rules (FF-style menus, four rows)
+- **Four rows a side** (Hayden 2026-10-25): **Front, Middle, Rear, Back** (`Combatant.Row`). Enemies use them too: skirmishers (cutthroats, wolves, hellhounds...) in the Middle, archers in the Rear, casters in the Back.
+- **Melee is layered:** a single-target melee attack only reaches the **nearest row that still has someone standing**. Middle is safe while the Front stands, Rear while Front and Middle stand, and so on. Backstab and other row-ignoring skills are the exception.
+- **Melee from further back** hits softer: 100% / 90% / 70% / 50% from Front / Middle / Rear / Back (`DamageCalc.MELEE_ROW_MULT`; Middle was 75% at first, softened so the Middle-row classes aren't punished for standing where they're recommended).
+- **Recommended rows** (never a lock): every class has one (`SkillLibrary.CLASS_ROWS`, inherited along the line). Front: tanks, warriors, magic swordsmen. Middle: rogues, monks, spellblades, Ashbound. Rear: archers, summoners. Back: mages, supports. New members and newly chosen classes start there. Manage party has a row picker with the recommended row starred (tinted when someone stands elsewhere), and the class and advancement screens name it.
+- **The battle screen** is laid out like a classic FF battle: a flat battlefield with four lanes a side (enemies on the left), and a **menu window** along the bottom with the commands, the skill / item / row list (or the battle log), and the party's HP / MP / row (two columns once 6+ fight; rows are clickable targets for heals and items). **Row** opens a list of the four rows.
+- Old saves are converted (a character saved in the old Back row is still in the Back row).
 - **Ranged and magic** ignore rows. Magic can't be dodged; physical attacks can.
 - **Turn order** is rolled each round: Agility × a random 0.75–1.25.
-- **Commands:** Attack, Skills, Defend (halves damage until your next turn), Move row (saved on the character), Flee (chance based on average Agility).
+- **Commands:** Attack, Skills, Defend (halves damage until your next turn), Row (pick any of the four; saved on the character), Flee (chance based on average Agility).
 - **Victory:** every surviving party member gets the full XP, and the leader gets the gold.
 - **Commands** also include **Items** (Potion, Advanced Potion, Ether).
 

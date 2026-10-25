@@ -113,7 +113,8 @@ func refresh() -> void:
 			if def.is_secret:
 				continue
 			var req := Label.new()
-			req.text = "%s — %s" % [def.display_name, def.requirement_text()]
+			req.text = "%s — %s  ·  %s row" % [def.display_name, def.requirement_text(),
+				SkillLibrary.recommended_row_name(def.id)]
 			_list.add_child(req)
 		_detail.text = ""
 	elif qualifying.is_empty():
@@ -149,7 +150,9 @@ func refresh() -> void:
 
 func _on_select(def: ClassDef) -> void:
 	_selected = def
-	_detail.text = def.description
+	_detail.text = "%s
+Recommended row: %s (you can move them any time)." % [def.description,
+		SkillLibrary.recommended_row_name(def.id)]
 	_confirm_btn.disabled = false
 
 

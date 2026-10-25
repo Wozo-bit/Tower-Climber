@@ -7,6 +7,7 @@ var _failed := 0
 
 func _ready() -> void:
 	test_default_rows()
+	test_four_rows()
 	test_row_protection()
 	test_backstab_ignores_row()
 	test_back_row_melee_penalty()
@@ -63,7 +64,43 @@ func test_default_rows() -> void:
 	var b := new_battle([&"goblin"])
 	check(find(b.party, "Tank").row == Combatant.Row.FRONT, "Tank defaults to front row")
 	check(find(b.party, "Mage").row == Combatant.Row.BACK, "Mage defaults to back row")
-	check(find(b.party, "Archer").row == Combatant.Row.BACK, "Archer defaults to back row")
+	check(find(b.party, "Archer").row == Combatant.Row.REAR, "Archer defaults to the rear row")
+
+
+## Hayden 2026-10-25: four rows, melee reaches the nearest standing row.
+func test_four_rows() -> void:
+	var b := new_battle([&"goblin"])
+	b.start()
+	var tank := find(b.party, "Tank")
+	var archer := find(b.party, "Archer")
+	var mage := find(b.party, "Mage")
+	var healer := find(b.party, "Healer")
+	tank.row = Combatant.Row.FRONT
+	healer.row = Combatant.Row.MIDDLE
+	archer.row = Combatant.Row.REAR
+	mage.row = Combatant.Row.BACK
+	var gob: Combatant = b.enemies[0]
+	var melee := SkillLibrary.get_skill(&"attack_melee")
+	var reach := func(): return b.valid_targets(gob, melee).map(func(u): return u.display_name.left(2))
+	check(reach.call() == ["Ta"], "melee only reaches the front row while it stands (%s)" % [reach.call()])
+	tank.hp = 0
+	check(reach.call() == ["He"], "then the middle")
+	healer.hp = 0
+	check(reach.call() == ["Ar"], "then the rear")
+	archer.hp = 0
+	check(reach.call() == ["Ma"], "then the back")
+	check(b.valid_targets(gob, SkillLibrary.get_skill(&"firebolt")).size() == 1, "magic ignores rows")
+	check(DamageCalc.MELEE_ROW_MULT == [1.0, 0.9, 0.7, 0.5], "melee from further back hits softer")
+	b.current = mage
+	check(b.submit(BattleAction.move_row(mage, Combatant.Row.MIDDLE)) and mage.row == Combatant.Row.MIDDLE,
+		"move to a chosen row")
+	var mids := { &"bandit_cutthroat": 1, &"goblin_archer": 2, &"imp_shaman": 3 }
+	var rows_ok := true
+	for id in mids:
+		var d := EnemyLibrary.get_enemy_or_null(id)
+		if d and d.row != mids[id]:
+			rows_ok = false
+	check(rows_ok, "enemies use the rows too: skirmishers middle, archers rear, casters back")
 
 
 func test_row_protection() -> void:

@@ -16,7 +16,8 @@ const VARIANCE := 0.1          # ±10%
 const CRIT_MULT := 1.5
 
 # Row / status modifiers
-const BACK_ROW_MELEE_MULT := 0.5   # melee attacks FROM the back row
+## Melee attacks FROM each row (Front, Middle, Rear, Back) deal this much.
+const MELEE_ROW_MULT := [1.0, 0.9, 0.7, 0.5]
 const DEFEND_MULT := 0.5
 const WARD_MULT := 0.7
 const GUARD_MULT := 0.7            # a guardian takes 30% less while guarding
@@ -81,8 +82,8 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 	var def := defense_of(target, type) * (1.0 - skill.def_pierce)
 	var dmg := raw * 100.0 / (100.0 + def * DEF_WEIGHT)
 
-	if type == SkillDef.DamageType.MELEE and attacker.row == Combatant.Row.BACK and not skill.adaptive:
-		dmg *= BACK_ROW_MELEE_MULT
+	if type == SkillDef.DamageType.MELEE and not skill.adaptive:
+		dmg *= MELEE_ROW_MULT[clampi(attacker.row, 0, MELEE_ROW_MULT.size() - 1)]
 
 	var crit := rng.randf() < attacker.crit_chance() + skill.bonus_crit
 	if crit:

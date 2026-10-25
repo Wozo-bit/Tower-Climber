@@ -5,8 +5,10 @@ extends RefCounted
 const S := Stats.Type
 const EL := Element.Type
 const AF := Element.Affinity
-const FRONT := 0  # Combatant.Row.FRONT
-const BACK := 1   # Combatant.Row.BACK
+const FRONT := 0   # Combatant.Row.FRONT
+const MIDDLE := 1  # Combatant.Row.MIDDLE: skirmishers
+const REAR := 2    # Combatant.Row.REAR: archers and other ranged
+const BACK := 3    # Combatant.Row.BACK: casters
 
 static var _enemies: Dictionary = _build()
 
@@ -65,7 +67,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"goblin_archer", "Goblin Archer", {
 			"family": &"goblin",
 			"max_hp": 110, "stats": {S.STRENGTH: 10, S.STAMINA: 7, S.AGILITY: 16, S.LUCK: 8},
-			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 14,
+			"row": REAR, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 14,
 			"color": Color(0.55, 0.65, 0.25)}),
 		EnemyDef.make(&"orc_brute", "Orc Brute", {
 			"family": &"orc",
@@ -153,7 +155,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"bandit_cutthroat", "Bandit Cutthroat", {
 			"family": &"bandit",
 			"max_hp": 140, "stats": {S.HEALTH: 7, S.STRENGTH: 14, S.STAMINA: 8, S.AGILITY: 15, S.LUCK: 10},
-			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"row": MIDDLE, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
 			"xp_reward": 60, "gold_reward": 20, "color": Color(0.55, 0.4, 0.3)}),
 		EnemyDef.make(&"bandit_brute", "Bandit Brute", {
 			"family": &"bandit",
@@ -163,7 +165,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"bandit_crossbow", "Bandit Crossbow", {
 			"family": &"bandit",
 			"max_hp": 110, "stats": {S.STRENGTH: 11, S.STAMINA: 7, S.AGILITY: 16, S.LUCK: 9},
-			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 18,
+			"row": REAR, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 18,
 			"color": Color(0.6, 0.5, 0.35)}),
 		EnemyDef.make(&"bandit_hexer", "Bandit Hexer", {
 			"family": &"bandit",
@@ -195,7 +197,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"hive_drone", "Hive Drone", {
 			"family": &"insect",
 			"max_hp": 100, "stats": {S.STRENGTH: 12, S.STAMINA: 9, S.AGILITY: 16},
-			"row": FRONT, "xp_reward": 45, "gold_reward": 10, "color": Color(0.75, 0.7, 0.2)}),
+			"row": MIDDLE, "xp_reward": 45, "gold_reward": 10, "color": Color(0.75, 0.7, 0.2)}),
 		EnemyDef.make(&"hive_soldier", "Hive Soldier", {
 			"family": &"insect",
 			"max_hp": 170, "stats": {S.HEALTH: 9, S.STRENGTH: 15, S.STAMINA: 14, S.AGILITY: 9},
@@ -236,7 +238,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"dire_wolf", "Dire Wolf", {
 			"family": &"beast",
 			"max_hp": 140, "stats": {S.HEALTH: 7, S.STRENGTH: 14, S.STAMINA: 9, S.AGILITY: 16},
-			"row": FRONT, "xp_reward": 60, "gold_reward": 10, "color": Color(0.55, 0.55, 0.6)}),
+			"row": MIDDLE, "xp_reward": 60, "gold_reward": 10, "color": Color(0.55, 0.55, 0.6)}),
 		EnemyDef.make(&"cave_bear", "Cave Bear", {
 			"family": &"beast",
 			"max_hp": 220, "stats": {S.HEALTH: 12, S.STRENGTH: 17, S.STAMINA: 13, S.AGILITY: 6},
@@ -245,7 +247,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"razor_hawk", "Razor Hawk", {
 			"family": &"beast",
 			"max_hp": 95, "stats": {S.STRENGTH: 12, S.STAMINA: 6, S.AGILITY: 19, S.LUCK: 10},
-			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"gust"] as Array[StringName], "skill_chance": 0.3,
+			"row": REAR, "basic_attack": &"attack_ranged", "skills": [&"gust"] as Array[StringName], "skill_chance": 0.3,
 			"xp_reward": 55, "gold_reward": 10, "color": Color(0.7, 0.6, 0.45)}),
 		EnemyDef.make(&"boar", "Tusked Boar", {
 			"family": &"beast",
@@ -325,11 +327,11 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"ghoul", "Ghoul", {
 			"family": &"undead",
 			"max_hp": 180, "stats": {S.HEALTH: 10, S.STRENGTH: 16, S.STAMINA: 10, S.AGILITY: 11},
-			"row": FRONT, "xp_reward": 65, "gold_reward": 12, "color": Color(0.45, 0.55, 0.4)}),
+			"row": MIDDLE, "xp_reward": 65, "gold_reward": 12, "color": Color(0.45, 0.55, 0.4)}),
 		EnemyDef.make(&"skeleton_archer", "Skeleton Archer", {
 			"family": &"undead", "affinities": {EL.BLUNT: AF.WEAK, EL.PIERCE: AF.RESIST},
 			"max_hp": 100, "stats": {S.STRENGTH: 11, S.STAMINA: 7, S.AGILITY: 16},
-			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 14, "color": Color(0.8, 0.78, 0.65)}),
+			"row": REAR, "basic_attack": &"attack_ranged", "xp_reward": 55, "gold_reward": 14, "color": Color(0.8, 0.78, 0.65)}),
 		EnemyDef.make(&"crypt_wraith", "Crypt Wraith", {
 			"family": &"undead", "affinities": {EL.SLASH: AF.RESIST, EL.PIERCE: AF.RESIST},
 			"max_hp": 110, "stats": {S.INTELLIGENCE: 17, S.STAMINA: 8, S.AGILITY: 14},
@@ -360,12 +362,12 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"lesser_fiend", "Lesser Fiend", {
 			"family": &"demon",
 			"max_hp": 150, "stats": {S.HEALTH: 8, S.STRENGTH: 15, S.STAMINA: 10, S.AGILITY: 12},
-			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"row": MIDDLE, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
 			"xp_reward": 60, "gold_reward": 16, "color": Color(0.7, 0.2, 0.2)}),
 		EnemyDef.make(&"hellhound", "Hellhound", {
 			"family": &"demon", "affinities": {EL.FIRE: AF.ABSORB},
 			"max_hp": 140, "stats": {S.STRENGTH: 15, S.INTELLIGENCE: 12, S.STAMINA: 9, S.AGILITY: 16},
-			"row": FRONT, "skills": [&"ash_breath"] as Array[StringName], "skill_chance": 0.3,
+			"row": MIDDLE, "skills": [&"ash_breath"] as Array[StringName], "skill_chance": 0.3,
 			"xp_reward": 60, "gold_reward": 14, "color": Color(0.5, 0.15, 0.1)}),
 		EnemyDef.make(&"succubus", "Temptress", {
 			"family": &"demon",
@@ -402,7 +404,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"winged_sentinel", "Winged Sentinel", {
 			"family": &"celestial",
 			"max_hp": 160, "stats": {S.HEALTH: 9, S.STRENGTH: 15, S.STAMINA: 12, S.AGILITY: 11},
-			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"row": MIDDLE, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
 			"xp_reward": 65, "gold_reward": 14, "color": Color(0.95, 0.92, 0.75)}),
 		EnemyDef.make(&"choir_acolyte", "Choir Acolyte", {
 			"family": &"celestial",
@@ -412,7 +414,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"radiant_archer", "Radiant Archer", {
 			"family": &"celestial",
 			"max_hp": 105, "stats": {S.STRENGTH: 12, S.STAMINA: 7, S.AGILITY: 17, S.LUCK: 9},
-			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"smite"] as Array[StringName], "skill_chance": 0.25,
+			"row": REAR, "basic_attack": &"attack_ranged", "skills": [&"smite"] as Array[StringName], "skill_chance": 0.25,
 			"xp_reward": 60, "gold_reward": 14, "color": Color(1.0, 0.9, 0.6)}),
 		EnemyDef.make(&"virtue", "Virtue", {
 			"family": &"celestial",
@@ -444,7 +446,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"drakeling", "Drakeling", {
 			"family": &"dragon",
 			"max_hp": 150, "stats": {S.HEALTH: 8, S.STRENGTH: 15, S.STAMINA: 11, S.AGILITY: 12},
-			"row": FRONT, "xp_reward": 65, "gold_reward": 18, "color": Color(0.6, 0.3, 0.2)}),
+			"row": MIDDLE, "xp_reward": 65, "gold_reward": 18, "color": Color(0.6, 0.3, 0.2)}),
 		EnemyDef.make(&"fire_drake", "Fire Drake", {
 			"family": &"dragon", "affinities": {EL.FIRE: AF.ABSORB},
 			"max_hp": 170, "stats": {S.HEALTH: 9, S.STRENGTH: 13, S.INTELLIGENCE: 14, S.STAMINA: 12, S.AGILITY: 10},
@@ -453,7 +455,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"wyvern", "Wyvern", {
 			"family": &"dragon", "affinities": {EL.WIND: AF.RESIST, EL.LIGHTNING: AF.WEAK},
 			"max_hp": 130, "stats": {S.STRENGTH: 14, S.STAMINA: 9, S.AGILITY: 17},
-			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"gust"] as Array[StringName], "skill_chance": 0.3,
+			"row": REAR, "basic_attack": &"attack_ranged", "skills": [&"gust"] as Array[StringName], "skill_chance": 0.3,
 			"xp_reward": 65, "gold_reward": 18, "color": Color(0.4, 0.55, 0.35)}),
 		EnemyDef.make(&"dragon_cultist", "Dragon Cultist", {
 			"family": &"human",
@@ -469,7 +471,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"elder_wyvern", "Elder Wyvern", {
 			"family": &"dragon", "affinities": {EL.WIND: AF.RESIST, EL.LIGHTNING: AF.WEAK},
 			"max_hp": 520, "stats": {S.HEALTH: 13, S.STRENGTH: 17, S.INTELLIGENCE: 16, S.STAMINA: 14, S.AGILITY: 15},
-			"row": BACK, "basic_attack": &"attack_ranged", "skills": [&"gust", &"ash_breath"] as Array[StringName],
+			"row": REAR, "basic_attack": &"attack_ranged", "skills": [&"gust", &"ash_breath"] as Array[StringName],
 			"skill_chance": 0.5, "xp_reward": 350, "gold_reward": 120, "color": Color(0.35, 0.5, 0.3),
 			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
 		EnemyDef.make(&"dragon_sovereign", "Dragon Sovereign", {
@@ -487,7 +489,7 @@ static func _build() -> Dictionary:
 			"row": BACK, "basic_attack": &"attack_magic", "xp_reward": 0, "gold_reward": 0, "color": Color(0.7, 1.0, 0.95)}),
 		EnemyDef.make(&"spirit_wolf", "Spirit Wolf", {
 			"family": &"spirit", "max_hp": 110, "stats": {S.STRENGTH: 15, S.STAMINA: 8, S.AGILITY: 16},
-			"row": FRONT, "xp_reward": 0, "gold_reward": 0, "color": Color(0.7, 0.8, 1.0)}),
+			"row": MIDDLE, "xp_reward": 0, "gold_reward": 0, "color": Color(0.7, 0.8, 1.0)}),
 		EnemyDef.make(&"guardian_spirit", "Guardian Spirit", {
 			"family": &"spirit", "max_hp": 180, "stats": {S.STRENGTH: 10, S.STAMINA: 16, S.AGILITY: 8},
 			"row": FRONT, "skills": [&"taunt"] as Array[StringName], "skill_chance": 0.4,
@@ -513,7 +515,7 @@ static func _build() -> Dictionary:
 		EnemyDef.make(&"guild_archer", "Guild Archer", {
 			"family": &"human",
 			"max_hp": 120, "stats": {S.STRENGTH: 10, S.STAMINA: 8, S.AGILITY: 15, S.LUCK: 8},
-			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 60, "gold_reward": 16,
+			"row": REAR, "basic_attack": &"attack_ranged", "xp_reward": 60, "gold_reward": 16,
 			"color": Color(0.55, 0.6, 0.55)}),
 		EnemyDef.make(&"guild_mage", "Guild Mage", {
 			"family": &"human",

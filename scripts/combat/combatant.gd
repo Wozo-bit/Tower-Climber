@@ -4,7 +4,10 @@ extends RefCounted
 ## EnemyDef (enemy). HP/MP/statuses live here only for the fight.
 
 enum Side { PARTY, ENEMY }
-enum Row { FRONT, BACK }
+## Four rows (Hayden 2026-10-25), nearest the enemy first. Single-target
+## melee only reaches the nearest row that still has someone standing.
+enum Row { FRONT, MIDDLE, REAR, BACK }
+const ROW_NAMES := ["Front", "Middle", "Rear", "Back"]
 
 const EVASIVE_DODGE_BONUS := 0.3
 ## Every enemy's HP is multiplied by this (shorter fights = less attrition;
@@ -235,4 +238,4 @@ func restore_hp(amount: int) -> int:
 
 
 func row_name() -> String:
-	return "Front" if row == Row.FRONT else "Back"
+	return ROW_NAMES[clampi(row, 0, ROW_NAMES.size() - 1)]

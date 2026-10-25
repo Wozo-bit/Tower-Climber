@@ -121,8 +121,12 @@ func test_lineage() -> void:
 	check(ClassRegistry.is_in_lineage(&"cleric", &"support") and not ClassRegistry.is_in_lineage(&"cleric", &"mage"), "is_in_lineage")
 	check(SkillLibrary.basic_attack_for_class(&"pyromancer").id == &"attack_magic"
 		and SkillLibrary.basic_attack_for_class(&"juggernaut").id == &"attack_melee", "advanced classes keep their basic attack")
-	check(SkillLibrary.default_row_for_class(&"ranger") == Combatant.Row.BACK
-		and SkillLibrary.default_row_for_class(&"bastion") == Combatant.Row.FRONT, "...and their default row")
+	check(SkillLibrary.default_row_for_class(&"ranger") == Combatant.Row.REAR
+		and SkillLibrary.default_row_for_class(&"bastion") == Combatant.Row.FRONT
+		and SkillLibrary.default_row_for_class(&"assassin") == Combatant.Row.MIDDLE
+		and SkillLibrary.default_row_for_class(&"pyromancer_t3") == Combatant.Row.BACK, "...and their recommended row")
+	var unrowed := ClassRegistry.get_tier(1).filter(func(d): return not SkillLibrary.CLASS_ROWS.has(d.id))
+	check(unrowed.is_empty(), "every starting class has a recommended row %s" % [unrowed.map(func(d): return d.id)])
 
 
 func test_gate_and_trial() -> void:

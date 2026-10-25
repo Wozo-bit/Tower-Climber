@@ -7,7 +7,8 @@ extends RefCounted
 ## data. Everything read back is also validated: unknown ids are dropped,
 ## numbers are clamped, names are cleaned. A broken file just fails to load.
 
-const FORMAT_VERSION := 2
+## 3: four battle rows (an old save's row 1 = Back becomes 3).
+const FORMAT_VERSION := 3
 
 
 # =========================================================
@@ -167,7 +168,7 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"free_respec_pre_used": c.free_respec_pre_class_used,
 		"free_respec_post_used": c.free_respec_post_class_used,
 		"class_change_used": c.class_change_used,
-		"paid_respecs": c.paid_respec_count, "battle_row": c.battle_row,
+		"paid_respecs": c.paid_respec_count, "battle_row": c.battle_row, "rows": 4,
 		"missing_hp": c.missing_hp, "missing_mp": c.missing_mp,
 		"legacy_id": c.legacy_id, "companion_id": String(c.companion_id),
 		"allocated": _stat_dict_out(c.stats.allocated),
@@ -195,7 +196,9 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 	c.free_respec_post_class_used = _b(d, "free_respec_post_used", false)
 	c.class_change_used = _b(d, "class_change_used", false)
 	c.paid_respec_count = _i(d, "paid_respecs", 0, 0, 999)
-	c.battle_row = _i(d, "battle_row", -1, -1, 1)
+	c.battle_row = _i(d, "battle_row", -1, -1, Combatant.Row.BACK)
+	if _i(d, "rows", 2, 2, 4) == 2 and c.battle_row == 1:
+		c.battle_row = Combatant.Row.BACK   # saved before the 4-row layout
 	c.legacy_id = _s(d, "legacy_id", "", 64)
 	c.companion_id = StringName(_s(d, "companion_id", "", 64))
 	c.stats.allocated = _stat_dict_in(_d(d, "allocated"), 0, 99999)

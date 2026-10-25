@@ -63,7 +63,7 @@ const NPCS := {
 		"name": "Tamsin", "kind": "npc", "color": Color(0.45, 0.7, 0.4), "floors": [],
 		"recruit": {
 			"class_id": &"archer", "meet": "rescue", "rescue_floors": [2, 6], "personal_skill": &"hunters_mark",
-			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 }, "row": 1,
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 },
 			"pitch": "(Placeholder) You came out of nowhere. I owe you one.",
 			"loyalty": { "title": "Tamsin: A Debt Repaid", "desc": "(Placeholder) Tamsin won't rest until she's paid you back in kind.",
 				"steps": [{ "text": "Defeat 25 enemies", "goal": { "type": "defeat", "any": true, "count": 25 } }] },
@@ -75,7 +75,7 @@ const NPCS := {
 		"floors": ["rest"], "min_floor": 5, "max_floor": 9999, "near": "campfire",
 		"recruit": {
 			"class_id": &"support", "meet": "favor", "personal_skill": &"saints_hymn",
-			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 2 }, "row": 1,
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 2 },
 			"pitch": "(Placeholder) The goddess of wisdom sent me to tend the climbers. Help the wounded first, then we'll talk.",
 			"favor": { "title": "Daphne: Clear the Way", "desc": "(Placeholder) Monsters keep the wounded from reaching her fire.",
 				"steps": [{ "text": "Defeat 8 enemies", "goal": { "type": "defeat", "any": true, "count": 8 } }] },
@@ -102,7 +102,7 @@ const NPCS := {
 		"floors": ["rest"], "min_floor": 20, "max_floor": 9999, "near": "campfire",
 		"recruit": {
 			"class_id": &"archer", "meet": "favor", "personal_skill": &"rain_of_thorns",
-			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 }, "row": 1,
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 },
 			"pitch": "(Placeholder) I don't climb with people I haven't seen fight. Take down one of the big ones.",
 			"favor": { "title": "Rook: Prove It", "desc": "(Placeholder) Rook wants to see you beat a guardian.",
 				"steps": [{ "text": "Defeat a miniboss", "goal": { "type": "defeat", "kind": "miniboss", "count": 1 } }] },
@@ -127,7 +127,7 @@ const NPCS := {
 		"name": "Neferet", "kind": "npc", "color": Color(1.0, 0.85, 0.4), "floors": [],
 		"recruit": {
 			"class_id": &"mage", "meet": "captive", "captive_of": &"hive_queen", "personal_skill": &"solar_flare",
-			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 2 }, "row": 1,
+			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 2 },
 			"pitch": "(Placeholder) The Serpent's queen walled me in her hive to keep Ra's light out. Thank you.",
 			"loyalty": { "title": "Neferet: Light in the Dark", "desc": "(Placeholder) Neferet must carry Ra's light higher.",
 				"steps": [{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
@@ -139,7 +139,7 @@ const NPCS := {
 		"name": "Lysander", "kind": "npc", "color": Color(0.8, 0.85, 1.0), "floors": [],
 		"recruit": {
 			"class_id": &"support", "meet": "captive", "captive_of": &"necromancer", "personal_skill": &"thunder_oath",
-			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STRENGTH: 2 }, "row": 1,
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STRENGTH: 2 },
 			"pitch": "(Placeholder) Hades' servant meant to keep Zeus' priest in the dark forever. Not today.",
 			"loyalty": { "title": "Lysander: The King's Oath", "desc": "(Placeholder) Lysander's oath demands a victory worthy of Zeus.",
 				"steps": [{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
@@ -187,7 +187,7 @@ const NPCS := {
 		"floors": ["rest"], "min_floor": 35, "max_floor": 9999, "near": "merchant", "run_chance": 0.5,
 		"recruit": {
 			"class_id": &"mage", "meet": "hire", "fee": 1500, "personal_skill": &"frost_nova",
-			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 2 }, "row": 1,
+			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 2 },
 			"pitch": "(Placeholder) Fifteen hundred gold. Winter doesn't come cheap.",
 			"loyalty": { "title": "Vesna: Deep Winter", "desc": "(Placeholder) Vesna wants to test her frost on the worst the tower has.",
 				"steps": [{ "text": "Defeat 30 enemies", "goal": { "type": "defeat", "any": true, "count": 30 } }] },

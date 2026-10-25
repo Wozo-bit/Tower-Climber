@@ -217,12 +217,25 @@ func _member_row(c: CharacterData, buttons: Array, extra: String = "") -> Contro
 	return panel
 
 
-func _row_button(c: CharacterData) -> Button:
-	var front := GameState.member_row(c) == Combatant.Row.FRONT
-	var flip := func():
-		GameState.set_member_row(c, Combatant.Row.BACK if front else Combatant.Row.FRONT)
-		_rebuild()
-	return _button("Front" if front else "Back", flip, false, "Starting row in battle. Click to switch.")
+## The starting row (Front / Middle / Rear / Back). The class's recommended
+## row is starred; picking another is fine, it's just tinted as a reminder.
+func _row_button(c: CharacterData) -> Control:
+	var pick := OptionButton.new()
+	var rec := SkillLibrary.default_row_for_class(c.class_id)
+	for r in Combatant.ROW_NAMES.size():
+		pick.add_item(Combatant.ROW_NAMES[r] + (" ★" if r == rec and c.has_class() else ""), r)
+	var current := GameState.member_row(c)
+	pick.select(current)
+	pick.tooltip_text = "Starting row in battle. Melee only reaches the nearest row with someone standing; melee from further back hits softer."
+	if c.has_class():
+		pick.tooltip_text += "
+Recommended for a %s: %s (★)." % [c.get_class_def().display_name, Combatant.ROW_NAMES[rec]]
+		if current != rec:
+			pick.modulate = Color(1, 0.85, 0.55)
+	pick.item_selected.connect(func(i):
+		GameState.set_member_row(c, pick.get_item_id(i))
+		_rebuild())
+	return pick
 
 
 func _dismiss_button(c: CharacterData, disabled: bool) -> Button:

@@ -103,7 +103,7 @@ func _option(def: ClassDef) -> Control:
 		skills.append(SkillLibrary.get_skill(sid).display_name)
 	var gate: Dictionary = s.gate
 	var lines: PackedStringArray = [
-		"%s — %s" % [def.display_name, def.description],
+		"%s — %s  (recommended row: %s)" % [def.display_name, def.description, SkillLibrary.recommended_row_name(def.id)],
 		"New skills: %s" % ", ".join(skills),
 		"%s Beat floor %d" % [_mark(s.floor), gate.get("floor", 0)],
 		"%s Level %d (now %d)" % [_mark(s.level), gate.get("level", 0), member.level],

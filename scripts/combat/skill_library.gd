@@ -148,7 +148,22 @@ const CLASS_BASIC_ATTACK := {
 }
 
 ## Default row per class (the player can change it in battle).
-const CLASS_DEFAULT_BACK_ROW := [&"archer", &"mage", &"support", &"summoner"]
+## Each class's RECOMMENDED row (Hayden 2026-10-25): where new members and
+## class changes start, and the hint in Manage party / class screens. Never a
+## lock. Looked up along the lineage, so tier 2/3 inherit unless listed.
+## 0 Front: tanks and bruisers · 1 Middle: skirmishers · 2 Rear: ranged
+## · 3 Back: casters and healers.
+const CLASS_ROWS := {
+	&"tank": 0, &"warrior": 0, &"magic_swordsman": 0,
+	&"rogue": 1, &"monk": 1, &"spellblade": 1, &"ashbound_knight": 1, &"ascendant": 1,
+	&"archer": 2, &"summoner": 2,
+	&"mage": 3, &"support": 3,
+	# Advanced classes that lean another way than their line.
+	&"arcane_knight": 0, &"spiritbinder": 3, &"necromancer_class": 3,
+	# Demigods
+	&"lionheart": 0, &"gorgonbane": 1, &"myrmidon_lord": 0, &"king_of_uruk": 2,
+	&"hound_of_ulster": 1, &"dragonslayer": 0,
+}
 
 
 static func _build() -> Dictionary:
@@ -779,5 +794,14 @@ static func basic_attack_for_class(class_id: StringName) -> SkillDef:
 
 
 static func default_row_for_class(class_id: StringName) -> int:
-	var root := ClassRegistry.root_of(class_id) if class_id != &"" else class_id
-	return Combatant.Row.BACK if root in CLASS_DEFAULT_BACK_ROW else Combatant.Row.FRONT
+	if class_id == &"":
+		return Combatant.Row.FRONT
+	for id in ClassRegistry.lineage(class_id):
+		if CLASS_ROWS.has(id):
+			return CLASS_ROWS[id]
+	return Combatant.Row.FRONT
+
+
+## "Front" / "Middle" / "Rear" / "Back": the class's recommended row.
+static func recommended_row_name(class_id: StringName) -> String:
+	return Combatant.ROW_NAMES[default_row_for_class(class_id)]

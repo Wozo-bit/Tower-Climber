@@ -545,6 +545,7 @@ func choose_class(def: ClassDef) -> bool:
 		return false
 	class_id = def.id
 	_apply_class_bonus()
+	battle_row = -1   # start in the class's recommended row (can be moved)
 	class_chosen.emit(def)
 	stats_changed.emit()
 	return true

@@ -265,6 +265,13 @@ func test_save_roundtrip() -> void:
 	check(_names(GameState.companions) == ["Cassia", "Di", "Bo"], "party order is saved")
 	check(GameState.companions[1].battle_row == Combatant.Row.BACK, "rows are saved")
 	check(_names(GameState.reserve) == ["Eve"] and _names(GameState.waiting) == ["Wren"], "reserve and waiting are saved")
+	# A save from before the 4 rows stored Back as row 1.
+	var old := SaveSerializer.read_json(GameState.slot_path(1))
+	old.companions[1].erase("rows")
+	old.companions[1]["battle_row"] = 1
+	SaveSerializer.write_json(GameState.slot_path(1), old)
+	GameState.load_game(1)
+	check(GameState.companions[1].battle_row == Combatant.Row.BACK, "an old save's back row is still the back row")
 	# A tampered save with an oversized party and reserve gets trimmed.
 	var d := SaveSerializer.read_json(GameState.slot_path(1))
 	for i in 5:

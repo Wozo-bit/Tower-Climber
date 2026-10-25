@@ -187,6 +187,13 @@ GUILDS + ECONOMY:
   price, scarcity raises it) and events (wars, shortages). Selling gear goes
   to guild traders.
 
+### Rows + battle screen (Hayden 2026-10-25)
+4 rows a side (Front/Middle/Rear/Back), layered melee reach, melee from
+further back 100/90/70/50%, enemies use the rows too. Recommended row per
+class (SkillLibrary.CLASS_ROWS) = default placement + hints, never a lock.
+Battle screen is FF-style: flat battlefield of compact units, menu window
+at the bottom (commands | submenu or log | party status).
+
 ### Layout rule
 Every screen must fit the 1280x720 design size (the window scales via
 stretch mode canvas_items/expand). The battle field never scrolls: crowded
@@ -292,7 +299,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (21 suites, 1218 checks at last run).
+Every change gets tests in tests/ (21 suites, 1228 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
