@@ -214,6 +214,11 @@ func give_rewards(r: Dictionary) -> String:
 	for guild in r.get("guild_rep", {}):
 		gs.guilds.add_rep(guild, r.guild_rep[guild])
 		parts.append("%+d with %s" % [r.guild_rep[guild], GuildLibrary.guild_name(guild)])
+	if r.has("unlock_personal"):   # a recruit's loyalty quest: their own skill
+		for c in gs.companions + gs.reserve + gs.waiting + gs.guilds.captains.values():
+			if c.companion_id == r.unlock_personal and c.personal_skill != &"":
+				c.personal_unlocked = true
+				parts.append("%s learned %s" % [c.character_name, SkillLibrary.get_skill(c.personal_skill).display_name])
 	if r.has("reveal_family"):
 		for def in EnemyLibrary.all():
 			if def.family == r.reveal_family:

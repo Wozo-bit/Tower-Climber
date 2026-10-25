@@ -25,14 +25,19 @@ static var context_being: StringName = &""
 ## The guild this conversation is with (a guild agent), for {guild...} text,
 ## guild conditions and effects.
 static var context_guild: StringName = &""
+## The recruit NPC this conversation is with (NpcLibrary id; the generic
+## recruit_* dialogues use it), or &"".
+static var context_recruit: StringName = &""
 
 var _nodes: Dictionary = {}
 
 
 ## Starts a conversation. Returns false if the id doesn't exist.
-func start(id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"") -> bool:
+func start(id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"",
+		recruit: StringName = &"") -> bool:
 	context_being = being
 	context_guild = guild
+	context_recruit = recruit
 	var d := DialogueLibrary.get_dialogue(id)
 	companion = with
 	requests.clear()
@@ -171,6 +176,12 @@ static func check(cond: Dictionary) -> bool:
 			"can_take_heist": ok = gs.guilds.can_take_heist(context_guild) == v
 			"heist_here": ok = (not gs.guilds.heist.is_empty() and gs.guilds.heist.target == context_guild) == v
 			"holds_captive": ok = gs.guilds.holds_captive(context_guild) == v
+			# Recruits (about the recruit this conversation is with).
+			"favor_new": ok = gs.quests.is_new(QuestLibrary.favor_id(context_recruit)) == v
+			"favor_active": ok = gs.quests.is_active(QuestLibrary.favor_id(context_recruit)) == v
+			"favor_done": ok = gs.quests.is_done(QuestLibrary.favor_id(context_recruit)) == v
+			"can_pay_fee": ok = (gs.player.gold >= NpcLibrary.recruit_info(context_recruit).get("fee", 0)) == v
+			"refuses_you": ok = gs.npc_refuses(context_recruit) == v
 			"can_pay_ransom": ok = gs.guilds.can_pay_ransom(context_guild) == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
@@ -197,10 +208,15 @@ func _apply_effects(effects: Array) -> void:
 			messages.append("Got %d gold." % e.give_gold)
 		if e.has("take_gold"):
 			gs.player.gold = maxi(0, gs.player.gold - e.take_gold)
-		if e.has("recruit"):
-			if gs.npc_refuses(e.recruit):
-				messages.append("%s won't travel with someone like you." % NpcLibrary.get_npc(e.recruit).name)
-			var c := gs.recruit(e.recruit)
+		if e.has("pay_fee") and context_recruit != &"":
+			gs.player.gold = maxi(0, gs.player.gold - NpcLibrary.recruit_info(context_recruit).get("fee", 0))
+		if e.has("start_favor") and context_recruit != &"":
+			gs.quests.start(QuestLibrary.favor_id(context_recruit))
+		if e.has("recruit") or (e.has("recruit_here") and context_recruit != &""):
+			var rid: StringName = e.recruit if e.has("recruit") else context_recruit
+			if gs.npc_refuses(rid):
+				messages.append("%s won't travel with someone like you." % NpcLibrary.get_npc(rid).name)
+			var c := gs.recruit(rid)
 			if c:
 				messages.append("%s joined the party!" % c.character_name if gs.companions.has(c)
 					else "%s joined (on reserve: the party is full)." % c.character_name)
@@ -288,6 +304,12 @@ static func fill(s: String, npc_name: String = "") -> String:
 			.replace("{guild_refusal}", GameState.guilds.join_refusal(context_guild)) \
 			.replace("{guild_war}", _war_text(context_guild)) \
 			.replace("{guild_ransom}", str(GameState.guilds.ransom_cost(context_guild)))
+	if context_recruit != &"" and out.contains("{recruit"):
+		var n := NpcLibrary.get_npc(context_recruit)
+		var r := NpcLibrary.recruit_info(context_recruit)
+		out = out.replace("{recruit_pitch}", r.get("pitch", "")).replace("{recruit_fee}", str(r.get("fee", 0))) \
+			.replace("{recruit_favor}", r.get("favor", {}).get("title", "")) \
+			.replace("{recruit}", n.get("name", "?"))
 	if context_being != &"" and out.contains("{being"):
 		var b := BeingLibrary.get_being(context_being)
 		out = out.replace("{being}", BeingLibrary.full_name(context_being)) \

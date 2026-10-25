@@ -569,6 +569,13 @@ func fighting_party() -> Array[CharacterData]:
 	var guest := guilds.guest_captain(floor_number, pending_battle_info.get("kind", "normal"))
 	if guest and not out.has(guest):
 		out.append(guest)
+	# A rescue: whoever you're saving fights beside you.
+	var rid: StringName = pending_battle_info.get("recruit", &"")
+	if rid != &"" and not has_recruited(rid):
+		if rescue_guest == null or rescue_guest.companion_id != rid:
+			rescue_guest = NpcLibrary.make_recruit(rid, player.level - 1)
+		if not out.has(rescue_guest):
+			out.append(rescue_guest)
 	return out
 
 
@@ -698,6 +705,7 @@ func current_layout() -> FloorLayout:
 				"kind": "boss" if boss_floor else "miniboss", "group": group })
 		_maybe_spawn_roamer(layout, rng)
 		_maybe_spawn_guild_fighters(layout, rng)
+		_maybe_spawn_rescue(layout)
 		floor_player_pos = layout.start
 		floor_ready = true
 	# Boss arenas only get their campfire + merchant once the boss is down.
@@ -853,8 +861,45 @@ func recruit(npc_id: StringName) -> CharacterData:
 	if not NpcLibrary.is_recruitable(npc_id) or has_recruited(npc_id) or npc_refuses(npc_id):
 		return null
 	var c := NpcLibrary.make_recruit(npc_id, player.level - 1)
-	_add_member(c)
+	_welcome(c)
 	return c
+
+
+## Someone joins: into the party (or reserve / waiting), and their loyalty
+## quest starts (finishing it unlocks their personal skill).
+func _welcome(c: CharacterData) -> void:
+	_add_member(c)
+	quests.start(QuestLibrary.loyalty_id(c.companion_id))
+
+
+## A rescue fight's recruit, built when the fight starts (null = none).
+var rescue_guest: CharacterData
+
+
+## Recruits met in a fight: on their range of combat floors (in this run),
+## the first normal group there becomes "rescue": someone is fighting it.
+func _maybe_spawn_rescue(layout: FloorLayout) -> void:
+	if floor_kind(floor_number) != "combat":
+		return
+	for id in NpcLibrary.recruits_met_by("rescue"):
+		var r := NpcLibrary.recruit_info(id)
+		var span: Array = r.get("rescue_floors", [0, -1])
+		if has_recruited(id) or not NpcLibrary.in_this_run(id) or floor_number < span[0] or floor_number > span[1]:
+			continue
+		for e in floor_enemies:
+			if e.kind == "normal":
+				e.kind = "rescue"
+				e["recruit"] = id
+				return
+
+
+## A boss is down: anyone it held captive is free (and joins).
+func _free_captives(boss_id: StringName) -> void:
+	for id in NpcLibrary.recruits_met_by("captive"):
+		if NpcLibrary.recruit_info(id).get("captive_of", &"") == boss_id and not has_recruited(id):
+			var c := NpcLibrary.make_recruit(id, player.level - 1)
+			_welcome(c)
+			quests.messages.append("%s is free and joins you!" % c.character_name)
 
 
 ## Party if there's room, then the reserve, then waiting at rest floors.
@@ -1246,7 +1291,7 @@ func prepare_floor_battle(enemy_index: int) -> void:
 	if kind in THEMED_KINDS:
 		scale /= StageLibrary.theme_power(floor_number)   # stronger themes get scaled back to the floor
 	set_pending_battle(EnemyLibrary.build_group(e.group), TOWER_SCENE, scale, enemy_index,
-		{ "kind": kind, "guild": e.get("guild", &""), "roamer_id": e.get("roamer_id", &"") })
+		{ "kind": kind, "guild": e.get("guild", &""), "roamer_id": e.get("roamer_id", &""), "recruit": e.get("recruit", &"") })
 
 
 # =========================================================
@@ -1328,6 +1373,13 @@ func finish_battle(outcome: int, fighters: Array = []) -> void:
 			_check_secret_unlock(e.roamer_id)
 		if enemy_kind(e) == "guard" or enemy_kind(e) == "champion":
 			guilds.fight_won(e.get("guild", &""), enemy_kind(e) == "champion")
+		if enemy_kind(e) == "rescue" and rescue_guest and rescue_guest.companion_id == e.get("recruit", &""):
+			if not rescue_guest.is_downed() or not ironman:
+				_welcome(rescue_guest)
+				quests.messages.append("%s joins you!" % rescue_guest.character_name)
+			rescue_guest = null
+		if enemy_kind(e) in ["boss", "miniboss"]:
+			_free_captives(e.group[0])
 		if enemy_kind(e) == "boss":
 			checkpoint_floor = floor_number   # the arena's campfire is your new checkpoint
 			if floor_number >= FINAL_FLOOR:

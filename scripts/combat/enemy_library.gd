@@ -290,7 +290,7 @@ static func _build() -> Dictionary:
 			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"spark", &"gust"] as Array[StringName], "skill_chance": 0.45,
 			"xp_reward": 65, "gold_reward": 12, "color": Color(0.75, 0.75, 1.0)}),
 		EnemyDef.make(&"stone_golem", "Stone Golem", {
-			"family": &"elemental", "affinities": {EL.EARTH: AF.ABSORB, EL.WIND: AF.WEAK, EL.WATER: AF.WEAK, EL.BLUNT: AF.NORMAL},
+			"family": &"elemental", "affinities": {EL.EARTH: AF.ABSORB, EL.WIND: AF.WEAK, EL.WATER: AF.WEAK},
 			"max_hp": 230, "stats": {S.HEALTH: 12, S.STRENGTH: 16, S.STAMINA: 16, S.AGILITY: 4},
 			"row": FRONT, "skills": [&"smash"] as Array[StringName], "skill_chance": 0.35,
 			"xp_reward": 75, "gold_reward": 12, "color": Color(0.55, 0.5, 0.45)}),

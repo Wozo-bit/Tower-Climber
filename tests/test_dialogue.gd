@@ -48,9 +48,12 @@ func test_library_is_valid() -> void:
 	check(problems.is_empty(), "every dialogue is valid (nodes, conditions, effects)")
 	var all_known := true
 	for id in NpcLibrary.NPCS:
-		if not DialogueLibrary.has_dialogue(NpcLibrary.NPCS[id].dialogue):
+		var n: Dictionary = NpcLibrary.NPCS[id]
+		if n.get("floors", []).is_empty():
+			continue   # met in a fight or freed from a boss: never walked up to
+		if not DialogueLibrary.has_dialogue(n.get("dialogue", &"")):
 			all_known = false
-	check(all_known, "every NPC points to a real dialogue")
+	check(all_known, "every NPC you can walk up to points to a real dialogue")
 
 
 func test_validator_catches_typos() -> void:

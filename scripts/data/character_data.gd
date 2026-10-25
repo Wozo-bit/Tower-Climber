@@ -60,6 +60,10 @@ const RESPEC_COST_MULTIPLIER := 2.0 # each paid respec costs this much more
 @export var skill_picks: int = STARTING_SKILL_PICKS
 ## Ranked-up skills: skill id -> rank (2..SkillLibrary.MAX_SKILL_RANK).
 @export var skill_ranks: Dictionary = {}
+## Recruits: their own skill (NpcLibrary "personal_skill"), usable once their
+## loyalty quest is done (personal_unlocked).
+@export var personal_skill: StringName = &""
+@export var personal_unlocked: bool = false
 ## Blessing from a god / demon / devil (BeingLibrary id; &"" = none) and its level.
 @export var blessing_id: StringName = &""
 @export var blessing_level: int = 0
@@ -220,7 +224,8 @@ func _refresh_gear_bonus() -> void:
 # =========================================================
 
 func knows_skill(id: StringName) -> bool:
-	return learned_skills.has(id) or SkillLibrary.skills_for_class(class_id).any(func(s): return s.id == id)
+	return learned_skills.has(id) or SkillLibrary.skills_for_class(class_id).any(func(s): return s.id == id) \
+		or (personal_unlocked and id == personal_skill and id != &"")
 
 
 ## Learn a shared skill (from a skill book). False if unknown, not learnable,
@@ -293,6 +298,10 @@ func all_skills() -> Array[SkillDef]:
 		var s := SkillLibrary.get_skill_or_null(id)
 		if s and not out.any(func(o): return o.id == s.id):
 			out.append(SkillLibrary.ranked(s, skill_rank(s.id)))
+	if personal_unlocked and personal_skill != &"":   # a recruit's own skill, after their loyalty quest
+		var ps := SkillLibrary.get_skill_or_null(personal_skill)
+		if ps and not out.any(func(o): return o.id == ps.id):
+			out.append(SkillLibrary.ranked(ps, skill_rank(ps.id)))
 	if is_blessed():   # the blessed skill, while the blessing lasts
 		var bs := SkillLibrary.get_skill_or_null(BeingLibrary.get_being(blessing_id).get("skill", &""))
 		if bs and not out.any(func(o): return o.id == bs.id):

@@ -21,6 +21,7 @@ const C_MINIBOSS_RING := Color(1.0, 0.8, 0.2)
 const C_ROAMER_RING := Color(0.8, 0.4, 1.0)
 const C_GUARD_RING := Color(0.4, 0.7, 1.0)
 const C_CHAMPION_RING := Color(1.0, 1.0, 1.0)
+const C_RESCUE_RING := Color(0.4, 1.0, 0.5)
 const FLEE_STUN_TIME := 2.5
 const POST_BATTLE_GRACE := 1.2
 ## After a conversation, holding the move key won't start it again straight away.
@@ -256,7 +257,8 @@ func try_move(dir: Vector2i) -> bool:
 		elif guild != &"":
 			talk(&"guild_agent", null, &"", guild)
 		else:
-			talk(NpcLibrary.get_npc(layout.npcs[target]).dialogue)
+			var npc_id: StringName = layout.npcs[target]
+			talk(NpcLibrary.get_npc(npc_id).dialogue, null, &"", &"", npc_id if NpcLibrary.is_recruitable(npc_id) else &"")
 		return false
 	if target == layout.stairs and GameState.stairs_locked():
 		_show_toast("The stairs are guarded. Defeat the %s to go up!" %
@@ -292,8 +294,8 @@ func _update_enemies(delta: float) -> void:
 			v.stun -= delta
 			continue
 		var kind := GameState.enemy_kind(data)
-		if kind == "miniboss" or kind == "boss" or kind == "champion":
-			continue   # guardians and champions hold their post
+		if kind == "miniboss" or kind == "boss" or kind == "champion" or kind == "rescue":
+			continue   # guardians and champions hold their post; a rescue is a fight in place
 		if v.t < 1.0:
 			v.t = minf(1.0, v.t + delta / ENEMY_STEP_TIME)
 			if v.t >= 1.0:
@@ -391,12 +393,13 @@ func _go_upstairs() -> void:
 
 
 ## Opens a conversation (public so tests/automation can use it).
-func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"") -> void:
+func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"",
+		recruit: StringName = &"") -> void:
 	if _talk_cooldown > 0.0 or _dialogue.visible:
 		return
 	if being != &"":   # a god / demon / devil appears
 		CutIns.play(CutInData.being(being))
-	if _dialogue.open(dialogue_id, with, being, guild):
+	if _dialogue.open(dialogue_id, with, being, guild, recruit):
 		Audio.play_sfx(["talk_%s" % dialogue_id, "talk"])
 
 
@@ -630,9 +633,11 @@ func _draw() -> void:
 		var is_boss := kind != "normal"
 		var radius: float = TILE * (0.3 + 0.04 * data.group.size())
 		if is_boss:
-			radius = TILE * (0.62 if kind == "boss" else (0.4 if kind == "guard" else 0.48))
+			radius = TILE * (0.62 if kind == "boss" else (0.4 if kind in ["guard", "rescue"] else 0.48))
 			var ring: Color = {"boss": C_BOSS_RING, "miniboss": C_MINIBOSS_RING, "roaming": C_ROAMER_RING,
-				"guard": C_GUARD_RING, "champion": C_CHAMPION_RING}[kind]
+				"guard": C_GUARD_RING, "champion": C_CHAMPION_RING, "rescue": C_RESCUE_RING}[kind]
+			if kind == "rescue":   # pulses: someone's in trouble
+				ring.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() / 200.0)
 			if kind == "roaming":   # pulsing ring so it stands out while it moves
 				ring.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() / 150.0)
 			draw_arc(pos, radius + 4, 0, TAU, 28, ring, 3.0)
@@ -644,7 +649,7 @@ func _draw() -> void:
 			draw_circle(pos, radius, col)
 			draw_arc(pos, radius, 0, TAU, 20, Color(0, 0, 0, 0.6), 2.0)
 		if is_boss:
-			var mark: String = {"boss": "!!", "miniboss": "!", "roaming": "?", "guard": "G", "champion": "C"}[kind]
+			var mark: String = {"boss": "!!", "miniboss": "!", "roaming": "?", "guard": "G", "champion": "C", "rescue": "+"}[kind]
 			draw_string(font, pos + Vector2(-4.5 * mark.length(), 6), mark, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.BLACK)
 		elif data.group.size() > 1:
 			draw_string(font, pos + Vector2(-4, 5), str(data.group.size()), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.BLACK)
@@ -796,6 +801,8 @@ func _update_hud() -> void:
 					fl += "     ? %s is loose on this floor" % name_s
 			"champion":
 				fl += "     ⚔ %s's champion holds this territory" % GuildLibrary.guild_name(e.get("guild", &""))
+			"rescue":
+				fl += "     + Someone is fighting for their life here!"
 	var hunting := GameState.floor_enemies.filter(func(e): return e.alive and e.kind == "guard")
 	if not hunting.is_empty():
 		fl += "     ⚠ %s guards are hunting you" % GuildLibrary.guild_name(hunting[0].get("guild", &""))

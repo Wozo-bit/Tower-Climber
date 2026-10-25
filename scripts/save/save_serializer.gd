@@ -173,6 +173,7 @@ static func character_to_dict(c: CharacterData) -> Dictionary:
 		"learned_skills": c.learned_skills.map(func(id): return String(id)),
 		"skill_picks": c.skill_picks,
 		"skill_ranks": _stringify_keys(c.skill_ranks),
+		"personal_skill": String(c.personal_skill), "personal_unlocked": c.personal_unlocked,
 		"blessing": String(c.blessing_id), "blessing_level": c.blessing_level,
 		"curse": String(c.curse_id), "curse_level": c.curse_level, "curse_until_floor": c.curse_until_floor,
 		"equipment": equip,
@@ -201,6 +202,11 @@ static func character_from_dict(d: Dictionary) -> CharacterData:
 			if s and s.learnable and not c.learned_skills.has(s.id):
 				c.learned_skills.append(s.id)
 	c.skill_picks = _i(d, "skill_picks", CharacterData.STARTING_SKILL_PICKS, 0, 999)
+	# A personal skill must be the one that recruit really has (NpcLibrary).
+	var ps := StringName(_s(d, "personal_skill"))
+	if ps != &"" and NpcLibrary.recruit_info(c.companion_id).get("personal_skill", &"") == ps:
+		c.personal_skill = ps
+		c.personal_unlocked = _b(d, "personal_unlocked", false)
 	var ranks := _d(d, "skill_ranks")
 	for id in ranks:
 		if id is String and SkillLibrary.get_skill_or_null(StringName(id)) != null:
@@ -250,6 +256,8 @@ static func floor_enemies_to_array(enemies: Array) -> Array:
 			row["roamer_id"] = String(e.roamer_id)
 		if e.has("guild"):
 			row["guild"] = String(e.guild)
+		if e.has("recruit"):
+			row["recruit"] = String(e.recruit)
 		out.append(row)
 	return out
 
@@ -265,7 +273,7 @@ static func floor_enemies_from_array(arr: Array) -> Array:
 			if id is String and EnemyLibrary.get_enemy_or_null(StringName(id)):
 				group.append(StringName(id))
 		var kind := _s(row, "kind", "normal")
-		if pos.size() != 2 or group.is_empty() or not kind in ["normal", "miniboss", "boss", "roaming", "guard", "champion"]:
+		if pos.size() != 2 or group.is_empty() or not kind in ["normal", "miniboss", "boss", "roaming", "guard", "champion", "rescue"]:
 			continue
 		var e := { "pos": Vector2i(int(pos[0]), int(pos[1])), "alive": _b(row, "alive", true),
 			"kind": kind, "group": group }
@@ -276,6 +284,13 @@ static func floor_enemies_from_array(arr: Array) -> Array:
 			var g := StringName(_s(row, "guild"))
 			if GuildLibrary.guilds.has(g):
 				e["guild"] = g
+			else:
+				e["kind"] = "normal"
+		if kind == "rescue":
+			# Someone to rescue: must be a real rescue recruit; otherwise a normal fight.
+			var rid := StringName(_s(row, "recruit"))
+			if NpcLibrary.recruit_info(rid).get("meet", "") == "rescue":
+				e["recruit"] = rid
 			else:
 				e["kind"] = "normal"
 		out.append(e)

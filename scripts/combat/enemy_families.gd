@@ -43,10 +43,10 @@ const FAMILIES := {
 	&"insect": { "name": "Insects",
 		"affinities": { E.FIRE: A.WEAK, E.WIND: A.WEAK, E.EARTH: A.RESIST, E.PIERCE: A.RESIST },
 		"traits": [&"swarming"] },
-	# Elementals shrug off weapons; each one also absorbs its own element and
-	# fears its opposite (set per enemy).
+	# Elementals shrug off blades and points (a hammer still cracks them); each
+	# one also absorbs its own element and fears its opposite (set per enemy).
 	&"elemental": { "name": "Elementals",
-		"affinities": { E.SLASH: A.RESIST, E.PIERCE: A.RESIST, E.BLUNT: A.RESIST },
+		"affinities": { E.SLASH: A.RESIST, E.PIERCE: A.RESIST },
 		"traits": [] },
 	&"undead": { "name": "Undead",
 		"affinities": { E.HOLY: A.WEAK, E.FIRE: A.WEAK, E.DARK: A.RESIST, E.ICE: A.RESIST },

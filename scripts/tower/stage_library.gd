@@ -124,7 +124,7 @@ const THEMES := {
 	},
 	&"elemental_rift": {
 		"name": "Elemental Rift", "family": &"elemental", "power": 1.3,
-		"hint": "(Placeholder) Blades barely scratch the spirits here. Fight fire with water, frost with fire, lightning with stone, and never feed one its own element.",
+		"hint": "(Placeholder) Blades and arrows barely scratch the spirits here, but a hammer cracks them. Fight fire with water, frost with fire, lightning with stone, and never feed one its own element.",
 		"encounters": [
 			[&"stone_golem", &"ember_sprite", &"frost_wisp"],
 			[&"stone_golem", &"storm_spirit"],

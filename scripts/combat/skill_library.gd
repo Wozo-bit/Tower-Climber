@@ -339,6 +339,36 @@ static func _build() -> Dictionary:
 		SkillDef.make(&"primordial_tide", "Primordial Tide", "The first sea drowns every enemy.",
 			{"elements": [EL.WATER] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0}),
 
+		# =====================================================
+		# Recruits' personal skills (NpcLibrary "personal_skill"): never
+		# learnable from books; unlocked by finishing their loyalty quest.
+		# =====================================================
+		SkillDef.make(&"thunder_charge", "Thunder Charge", "Brakka's charge: a blunt blow crackling with Thor's lightning.",
+			{"elements": [EL.BLUNT, EL.LIGHTNING] as Array[int], "mp_cost": 10, "damage_type": D.MELEE, "power": 1.9}),
+		SkillDef.make(&"hunters_mark", "Hunter's Mark", "Tamsin never misses twice: a piercing shot. +30% crit chance.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 9, "damage_type": D.RANGED, "power": 1.8, "bonus_crit": 0.3}),
+		SkillDef.make(&"saints_hymn", "Saint's Hymn", "Daphne's hymn heals the whole party.",
+			{"mp_cost": 16, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.0, "heal_pct_max_hp": 0.15}),
+		SkillDef.make(&"dirty_work", "Dirty Work", "Garrick finds the gap in any guard, from any row.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 10, "damage_type": D.MELEE, "ignores_row": true, "power": 2.0}),
+		SkillDef.make(&"rain_of_thorns", "Rain of Thorns", "Rook's arrows fall on every enemy.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 14, "damage_type": D.RANGED, "targeting": T.ENEMY_ALL, "power": 1.1}),
+		SkillDef.make(&"valkyries_shield", "Valkyrie's Shield", "Sigrun's oath: the whole party takes 30% less damage for 3 turns.",
+			{"mp_cost": 14, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
+		SkillDef.make(&"solar_flare", "Solar Flare", "Neferet calls down Ra's light: holy fire on every enemy.",
+			{"elements": [EL.HOLY, EL.FIRE] as Array[int], "mp_cost": 18, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.3}),
+		SkillDef.make(&"thunder_oath", "Thunder Oath", "Lysander swears by Zeus: lightning with your stronger of STR or INT.",
+			{"elements": [EL.LIGHTNING] as Array[int], "mp_cost": 12, "damage_type": D.MAGIC, "adaptive": true, "power": 2.0}),
+		SkillDef.make(&"lions_grace", "Lion's Grace", "Shamira's dancing strike. +40% crit chance.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 1.8, "bonus_crit": 0.4}),
+		SkillDef.make(&"stand_firm", "Stand Firm", "Old Fenn plants his feet and draws every blow for 3 turns.",
+			{"mp_cost": 8, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"taunt", "status_turns": 3}),
+		SkillDef.make(&"shadowstep", "Shadowstep", "Kael strikes from the dark, past any front line.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 10, "damage_type": D.MELEE, "ignores_row": true, "power": 1.9,
+			"bonus_crit": 0.15}),
+		SkillDef.make(&"frost_nova", "Frost Nova", "Vesna freezes the air around every enemy.",
+			{"elements": [EL.ICE] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.4}),
+
 		# --- Enemy-only ---
 		# Smash and Firebolt are enemy moves, but their books can drop, so they're learnable too.
 		SkillDef.make(&"smash", "Smash", "A crushing overhead blow.",

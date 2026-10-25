@@ -106,7 +106,40 @@ const KINDS := ["main", "side", "bounty"]
 static func get_quest(id: StringName) -> Dictionary:
 	if QUESTS.has(id):
 		return QUESTS[id]
-	return trials().get(id, {})
+	if trials().has(id):
+		return trials()[id]
+	return recruit_quests().get(id, {})
+
+
+## Recruits' quests, built from NpcLibrary: "favor_<id>" (do it before they
+## join) and "loyalty_<id>" (starts when they join; finishing it unlocks
+## their personal skill).
+static var _recruit_cache: Dictionary = {}
+
+
+static func recruit_quests() -> Dictionary:
+	if _recruit_cache.is_empty():
+		for id in NpcLibrary.NPCS:
+			var r: Dictionary = NpcLibrary.recruit_info(id)
+			var who: String = NpcLibrary.get_npc(id).get("name", "?")
+			for kind in ["favor", "loyalty"]:
+				if not r.has(kind):
+					continue
+				var q: Dictionary = r[kind].duplicate(true)
+				q["kind"] = "side"
+				q["giver"] = who
+				if kind == "loyalty":
+					q["rewards"] = { "unlock_personal": id }
+				_recruit_cache[favor_id(id) if kind == "favor" else loyalty_id(id)] = q
+	return _recruit_cache
+
+
+static func favor_id(npc_id: StringName) -> StringName:
+	return StringName("favor_" + String(npc_id))
+
+
+static func loyalty_id(npc_id: StringName) -> StringName:
+	return StringName("loyalty_" + String(npc_id))
 
 
 ## Class trials: one per advanced class (tier 2+), id "trial_<class>". Started
@@ -143,6 +176,8 @@ static func validate_all() -> PackedStringArray:
 		problems.append_array(validate(id, QUESTS[id]))
 	for id in trials():
 		problems.append_array(validate(id, trials()[id]))
+	for id in recruit_quests():
+		problems.append_array(validate(id, recruit_quests()[id]))
 	return problems
 
 

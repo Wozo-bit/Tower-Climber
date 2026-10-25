@@ -21,6 +21,20 @@ extends RefCounted
 ##       "class_id":  class it takes at level 10+ (if its build qualifies)
 ##       "build":     Stats.Type -> weight; level-up points are split this way
 ##       "row":       (optional) Combatant.Row to start in
+##       "meet":      how you meet them (Hayden 2026-10-25):
+##                    "campfire" (sitting by a rest-floor campfire; dialogue
+##                    recruit_campfire), "hire" (one-time "fee" in gold, near the
+##                    merchant; recruit_hire), "favor" (do their "favor" quest
+##                    first; recruit_favor), "rescue" (fighting for their life on
+##                    a combat floor in "rescue_floors": they fight beside you
+##                    and join if you win), "captive" (locked up by the boss
+##                    "captive_of"; beat it to free them). Captives are blessed
+##                    by a being whose RIVAL sponsors that boss.
+##       "pitch":     what they say when you meet them (placeholder)
+##       "personal_skill": their own skill, unlocked by finishing their
+##                    "loyalty" quest (QuestLibrary.recruit_quests builds both)
+##       "favor" / "loyalty": { "title", "desc", "steps": [{ "text", "goal" }] }
+##   "run_chance":    (optional) wanderers: chance (per run) they're in this run
 ##
 ## Recruits join at the player's level - 1 (min 1). Placeholders below.
 
@@ -29,14 +43,156 @@ const NPCS := {
 		"name": "Brakka", "kind": "npc", "dialogue": &"brakka", "color": Color(0.85, 0.55, 0.3),
 		"floors": ["rest"], "min_floor": 5, "max_floor": 9999, "near": "campfire",
 		"recruit": {
-			"class_id": &"tank",
+			"class_id": &"tank", "meet": "campfire", "personal_skill": &"thunder_charge",
 			"build": { Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 4, Stats.Type.STRENGTH: 3 },
+			"loyalty": { "title": "Brakka: Worthy of Thunder", "desc": "(Placeholder) Brakka wants to prove Thor chose well.",
+				"steps": [{ "text": "Defeat 2 minibosses with Brakka", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } }] },
 		},
 		# Routes he likes / won't stand for (placeholder). See GameState routes.
 		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
 		# NPCs can be blessed too (personality): [being id, level].
 		"blessing": [&"thor", 1],
 	},
+	# =====================================================
+	# Recruits (Hayden's roster 2026-10-25). Names follow each one's origin.
+	# All text is placeholder for the story phase.
+	# =====================================================
+	&"tamsin": {
+		"name": "Tamsin", "kind": "npc", "color": Color(0.45, 0.7, 0.4), "floors": [],
+		"recruit": {
+			"class_id": &"archer", "meet": "rescue", "rescue_floors": [2, 6], "personal_skill": &"hunters_mark",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 }, "row": 1,
+			"pitch": "(Placeholder) You came out of nowhere. I owe you one.",
+			"loyalty": { "title": "Tamsin: A Debt Repaid", "desc": "(Placeholder) Tamsin won't rest until she's paid you back in kind.",
+				"steps": [{ "text": "Defeat 25 enemies", "goal": { "type": "defeat", "any": true, "count": 25 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"villain"] },
+	},
+	&"daphne": {
+		"name": "Daphne", "kind": "npc", "dialogue": &"recruit_favor", "color": Color(0.9, 0.9, 0.75),
+		"floors": ["rest"], "min_floor": 5, "max_floor": 9999, "near": "campfire",
+		"recruit": {
+			"class_id": &"support", "meet": "favor", "personal_skill": &"saints_hymn",
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 2 }, "row": 1,
+			"pitch": "(Placeholder) The goddess of wisdom sent me to tend the climbers. Help the wounded first, then we'll talk.",
+			"favor": { "title": "Daphne: Clear the Way", "desc": "(Placeholder) Monsters keep the wounded from reaching her fire.",
+				"steps": [{ "text": "Defeat 8 enemies", "goal": { "type": "defeat", "any": true, "count": 8 } }] },
+			"loyalty": { "title": "Daphne: The Pilgrimage", "desc": "(Placeholder) Daphne made a vow to see the upper floors.",
+				"steps": [{ "text": "Reach floor 20", "goal": { "type": "reach", "floor": 20 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"athena", 1],
+	},
+	&"garrick": {
+		"name": "Garrick", "kind": "npc", "dialogue": &"recruit_hire", "color": Color(0.5, 0.45, 0.4),
+		"floors": ["rest"], "min_floor": 15, "max_floor": 9999, "near": "merchant",
+		"recruit": {
+			"class_id": &"rogue", "meet": "hire", "fee": 600, "personal_skill": &"dirty_work",
+			"build": { Stats.Type.AGILITY: 4, Stats.Type.STRENGTH: 4, Stats.Type.LUCK: 2 },
+			"pitch": "(Placeholder) My blade's for hire. Six hundred gold and I'm yours, no questions.",
+			"loyalty": { "title": "Garrick: The Big Score", "desc": "(Placeholder) Garrick has heard a roaming beast guards a fortune.",
+				"steps": [{ "text": "Defeat a roaming boss", "goal": { "type": "defeat", "kind": "roaming", "count": 1 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"rook": {
+		"name": "Rook", "kind": "npc", "dialogue": &"recruit_favor", "color": Color(0.35, 0.5, 0.3),
+		"floors": ["rest"], "min_floor": 20, "max_floor": 9999, "near": "campfire",
+		"recruit": {
+			"class_id": &"archer", "meet": "favor", "personal_skill": &"rain_of_thorns",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 }, "row": 1,
+			"pitch": "(Placeholder) I don't climb with people I haven't seen fight. Take down one of the big ones.",
+			"favor": { "title": "Rook: Prove It", "desc": "(Placeholder) Rook wants to see you beat a guardian.",
+				"steps": [{ "text": "Defeat a miniboss", "goal": { "type": "defeat", "kind": "miniboss", "count": 1 } }] },
+			"loyalty": { "title": "Rook: The Long Hunt", "desc": "(Placeholder) Rook keeps a tally. Help him fill it.",
+				"steps": [{ "text": "Defeat 30 enemies", "goal": { "type": "defeat", "any": true, "count": 30 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"hero"] },
+	},
+	&"sigrun": {
+		"name": "Sigrun", "kind": "npc", "color": Color(0.75, 0.8, 0.95), "floors": [],
+		"recruit": {
+			"class_id": &"tank", "meet": "captive", "captive_of": &"moonfang", "personal_skill": &"valkyries_shield",
+			"build": { Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 4, Stats.Type.STRENGTH: 3 },
+			"pitch": "(Placeholder) The Trickster's wolf kept me as a trophy. Odin will hear of this.",
+			"loyalty": { "title": "Sigrun: The Allfather's Due", "desc": "(Placeholder) Sigrun owes Odin a great deed.",
+				"steps": [{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"odin", 1],
+	},
+	&"neferet": {
+		"name": "Neferet", "kind": "npc", "color": Color(1.0, 0.85, 0.4), "floors": [],
+		"recruit": {
+			"class_id": &"mage", "meet": "captive", "captive_of": &"hive_queen", "personal_skill": &"solar_flare",
+			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 2 }, "row": 1,
+			"pitch": "(Placeholder) The Serpent's queen walled me in her hive to keep Ra's light out. Thank you.",
+			"loyalty": { "title": "Neferet: Light in the Dark", "desc": "(Placeholder) Neferet must carry Ra's light higher.",
+				"steps": [{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+		"blessing": [&"ra", 1],
+	},
+	&"lysander": {
+		"name": "Lysander", "kind": "npc", "color": Color(0.8, 0.85, 1.0), "floors": [],
+		"recruit": {
+			"class_id": &"support", "meet": "captive", "captive_of": &"necromancer", "personal_skill": &"thunder_oath",
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STRENGTH: 2 }, "row": 1,
+			"pitch": "(Placeholder) Hades' servant meant to keep Zeus' priest in the dark forever. Not today.",
+			"loyalty": { "title": "Lysander: The King's Oath", "desc": "(Placeholder) Lysander's oath demands a victory worthy of Zeus.",
+				"steps": [{ "text": "Defeat a stage boss", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"vigilante"] },
+		"blessing": [&"zeus", 1],
+	},
+	&"shamira": {
+		"name": "Shamira", "kind": "npc", "color": Color(0.85, 0.5, 0.6), "floors": [],
+		"recruit": {
+			"class_id": &"rogue", "meet": "captive", "captive_of": &"dragon_sovereign", "personal_skill": &"lions_grace",
+			"build": { Stats.Type.AGILITY: 4, Stats.Type.STRENGTH: 4, Stats.Type.LUCK: 2 },
+			"pitch": "(Placeholder) The Mother of Chaos' dragon caged Ishtar's champion like a jewel. Let's make it pay.",
+			"loyalty": { "title": "Shamira: Ishtar's Fury", "desc": "(Placeholder) Shamira wants to see the tower's crown fall.",
+				"steps": [{ "text": "Reach the top of the tower", "goal": { "type": "reach", "floor": 60 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"hero"] },
+		"blessing": [&"ishtar", 1],
+	},
+	&"old_fenn": {
+		"name": "Old Fenn", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.6, 0.55, 0.5),
+		"floors": ["rest"], "min_floor": 25, "max_floor": 9999, "near": "campfire", "run_chance": 0.5,
+		"recruit": {
+			"class_id": &"tank", "meet": "campfire", "personal_skill": &"stand_firm",
+			"build": { Stats.Type.HEALTH: 5, Stats.Type.STAMINA: 4, Stats.Type.STRENGTH: 2 },
+			"pitch": "(Placeholder) Climbed this tower forty years ago. Never made the top. Got room for an old man?",
+			"loyalty": { "title": "Old Fenn: One Last Climb", "desc": "(Placeholder) Fenn wants to stand higher than he ever did.",
+				"steps": [{ "text": "Reach floor 45", "goal": { "type": "reach", "floor": 45 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [&"villain"] },
+	},
+	&"kael": {
+		"name": "Kael", "kind": "npc", "color": Color(0.3, 0.3, 0.4), "floors": [], "run_chance": 0.5,
+		"recruit": {
+			"class_id": &"rogue", "meet": "rescue", "rescue_floors": [30, 38], "personal_skill": &"shadowstep",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 },
+			"pitch": "(Placeholder) I had it handled. ...Fine. Thanks.",
+			"loyalty": { "title": "Kael: Unfinished Business", "desc": "(Placeholder) Kael has a score to settle with the guardians.",
+				"steps": [{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"vesna": {
+		"name": "Vesna", "kind": "npc", "dialogue": &"recruit_hire", "color": Color(0.6, 0.8, 0.95),
+		"floors": ["rest"], "min_floor": 35, "max_floor": 9999, "near": "merchant", "run_chance": 0.5,
+		"recruit": {
+			"class_id": &"mage", "meet": "hire", "fee": 1500, "personal_skill": &"frost_nova",
+			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 2 }, "row": 1,
+			"pitch": "(Placeholder) Fifteen hundred gold. Winter doesn't come cheap.",
+			"loyalty": { "title": "Vesna: Deep Winter", "desc": "(Placeholder) Vesna wants to test her frost on the worst the tower has.",
+				"steps": [{ "text": "Defeat 30 enemies", "goal": { "type": "defeat", "any": true, "count": 30 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+
 	# --- Route content (placeholders) ---
 	&"black_market": {
 		"name": "Hooded trader", "kind": "npc", "dialogue": &"black_market", "color": Color(0.25, 0.2, 0.3),
@@ -97,6 +253,31 @@ static func is_recruitable(id: StringName) -> bool:
 	return get_npc(id).has("recruit")
 
 
+## Wanderers ("run_chance") are only in some runs; the roll is fixed per run.
+static func in_this_run(id: StringName) -> bool:
+	var chance: float = get_npc(id).get("run_chance", 1.0)
+	if chance >= 1.0:
+		return true
+	var rng := RandomNumberGenerator.new()
+	rng.seed = ("%s:%d:%s" % [GameState.player.legacy_id, GameState.ng_plus_cycle, id]).hash()
+	return rng.randf() < chance
+
+
+## Recruit ids met a certain way ("campfire", "hire", "favor", "rescue", "captive").
+static func recruits_met_by(meet: String) -> Array:
+	var out := []
+	var ids := NPCS.keys()
+	ids.sort()
+	for id in ids:
+		if NPCS[id].get("recruit", {}).get("meet", "") == meet:
+			out.append(id)
+	return out
+
+
+static func recruit_info(id: StringName) -> Dictionary:
+	return get_npc(id).get("recruit", {})
+
+
 ## NPCs that belong on this floor right now, in a stable order.
 ## `floor_kind` is "rest", "boss", "combat" or "miniboss". `rng_for(id)` must
 ## return a RandomNumberGenerator seeded for that NPC on this floor.
@@ -112,7 +293,7 @@ static func npcs_for_floor(floor_n: int, floor_kind: String, rng_for: Callable) 
 			continue
 		if n.has("gone_flag") and GameState.has_flag(n.gone_flag):
 			continue
-		if n.has("recruit") and GameState.has_recruited(id):
+		if n.has("recruit") and (GameState.has_recruited(id) or not in_this_run(id)):
 			continue
 		if not DialogueRunner.check(n.get("if", {})):
 			continue
@@ -133,6 +314,7 @@ static func make_recruit(id: StringName, level: int) -> CharacterData:
 	var c := CharacterData.new()
 	c.character_name = n.name
 	c.companion_id = id
+	c.personal_skill = r.get("personal_skill", &"")
 	while c.level < maxi(1, level):
 		c.level_up()
 	if c.unspent_points > 0:

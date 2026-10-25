@@ -42,6 +42,9 @@ static func boss(kind: String, group: Array, floor_n: int, info: Dictionary = {}
 	var sponsor := ""
 	if def and def.patron != &"":
 		sponsor = "\nSponsored by %s" % BeingLibrary.full_name(def.patron)
+	for rid in NpcLibrary.recruits_met_by("captive"):   # someone you can free by winning
+		if def and NpcLibrary.recruit_info(rid).get("captive_of", &"") == def.id and not GameState.has_recruited(rid):
+			sponsor += "  ·  Holding %s captive" % NpcLibrary.get_npc(rid).name
 	match kind:
 		"boss":
 			var sub := "FINAL BOSS" if floor_n >= GameState.FINAL_FLOOR else "BOSS  ·  Floor %d" % floor_n

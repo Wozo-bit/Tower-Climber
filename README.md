@@ -105,6 +105,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tests/test_screens.gd` | 12 smoke checks that open the real floor, battle and title screens and drive the hooks on them (including a captain joining a fight). Run: `godot --headless res://tests/test_screens.tscn` |
 | `scripts/data/difficulty.gd` | Difficulty modes (Relaxed / Normal / Hard / Hell). Ironman lives in `GameState`. |
 | `tools/balance_sim.gd` | The balance simulator (dev tool): a bot plays whole runs, or measures the guild world. See "What the balance simulator says". |
+| `tests/test_recruits.gd` | 33 checks: the roster data, campfire/hire/favor/rescue/captive meetings, wanderers, route refusals, loyalty quests and personal skills, saving. Run: `godot --headless res://tests/test_recruits.tscn` |
 | `tests/test_stages.gd` | 19 checks: every theme's data, the 60-floor ladder and the non-repeating pseudo-god slots, boss patrons (blessing, sensitivity rule, interest), the new traits, signature books. Run: `godot --headless res://tests/test_stages.tscn` |
 | `tests/test_difficulty.gd` | 45 checks: difficulty choice and lowering, battle multipliers, Hell extras, wipes, Ironman deaths and the fallen, Hall records, patron temper and feuds, scaling rules. Run: `godot --headless res://tests/test_difficulty.tscn` |
 
@@ -119,7 +120,37 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 - **The merchant** now greets you first: **Let's trade** opens the shop. From floor 10 they also have a story to tell (an Ashbound clue).
 - **Recruiting:** recruitable NPCs join at **your level − 1** (min 1), with their points spent by their build and their class taken if they're level 10+. They join the party if there's room, then the reserve, and if both are full they wait by the campfire on rest floors (see Party management). Recruits leave the floor, are saved, and reset in New Game+ like other story progress. Uniques on reserve or waiting members still carry into New Game+.
 - **The Ashbound clues** all come from this system now: the **scorched mural** (40% of normal floors 11–29), the **merchant's story** (floor 10+) and the **glint in the embers** (by the campfire on rest floors and cleared boss floors from floor 10).
-- **Placeholder content only:** Brakka (a Tank you can recruit on rest floors from floor 5), the merchant and the two lore objects. Real story content comes later.
+- **Placeholder content only:** the merchant, lore objects and the recruit roster below. Real story content comes later.
+
+### The recruit roster (Hayden 2026-10-25)
+Twelve recruits across the 60 floors. Their names follow each one's origin (the god who blessed them). All their text is placeholder.
+
+| Recruit | Class | How you meet them | Blessed by | Likes / dislikes |
+|---|---|---|---|---|
+| Brakka | Tank | campfire, rest floors 5+ | Thor | Hero / Villain |
+| Tamsin | Archer | **rescue** fight, floors 2–6 | | Vigilante / Villain |
+| Daphne | Support | **favor** quest, rest floors 5+ | Athena | Hero / Villain |
+| Garrick | Rogue | **hire** 600g, rest floors 15+ | | Villain / Hero |
+| Rook | Archer | **favor** quest, rest floors 20+ | | Vigilante / Hero |
+| Sigrun | Tank | **captive** of Moonfang (Loki's) | Odin | Hero / Villain |
+| Neferet | Mage | **captive** of the Hive Queen (Apep's) | Ra | Hero / Villain |
+| Lysander | Support | **captive** of the Necromancer (Hades') | Zeus | Hero / Vigilante |
+| Shamira | Rogue | **captive** of the Dragon Sovereign (Tiamat's) | Ishtar | Vigilante / Hero |
+| Old Fenn | Tank | campfire, rest floors 25+ (*wanderer*) | | Vigilante / Villain |
+| Kael | Rogue | **rescue** fight, floors 30–38 (*wanderer*) | | Villain / Hero |
+| Vesna | Mage | **hire** 1500g, rest floors 35+ (*wanderer*) | | Villain / Hero |
+
+- **Ways to meet them** (`NpcLibrary` "recruit" → `"meet"`):
+  - **campfire:** talk and they join.
+  - **hire:** a one-time fee. Hayden may switch this to a wage later.
+  - **favor:** do their small quest first, then they join.
+  - **rescue:** on their floors, a group of enemies has someone cornered (green pulsing ring, **+**). They fight beside you and join if you win.
+  - **captive:** a boss sponsored by a **rival** of their god keeps them locked up, and the boss's cut-in says so. Beat it to free them. Captives only exist in runs where their captor's stage rolls.
+- **Shared conversations:** `recruit_campfire`, `recruit_hire` and `recruit_favor` cover everyone, filled in with `{recruit}` / `{recruit_pitch}` / `{recruit_fee}`. A new recruit is just data.
+- **Wanderers** (`"run_chance"`) are only in about half of runs. The roll is fixed per run.
+- **Values:** every recruit likes and dislikes routes. They refuse to join someone on a route they dislike, and they warn and leave like other companions.
+- **Loyalty quests:** joining starts their loyalty quest, themed on their backstory. Finishing it unlocks their **personal skill** (Thunder Charge, Hunter's Mark, Saint's Hymn, Dirty Work, Rain of Thorns, Valkyrie's Shield, Solar Flare, Thunder Oath, Lion's Grace, Stand Firm, Shadowstep, Frost Nova). Personal skills never come from books, and they can be ranked up. The favor and loyalty quests are generated from the recruit data (`QuestLibrary.recruit_quests`).
+- **Solo runs** already work. You can bench or dismiss anyone, including your childhood friend, from floor 1 (just not on a floor whose miniboss or boss is still alive). Enemy groups shrink to your party's size.
 
 ## Party management
 Open it with **Tab → Manage party**.
@@ -456,7 +487,7 @@ The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_
 - **New families:**
   - **Bandits:** weak to Lightning and Pierce; easily distracted.
   - **Insects:** weak to Fire and Wind; resist Earth and Pierce. **Swarming:** +10% damage per other living swarmer, up to +30%.
-  - **Elementals:** resist all weapons; each absorbs its own element and fears its opposite.
+  - **Elementals:** resist blades and arrows (a hammer cracks them); each absorbs its own element and fears its opposite.
   - **Undead:** weak to Holy and Fire; resist Dark and Ice. **Undying:** survives its first killing blow with 1 HP, unless that blow is Holy or Fire.
   - **Demons:** weak to Holy and Ice; resist Fire and Dark; reckless.
   - **Celestials:** weak to Dark; resist Holy and Lightning.
@@ -469,7 +500,7 @@ The tower is split into **stages of 10 floors**, set up in `scripts/tower/stage_
   - Sensitivity rule: figures from living religions never sponsor enemies (tests enforce it).
 - **Signature skills:** each new boss has a Unique skill book (Highwayman's Ruin, Chitin Storm, Moonfang, Cataclysm, Grave Tide, Abyssal Brand, Judgment Ray, Dragonfire).
 - **Theme power:** new themes are built at the goblins' baseline. The trait-heavy ones get a power rating so the floor curve stays fair: Insects 1.1, Elemental Rift 1.3, Undead 1.25, Demons 1.1, Angels 1.1, Dragons 1.2 (Orcs 1.4).
-- **Simulator, Normal, 60 floors:** 17 of 24 runs clear. The misses are mostly all-melee parties (rogue + tank) on the weapon-resistant Elemental Rift and Undead floors. Party level on first reaching floors 10/20/30/40/50/60 is about 12/25/35/44/51/59. Relaxed clears 12 of 12, Hard 11 of 12, and Hell 4 of 12 (a grind).
+- **Simulator, Normal, 60 floors (with the recruit roster):** 28 of 30 runs clear, with about 10 wipes per run spread across the stages. Party level on first reaching floors 10/20/30/40/50/60 is about 12/23/33/41/50/58. Hard clears 11 of 12 and Hell 5 of 12 (a grind).
 
 - Floor 1 always uses the small level-1 groups. Floors 2–3 use the theme's small early groups, and floor 4 onward its full groups.
 

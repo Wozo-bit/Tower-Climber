@@ -14,6 +14,20 @@ hooks, guild captains, the balance pass). Deferred until the story exists:
 route thresholds (depend on how many choices the story gives) and per-skill
 tuning of tier-2 classes. Re-balance with tools/balance_sim after big changes.
 
+### Recruits (Hayden 2026-10-25)
+12 recruits (README roster table), met 5 ways: campfire, hire (one-time fee;
+Hayden may switch to a wage per floor later), favor quest, rescue fight
+(fights beside you), captive of a boss sponsored by a RIVAL of their god
+(Hayden's idea; only when that stage rolls). Wanderers ("run_chance") in ~half
+of runs. All have route values; names follow their god's culture. Loyalty
+quests (themed placeholders) unlock personal skills. Shared dialogues
+recruit_campfire/hire/favor; quests generated in QuestLibrary.recruit_quests.
+Hayden is happy to be hands-on with recruits/quests: ASK him for direction.
+PLANNED (Hayden): rare demigod recruits (Heracles, Perseus...) with their own
+unique classes: design them with the classes/advanced-classes work.
+Solo runs already possible (bench/dismiss anyone from floor 1); a "Solo"
+badge in the Hall is a possible extra.
+
 ### Stages + 60-floor climb (Hayden 2026-10-25)
 Hayden's arc: the player climbs to become a "God". Slots: Slimes/Goblins ->
 Bandits/Orcs -> Insects/Beasts -> Elemental Rift/Undead -> Demons/Angels/
@@ -263,7 +277,7 @@ FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (19 suites, 1107 checks at last run).
+Every change gets tests in tests/ (20 suites, 1140 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -274,7 +288,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

@@ -432,8 +432,22 @@ func _equip_best() -> void:
 func _recruit_from(layout: FloorLayout) -> void:
 	for p in layout.npcs:
 		var id: StringName = layout.npcs[p]
-		if NpcLibrary.is_recruitable(id) and not GameState.has_recruited(id):
-			GameState.recruit(id)
+		if not NpcLibrary.is_recruitable(id) or GameState.has_recruited(id):
+			continue
+		var r := NpcLibrary.recruit_info(id)
+		match r.get("meet", "campfire"):
+			"hire":   # pay if it leaves something for potions
+				if GameState.player.gold >= r.get("fee", 0) + 300 and not GameState.npc_refuses(id):
+					GameState.player.gold -= r.fee
+					GameState.recruit(id)
+			"favor":
+				var fid := QuestLibrary.favor_id(id)
+				if GameState.quests.is_done(fid):
+					GameState.recruit(id)
+				elif GameState.quests.is_new(fid):
+					GameState.quests.start(fid)
+			_:
+				GameState.recruit(id)
 
 
 func _shop() -> void:

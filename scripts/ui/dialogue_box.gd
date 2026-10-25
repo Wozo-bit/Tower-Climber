@@ -70,8 +70,9 @@ func _init() -> void:
 ## Starts conversation `id` (`with` = the companion you're talking to, if
 ## it's one of yours). Returns false (and stays hidden) if it doesn't exist.
 ## `being` = the god/demon/devil it's with (blessing offers), if any.
-func open(id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"") -> bool:
-	if not runner.start(id, with, being, guild):
+func open(id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"",
+		recruit: StringName = &"") -> bool:
+	if not runner.start(id, with, being, guild, recruit):
 		push_warning("DialogueBox: no dialogue '%s'" % id)
 		return false
 	show()

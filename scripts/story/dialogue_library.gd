@@ -348,6 +348,74 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Recruits (NpcLibrary "recruit"; {recruit...} = the one you're talking to).
+	# One shared conversation per way of meeting them, so a new recruit is
+	# just data. Placeholder text.
+	&"recruit_campfire": {
+		"start": "hello",
+		"nodes": {
+			"hello": {
+				"speaker": "{recruit}",
+				"text": "{recruit_pitch}",
+				"choices": [
+					{ "text": "Join us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
+					{ "text": "Join us.", "next": "refused", "if": { "refuses_you": true } },
+					{ "text": "Not right now." },
+				],
+			},
+			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead the way." },
+			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Not with someone who walks your path." },
+		},
+	},
+	&"recruit_hire": {
+		"start": "hello",
+		"nodes": {
+			"hello": {
+				"speaker": "{recruit}",
+				"text": "{recruit_pitch}",
+				"choices": [
+					{ "text": "Deal. ({recruit_fee} gold)", "next": "hired", "effects": [{ "pay_fee": true }, { "recruit_here": true }],
+						"if": { "can_pay_fee": true, "refuses_you": false } },
+					{ "text": "(You can't afford {recruit_fee} gold.)", "if": { "can_pay_fee": false } },
+					{ "text": "Deal.", "next": "refused", "if": { "can_pay_fee": true, "refuses_you": true } },
+					{ "text": "Not right now." },
+				],
+			},
+			"hired": { "speaker": "{recruit}", "text": "(Placeholder) Pleasure doing business." },
+			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Your gold's no good. Not after what I've heard about you." },
+		},
+	},
+	&"recruit_favor": {
+		"start": [
+			{ "if": { "favor_done": true }, "node": "ready" },
+			{ "if": { "favor_active": true }, "node": "waiting" },
+			{ "node": "ask" },
+		],
+		"nodes": {
+			"ask": {
+				"speaker": "{recruit}",
+				"text": "{recruit_pitch}",
+				"choices": [
+					{ "text": "I'll do it.", "next": "accepted", "effects": [{ "start_favor": true }] },
+					{ "text": "Not right now." },
+				],
+			},
+			"accepted": { "speaker": "{recruit}", "text": "(Placeholder) Come back when it's done." },
+			"waiting": { "speaker": "{recruit}", "text": "(Placeholder) Still waiting on that favor ({recruit_favor})." },
+			"ready": {
+				"speaker": "{recruit}",
+				"text": "(Placeholder) You kept your word. I'll keep mine.",
+				"choices": [
+					{ "text": "Join us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
+					{ "text": "Join us.", "next": "refused", "if": { "refuses_you": true } },
+					{ "text": "Not right now." },
+				],
+			},
+			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead the way." },
+			"refused": { "speaker": "{recruit}", "text": "(Placeholder) ...I've seen what you've become. No." },
+		},
+	},
+
 	# --- Any dismissed companion waiting by the campfire. ---
 	&"waiting_companion": {
 		"start": "hello",
@@ -390,11 +458,12 @@ const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_leve
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
-	"holds_captive", "can_pay_ransom"]
+	"holds_captive", "can_pay_ransom", "favor_new", "favor_active", "favor_done", "can_pay_fee", "refuses_you"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",
-	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom"]
+	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom",
+	"recruit_here", "pay_fee", "start_favor"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:
