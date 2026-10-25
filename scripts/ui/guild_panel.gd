@@ -101,6 +101,10 @@ func _rebuild() -> void:
 			_button("%s %d/%d%s" % [up.name, lv, up.max, "" if maxed else " (%dg)" % gs.upgrade_cost(id)],
 				func(): _say("%s upgraded." % up.name if gs.buy_upgrade(id) else "Not enough in the treasury."),
 				maxed, up.desc)
+		var held := gs.territories_of(pg)
+		_button("Captains...", _open_captains, held.is_empty(),
+			"Post reserve or waiting companions on your floors: they defend them, fight beside you there, and level up."
+			if not held.is_empty() else "Claim a territory first.")
 		var war_no := gs.player_war_refusal()
 		_button("Declare war (%dg)" % GuildAI.WAR_COST, _open_war, war_no != "",
 			war_no if war_no != "" else "Attack another guild's territory. Beat its guards and champion to take it.")
@@ -121,6 +125,20 @@ func _rebuild() -> void:
 			"  ·  your pay is ready" if gs.pay_due() else ""]
 	else:
 		t += "[b]You're not in a guild.[/b] Talk to a guild agent to join one (one at a time).\n"
+	if gs.has_own_guild():
+		# Each floor you hold: its captain, and whether it's under attack.
+		for terr in gs.territories_of(pg):
+			var cap := gs.captain_of(terr)
+			t += "   %s: " % GuildLibrary.territory_floors(terr)
+			t += ("Captain %s (Lv %d)" % [cap.character_name, cap.level]) if cap \
+				else "[color=#%s]no captain[/color]" % UITheme.hex("dim")
+			if gs.siege_leader(terr) != &"":
+				t += "  [color=#ff6666]under attack by %s! Their war leader waits on the first floor.[/color]" % \
+					GuildLibrary.guild_name(gs.siege_leader(terr))
+			t += "\n"
+		for cap in gs.captives:
+			t += "[color=#ff6666]%s holds Captain %s.[/color] Beat one of their champions, or pay %d gold to their agent.\n" % [
+				GuildLibrary.guild_name(cap.guild), cap.c.character_name, gs.ransom_cost(cap.guild)]
 	if gs.mercenary_for != &"":
 		t += "[color=#ffd166]Mercenary for %s.[/color] Beat their enemy's guards on the contested floors.\n" % GuildLibrary.guild_name(gs.mercenary_for)
 	if not gs.heist.is_empty():
@@ -230,6 +248,48 @@ func _open_war() -> void:
 		var t: int = targets[opt.selected]
 		_say("War! Fight %s's guards on %s." % [GuildLibrary.guild_name(gs.owners[t]), GuildLibrary.territory_floors(t)]
 			if gs.player_declare_war(t) else "You can't declare that war right now.")
+		dlg.queue_free())
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()
+
+
+## Post a companion as captain of one of your floors, or recall one.
+func _open_captains() -> void:
+	var gs := GameState.guilds
+	var held := gs.territories_of(GuildLibrary.PLAYER_GUILD)
+	if held.is_empty():
+		return
+	var dlg := ConfirmationDialog.new()
+	dlg.title = "Captains"
+	dlg.ok_button_text = "Confirm"
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	var info := Label.new()
+	info.text = "Captains defend their floors in wars and raids, fight beside you there,\nlevel up while posted and bring in extra income. If their floors fall, they're captured."
+	box.add_child(info)
+	var where := OptionButton.new()
+	for t in held:
+		var cap := gs.captain_of(t)
+		where.add_item("%s  (%s)" % [GuildLibrary.territory_floors(t), "Captain " + cap.character_name if cap else "no captain"])
+	box.add_child(where)
+	var who := OptionButton.new()
+	var candidates := gs.postable()
+	who.add_item("(Recall the captain)")
+	for c in candidates:
+		who.add_item("%s  Lv %d  (%s)" % [c.character_name, c.level, "reserve" if GameState.reserve.has(c) else "waiting"])
+	if not candidates.is_empty():
+		who.selected = 1
+	box.add_child(who)
+	dlg.add_child(box)
+	dlg.confirmed.connect(func():
+		var t: int = held[where.selected]
+		if who.selected == 0:
+			_say("Captain recalled." if gs.recall_captain(t) else "There's no captain there.")
+		else:
+			var c: CharacterData = candidates[who.selected - 1]
+			_say("%s now captains %s." % [c.character_name, GuildLibrary.territory_floors(t)] if gs.post_captain(c, t)
+				else gs.captain_refusal(c, t))
 		dlg.queue_free())
 	dlg.canceled.connect(dlg.queue_free)
 	add_child(dlg)

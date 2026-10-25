@@ -13,6 +13,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_screens"
 	await test_floor_screen()
 	await test_battle_screen()
+	await test_captain_in_battle()
 	await test_title_screen()
 	CutIns.skip_all()
 	GameState.delete_slot(1)
@@ -86,6 +87,32 @@ func test_battle_screen() -> void:
 	CutIns.play(CutInData.class_change(GameState.player, def, false))
 	check(CutIns.is_playing(), "class-change cut-in plays over any screen")
 	CutIns.skip_all()
+	battle_scene.queue_free()
+	GameState.pending_battle_info = {}
+	await _frames(1)
+
+
+func test_captain_in_battle() -> void:
+	print("A guild captain in battle")
+	_fresh(16)
+	GameState.player.gold = 2000
+	var gs := GameState.guilds
+	gs.found_guild("Iron Climbers")
+	gs.owners[4] = GuildLibrary.PLAYER_GUILD
+	var friend := GameState.childhood_friend()
+	GameState.bench(friend)
+	gs.post_captain(friend, 4)
+	GameState.floor_number = 13
+	GameState.pending_encounter = EnemyLibrary.build_group([&"goblin", &"goblin"])
+	GameState.pending_battle_info = { "kind": "normal" }
+	GameState.return_scene = ""
+	var battle_scene: Node = load(GameState.BATTLE_SCENE).instantiate()
+	add_child(battle_scene)
+	await _frames(2)
+	var party: Array = battle_scene.battle.party
+	check(party.size() == GameState.battle_party().size() + 1 and party.any(func(u): return u.source_character == friend),
+		"on their floors, the captain fights with you")
+	check(battle_scene._log.get_parsed_text().contains("Captain %s joins" % friend.character_name), "...and the log says so")
 	battle_scene.queue_free()
 	GameState.pending_battle_info = {}
 	await _frames(1)

@@ -91,7 +91,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/ui/guild_panel.gd` | Tab → Guilds. (The merchant's Buy/Sell tabs and guild shops are in `shop_panel.gd`.) |
 | `tests/test_guilds.gd` | 63 guild and economy checks: territories, joining/leaving, ranks and perks, taxes, prices, pay, supply and demand, selling, guild jobs, agents, saving. Run: `godot --headless res://tests/test_guilds.tscn` |
 | `scripts/economy/guild_ai.gd` | The guild AI: what each guild does every floor (trade, fortify, raid, ally, war). |
-| `tests/test_guild_ai.gd` | 75 checks: the AI, raids, alliances, wars and fighting in them, guards and champions, stealing, pickpockets, heists, founding your guild, claiming floors, saving. Run: `godot --headless res://tests/test_guild_ai.tscn` |
+| `tests/test_guild_ai.gd` | 112 checks: the AI, raids, alliances, wars and fighting in them, guards and champions, stealing, pickpockets, heists, founding your guild, claiming floors, captains (posting, defense, fighting beside you, XP, capture, ransom and rescue), saving. Run: `godot --headless res://tests/test_guild_ai.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 | `scripts/ui/ui_theme.gd`, `ui_style.gd`, `themed_background.gd` | The system-window look (palettes picked in Settings). |
@@ -102,7 +102,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/presentation/credits.gd`, `scripts/ui/credits_panel.gd`, `assets/credits.json` | Credits and license tracking, and the credits screen. |
 | `assets/README.md` | **The drop-in guide:** every art and sound file name the game looks for. |
 | `tests/test_presentation.gd` | 77 checks: palettes, art and audio hooks, music choice, cut-ins, system notices, battle sounds, dialogue portraits, credits/licenses, your guild declaring war. Run: `godot --headless res://tests/test_presentation.tscn` |
-| `tests/test_screens.gd` | 10 smoke checks that open the real floor, battle and title screens and drive the hooks on them. Run: `godot --headless res://tests/test_screens.tscn` |
+| `tests/test_screens.gd` | 12 smoke checks that open the real floor, battle and title screens and drive the hooks on them (including a captain joining a fight). Run: `godot --headless res://tests/test_screens.tscn` |
 
 ## Dialogue, NPCs and recruiting
 - **Walk into** an NPC (coloured square with an initial), a lore object (diamond with **?**) or the merchant to talk. Choices are buttons; Enter/Space picks, and Esc works as "Next".
@@ -237,6 +237,13 @@ Open it with **Tab → Manage party**.
   - set your **tax** (0–30%; higher means more income)
   - buy **upgrades** (500 / 1000 / 1500 gold from the treasury): **Vault** (raids take less), **Barracks** (stronger in wars), **Armory** (better prices)
   - **declare war** (600 gold from the treasury, one war at a time) on another guild's territory. Beat its guards and champion to take it. The defender's standing drops by 30.
+  - **Captains...**: post a **reserve or waiting** companion on one of your territories (one per territory, recall any time). A captain:
+    - **defends** it: adds level x 0.1 to your side when that territory is attacked, and every captain cuts raid odds on your treasury by 4%
+    - **fights beside you** on its floors, as an extra party member (not in stage boss or miniboss fights; `CAPTAIN_HELPS_GUARDIANS`)
+    - **levels up** while posted (50% of battle XP, plus 150 XP for holding a war) and rests to full every floor
+    - brings in **+15 income** per floor, and that territory's merchant gives **5% off**
+- **When a guild attacks your territory** you're told (and get the war cut-in). Its guards patrol your floors and its **war leader** waits on the territory's first floor. Beat them to swing the war, with your captain fighting beside you.
+- **If the territory falls, its captain is captured.** A **rescue quest** starts. Free them by beating any of the captor's champions, or pay the **ransom** (200 + 25 per level) to one of its agents. A captor left with no territory can't hold anyone, so the captain escapes home.
 - Tunables: top of `guild_ai.gd` and `guild_state.gd` (wars, theft, champions, charter, income, upgrades).
 
 ## Look, art and sound

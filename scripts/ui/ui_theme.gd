@@ -62,6 +62,7 @@ const KEYS := ["name", "bg", "panel", "border", "glow", "text", "dim", "accent",
 ## Type variation for system-window panels (UIStyle.apply sets it).
 const PANEL_VARIATION := &"SystemPanel"
 const GLOW_SIZE := 10
+const WINDOW_TITLE_HEIGHT := 34
 const CORNER := 3
 
 ## The palette in use right now (set by Settings.apply).
@@ -130,8 +131,15 @@ static func build(id: StringName = current) -> Theme:
 	t.set_stylebox("panel", PANEL_VARIATION, panel)
 	t.set_stylebox("panel", "PopupPanel", panel)
 	t.set_stylebox("panel", "AcceptDialog", panel_box(id, false))
-	t.set_stylebox("embedded_border", "Window", panel)
-	t.set_stylebox("embedded_unfocused_border", "Window", panel)
+	# Popup windows (confirm dialogs): the border reaches up behind the title bar.
+	var win := panel_box(id)
+	win.expand_margin_top = WINDOW_TITLE_HEIGHT
+	win.expand_margin_left = 6
+	win.expand_margin_right = 6
+	win.expand_margin_bottom = 6
+	t.set_stylebox("embedded_border", "Window", win)
+	t.set_stylebox("embedded_unfocused_border", "Window", win)
+	t.set_constant("title_height", "Window", WINDOW_TITLE_HEIGHT)
 	t.set_color("title_color", "Window", p.accent)
 	t.set_stylebox("panel", "TooltipPanel", panel_box(id, false))
 	t.set_color("font_color", "TooltipLabel", p.text)

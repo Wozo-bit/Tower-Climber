@@ -170,6 +170,8 @@ static func check(cond: Dictionary) -> bool:
 			"can_hire_on": ok = gs.guilds.can_hire_on(context_guild) == v
 			"can_take_heist": ok = gs.guilds.can_take_heist(context_guild) == v
 			"heist_here": ok = (not gs.guilds.heist.is_empty() and gs.guilds.heist.target == context_guild) == v
+			"holds_captive": ok = gs.guilds.holds_captive(context_guild) == v
+			"can_pay_ransom": ok = gs.guilds.can_pay_ransom(context_guild) == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
 				ok = false
@@ -238,6 +240,8 @@ func _apply_effects(effects: Array) -> void:
 			var heist_rng := RandomNumberGenerator.new()
 			heist_rng.randomize()
 			gs.guilds.attempt_heist(context_guild, heist_rng)
+		if e.has("pay_ransom") and context_guild != &"":
+			gs.guilds.pay_ransom(context_guild)
 		if e.has("guild_rep"):
 			for g in e.guild_rep:
 				gs.guilds.add_rep(g, e.guild_rep[g])
@@ -282,7 +286,8 @@ static func fill(s: String, npc_name: String = "") -> String:
 			.replace("{guild_rank}", GuildLibrary.rank_name(GameState.guilds.rank)) \
 			.replace("{guild_standing}", GuildState.standing_name(GameState.guilds.rep_of(context_guild))) \
 			.replace("{guild_refusal}", GameState.guilds.join_refusal(context_guild)) \
-			.replace("{guild_war}", _war_text(context_guild))
+			.replace("{guild_war}", _war_text(context_guild)) \
+			.replace("{guild_ransom}", str(GameState.guilds.ransom_cost(context_guild)))
 	if context_being != &"" and out.contains("{being"):
 		var b := BeingLibrary.get_being(context_being)
 		out = out.replace("{being}", BeingLibrary.full_name(context_being)) \

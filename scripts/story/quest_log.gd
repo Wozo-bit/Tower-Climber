@@ -35,7 +35,11 @@ var _updating := false
 # =========================================================
 
 func def_of(id: StringName) -> Dictionary:
-	return bounties[id] if bounties.has(id) else QuestLibrary.get_quest(id)
+	if bounties.has(id):
+		return bounties[id]
+	if String(id).begins_with("rescue_"):   # a captured guild captain (GuildState)
+		return GameState.guilds.rescue_quest_def(id)
+	return QuestLibrary.get_quest(id)
 
 
 func is_active(id: StringName) -> bool:

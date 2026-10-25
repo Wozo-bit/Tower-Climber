@@ -23,6 +23,10 @@ func _ready() -> void:
 	test_claiming_floors()
 	test_dialogue_hooks()
 	test_save_roundtrip()
+	test_captains()
+	test_captain_wars()
+	test_captives()
+	test_captain_saves()
 	GameState.delete_slot(1)
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
@@ -367,3 +371,233 @@ func test_save_roundtrip() -> void:
 	gs = GameState.guilds
 	check(gs.wars.size() == 1 and gs.upgrade_level("vault") == GuildState.UPGRADES.vault.max and gs.mercenary_for == &"",
 		"tampered save: fake wars dropped, upgrades capped, no contract with a guild at peace")
+
+
+# =========================================================
+# Captains (companions guarding your guild's floors)
+# =========================================================
+
+## A guild of your own holding territory 4 (floors 13-15), with Cassia on the bench.
+func _captain_setup() -> CharacterData:
+	_fresh(16)
+	GameState.player.gold = 2000
+	GameState.guilds.found_guild("Iron Climbers")
+	GameState.guilds.owners[4] = GuildLibrary.PLAYER_GUILD
+	var friend := GameState.childhood_friend()
+	GameState.bench(friend)
+	return friend
+
+
+## Level and XP as one number, to see XP go up (levels count most).
+func _xp(c: CharacterData) -> int:
+	return c.level * 1000000 + c.xp
+
+
+func test_captains() -> void:
+	print("Captains")
+	var friend := _captain_setup()
+	var gs := GameState.guilds
+	var pg := GuildLibrary.PLAYER_GUILD
+	var fighter := GameState.make_premade("Brannoc", &"tank", {Stats.Type.HEALTH: 12, Stats.Type.STAMINA: 12, Stats.Type.STRENGTH: 11})
+	GameState.companions.append(fighter)
+	check(gs.captain_refusal(friend, 0).contains("doesn't hold"), "only on floors your guild holds")
+	check(gs.captain_refusal(fighter, 4).contains("reserve or waiting"), "the fighting party can't be posted")
+	var members := GameState.member_count()
+	var price := gs.price_mult(13)
+	var treasury := gs.treasury_of(pg)
+	gs.player_guild_income()
+	var income := gs.treasury_of(pg) - treasury
+	check(gs.post_captain(friend, 4) and gs.captain_of(4) == friend and not GameState.reserve.has(friend),
+		"post a benched companion as captain")
+	check(GameState.member_count() == members and GameState.has_recruited(friend.companion_id),
+		"captains are still members of your guild")
+	check(gs.price_mult(13) < price, "the merchant on their floors gives a discount")
+	treasury = gs.treasury_of(pg)
+	gs.player_guild_income()
+	check(gs.treasury_of(pg) - treasury == income + GuildState.CAPTAIN_INCOME, "their floors bring in more")
+	check(gs.guest_captain(13, "normal") == friend and gs.guest_captain(13, "boss") == null
+		and gs.guest_captain(1, "normal") == null, "they fight beside you on their floors (not stage bosses)")
+	GameState.floor_number = 13
+	GameState.pending_battle_info = {}
+	check(GameState.fighting_party().has(friend) and not GameState.battle_party().has(friend), "...as an extra fighter")
+	GameState.floor_number = 16
+	var xp := _xp(friend)
+	GameState.grant_reserve_xp(100)
+	check(_xp(friend) > xp, "they earn XP while posted")
+	xp = _xp(friend)
+	GameState.grant_reserve_xp(100, [friend])
+	check(_xp(friend) == xp, "...but not twice for a fight they were in")
+	friend.set_current_hp(1)
+	gs._on_floor_captains()
+	check(friend.current_hp() == friend.max_hp(), "captains rest at their posts")
+	var recruit := GameState.make_premade("Ivo", &"rogue", { Stats.Type.AGILITY: 20, Stats.Type.LUCK: 15 })
+	recruit.companion_id = &"ivo"
+	GameState.waiting.append(recruit)
+	check(gs.post_captain(recruit, 4) and GameState.reserve.has(friend) and gs.captain_of(4) == recruit,
+		"a waiting companion can take over; the old captain comes home")
+	while GameState.reserve.size() < GameState.RESERVE_CAP:
+		GameState.reserve.append(GameState.make_childhood_friend("Spare"))
+	check(gs.recall_captain(4) and GameState.waiting.has(recruit) and gs.captain_of(4) == null,
+		"recalled with a full bench: they wait at the campfires")
+
+
+func test_captain_wars() -> void:
+	print("Captains in wars")
+	var friend := _captain_setup()
+	var gs := GameState.guilds
+	var pg := GuildLibrary.PLAYER_GUILD
+	gs.post_captain(friend, 4)
+	gs.messages.clear()
+	var attacker: StringName = GuildLibrary.START_OWNERS[5]
+	gs.declare_war(attacker, pg, 4)
+	CutIns.skip_all()
+	check(gs.messages.any(func(m): return m.contains("Captain %s is holding" % friend.character_name)),
+		"you're told your captain is under attack")
+	var w := gs.war_of(pg)
+	check(is_equal_approx(gs.captain_defense(w), friend.level * GuildState.CAPTAIN_POWER_PER_LEVEL),
+		"the captain makes your side stronger in the war")
+	check(gs.siege_leader(4) == attacker, "the attackers' war leader comes for your floors")
+	GameState.floor_number = 13
+	GameState.floor_ready = false
+	GameState.current_layout()
+	check(GameState.floor_enemies.any(func(e): return e.kind == "champion" and e.get("guild") == attacker),
+		"...and waits on the territory's first floor")
+	check(GameState.floor_enemies.any(func(e): return e.kind == "guard" and e.get("guild") == attacker),
+		"their guards patrol your floors")
+	var score: float = w.score
+	gs.fight_won(attacker, true)
+	check(gs.siege_leader(4) == &"" and (gs.war_of(pg).is_empty() or gs.war_of(pg).score < score),
+		"beating the war leader swings the war your way")
+
+	friend = _captain_setup()
+	gs = GameState.guilds
+	gs.post_captain(friend, 4)
+	gs.declare_war(attacker, pg, 4)
+	CutIns.skip_all()
+	var xp := _xp(friend)
+	var w2 := gs.war_of(pg)
+	w2["score"] = -GuildState.WAR_WIN
+	gs._settle(w2)
+	check(gs.owners[4] == pg and gs.captain_of(4) == friend and _xp(friend) > xp,
+		"holding the territory gives the captain XP")
+
+	var thief: StringName = GuildLibrary.START_OWNERS[0]
+	var guarded := 0
+	var bare := 0
+	for i in 200:   # the same rolls with and without a captain
+		var r1 := RandomNumberGenerator.new()
+		r1.seed = i
+		gs.treasury[pg] = 1000
+		gs.raid(thief, pg, r1)
+		guarded += 1 if gs.treasury_of(pg) == 1000 else 0
+	gs.recall_captain(4)
+	for i in 200:
+		var r2 := RandomNumberGenerator.new()
+		r2.seed = i
+		gs.treasury[pg] = 1000
+		gs.raid(thief, pg, r2)
+		bare += 1 if gs.treasury_of(pg) == 1000 else 0
+	check(guarded > bare, "captains fend off raids on your treasury")
+
+
+func test_captives() -> void:
+	print("Captured captains")
+	var friend := _captain_setup()
+	var gs := GameState.guilds
+	var pg := GuildLibrary.PLAYER_GUILD
+	var captor: StringName = GuildLibrary.START_OWNERS[5]
+	gs.post_captain(friend, 4)
+	gs.declare_war(captor, pg, 4)
+	CutIns.skip_all()
+	var w := gs.war_of(pg)
+	w["score"] = GuildState.WAR_WIN
+	gs._settle(w)
+	check(gs.owners[4] == captor and gs.captain_of(4) == null and gs.holds_captive(captor),
+		"their floors fall and the captain is captured")
+	check(not GameState.reserve.has(friend) and GameState.has_recruited(friend.companion_id), "they're gone, but not forgotten")
+	var qid: StringName = gs.captives[0].quest
+	check(GameState.quests.is_active(qid) and GameState.quests.def_of(qid).title.contains(friend.character_name),
+		"a rescue quest starts")
+	var cost := gs.ransom_cost(captor)
+	check(cost == GuildState.RANSOM_BASE + GuildState.RANSOM_PER_LEVEL * friend.level, "the ransom depends on their level")
+	GameState.player.gold = 0
+	var r := DialogueRunner.new()
+	r.start(&"guild_agent", null, &"", captor)
+	check(r.choices().any(func(c): return c.text.contains("can't pay")) and not gs.pay_ransom(captor),
+		"the captor's agent wants gold you don't have")
+	GameState.player.gold = cost + 50
+	r.start(&"guild_agent", null, &"", captor)
+	var pay: Array = r.choices().filter(func(c): return c.text.begins_with("Release my captain"))
+	check(pay.size() == 1 and pay[0].text.contains(str(cost)), "pay the ransom at their agent")
+	r.choose(pay[0].index)
+	check(not gs.holds_captive(captor) and GameState.reserve.has(friend) and GameState.player.gold == 50,
+		"paid: your captain comes home")
+	check(GameState.quests.is_done(qid), "...and the rescue quest is done")
+
+	# Captured again; this time you beat their champion.
+	gs.owners[3] = pg
+	gs.post_captain(friend, 3)
+	gs.declare_war(captor, pg, 3)
+	CutIns.skip_all()
+	var w2 := gs.war_of(pg)
+	w2["score"] = GuildState.WAR_WIN
+	gs._settle(w2)
+	check(gs.holds_captive(captor), "captured again")
+	GameState.floor_number = 16
+	gs.fight_won(captor, true)
+	check(not gs.holds_captive(captor) and GameState.reserve.has(friend), "beating one of their champions frees them")
+
+	# A captor with no floors left can't hold anyone.
+	gs.owners[3] = pg
+	gs.post_captain(friend, 3)
+	gs.declare_war(captor, pg, 3)
+	CutIns.skip_all()
+	var w3 := gs.war_of(pg)
+	w3["score"] = GuildState.WAR_WIN
+	gs._settle(w3)
+	for t in gs.owners.size():
+		if gs.owners[t] == captor:
+			gs.owners[t] = GuildLibrary.START_OWNERS[0]
+	gs._on_floor_captains()
+	check(not gs.holds_captive(captor) and GameState.reserve.has(friend), "a captor with no territory left lets them escape")
+
+
+func test_captain_saves() -> void:
+	print("Captains saved")
+	GameState.start_new_game("Ophelius", "Cassia", 1)
+	GameState.highest_floor = 20
+	GameState.player.gold = 3000
+	var gs := GameState.guilds
+	var pg := GuildLibrary.PLAYER_GUILD
+	gs.found_guild("Iron Climbers")
+	gs.owners[3] = pg
+	gs.owners[4] = pg
+	var friend := GameState.childhood_friend()
+	GameState.bench(friend)
+	gs.post_captain(friend, 4)
+	var ivo := GameState.make_premade("Ivo", &"rogue", { Stats.Type.AGILITY: 20, Stats.Type.LUCK: 15 })
+	ivo.companion_id = &"ivo"
+	GameState.waiting.append(ivo)
+	gs.post_captain(ivo, 3)
+	var captor: StringName = GuildLibrary.START_OWNERS[5]
+	gs.declare_war(captor, pg, 3)
+	CutIns.skip_all()
+	var w := gs.war_of(pg)
+	w["score"] = GuildState.WAR_WIN
+	gs._settle(w)
+	var qid: StringName = gs.captives[0].quest
+	GameState.save_game()
+	GameState.load_game(1)
+	gs = GameState.guilds
+	check(gs.captain_of(4) != null and gs.captain_of(4).character_name == friend.character_name, "captains are saved")
+	check(gs.holds_captive(captor) and gs.captives[0].c.character_name == "Ivo", "captives are saved")
+	check(GameState.quests.is_active(qid) and GameState.quests.def_of(qid).title == "Rescue Ivo", "the rescue quest survives loading")
+	var d := SaveSerializer.read_json(GameState.slot_path(1))
+	d.guilds.owners[4] = String(captor)   # tampered: a captain on a floor you don't hold
+	d.guilds.captives.append({ "guild": "nobody", "quest": "rescue_x", "c": d.guilds.captives[0].c })
+	SaveSerializer.write_json(GameState.slot_path(1), d)
+	GameState.load_game(1)
+	gs = GameState.guilds
+	check(gs.captain_of(4) == null and GameState.waiting.any(func(c): return c.character_name == friend.character_name),
+		"tampered save: a captain on a floor you don't hold goes back to waiting")
+	check(gs.captives.size() == 1, "...and fake captives are dropped")

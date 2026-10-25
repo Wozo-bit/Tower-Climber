@@ -32,6 +32,19 @@ CC0 for SFX/UI) now, commissioned manhwa portraits + boss art later.
   non-commercial licenses. Credits screen includes Godot's MIT + engine
   third-party licenses.
 
+### Guild captains (Hayden's idea, built 2026-10-24)
+So benched companions aren't idle: own-guild players post RESERVE/WAITING
+companions (not the active party) as captains of their territories
+(GuildState.captains). Captains defend in wars + raids, fight beside you on
+their floors (GameState.fighting_party adds them as a guest; not vs stage
+bosses/minibosses), earn XP, add income + a merchant discount. Attacks on
+your territory: you're warned, the attacker's war leader + guards appear
+there so you can defend it. Territory falls -> captain CAPTURED (Hayden's
+pick) -> rescue quest (rescue_* ids, defs rebuilt from
+GuildState.rescue_quests): beat any captor champion or pay a ransom at its
+agent; captors with no territory let them escape. Numbers = tunables at the
+top of guild_state.gd (part of the balance pass).
+
 Class advancement is BUILT as a multi-tier system: ClassRegistry.
 ADVANCEMENT_GATES (tier 2 = beat floor 20 + level 25), per-class stat build,
 route-only classes, auto-generated trial quests (QuestLibrary.trials()),
@@ -210,7 +223,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (17 suites, 983 checks at last run).
+Every change gets tests in tests/ (17 suites, 1022 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

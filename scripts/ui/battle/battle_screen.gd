@@ -60,7 +60,8 @@ func _start_battle() -> void:
 	battle.loot_level = GameState.floor_number
 	battle.owned_unique_classes = GameState.owned_unique_classes()
 	battle.bestiary = GameState.bestiary
-	battle.setup(GameState.battle_party(), encounter)
+	var fighters := GameState.fighting_party()
+	battle.setup(fighters, encounter)
 	battle.turn_started.connect(_on_turn_started)
 	battle.action_resolved.connect(_on_action_resolved)
 	battle.round_started.connect(func(n): _round_label.text = "Round %d" % n)
@@ -77,6 +78,9 @@ func _start_battle() -> void:
 	_layout_cards()
 	_log.clear()
 	_log_line("[color=salmon]Enemies appear![/color]")
+	for c in fighters:
+		if GameState.guilds.is_captain(c):
+			_log_line("[color=#%s]Captain %s joins the fight on their floors![/color]" % [UITheme.hex("accent"), c.character_name])
 	_result_panel.hide()
 	var info := GameState.pending_battle_info
 	var kind: String = info.get("kind", "normal")
@@ -182,11 +186,15 @@ func _on_battle_ended(outcome: int) -> void:
 		BattleManager.Outcome.FLED: "flee" }.get(outcome, ""), 0.0)
 	match outcome:
 		BattleManager.Outcome.VICTORY:
+			var fought: Array = battle.party.map(func(u): return u.source_character)
 			var members: Array = GameState.battle_party() + GameState.reserve
+			for c in GameState.guilds.captains.values():
+				if not members.has(c):
+					members.append(c)
 			var levels_before := members.map(func(m): return m.level)
 			battle.apply_rewards()
 			_result_label.text = "Victory!\n+%d XP each   +%d gold" % [battle.rewards.xp, battle.rewards.gold]
-			var reserve_xp := GameState.grant_reserve_xp(battle.rewards.xp)
+			var reserve_xp := GameState.grant_reserve_xp(battle.rewards.xp, fought)
 			_announce_level_ups(members, levels_before)
 			if reserve_xp > 0:
 				_result_label.text += "\nReserve: +%d XP each" % reserve_xp

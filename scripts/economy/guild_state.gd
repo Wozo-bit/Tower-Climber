@@ -60,6 +60,15 @@ var heist: Dictionary = {}
 var last_steal_floor := -1
 ## Your own guild once founded: { "name", "patron", "tax", "upgrades": { id: level } }
 var player_guild: Dictionary = {}
+## Captains: territory -> the companion posted there (taken off the reserve /
+## waiting list while posted).
+var captains: Dictionary = {}
+## Captains taken when their territory fell:
+## [{ "c": CharacterData, "guild": captor id, "quest": rescue quest id }]
+var captives: Array = []
+## Every rescue quest so far (kept after the rescue so the quest log can show
+## it): quest id -> { "name": captain's name, "guild": captor id }
+var rescue_quests: Dictionary = {}
 
 const NEWS_KEEP := 60
 ## Your standing at or below this makes a guild's guards hunt you.
@@ -97,6 +106,24 @@ const PLAYER_INCOME_PER_MEMBER := 5
 const MAX_PLAYER_TAX := 0.3
 ## Standing lost with a guild when your guild declares war on it.
 const PLAYER_WAR_REP_LOSS := 30
+## Captains (companions posted on your guild's territories):
+## war strength per captain level when their territory is attacked,
+const CAPTAIN_POWER_PER_LEVEL := 0.1
+## less chance of raids on your treasury per captain,
+const CAPTAIN_RAID_GUARD := 0.04
+## extra income per floor and a merchant discount on their territory,
+const CAPTAIN_INCOME := 15
+const CAPTAIN_DISCOUNT := 0.05
+## share of battle XP they get while posted (like the reserve), and XP for
+## holding their territory in a war.
+const CAPTAIN_XP_SHARE := 0.5
+const CAPTAIN_HOLD_XP := 150
+## They join your fights on their territory's floors, but not stage bosses
+## or minibosses (plan the party for those, as usual).
+const CAPTAIN_HELPS_GUARDIANS := false
+## Ransom for a captured captain: base + per level.
+const RANSOM_BASE := 200
+const RANSOM_PER_LEVEL := 25
 const UPGRADES := {
 	"vault": { "name": "Vault", "desc": "Raids on your treasury take less (-30% per level).", "max": 3 },
 	"barracks": { "name": "Barracks", "desc": "Your guild is stronger in wars (+2 per level).", "max": 3 },
@@ -247,6 +274,8 @@ func price_mult(floor_n: int) -> float:
 	var m: float = GuildLibrary.get_guild(g).get("price_mult", 1.0)
 	if g == member:
 		m *= 1.0 - GuildLibrary.RANK_DISCOUNT[rank]
+	if g == GuildLibrary.PLAYER_GUILD and captains.has(GuildLibrary.territory_of(floor_n) % maxi(1, owners.size())):
+		m *= 1.0 - CAPTAIN_DISCOUNT
 	if is_contested(GuildLibrary.territory_of(floor_n) % maxi(1, owners.size())):
 		m *= 1.0 + WAR_PRICE_SHOCK
 	return m
@@ -310,6 +339,7 @@ func on_floor(rng: RandomNumberGenerator = null) -> void:
 	if rng:
 		GuildAI.tick(self, rng)
 	_on_floor_market()
+	_on_floor_captains()
 
 
 func _on_floor_market() -> void:
@@ -376,7 +406,7 @@ func raid(thief: StringName, target: StringName, rng: RandomNumberGenerator) -> 
 	var aggression: float = GuildLibrary.get_guild(thief).get("personality", {}).get("aggression", 0.5)
 	var chance := 0.4 + aggression * 0.4 - defense_of(target) * 0.05
 	if target == GuildLibrary.PLAYER_GUILD:
-		chance -= 0.1 * upgrade_level("vault")
+		chance -= 0.1 * upgrade_level("vault") + CAPTAIN_RAID_GUARD * captains.size()
 	if rng.randf() >= chance:
 		add_news("%s tried to rob %s, and failed." % [GuildLibrary.guild_name(thief), GuildLibrary.guild_name(target)])
 		return
@@ -416,6 +446,9 @@ func declare_war(attacker: StringName, defender: StringName, t: int) -> void:
 		GuildLibrary.territory_floors(t)], true)
 	if involves_you(attacker) or involves_you(defender):
 		CutIns.play(CutInData.war(attacker, defender, t))
+	if defender == GuildLibrary.PLAYER_GUILD and captains.has(t):
+		messages.append("Captain %s is holding %s against %s. Go and help!" % [captains[t].character_name,
+			GuildLibrary.territory_floors(t), GuildLibrary.guild_name(attacker)])
 
 
 ## Your own guild, or the guild you're a member of.
@@ -440,7 +473,8 @@ func war_strength(g: StringName) -> float:
 func progress_wars(rng: RandomNumberGenerator) -> void:
 	for w in wars.duplicate():
 		w["ticks"] = w.ticks + 1
-		w["score"] = w.score + (war_strength(w.attacker) - war_strength(w.defender)) * 0.15 + rng.randf_range(-1.5, 1.5)
+		w["score"] = w.score + (war_strength(w.attacker) - war_strength(w.defender) - captain_defense(w)) * 0.15 \
+			+ rng.randf_range(-1.5, 1.5)
 		_settle(w)
 
 
@@ -461,11 +495,16 @@ func _settle(w: Dictionary) -> void:
 	var d := GuildLibrary.guild_name(w.defender)
 	var yours := player_side() in [w.attacker, w.defender]
 	if w.score >= WAR_WIN:
+		if w.defender == GuildLibrary.PLAYER_GUILD and captains.has(w.territory):
+			_capture(w.territory, w.attacker)
 		owners[w.territory] = w.attacker
 		champion_beaten.erase(w.territory)
 		add_news("%s wins the war and takes %s from %s!" % [a, GuildLibrary.territory_floors(w.territory), d], true)
 	elif w.score <= -WAR_WIN:
 		add_news("%s holds %s against %s." % [d, GuildLibrary.territory_floors(w.territory), a], yours)
+		if w.defender == GuildLibrary.PLAYER_GUILD and captains.has(w.territory):
+			captains[w.territory].add_xp(CAPTAIN_HOLD_XP)
+			messages.append("Captain %s held the line! (+%d XP)" % [captains[w.territory].character_name, CAPTAIN_HOLD_XP])
 	elif w.ticks >= WAR_MAX_TICKS:
 		add_news("%s and %s call a truce." % [a, d], yours)
 	else:
@@ -530,6 +569,12 @@ func fight_won(g: StringName, champion: bool) -> void:
 	if champion:
 		var t := GuildLibrary.territory_of(GameState.floor_number) % maxi(1, owners.size())
 		champion_beaten[t] = GameState.floor_number
+		for w in wars:   # the attackers' war leader on your territory
+			if w.attacker == g and w.defender == GuildLibrary.PLAYER_GUILD and w.territory == t:
+				w["leader_beaten"] = true
+		for cap in captives.duplicate():   # beating their champion frees your captains
+			if cap.guild == g:
+				rescue(cap.c)
 		if member == GuildLibrary.PLAYER_GUILD and owners[t] == g:
 			owners[t] = GuildLibrary.PLAYER_GUILD
 			add_news("%s takes %s from %s!" % [GuildLibrary.guild_name(GuildLibrary.PLAYER_GUILD),
@@ -806,8 +851,181 @@ func player_guild_income() -> void:
 	if held == 0:
 		return
 	var income := held * (PLAYER_INCOME_BASE + roundi(player_guild.tax * PLAYER_INCOME_PER_TAX)) \
-		+ PLAYER_INCOME_PER_MEMBER * GameState.member_count()
+		+ PLAYER_INCOME_PER_MEMBER * GameState.member_count() + CAPTAIN_INCOME * captains.size()
 	treasury[GuildLibrary.PLAYER_GUILD] = treasury_of(GuildLibrary.PLAYER_GUILD) + income
+
+
+# =========================================================
+# Captains: companions guarding your guild's territories
+# =========================================================
+
+## Who can be posted: your reserve and waiting companions (not ones who've
+## turned their back on your route).
+func postable() -> Array:
+	return (GameState.reserve + GameState.waiting).filter(func(c): return not GameState.refuses_to_rejoin(c))
+
+
+func captain_of(t: int) -> CharacterData:
+	return captains.get(t)
+
+
+func is_captain(c: CharacterData) -> bool:
+	return captains.values().has(c)
+
+
+## Why `c` can't captain territory `t` ("" = they can).
+func captain_refusal(c: CharacterData, t: int) -> String:
+	if not has_own_guild():
+		return "You need your own guild."
+	if t < 0 or t >= owners.size() or owners[t] != GuildLibrary.PLAYER_GUILD:
+		return "Your guild doesn't hold that territory."
+	if not postable().has(c):
+		return "Only reserve or waiting companions can be posted."
+	return ""
+
+
+## Posts `c` as captain of territory `t` (whoever was there goes home).
+func post_captain(c: CharacterData, t: int) -> bool:
+	if captain_refusal(c, t) != "":
+		return false
+	if captains.has(t):
+		recall_captain(t)
+	GameState.reserve.erase(c)
+	GameState.waiting.erase(c)
+	c.full_restore()
+	captains[t] = c
+	messages.append("%s now captains %s." % [c.character_name, GuildLibrary.territory_floors(t)])
+	return true
+
+
+## Brings territory `t`'s captain home: the reserve if there's room, else
+## they wait at the campfires.
+func recall_captain(t: int) -> bool:
+	var c: CharacterData = captains.get(t)
+	if c == null:
+		return false
+	captains.erase(t)
+	_send_home(c)
+	return true
+
+
+func _send_home(c: CharacterData) -> void:
+	if GameState.reserve.size() < GameState.RESERVE_CAP:
+		GameState.reserve.append(c)
+	else:
+		GameState.waiting.append(c)
+
+
+## How much a captain adds to holding their territory.
+static func captain_power(c: CharacterData) -> float:
+	return c.level * CAPTAIN_POWER_PER_LEVEL if c else 0.0
+
+
+## Extra strength your side gets in war `w` from the territory's captain.
+func captain_defense(w: Dictionary) -> float:
+	if w.defender != GuildLibrary.PLAYER_GUILD:
+		return 0.0
+	return captain_power(captains.get(w.territory))
+
+
+## The captain fighting at your side on this floor (null = none): their
+## territory's floors, and not a stage boss or miniboss fight unless allowed.
+func guest_captain(floor_n: int, fight_kind: String) -> CharacterData:
+	if not has_own_guild() or (fight_kind in ["boss", "miniboss"] and not CAPTAIN_HELPS_GUARDIANS):
+		return null
+	var t := GuildLibrary.territory_of(floor_n) % maxi(1, owners.size())
+	return captains.get(t) if owners[t] == GuildLibrary.PLAYER_GUILD else null
+
+
+## The guild attacking your territory `t` whose war leader waits for you on
+## its first floor (&"" = none).
+func siege_leader(t: int) -> StringName:
+	for w in wars:
+		if w.defender == GuildLibrary.PLAYER_GUILD and w.territory == t and not w.get("leader_beaten", false):
+			return w.attacker
+	return &""
+
+
+## Their territory fell: the captor holds the captain until you beat one of
+## its champions or pay the ransom. Starts a rescue quest.
+func _capture(t: int, captor: StringName) -> void:
+	var c: CharacterData = captains[t]
+	captains.erase(t)
+	var qid := StringName("rescue_%s_%d" % [c.companion_id, GameState.floor_number])
+	captives.append({ "c": c, "guild": captor, "quest": qid })
+	rescue_quests[qid] = { "name": c.character_name, "guild": captor }
+	add_news("%s captured Captain %s!" % [GuildLibrary.guild_name(captor), c.character_name], true)
+	GameState.quests.start(qid)
+
+
+func holds_captive(g: StringName) -> bool:
+	return captives.any(func(cap): return cap.guild == g)
+
+
+## Gold to free every captain `g` holds.
+func ransom_cost(g: StringName) -> int:
+	var total := 0
+	for cap in captives:
+		if cap.guild == g:
+			total += RANSOM_BASE + RANSOM_PER_LEVEL * cap.c.level
+	return total
+
+
+func can_pay_ransom(g: StringName) -> bool:
+	return holds_captive(g) and GameState.player.gold >= ransom_cost(g)
+
+
+## Pays `g` to free every captain it holds.
+func pay_ransom(g: StringName) -> bool:
+	if not can_pay_ransom(g):
+		return false
+	var cost := ransom_cost(g)
+	GameState.player.gold -= cost
+	treasury[g] = treasury_of(g) + cost
+	for cap in captives.duplicate():
+		if cap.guild == g:
+			rescue(cap.c)
+	return true
+
+
+## Frees a captured captain: they come home and their rescue quest completes.
+func rescue(c: CharacterData) -> void:
+	for cap in captives.duplicate():
+		if cap.c == c:
+			captives.erase(cap)
+			c.full_restore()
+			_send_home(c)
+			messages.append("%s is free and back with you!" % c.character_name)
+			GameState.set_flag(rescue_flag(cap.quest))
+
+
+static func rescue_flag(qid: StringName) -> StringName:
+	return StringName("rescued_" + String(qid))
+
+
+## The rescue quest for the quest log (built from rescue_quests; {} if unknown).
+func rescue_quest_def(qid: StringName) -> Dictionary:
+	var r: Dictionary = rescue_quests.get(qid, {})
+	if r.is_empty():
+		return {}
+	var g := GuildLibrary.guild_name(r.guild)
+	return { "title": "Rescue %s" % r.name, "kind": "side", "giver": "Your guild",
+		"desc": "(Placeholder) %s holds Captain %s. Beat one of their champions (the first floor of their territories), or pay the ransom to one of their agents." % [g, r.name],
+		"steps": [{ "text": "Free %s from %s" % [r.name, g], "goal": { "type": "flag", "flag": rescue_flag(qid) } }] }
+
+
+## Each floor: captains rest at their posts; a captor with no territory left
+## can't hold anyone, so its captives escape.
+func _on_floor_captains() -> void:
+	for t in captains.keys():
+		if t >= owners.size() or owners[t] != GuildLibrary.PLAYER_GUILD:
+			recall_captain(t)   # the post is gone (wars capture them in _settle instead)
+			continue
+		captains[t].full_restore()
+	for cap in captives.duplicate():
+		if territories_of(cap.guild).is_empty():
+			add_news("Captain %s escaped from %s." % [cap.c.character_name, GuildLibrary.guild_name(cap.guild)])
+			rescue(cap.c)
 
 
 # =========================================================
@@ -824,13 +1042,31 @@ func to_dict() -> Dictionary:
 	return { "owners": owners.map(func(g): return String(g)), "rep": _strkeys(rep), "member": String(member),
 		"rank": rank, "treasury": _strkeys(treasury), "market": m, "last_pay_floor": last_pay_floor,
 		"wars": wars.map(func(w): return { "attacker": String(w.attacker), "defender": String(w.defender),
-			"territory": w.territory, "score": w.score, "ticks": w.ticks }),
+			"territory": w.territory, "score": w.score, "ticks": w.ticks, "leader_beaten": w.get("leader_beaten", false) }),
 		"alliances": alliances.duplicate(true), "defense": _strkeys(defense), "news": news.duplicate(true),
 		"hostile_until": _strkeys(hostile_until), "champion_beaten": cb, "mercenary_for": String(mercenary_for),
 		"heist": { "for": String(heist.get("for", &"")), "target": String(heist.get("target", &"")) } if not heist.is_empty() else {},
 		"last_steal_floor": last_steal_floor,
 		"player_guild": { "name": player_guild.get("name", ""), "patron": String(player_guild.get("patron", &"")),
-			"tax": player_guild.get("tax", 0.1), "upgrades": player_guild.get("upgrades", {}).duplicate() } if has_own_guild() else {} }
+			"tax": player_guild.get("tax", 0.1), "upgrades": player_guild.get("upgrades", {}).duplicate() } if has_own_guild() else {},
+		"captains": _captains_to_dict(),
+		"captives": captives.map(func(cap): return { "guild": String(cap.guild), "quest": String(cap.quest),
+			"c": SaveSerializer.character_to_dict(cap.c) }),
+		"rescue_quests": _rescues_to_dict() }
+
+
+func _captains_to_dict() -> Dictionary:
+	var out := {}
+	for t in captains:
+		out[str(t)] = SaveSerializer.character_to_dict(captains[t])
+	return out
+
+
+func _rescues_to_dict() -> Dictionary:
+	var out := {}
+	for q in rescue_quests:
+		out[String(q)] = { "name": rescue_quests[q].name, "guild": String(rescue_quests[q].guild) }
+	return out
 
 
 static func _strkeys(d: Dictionary) -> Dictionary:
@@ -888,7 +1124,8 @@ static func from_dict(d: Dictionary) -> GuildState:
 		if w is Dictionary and valid.call(w.get("attacker")) and valid.call(w.get("defender")) and w.attacker != w.defender:
 			gs.wars.append({ "attacker": StringName(w.attacker), "defender": StringName(w.defender),
 				"territory": S._i(w, "territory", 0, 0, maxi(0, gs.owners.size() - 1)),
-				"score": S._f(w, "score", 0.0, -WAR_WIN, WAR_WIN), "ticks": S._i(w, "ticks", 0, 0, WAR_MAX_TICKS) })
+				"score": S._f(w, "score", 0.0, -WAR_WIN, WAR_WIN), "ticks": S._i(w, "ticks", 0, 0, WAR_MAX_TICKS),
+				"leader_beaten": S._b(w, "leader_beaten", false) })
 	for a in S._a(d, "alliances"):
 		if a is Array and a.size() == 2 and valid.call(a[0]) and valid.call(a[1]) and a[0] != a[1]:
 			gs.alliances.append(_pair(StringName(a[0]), StringName(a[1])))
@@ -915,4 +1152,28 @@ static func from_dict(d: Dictionary) -> GuildState:
 	if valid.call(h.get("for")) and valid.call(h.get("target")):
 		gs.heist = { "for": StringName(h["for"]), "target": StringName(h.target) }
 	gs.last_steal_floor = S._i(d, "last_steal_floor", -1, -1, 100000)
+	# Captains only stand on territories your guild still holds; anyone else
+	# found in the save goes back to waiting at the campfires.
+	var caps := S._d(d, "captains")
+	for t in caps:
+		if not (t is String and t.is_valid_int() and caps[t] is Dictionary):
+			continue
+		var c := S.character_from_dict(caps[t])
+		var ti := int(t)
+		if gs.has_own_guild() and ti >= 0 and ti < gs.owners.size() and gs.owners[ti] == GuildLibrary.PLAYER_GUILD \
+				and not gs.captains.has(ti):
+			gs.captains[ti] = c
+		else:
+			GameState.waiting.append(c)
+	var rq := S._d(d, "rescue_quests")
+	for q in rq:
+		if q is String and q.begins_with("rescue_") and q.length() <= 96 and rq[q] is Dictionary \
+				and valid.call(rq[q].get("guild")):
+			gs.rescue_quests[StringName(q)] = { "name": CharacterData.clean_name(S._s(rq[q], "name", "?")),
+				"guild": StringName(rq[q].guild) }
+	for cap in S._a(d, "captives"):
+		if cap is Dictionary and cap.get("c") is Dictionary and valid.call(cap.get("guild")) \
+				and gs.rescue_quests.has(StringName(S._s(cap, "quest"))):
+			gs.captives.append({ "c": S.character_from_dict(cap.c), "guild": StringName(cap.guild),
+				"quest": StringName(cap.quest) })
 	return gs

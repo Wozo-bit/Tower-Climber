@@ -143,6 +143,11 @@ const DIALOGUES := {
 						"if": { "heist_here": true } },
 					{ "text": "I'm here for my pay.", "next": "paid", "effects": [{ "collect_pay": true }],
 						"if": { "guild_pay_due": true } },
+					# Your guild's captains they captured.
+					{ "text": "Release my captain. ({guild_ransom} gold)", "next": "ransomed", "effects": [{ "pay_ransom": true }],
+						"if": { "can_pay_ransom": true } },
+					{ "text": "(You can't pay the {guild_ransom} gold ransom for your captain.)", "next": "no_ransom",
+						"if": { "holds_captive": true, "can_pay_ransom": false } },
 					{ "text": "I'm leaving the guild.", "next": "leave_confirm", "if": { "guild_member": true } },
 					{ "text": "Goodbye." },
 				],
@@ -155,6 +160,8 @@ const DIALOGUES := {
 			"joined": { "speaker": "{guild} agent", "text": "(Placeholder) Welcome, {guild_rank}. Don't embarrass us." , "next": "hello" },
 			"refused": { "speaker": "{guild} agent", "text": "(Placeholder) Not a chance. {guild_refusal}", "next": "hello" },
 			"paid": { "speaker": "{guild} agent", "text": "(Placeholder) Your cut. Spend it wisely.", "next": "hello" },
+			"ransomed": { "speaker": "{guild} agent", "text": "(Placeholder) Pleasure doing business. Your captain's free to go.", "next": "hello" },
+			"no_ransom": { "speaker": "{guild} agent", "text": "(Placeholder) Then they stay with us. Come back with the gold, or come through our champion.", "next": "hello" },
 			"hired": { "speaker": "{guild} agent", "text": "(Placeholder) {guild_war}. Their guards will come for you now. We pay per head.", "next": "hello" },
 			"heist_given": { "speaker": "{guild} agent", "text": "(Placeholder) Our rivals keep a vault. Find one of their agents, and help yourself.", "next": "hello" },
 			"heist_tried": { "speaker": "", "text": "(Placeholder) You slip away while the agent's back is turned..." },
@@ -382,11 +389,12 @@ const DIALOGUES := {
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
-	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here"]
+	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
+	"holds_captive", "can_pay_ransom"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",
-	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist"]
+	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:

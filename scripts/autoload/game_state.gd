@@ -374,10 +374,10 @@ func load_game(slot: int = -1) -> bool:
 			story_flags[StringName(f)] = true
 	ng_plus_cycle = S._i(d, "ng_plus_cycle", 0, 0, 999)
 	bestiary = Bestiary.from_dict(S._d(d, "bestiary"))
+	guilds = GuildState.from_dict(S._d(d, "guilds"))   # before quests: rescue quests live here
 	quests = QuestLog.from_dict(S._d(d, "quests"))
 	route = RouteState.from_dict(S._d(d, "route"))
 	blessings = BlessingState.from_dict(S._d(d, "blessings"))
-	guilds = GuildState.from_dict(S._d(d, "guilds"))
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	run_active = true
@@ -502,6 +502,16 @@ func complete_run() -> LegacyRecord:
 
 static func ng_plus_scale(cycle: int) -> float:
 	return 1.0 + NG_PLUS_SCALE_PER_CYCLE * cycle
+
+
+## Who fights the coming battle: the party, plus your guild's captain when
+## you're on their territory (GuildState.guest_captain).
+func fighting_party() -> Array[CharacterData]:
+	var out := battle_party()
+	var guest := guilds.guest_captain(floor_number, pending_battle_info.get("kind", "normal"))
+	if guest and not out.has(guest):
+		out.append(guest)
+	return out
 
 
 ## Player first, then companions, capped at MAX_PARTY_SIZE.
@@ -672,9 +682,9 @@ func waiting_companion(npc_id: StringName) -> CharacterData:
 # =========================================================
 
 ## True if this NPC has joined you (party, reserve, or waiting at rest floors).
-## Party + reserve + waiting companions (your guild's members).
+## Party + reserve + waiting companions and your captains (your guild's members).
 func member_count() -> int:
-	return companions.size() + reserve.size() + waiting.size()
+	return companions.size() + reserve.size() + waiting.size() + guilds.captains.size()
 
 
 ## Guild fighters on a normal floor: guards of guilds that hunt you (hated,
@@ -704,11 +714,14 @@ func _maybe_spawn_guild_fighters(layout: FloorLayout, rng: RandomNumberGenerator
 			e["guild"] = g
 			e.group = StageLibrary._typed(GuildLibrary.GUARD_GROUPS[rng.randi_range(0, GuildLibrary.GUARD_GROUPS.size() - 1)])
 			i += 1
-	if GuildLibrary.is_territory_start(floor_number) and guilds.champion_waiting(t) and i < normals.size():
-		var c: Dictionary = normals[i]
-		c.kind = "champion"
-		c["guild"] = owner
-		c.group = StageLibrary._typed(GuildLibrary.CHAMPION_GROUP)
+	if GuildLibrary.is_territory_start(floor_number) and i < normals.size():
+		# A territory's champion, or the war leader of a guild attacking yours.
+		var leader := owner if guilds.champion_waiting(t) else guilds.siege_leader(t)
+		if leader != &"":
+			var c: Dictionary = normals[i]
+			c.kind = "champion"
+			c["guild"] = leader
+			c.group = StageLibrary._typed(GuildLibrary.CHAMPION_GROUP)
 
 
 ## Try to steal `id` from this floor's trader. "stolen", "caught" or "".
@@ -719,7 +732,7 @@ func steal_item(id: StringName) -> String:
 
 
 func has_recruited(npc_id: StringName) -> bool:
-	for c in companions + reserve + waiting:
+	for c in companions + reserve + waiting + guilds.captains.values() + guilds.captives.map(func(cap): return cap.c):
 		if c.companion_id == npc_id:
 			return true
 	return false
@@ -998,12 +1011,17 @@ func sell_gear(g: GearItem) -> int:
 
 ## After a won battle: everyone on the reserve gets their share of the XP.
 ## Returns the amount each got.
-func grant_reserve_xp(battle_xp: int) -> int:
+func grant_reserve_xp(battle_xp: int, fought: Array = []) -> int:
 	var share := floori(battle_xp * RESERVE_XP_SHARE)
 	if share <= 0:
 		return 0
 	for c in reserve:
 		c.add_xp(share)
+	# Guild captains on duty learn too (unless they were in this fight already).
+	var captain_share := floori(battle_xp * GuildState.CAPTAIN_XP_SHARE)
+	for c in guilds.captains.values():
+		if not fought.has(c):
+			c.add_xp(captain_share)
 	return share
 
 

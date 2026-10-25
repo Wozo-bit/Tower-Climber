@@ -776,6 +776,9 @@ func _update_hud() -> void:
 	fl += "     Gold %d     Checkpoint: floor %d" % [GameState.player.gold, GameState.checkpoint_floor]
 	fl = StageLibrary.stage_name(GameState.floor_number) + "   ·   " + fl
 	fl += "     %s territory" % GuildLibrary.guild_name(GameState.guilds.owner_of_floor(GameState.floor_number))
+	var captain := GameState.guilds.guest_captain(GameState.floor_number, "normal")
+	if captain:
+		fl += " (Captain %s)" % captain.character_name
 	for e in GameState.floor_enemies:
 		if not e.alive:
 			continue
