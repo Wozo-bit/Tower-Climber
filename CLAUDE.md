@@ -54,9 +54,17 @@ grow with divinity (start: own guild + 1).
   GameState.become_god / refresh_legacy_gods (past gods = "ascended_<id>"
   beings, pantheon "Ascended", rivals by opposite values; never in their
   own NG+).
-- Phase 2 (next): Faith, sponsoring guilds (own + contracts), boon/curse
-  menu, tithes, stance. Phase 3: people, smite/revoke/warnings, miracles,
-  champions joining fights, rival gods reacting, slot growth.
+- Phase 2 BUILT: DivinityState (GameState.divinity, saved; active only if
+  the Hall says the player is a god): faith + divinity level -> contract
+  slots (own guild + 1, +1 per level / NG+ cycle), contracts (guild takes
+  your god as patron, old patron spurned -> rival), boon/curse menu (curse
+  weight >= boon cost, scales with contract level from favor), stances
+  (AI personality shift), tithes per floor. Your own god is a "self" being
+  in your run (patron, never offered to you). GuildLibrary.reset_patrons
+  each run. Tab -> Divinity (DivinityPanel).
+- Phase 3 (next): bless companions/NPCs, warnings + smite + revoke (favor
+  drops when a guild acts against your values), miracles (Faith in battle),
+  sponsored champions joining fights, rival gods reacting.
 
 ### Skill picks + battle layout (Hayden 2026-10-25)
 Hayden: skills should fit the class fantasy (mages need every bolt; tanks/
@@ -319,7 +327,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1256 checks at last run).
+Every change gets tests in tests/ (22 suites, 1291 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

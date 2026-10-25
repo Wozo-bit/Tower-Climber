@@ -94,6 +94,13 @@ const PLAYER_GUILD := &"player_guild"
 static var guilds: Dictionary = BASE_GUILDS.duplicate(true)
 
 
+## Back to every guild's own patron (a god's contracts last one run).
+static func reset_patrons() -> void:
+	for id in BASE_GUILDS:
+		if guilds.has(id):
+			guilds[id]["patron"] = BASE_GUILDS[id].patron
+
+
 static func register_guild(id: StringName, def: Dictionary) -> void:
 	guilds[id] = def
 

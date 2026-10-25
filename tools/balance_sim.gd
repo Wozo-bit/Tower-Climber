@@ -212,6 +212,7 @@ func _on_new_floor(_r: Dictionary, _n: int) -> void:
 	GameState.guilds.messages.clear()
 	GameState.route.messages.clear()
 	GameState.blessings.messages.clear()
+	GameState.divinity.messages.clear()
 	GameState.pending_talks.clear()
 
 

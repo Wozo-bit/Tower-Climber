@@ -73,6 +73,8 @@ static func level_for_interest(i: int) -> int:
 func wants_to_offer(id: StringName) -> bool:
 	var s: Dictionary = beings.get(id, {})
 	var player: CharacterData = GameState.player
+	if BeingLibrary.get_being(id).get("self", false):
+		return false   # your own god (you, in New Game+)
 	return not s.get("scorned", false) and player.blessing_id != id and interest(id) >= OFFER_INTEREST \
 		and GameState.floor_number >= s.get("refused_floor", -999) + REOFFER_FLOORS
 

@@ -275,7 +275,7 @@ func treasury_of(g: StringName) -> int:
 ## discount), plus war prices if this territory is being fought over.
 func price_mult(floor_n: int) -> float:
 	var g := owner_of_floor(floor_n)
-	var m: float = GuildLibrary.get_guild(g).get("price_mult", 1.0)
+	var m: float = GuildLibrary.get_guild(g).get("price_mult", 1.0) * GameState.divinity.price_mult(g)
 	if g == member:
 		m *= 1.0 - GuildLibrary.RANK_DISCOUNT[rank]
 	if g == GuildLibrary.PLAYER_GUILD and captains.has(GuildLibrary.territory_of(floor_n) % maxi(1, owners.size())):
@@ -463,7 +463,8 @@ func involves_you(g: StringName) -> bool:
 ## How strong a guild is in a war right now.
 func war_strength(g: StringName) -> float:
 	var aggression: float = GuildLibrary.get_guild(g).get("personality", {}).get("aggression", 0.5)
-	var s := treasury_of(g) / 400.0 + territories_of(g).size() + aggression * 2.0 + defense_of(g)
+	var s := treasury_of(g) / 400.0 + territories_of(g).size() + aggression * 2.0 + defense_of(g) \
+		+ GameState.divinity.war_bonus(g)
 	for other in GuildLibrary.guilds:
 		if other != g and allied(g, other):
 			s += 1.0
@@ -734,6 +735,7 @@ func found_guild(guild_name: String, patron: StringName = &"") -> bool:
 	rep[GuildLibrary.PLAYER_GUILD] = REP_MAX
 	treasury[GuildLibrary.PLAYER_GUILD] = 0
 	add_news("A new guild is founded: %s." % cleaned, true)
+	GameState.divinity.claim_own_guild()   # a god's guild is their church
 	return true
 
 
@@ -741,12 +743,15 @@ func found_guild(guild_name: String, patron: StringName = &"") -> bool:
 ## that isn't against you (interest >= 0).
 static func willing_patrons() -> Array:
 	var out := []
+	if GameState.divinity.active:
+		out.append(GameState.divinity.god_id)   # a god founds their own church
 	var blessed: StringName = GameState.player.blessing_id
-	if blessed != &"":
+	if blessed != &"" and not out.has(blessed):
 		out.append(blessed)
 	var willing := func(b) -> bool:
 		var scorned: bool = GameState.blessings.beings.get(b, {}).get("scorned", false)
-		return b != blessed and GameState.blessings.interest(b) >= 0 and not scorned
+		return not out.has(b) and GameState.blessings.interest(b) >= 0 and not scorned \
+			and not BeingLibrary.get_being(b).get("self", false)
 	var others := BeingLibrary.beings.keys().filter(willing)
 	others.sort_custom(func(a, b): return GameState.blessings.interest(a) > GameState.blessings.interest(b))
 	return out + others
@@ -856,6 +861,7 @@ func player_guild_income() -> void:
 		return
 	var income := held * (PLAYER_INCOME_BASE + roundi(player_guild.tax * PLAYER_INCOME_PER_TAX)) \
 		+ PLAYER_INCOME_PER_MEMBER * GameState.member_count() + CAPTAIN_INCOME * captains.size()
+	income = roundi(income * GameState.divinity.income_mult(GuildLibrary.PLAYER_GUILD))
 	treasury[GuildLibrary.PLAYER_GUILD] = treasury_of(GuildLibrary.PLAYER_GUILD) + income
 
 

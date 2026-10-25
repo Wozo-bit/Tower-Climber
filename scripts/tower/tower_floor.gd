@@ -175,7 +175,8 @@ func _process(delta: float) -> void:
 		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
 	if not GameState.quests.messages.is_empty() or not GameState.route.messages.is_empty() \
-			or not GameState.blessings.messages.is_empty() or not GameState.guilds.messages.is_empty():
+			or not GameState.blessings.messages.is_empty() or not GameState.guilds.messages.is_empty() \
+			or not GameState.divinity.messages.is_empty():
 		_show_quest_messages()
 	# A companion wants a word about your route (warning, or leaving).
 	if not GameState.pending_talks.is_empty() and not _menus_open() and _player_t >= 1.0:
@@ -918,7 +919,8 @@ func _show_toast(text: String) -> void:
 ## stacked under the main toast so they never hide it.
 func _show_quest_messages() -> void:
 	for pair in [[GameState.quests.messages, "quest"], [GameState.route.messages, "route"],
-			[GameState.blessings.messages, "blessing"], [GameState.guilds.messages, "guild"]]:
+			[GameState.blessings.messages, "blessing"], [GameState.guilds.messages, "guild"],
+			[GameState.divinity.messages, "blessing"]]:
 		for m in pair[0]:
 			_notices.push(m, pair[1])
 		pair[0].clear()

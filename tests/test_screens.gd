@@ -17,6 +17,7 @@ func _ready() -> void:
 	await test_title_screen()
 	await test_ascend_button()
 	await test_big_party()
+	await test_divinity_panel()
 	CutIns.skip_all()
 	GameState.delete_slot(1)
 	GameState.reset_run()
@@ -110,6 +111,37 @@ func test_big_party() -> void:
 	var strip: Control = floor_scene._party_strip
 	check(strip.get_child_count() == 10 and screen.encloses(strip.get_global_rect()), "the floor's party strip wraps and fits")
 	floor_scene.queue_free()
+	await _frames(1)
+
+
+## A god's Tab menu: the Divinity button, the panel, sponsoring from it.
+func test_divinity_panel() -> void:
+	print("Divinity panel")
+	_fresh(12)
+	var dv := DivinityState.new()
+	dv.active = true
+	dv.domain = &"valor"
+	dv.title = "God of Valor"
+	dv.god_id = &"ascended_screens"
+	dv.add_faith(200)
+	GameState.divinity = dv
+	dv.apply()
+	var menu := PartyMenu.new()
+	add_child(menu)
+	menu.open()
+	await _frames(2)
+	check(menu._divinity_btn.visible, "a god has a Divinity button in Tab")
+	menu._divinity_panel.open()
+	await _frames(2)
+	var sponsor: Array = menu._divinity_panel.find_children("*", "Button", true, false).filter(
+		func(b): return b.text.begins_with("Sponsor") and not b.disabled)
+	check(not sponsor.is_empty(), "guilds can be sponsored from it")
+	sponsor[0].pressed.emit()
+	await _frames(2)
+	check(dv.others().size() == 1 and menu._divinity_panel.find_children("*", "OptionButton", true, false).size() >= 3,
+		"the new contract shows its boon, curse and stance")
+	menu.queue_free()
+	GameState.reset_run()
 	await _frames(1)
 
 

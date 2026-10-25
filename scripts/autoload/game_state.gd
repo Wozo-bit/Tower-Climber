@@ -76,6 +76,8 @@ var pending_talks: Array = []
 ## Gods, demons and devils: interest, refusals, scorn. Per run. (The blessing
 ## itself is on each CharacterData.)
 var blessings := BlessingState.new()
+## You as a god (New Game+ of a character who ascended): faith, contracts.
+var divinity := DivinityState.new()
 ## Guilds and the economy: territories, reputation, membership, treasuries,
 ## supply and demand. Per run.
 var guilds := GuildState.new()
@@ -190,6 +192,8 @@ func reset_run() -> void:
 	blessings = BlessingState.new()
 	guilds = GuildState.new()
 	GuildLibrary.guilds.erase(GuildLibrary.PLAYER_GUILD)   # your guild belongs to one run
+	GuildLibrary.reset_patrons()   # a god's contracts belong to one run too
+	divinity = DivinityState.new()
 	pending_talks = []
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
@@ -252,6 +256,8 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1, p_difficulty: int
 	if player.legacy_id == "":
 		player.legacy_id = record.legacy_id
 	refresh_legacy_gods()   # every other god, never yourself
+	divinity = DivinityState.for_record(record)   # ascended? climb as a god
+	divinity.apply()
 	for g in record.vault:
 		if g.carries_into_ng_plus():
 			inventory.add_gear(g.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
@@ -349,6 +355,7 @@ func save_game() -> bool:
 		"quests": quests.to_dict(),
 		"route": route.to_dict(),
 		"blessings": blessings.to_dict(),
+		"divinity": divinity.to_dict(),
 		"guilds": guilds.to_dict(),
 		"stage_themes": stage_themes.map(func(t): return String(t)),
 	}
@@ -416,6 +423,11 @@ func load_game(slot: int = -1) -> bool:
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	refresh_legacy_gods()   # now without the player's own god
+	# A god only if the Hall says so; contracts trimmed to the slots you have.
+	divinity = DivinityState.from_dict(S._d(d, "divinity"), load_legacy().find(player.legacy_id))
+	while divinity.others().size() > divinity.slots():
+		divinity.contracts.erase(divinity.others()[-1])
+	divinity.apply()
 	if DomainLibrary.is_legacy_being(player.blessing_id) and not BeingLibrary.beings.has(player.blessing_id):
 		player.unbless()
 	run_active = true
@@ -568,6 +580,20 @@ func refresh_legacy_gods() -> void:
 		if rec.is_god() and rec.legacy_id != player.legacy_id:
 			BeingLibrary.register_being(DomainLibrary.being_id_for(rec.legacy_id),
 				DomainLibrary.being_spec(rec.display_name(), rec.god_title, rec.god_domain))
+	if divinity.active:
+		register_self_god(divinity)
+
+
+## Your own god in your own run: a being so guilds can take you as patron
+## (values, temper, rivals), but it never makes YOU offers ("self"). Patrons
+## you spurned are its rivals.
+func register_self_god(div: DivinityState) -> void:
+	var spec := DomainLibrary.being_spec(player.character_name, div.title, div.domain)
+	spec["self"] = true
+	for b in div.spurned:
+		if not spec.rivals.has(b):
+			spec.rivals.append(b)
+	BeingLibrary.register_being(div.god_id, spec)
 
 
 ## Ironman death: the character goes into the Hall as Fallen (no New Game+ from it).
@@ -769,6 +795,7 @@ func enter_floor(n: int) -> void:
 	var guild_rng := RandomNumberGenerator.new()
 	guild_rng.seed = ("%s:%d:guilds" % [player.legacy_id, n]).hash()
 	guilds.on_floor(guild_rng)
+	divinity.on_floor()   # tithes from the guilds you sponsor
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies

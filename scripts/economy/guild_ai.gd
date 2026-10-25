@@ -47,7 +47,7 @@ static func tick(gs: GuildState, rng: RandomNumberGenerator) -> void:
 	ids.sort()
 	for g in ids:
 		var held := gs.territories_of(g).size()
-		gs.treasury[g] = gs.treasury_of(g) + INCOME_PER_TERRITORY * held
+		gs.treasury[g] = gs.treasury_of(g) + roundi(INCOME_PER_TERRITORY * held * GameState.divinity.income_mult(g))
 	gs.player_guild_income()
 	for g in ids:
 		if g == GuildLibrary.PLAYER_GUILD or gs.territories_of(g).is_empty():
@@ -63,6 +63,11 @@ static func _act(gs: GuildState, g: StringName, rng: RandomNumberGenerator) -> v
 	var greed: float = p.get("greed", 0.5)
 	var aggression: float = p.get("aggression", 0.5)
 	var honor: float = p.get("honor", 0.5)
+	# A god's stance and curses lean a sponsored guild (DivinityState).
+	var shift: Dictionary = GameState.divinity.personality_shift(g)
+	greed = clampf(greed + shift.get("greed", 0.0), 0.0, 1.0)
+	aggression = clampf(aggression + shift.get("aggression", 0.0), 0.0, 1.0)
+	honor = clampf(honor + shift.get("honor", 0.0), 0.0, 1.0)
 	var temper := gs.patron_temper()
 	var feud := gs.feud_guilds().has(g)
 	if gs.your_side().has(g):   # your patron's mood rubs off on your guild
@@ -70,7 +75,7 @@ static func _act(gs: GuildState, g: StringName, rng: RandomNumberGenerator) -> v
 	var options := {}
 	# Quiet business (trade) is the usual choice; the rest makes the news.
 	options["trade"] = TRADE_WEIGHT + (1.0 - greed) * 0.3
-	options["fortify"] = FORTIFY_WEIGHT + (0.5 if gs.is_at_war(g) else 0.0) \
+	options["fortify"] = FORTIFY_WEIGHT + (0.5 if gs.is_at_war(g) else 0.0) + shift.get("fortify", 0.0) \
 		if gs.treasury_of(g) >= FORTIFY_COST and gs.defense_of(g) < MAX_DEFENSE else -1.0
 	var raid_target := _raid_target(gs, g)
 	options["raid"] = RAID_WEIGHT + greed * 0.8 + aggression * 0.2 - honor * 0.6 if raid_target != &"" else -1.0
@@ -153,7 +158,8 @@ static func _ally_target(gs: GuildState, g: StringName) -> StringName:
 	var likes: Array = GuildLibrary.values_of(g).get("likes", [])
 	for other in GuildLibrary.guilds:
 		if other == g or other == GuildLibrary.PLAYER_GUILD or gs.allied(g, other) or gs.war_between(g, other) \
-				or GuildLibrary.rivals_of(g).has(other):
+				or GuildLibrary.rivals_of(g).has(other) \
+				or not GameState.divinity.can_ally(g) or not GameState.divinity.can_ally(other):
 			continue
 		if GuildLibrary.values_of(other).get("likes", []).any(func(r): return likes.has(r)):
 			return other

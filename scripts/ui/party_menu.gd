@@ -20,6 +20,9 @@ var _quest_panel: QuestLogPanel
 var _reputation: Label
 var _advance_panel: AdvancementPanel
 var _guild_panel: GuildPanel
+var _divinity_panel: DivinityPanel
+## Tab -> Divinity: only shown for a god (New Game+ of an ascended character).
+var _divinity_btn: Button
 
 ## When set, the member list shows "Use here" buttons.
 ## { "kind": "item", "id": StringName } or { "kind": "heal", "caster": CharacterData, "skill": SkillDef }
@@ -89,6 +92,11 @@ func _init() -> void:
 	guilds_btn.tooltip_text = "Who runs which floors, and where you stand with them."
 	guilds_btn.pressed.connect(func(): _guild_panel.open())
 	header.add_child(guilds_btn)
+	_divinity_btn = Button.new()
+	_divinity_btn.text = "Divinity"
+	_divinity_btn.tooltip_text = "Your faith, and the guilds you sponsor as a god."
+	_divinity_btn.pressed.connect(func(): _divinity_panel.open())
+	header.add_child(_divinity_btn)
 	var close_btn := Button.new()
 	close_btn.text = "Close (Tab)"
 	close_btn.pressed.connect(close)
@@ -147,6 +155,9 @@ func _init() -> void:
 	add_child(_quest_panel)
 	_guild_panel = GuildPanel.new()
 	add_child(_guild_panel)
+	_divinity_panel = DivinityPanel.new()
+	_divinity_panel.closed.connect(_rebuild)
+	add_child(_divinity_panel)
 	_advance_panel = AdvancementPanel.new()
 	_advance_panel.closed.connect(_rebuild)
 	add_child(_advance_panel)
@@ -163,6 +174,7 @@ func _init() -> void:
 func open() -> void:
 	_pending = {}
 	_message.text = ""
+	_divinity_btn.visible = GameState.divinity.active
 	_rebuild()
 	show()
 
@@ -174,7 +186,8 @@ func open_manage() -> void:
 
 func close() -> void:
 	if _class_screen.visible or _stats_overlay.visible or _gear_panel.visible or _skills_panel.visible \
-			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible or _guild_panel.visible:
+			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible or _guild_panel.visible \
+			or _divinity_panel.visible:
 		return
 	hide()
 	closed.emit()
@@ -182,7 +195,8 @@ func close() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or _gear_panel.visible or _skills_panel.visible or _manage_panel.visible \
-			or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible or _guild_panel.visible:
+			or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible or _guild_panel.visible \
+			or _divinity_panel.visible:
 		return
 	if event.is_action_pressed("party_menu") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
