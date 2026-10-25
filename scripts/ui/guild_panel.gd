@@ -101,6 +101,9 @@ func _rebuild() -> void:
 			_button("%s %d/%d%s" % [up.name, lv, up.max, "" if maxed else " (%dg)" % gs.upgrade_cost(id)],
 				func(): _say("%s upgraded." % up.name if gs.buy_upgrade(id) else "Not enough in the treasury."),
 				maxed, up.desc)
+		var war_no := gs.player_war_refusal()
+		_button("Declare war (%dg)" % GuildAI.WAR_COST, _open_war, war_no != "",
+			war_no if war_no != "" else "Attack another guild's territory. Beat its guards and champion to take it.")
 	else:
 		var refusal := gs.charter_refusal()
 		_button("Found a guild (%dg)" % GuildState.CHARTER_COST, _open_charter, refusal != "",
@@ -203,3 +206,31 @@ func _open_charter() -> void:
 	add_child(dlg)
 	dlg.popup_centered()
 	edit.grab_focus()
+
+
+## Pick a territory for your guild to attack.
+func _open_war() -> void:
+	var gs := GameState.guilds
+	var targets := gs.player_war_targets()
+	if targets.is_empty():
+		return
+	var dlg := ConfirmationDialog.new()
+	dlg.title = "Declare war (%d gold from the treasury)" % GuildAI.WAR_COST
+	dlg.ok_button_text = "Declare war"
+	var box := VBoxContainer.new()
+	var l := Label.new()
+	l.text = "Which territory do you want to take?"
+	box.add_child(l)
+	var opt := OptionButton.new()
+	for t in targets:
+		opt.add_item("%s  (%s)" % [GuildLibrary.territory_floors(t), GuildLibrary.guild_name(gs.owners[t])])
+	box.add_child(opt)
+	dlg.add_child(box)
+	dlg.confirmed.connect(func():
+		var t: int = targets[opt.selected]
+		_say("War! Fight %s's guards on %s." % [GuildLibrary.guild_name(gs.owners[t]), GuildLibrary.territory_floors(t)]
+			if gs.player_declare_war(t) else "You can't declare that war right now.")
+		dlg.queue_free())
+	dlg.canceled.connect(dlg.queue_free)
+	add_child(dlg)
+	dlg.popup_centered()

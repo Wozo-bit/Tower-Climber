@@ -10,7 +10,11 @@ signal finished(runner: DialogueRunner)
 
 var runner := DialogueRunner.new()
 
+const PORTRAIT_SIZE := 140
+
 var _speaker: Label
+## Art hook: the speaker's face (hidden when there's no picture).
+var _portrait: TextureRect
 var _text: Label
 var _buttons: VBoxContainer
 
@@ -36,12 +40,22 @@ func _init() -> void:
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 16)
 	panel.add_child(margin)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	margin.add_child(row)
+	_portrait = TextureRect.new()
+	_portrait.custom_minimum_size = Vector2(PORTRAIT_SIZE, PORTRAIT_SIZE)
+	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait.hide()
+	row.add_child(_portrait)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
-	margin.add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(box)
 	_speaker = Label.new()
 	_speaker.add_theme_font_size_override("font_size", 20)
-	_speaker.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
+	_speaker.add_theme_color_override("font_color", UITheme.color("accent"))
 	box.add_child(_speaker)
 	_text = Label.new()
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -73,6 +87,8 @@ func _refresh() -> void:
 	_speaker.text = runner.speaker()
 	_speaker.visible = _speaker.text != ""
 	_text.text = runner.text()
+	_portrait.texture = portrait_for(runner)
+	_portrait.visible = _portrait.texture != null
 	# Narration (lore objects) reads a little dimmer.
 	_text.modulate = Color(1, 1, 1, 1) if _speaker.visible else Color(0.85, 0.85, 0.95)
 	for c in _buttons.get_children():
@@ -112,3 +128,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not runner.has_choices():
 			runner.advance()
 			_refresh()
+
+
+## The face for the current line: the node's "portrait", else whoever the
+## speaker is ({player}, {friend}, {npc}, a {being}), else a portrait named
+## after the speaker ("Merchant" -> portraits/merchant). null = none.
+static func portrait_for(r: DialogueRunner) -> Texture2D:
+	var explicit := r.portrait_id()
+	if explicit != "":
+		return Assets.first([["portraits", explicit], ["beings", explicit]])
+	var raw := r.raw_speaker()
+	if raw == "":
+		return null   # narration
+	if raw == "{player}":
+		return Assets.portrait_for(GameState.player)
+	if raw == "{friend}":
+		return Assets.portrait_for(GameState.childhood_friend())
+	if raw == "{npc}":
+		return Assets.portrait_for(r.companion)
+	if raw.contains("{being") and DialogueRunner.context_being != &"":
+		return Assets.texture("beings", DialogueRunner.context_being)
+	return Assets.texture("portraits", Assets.slug(r.speaker()))

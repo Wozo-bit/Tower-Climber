@@ -62,6 +62,16 @@ func speaker() -> String:
 	return fill(_node().get("speaker", ""), _npc_name())
 
 
+## The speaker as written in the data ("{friend}", "Merchant"), for portraits.
+func raw_speaker() -> String:
+	return _node().get("speaker", "")
+
+
+## The node's explicit "portrait" art id ("" = work it out from the speaker).
+func portrait_id() -> String:
+	return str(_node().get("portrait", ""))
+
+
 func text() -> String:
 	return fill(_node().get("text", ""), _npc_name())
 

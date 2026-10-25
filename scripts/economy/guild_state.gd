@@ -95,6 +95,8 @@ const PLAYER_INCOME_BASE := 40
 const PLAYER_INCOME_PER_TAX := 300
 const PLAYER_INCOME_PER_MEMBER := 5
 const MAX_PLAYER_TAX := 0.3
+## Standing lost with a guild when your guild declares war on it.
+const PLAYER_WAR_REP_LOSS := 30
 const UPGRADES := {
 	"vault": { "name": "Vault", "desc": "Raids on your treasury take less (-30% per level).", "max": 3 },
 	"barracks": { "name": "Barracks", "desc": "Your guild is stronger in wars (+2 per level).", "max": 3 },
@@ -412,6 +414,13 @@ func declare_war(attacker: StringName, defender: StringName, t: int) -> void:
 	# A war is always big news (it moves prices and guards everywhere near it).
 	add_news("%s declares war on %s over %s!" % [GuildLibrary.guild_name(attacker), GuildLibrary.guild_name(defender),
 		GuildLibrary.territory_floors(t)], true)
+	if involves_you(attacker) or involves_you(defender):
+		CutIns.play(CutInData.war(attacker, defender, t))
+
+
+## Your own guild, or the guild you're a member of.
+func involves_you(g: StringName) -> bool:
+	return g != &"" and (g == member or (g == GuildLibrary.PLAYER_GUILD and has_own_guild()))
 
 
 ## How strong a guild is in a war right now.
@@ -748,6 +757,44 @@ func withdraw(amount: int) -> int:
 	treasury[GuildLibrary.PLAYER_GUILD] = treasury_of(GuildLibrary.PLAYER_GUILD) - take
 	GameState.player.gold += take
 	return take
+
+
+## Territories your guild could go to war over: held by another guild that
+## isn't your ally and isn't already fighting a war.
+func player_war_targets() -> Array:
+	var out := []
+	if not has_own_guild() or is_at_war(GuildLibrary.PLAYER_GUILD):
+		return out
+	for t in owners.size():
+		var o: StringName = owners[t]
+		if o != &"" and o != GuildLibrary.PLAYER_GUILD and not allied(GuildLibrary.PLAYER_GUILD, o) and not is_at_war(o):
+			out.append(t)
+	return out
+
+
+## Why your guild can't declare war right now ("" = it can).
+func player_war_refusal() -> String:
+	if not has_own_guild():
+		return "You need your own guild."
+	if is_at_war(GuildLibrary.PLAYER_GUILD):
+		return "Your guild is already at war."
+	if treasury_of(GuildLibrary.PLAYER_GUILD) < GuildAI.WAR_COST:
+		return "A war costs %d gold from your treasury." % GuildAI.WAR_COST
+	if player_war_targets().is_empty():
+		return "No guild's territory is open to attack."
+	return ""
+
+
+## Your guild attacks territory `t` (paid from the treasury, like the AI does).
+## You win it by beating the defender's guards and champion as usual.
+func player_declare_war(t: int) -> bool:
+	if player_war_refusal() != "" or not player_war_targets().has(t):
+		return false
+	var defender: StringName = owners[t]
+	treasury[GuildLibrary.PLAYER_GUILD] = treasury_of(GuildLibrary.PLAYER_GUILD) - GuildAI.WAR_COST
+	add_rep(defender, -PLAYER_WAR_REP_LOSS)
+	declare_war(GuildLibrary.PLAYER_GUILD, defender, t)
+	return true
 
 
 ## Each floor: your guild earns from the floors it holds (more with a higher

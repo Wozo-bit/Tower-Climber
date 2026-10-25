@@ -94,6 +94,15 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tests/test_guild_ai.gd` | 75 checks: the AI, raids, alliances, wars and fighting in them, guards and champions, stealing, pickpockets, heists, founding your guild, claiming floors, saving. Run: `godot --headless res://tests/test_guild_ai.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
+| `scripts/ui/ui_theme.gd`, `ui_style.gd`, `themed_background.gd` | The system-window look (palettes picked in Settings). |
+| `scripts/presentation/assets.gd` | Art hooks: finds `assets/art/<kind>/<id>.png`, else the placeholder stays. |
+| `scripts/autoload/audio.gd`, `scripts/presentation/music_library.gd`, `battle_sfx.gd` | Autoload `Audio` (music crossfades, sound effects, variants) and which track or sound fits where. |
+| `scripts/autoload/cut_ins.gd`, `scripts/presentation/cut_in_data.gd` | Autoload `CutIns` (full-screen splashes) and what each one shows. |
+| `scripts/ui/system_notice.gd` | `[ Quest Updated ]`-style system notices on the floor HUD. |
+| `scripts/presentation/credits.gd`, `scripts/ui/credits_panel.gd`, `assets/credits.json` | Credits and license tracking, and the credits screen. |
+| `assets/README.md` | **The drop-in guide:** every art and sound file name the game looks for. |
+| `tests/test_presentation.gd` | 77 checks: palettes, art and audio hooks, music choice, cut-ins, system notices, battle sounds, dialogue portraits, credits/licenses, your guild declaring war. Run: `godot --headless res://tests/test_presentation.tscn` |
+| `tests/test_screens.gd` | 10 smoke checks that open the real floor, battle and title screens and drive the hooks on them. Run: `godot --headless res://tests/test_screens.tscn` |
 
 ## Dialogue, NPCs and recruiting
 - **Walk into** an NPC (coloured square with an initial), a lore object (diamond with **?**) or the merchant to talk. Choices are buttons; Enter/Space picks, and Esc works as "Next".
@@ -227,7 +236,37 @@ Open it with **Tab → Manage party**.
   - **withdraw** gold from the treasury
   - set your **tax** (0–30%; higher means more income)
   - buy **upgrades** (500 / 1000 / 1500 gold from the treasury): **Vault** (raids take less), **Barracks** (stronger in wars), **Armory** (better prices)
+  - **declare war** (600 gold from the treasury, one war at a time) on another guild's territory. Beat its guards and champion to take it. The defender's standing drops by 30.
 - Tunables: top of `guild_ai.gd` and `guild_state.gd` (wars, theft, champions, charter, income, upgrades).
+
+## Look, art and sound
+
+The game has no art or audio files yet. Everything that would show a picture
+or play a sound looks for a file first and keeps its placeholder if there
+isn't one. **`assets/README.md`** lists every file name.
+
+- **System-window UI:** dark panels with a glowing border, built in code
+  (`UITheme`). Settings → **Interface style** offers System Blue (default),
+  Royal Gold, Crimson Pact, Abyssal Violet, Jade Sect and Monochrome. The
+  palette is merged into Godot's fallback theme, so every control picks it up,
+  including the ones under the floor HUD's CanvasLayer.
+- **System notices:** quest, path, blessing and guild news appear as stacked
+  `[ Header ]` windows with a chime (`system_<kind>`, else `system`).
+- **Cut-ins** (Settings → Cut-in splashes; click or press a key to skip):
+  - boss, miniboss, roaming boss and champion fights; the fight waits for the card
+  - ultimate skills (Legendary or Unique tier, or a blessed skill) used by the party
+  - a god, demon or devil appearing
+  - LEVEL UP after a fight, and choosing or advancing a class
+  - a war declared by or on your guild (your own or the one you're in)
+- **Music** changes with the stage, the enemies and the kind of fight, with
+  crossfades. Missing tracks fall back step by step to the generic ones, and
+  numbered files (`_2`, `_3`) add variety.
+- **Sound effects** for every button, battle results (element-specific hits
+  first), shop, stairs and campfire.
+- **Credits** (title screen → Credits): the team and every asset from
+  `assets/credits.json`, then Godot's MIT license and the engine's
+  third-party licenses. The tests fail if an asset file isn't credited or its
+  license doesn't allow commercial use.
 
 ## Blessings (gods, demons and devils)
 - **Many beings watch the climb** (`scripts/story/being_library.gd`). Each has **values** (routes it likes and dislikes), and its **interest** in you is your points in routes it likes minus routes it dislikes. Dialogue choices can also please or anger one directly (an `interest` effect). Accepting a blessing is always your choice.

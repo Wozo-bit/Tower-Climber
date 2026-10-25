@@ -12,6 +12,9 @@ extends RefCounted
 ##              work here and in all text (they become the current names), and
 ##              "{npc}" is the companion you're talking to (waiting_companion).
 ##   "text":    the line.
+##   "portrait": (optional) art id for the face shown next to the line
+##              (assets/art/portraits/<id> or beings/<id>). Without it the
+##              face is found from the speaker (Assets / DialogueBox).
 ##   "effects": (optional) run when the node is shown. See below.
 ##   Then ONE of:
 ##   "next":    node id to go to on "Next ▸". "" or missing = conversation ends.

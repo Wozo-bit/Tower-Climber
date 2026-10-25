@@ -158,5 +158,6 @@ func _on_confirm() -> void:
 	# and clear _selected before we emit.
 	var def := _selected
 	if def and character.choose_class(def):
+		CutIns.play(CutInData.class_change(character, def, true))
 		hide()
 		class_confirmed.emit(def)

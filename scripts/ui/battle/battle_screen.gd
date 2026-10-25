@@ -78,7 +78,22 @@ func _start_battle() -> void:
 	_log.clear()
 	_log_line("[color=salmon]Enemies appear![/color]")
 	_result_panel.hide()
+	var info := GameState.pending_battle_info
+	var kind: String = info.get("kind", "normal")
+	var ids := encounter.map(func(d): return d.id)
+	Audio.play_music(MusicLibrary.for_battle(kind, ids, GameState.floor_number, info))
+	Audio.play_sfx(["encounter_%s" % kind, "encounter"])
+	# Bosses, minibosses, roamers and champions get a name card first.
+	if CutInData.is_big_fight(kind):
+		CutIns.play(CutInData.boss(kind, encounter, GameState.floor_number, info))
+	await _cutins_done()
 	battle.start()
+
+
+## Waits for any cut-in on screen to finish (returns at once if none).
+func _cutins_done() -> void:
+	if CutIns.is_playing():
+		await CutIns.finished
 
 
 func _layout_cards() -> void:
@@ -103,6 +118,7 @@ func _on_turn_started(actor: Combatant) -> void:
 		_show_commands(false)
 		_prompt.text = "%s's turn..." % actor.display_name
 		get_tree().create_timer(AI_TURN_DELAY).timeout.connect(func():
+			await _cutins_done()   # an ultimate skill's splash finishes first
 			if battle and battle.current == actor:
 				battle.advance())
 	else:
@@ -112,6 +128,11 @@ func _on_turn_started(actor: Combatant) -> void:
 
 func _on_action_resolved(result: Dictionary) -> void:
 	_log_line(result.text)
+	var actor: Combatant = result.get("actor")
+	if result.type == BattleAction.Type.SKILL and actor and actor.side == Combatant.Side.PARTY \
+			and CutInData.is_ultimate(result.skill):
+		CutIns.play(CutInData.skill(actor, result.skill))
+	_play_action_sfx(result)
 	for e in result.entries:
 		var card: UnitCard = _cards.get(e.target)
 		if card == null:
@@ -157,11 +178,16 @@ func _on_battle_ended(outcome: int) -> void:
 	for l in _result_loot.get_children():
 		l.queue_free()
 	battle.write_back_party()   # HP/MP carry over to the next fight
+	Audio.play_sfx({ BattleManager.Outcome.VICTORY: "victory", BattleManager.Outcome.DEFEAT: "defeat",
+		BattleManager.Outcome.FLED: "flee" }.get(outcome, ""), 0.0)
 	match outcome:
 		BattleManager.Outcome.VICTORY:
+			var members: Array = GameState.battle_party() + GameState.reserve
+			var levels_before := members.map(func(m): return m.level)
 			battle.apply_rewards()
 			_result_label.text = "Victory!\n+%d XP each   +%d gold" % [battle.rewards.xp, battle.rewards.gold]
 			var reserve_xp := GameState.grant_reserve_xp(battle.rewards.xp)
+			_announce_level_ups(members, levels_before)
 			if reserve_xp > 0:
 				_result_label.text += "\nReserve: +%d XP each" % reserve_xp
 			# The guild that runs this floor takes its cut.
@@ -199,6 +225,26 @@ func _on_battle_ended(outcome: int) -> void:
 	_prompt.text = ""
 
 
+## LEVEL UP splash (and sound) for everyone who levelled in this fight.
+func _announce_level_ups(members: Array, levels_before: Array) -> void:
+	var ups := []
+	var class_ready := false
+	for i in members.size():
+		var m: CharacterData = members[i]
+		if m.level > levels_before[i]:
+			ups.append([m.character_name, m.level])
+			class_ready = class_ready or m.can_choose_class()
+	if ups.is_empty():
+		return
+	Audio.play_sfx("level_up", 0.0)
+	CutIns.play(CutInData.level_up(ups, class_ready))
+
+
+## One sound per action (BattleSfx picks it).
+func _play_action_sfx(result: Dictionary) -> void:
+	Audio.play_sfx(BattleSfx.names(result))
+
+
 ## Standalone test mode only (scene run directly with F6).
 func _restart() -> void:
 	GameState.pending_encounter = []
@@ -234,6 +280,7 @@ func _cmd_skills() -> void:
 		if not els.is_empty():
 			b.text += "  [%s]" % Element.list_text(els)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_set_icon(b, Assets.texture("skills", s.id))
 		b.disabled = not actor.can_afford(s) or battle.valid_targets(actor, s).is_empty()
 		b.pressed.connect(_begin_skill.bind(s))
 		_skill_box.add_child(b)
@@ -253,6 +300,7 @@ func _cmd_items() -> void:
 		b.text = "%s  x%d" % [item.display_name, GameState.inventory.count(item.id)]
 		b.tooltip_text = item.description
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_set_icon(b, Assets.texture("items", item.id))
 		b.pressed.connect(_begin_item.bind(item))
 		_skill_box.add_child(b)
 	_skill_box.show()
@@ -438,10 +486,18 @@ func _log_line(text: String) -> void:
 
 func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.color = Color(0.07, 0.07, 0.1)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	add_child(ThemedBackground.new())
+	# Art hook: the stage's battle backdrop, darkened so the cards stay readable.
+	var theme_id := StageLibrary.theme_id_for_floor(GameState.floor_number)
+	var backdrop := Assets.first([["backgrounds", theme_id], ["backgrounds", "battle"]])
+	if backdrop:
+		var art := TextureRect.new()
+		art.texture = backdrop
+		art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art.modulate = Color(0.55, 0.55, 0.6)
+		add_child(art)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -565,6 +621,14 @@ func _add_command(label: String, callback: Callable) -> void:
 		if battle.is_player_turn():
 			callback.call())
 	_command_box.add_child(b)
+
+
+## Menu icon (art hook): only when the file exists, kept small.
+static func _set_icon(b: Button, tex: Texture2D) -> void:
+	if tex:
+		b.icon = tex
+		b.expand_icon = true
+		b.add_theme_constant_override("icon_max_width", 22)
 
 
 func _add_result_button(label: String, callback: Callable) -> void:

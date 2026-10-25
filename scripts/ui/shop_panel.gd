@@ -173,6 +173,7 @@ func _rebuild() -> void:
 		b.pressed.connect(func():
 			if GameState.buy_item(id, price):
 				_message.text = "Bought a %s." % item.display_name
+				Audio.play_sfx(["buy", "coin"])
 			_rebuild())
 		# Theft: one try per floor, at traders (not your own guild's shop).
 		if guild_id == &"" and not full:
@@ -182,8 +183,11 @@ func _rebuild() -> void:
 			steal.disabled = not GameState.guilds.can_steal()
 			steal.pressed.connect(func():
 				match GameState.steal_item(id):
-					"stolen": _message.text = "You slipped a %s into your pack." % item.display_name
+					"stolen":
+						_message.text = "You slipped a %s into your pack." % item.display_name
+						Audio.play_sfx("steal")
 					"caught":
+						Audio.play_sfx(["caught", "alarm"])
 						_message.text = "Caught! The trader shouts for the guards."
 						close()
 						return
@@ -204,6 +208,7 @@ func _rebuild_sell() -> void:
 			var got := GameState.sell_gear(g)
 			if got > 0:
 				_message.text = "Sold %s for %d gold." % [g.display_name, got]
+				Audio.play_sfx(["sell", "coin"])
 			_rebuild())
 	for item in GameState.inventory.owned():
 		var price := GameState.sell_price_item(item.id)
@@ -216,6 +221,7 @@ func _rebuild_sell() -> void:
 			var got := GameState.sell_item(item.id)
 			if got > 0:
 				_message.text = "Sold a %s for %d gold." % [item.display_name, got]
+				Audio.play_sfx(["sell", "coin"])
 			_rebuild())
 	if not any:
 		var l := Label.new()

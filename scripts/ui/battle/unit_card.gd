@@ -9,10 +9,14 @@ enum Highlight { NONE, ACTIVE, TARGETABLE, DIMMED }
 
 const COLOR_ACTIVE := Color(1.0, 0.85, 0.3)
 const COLOR_TARGET := Color(0.4, 0.9, 1.0)
+## Height of the picture when the unit has art (assets/art/enemies, portraits).
+const ART_HEIGHT := 64
 
 var unit: Combatant
 var _style := StyleBoxFlat.new()
 var _sprite: ColorRect
+## Art hook: the enemy's / member's picture, shown instead of the colour bar.
+var _art: TextureRect
 var _name: Label
 var _hp_bar: ProgressBar
 var _hp_label: Label
@@ -29,9 +33,9 @@ func _init(p_unit: Combatant) -> void:
 	custom_minimum_size = Vector2(150, 0)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	_style.bg_color = Color(0.13, 0.13, 0.17)
+	_style.bg_color = UITheme.color("panel")
 	_style.set_border_width_all(2)
-	_style.border_color = Color(0.25, 0.25, 0.3)
+	_style.border_color = _idle_border()
 	_style.set_corner_radius_all(6)
 	_style.set_content_margin_all(6)
 	add_theme_stylebox_override("panel", _style)
@@ -46,6 +50,16 @@ func _init(p_unit: Combatant) -> void:
 	_sprite.color = unit.color
 	_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(_sprite)
+	var tex := Assets.combatant_art(unit)
+	if tex:
+		_sprite.hide()
+		_art = TextureRect.new()
+		_art.texture = tex
+		_art.custom_minimum_size = Vector2(0, ART_HEIGHT)
+		_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(_art)
 
 	_name = Label.new()
 	_name.text = unit.display_name
@@ -121,9 +135,13 @@ func refresh() -> void:
 	_status.visible = _status.text != ""   # empty lines would still take up height
 	if unit.is_alive():
 		_sprite.color = unit.color   # also restores colour after a revive
+		if _art:
+			_art.modulate = Color.WHITE
 	else:
 		modulate = Color(1, 1, 1, 0.3)
 		_sprite.color = Color(0.2, 0.2, 0.2)
+		if _art:
+			_art.modulate = Color(0.3, 0.3, 0.3)
 	set_highlight(_highlight)
 
 
@@ -135,7 +153,7 @@ func set_highlight(h: int) -> void:
 		Highlight.TARGETABLE:
 			_style.border_color = COLOR_TARGET
 		_:
-			_style.border_color = Color(0.25, 0.25, 0.3)
+			_style.border_color = _idle_border()
 	if unit.is_alive():
 		modulate = Color(1, 1, 1, 0.45) if h == Highlight.DIMMED else Color.WHITE
 	elif h == Highlight.TARGETABLE:
@@ -184,3 +202,10 @@ func set_threat(text: String) -> void:
 	_intent.text = text
 	_intent.visible = text != ""
 	_intent.add_theme_color_override("font_color", Color(1.0, 0.45, 0.4))
+
+
+## The theme's border, faded, for cards that aren't highlighted.
+static func _idle_border() -> Color:
+	var c := UITheme.color("border")
+	c.a = 0.35
+	return c

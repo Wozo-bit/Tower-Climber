@@ -145,6 +145,7 @@ func _confirm(def: ClassDef) -> void:
 	dlg.confirmed.connect(func():
 		if member.advance_class(def):
 			_message.text = "%s is now a %s!" % [member.character_name, def.display_name]
+			CutIns.play(CutInData.class_change(member, def, false))
 		_rebuild()
 		dlg.queue_free())
 	dlg.canceled.connect(dlg.queue_free)

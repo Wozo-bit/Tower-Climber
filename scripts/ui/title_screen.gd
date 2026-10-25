@@ -12,6 +12,7 @@ var _ngplus_btn: Button
 var _save_info: Label
 var _menu: VBoxContainer
 var _settings: SettingsPanel
+var _credits: CreditsPanel
 
 # Save slot picker
 var _slot_panel: Control
@@ -320,10 +321,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _build() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var bg := ColorRect.new()
-	bg.color = Color(0.05, 0.05, 0.08)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	add_child(ThemedBackground.new())
+	var backdrop := Assets.texture("backgrounds", "title")   # art hook
+	if backdrop:
+		var art := TextureRect.new()
+		art.texture = backdrop
+		art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		add_child(art)
+	Audio.play_music(MusicLibrary.title())
 
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -336,7 +343,9 @@ func _build() -> void:
 	title.text = GAME_TITLE
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 64)
-	title.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
+	title.add_theme_color_override("font_color", UITheme.color("accent"))
+	title.add_theme_color_override("font_outline_color", UITheme.color("glow"))
+	title.add_theme_constant_override("outline_size", 8)
 	col.add_child(title)
 	var sub := Label.new()
 	sub.text = "How high will you climb?"
@@ -358,6 +367,7 @@ func _build() -> void:
 	_menu_button("New Game", _open_slots.bind("new")).name = "NewGame"
 	_ngplus_btn = _menu_button("New Game+", _open_ng_plus)
 	_menu_button("Settings", func(): _settings.open())
+	_menu_button("Credits", func(): _credits.open(GAME_TITLE))
 	_menu_button("Quit", func(): get_tree().quit())
 
 	if OS.is_debug_build():
@@ -387,6 +397,8 @@ func _build() -> void:
 	_settings = SettingsPanel.new()
 	_settings.closed.connect(_refresh)
 	add_child(_settings)
+	_credits = CreditsPanel.new()
+	add_child(_credits)
 
 
 func _build_slot_panel() -> void:

@@ -39,6 +39,8 @@ func _init() -> void:
 	_add_slider(box, "Sound effects", "sfx_volume")
 	_add_check(box, "Fullscreen", "fullscreen")
 	_add_check(box, "V-Sync", "vsync")
+	_add_theme_picker(box)
+	_add_check(box, "Cut-in splashes", "cutins")
 
 	var note := Label.new()
 	note.text = "Controls: WASD / arrows move · Tab party · Esc pause"
@@ -99,3 +101,23 @@ func _add_check(parent: Node, label: String, prop: String) -> void:
 		Settings.set(prop, on)
 		Settings.apply())
 	parent.add_child(cb)
+
+
+## The menu colour scheme (UITheme palettes); changes the whole game at once.
+func _add_theme_picker(parent: Node) -> void:
+	var row := HBoxContainer.new()
+	var l := Label.new()
+	l.text = "Interface style"
+	l.custom_minimum_size.x = 160
+	row.add_child(l)
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var ids := UITheme.ids()
+	for id in ids:
+		opt.add_item(UITheme.PALETTES[id].name)
+	opt.selected = maxi(0, ids.find(Settings.ui_theme))
+	opt.item_selected.connect(func(i):
+		Settings.ui_theme = ids[i]
+		Settings.apply())
+	row.add_child(opt)
+	parent.add_child(row)

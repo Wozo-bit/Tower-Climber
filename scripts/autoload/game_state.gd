@@ -104,6 +104,9 @@ var current_slot := 1
 # --- Battle hand-off ---
 var pending_encounter: Array[EnemyDef] = []
 var pending_enemy_scale := 1.0
+## What kind of fight it is, for music and cut-ins:
+## { "kind": enemy_kind, "guild": .., "roamer_id": .. } ({} = an ordinary fight).
+var pending_battle_info: Dictionary = {}
 var return_scene: String = ""
 var active_enemy_index := -1      # which floor enemy started the fight
 var last_battle_outcome := -1     # BattleManager.Outcome, read by the tower on return
@@ -1097,7 +1100,8 @@ func start_floor_battle(enemy_index: int) -> void:
 	var scale := StageLibrary.guardian_scale(floor_number) if kind == "miniboss" or kind == "boss" \
 		else enemy_scale_for_floor(floor_number)
 	scale *= ng_plus_scale(ng_plus_cycle)
-	start_battle(EnemyLibrary.build_group(e.group), TOWER_SCENE, scale, enemy_index)
+	start_battle(EnemyLibrary.build_group(e.group), TOWER_SCENE, scale, enemy_index,
+		{ "kind": kind, "guild": e.get("guild", &""), "roamer_id": e.get("roamer_id", &"") })
 
 
 # =========================================================
@@ -1106,8 +1110,9 @@ func start_floor_battle(enemy_index: int) -> void:
 
 ## `enemy_index` = which floor enemy started it (-1 for test battles).
 func start_battle(encounter: Array[EnemyDef], return_to: String = "", scale: float = 1.0,
-		enemy_index: int = -1) -> void:
+		enemy_index: int = -1, info: Dictionary = {}) -> void:
 	active_enemy_index = enemy_index
+	pending_battle_info = info
 	pending_encounter = encounter
 	pending_enemy_scale = scale
 	return_scene = return_to

@@ -59,6 +59,11 @@ var _hud: CanvasLayer
 var _floor_label: Label
 var _party_strip: HBoxContainer
 var _toast: Label
+## The main toast sits in a system window; system notices stack under it.
+var _toast_panel: PanelContainer
+var _notices: SystemNotice
+## Art hooks for the map (null = draw the placeholder shape).
+var _art: Dictionary = {}
 var _party_menu: PartyMenu
 var _shop: ShopPanel
 var _flash: ColorRect
@@ -67,9 +72,8 @@ var _dialogue: DialogueBox
 var _talk_cooldown := 0.0
 var _climb_prompt: ConfirmationDialog
 var _board_panel: NoticeBoardPanel
-## Pinned quest's current step (top right) and quest toasts (under the main toast).
+## Pinned quest's current step (top right).
 var _tracker: Label
-var _quest_toast: Label
 ## Does the board have jobs you haven't taken? (Shows "!" on it.)
 var _board_has_new := false
 var _completion_open := false
@@ -109,8 +113,24 @@ func _load_floor() -> void:
 		_enemy_view.append({ "tile": e.pos, "from": px, "to": px, "t": 1.0,
 			"think": _rng.randf_range(ENEMY_THINK_MIN, ENEMY_THINK_MAX) + 0.6, "stun": 0.0 })
 
+	_load_art()
+	Audio.play_music(MusicLibrary.for_floor(GameState.floor_number, layout.is_rest))
 	_update_hud()
 	queue_redraw()
+
+
+## Map art for this floor (tiles follow the stage theme). Missing files stay null.
+func _load_art() -> void:
+	var theme := StageLibrary.theme_id_for_floor(GameState.floor_number)
+	_art = {
+		"floor": Assets.first([["tiles", "%s_floor" % theme], ["tiles", "floor"]]),
+		"wall": Assets.first([["tiles", "%s_wall" % theme], ["tiles", "wall"]]),
+		"stairs": Assets.texture("props", "stairs"),
+		"campfire": Assets.texture("props", "campfire"),
+		"merchant": Assets.texture("props", "merchant"),
+		"board": Assets.texture("props", "board"),
+		"player": Assets.texture("tokens", "player"),
+	}
 
 
 func _handle_battle_return() -> void:
@@ -346,6 +366,7 @@ func _check_contact() -> void:
 
 func _start_battle(index: int) -> void:
 	_busy = true
+	Audio.play_sfx("encounter_flash")
 	GameState.floor_player_pos = player_tile
 	_flash.show()
 	var tw := create_tween()
@@ -355,6 +376,7 @@ func _start_battle(index: int) -> void:
 
 func _go_upstairs() -> void:
 	_busy = true
+	Audio.play_sfx("stairs", 0.0)
 	var tw := create_tween()
 	_flash.show()
 	tw.tween_property(_flash, "modulate:a", 1.0, 0.3).from(0.0)
@@ -372,7 +394,10 @@ func _go_upstairs() -> void:
 func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"") -> void:
 	if _talk_cooldown > 0.0 or _dialogue.visible:
 		return
-	_dialogue.open(dialogue_id, with, being, guild)
+	if being != &"":   # a god / demon / devil appears
+		CutIns.play(CutInData.being(being))
+	if _dialogue.open(dialogue_id, with, being, guild):
+		Audio.play_sfx(["talk_%s" % dialogue_id, "talk"])
 
 
 func _on_dialogue_finished(runner: DialogueRunner) -> void:
@@ -411,6 +436,7 @@ func _ask_before_climbing() -> void:
 
 func _use_campfire() -> void:
 	GameState.full_restore_party()
+	Audio.play_sfx("campfire", 0.0)
 	_update_hud()
 	_autosave()
 	_show_toast("The warmth restores everyone. (HP/MP full, downed allies revived)")
@@ -511,30 +537,45 @@ func _draw() -> void:
 			var p := Vector2i(x, y)
 			var r := Rect2(_tile_px(p), Vector2(TILE, TILE))
 			if layout.is_wall(p):
-				draw_rect(r, C_WALL)
-				draw_rect(r, C_WALL_EDGE, false, 1.0)
+				if _art.get("wall"):
+					draw_texture_rect(_art.wall, r, false)
+				else:
+					draw_rect(r, C_WALL)
+					draw_rect(r, C_WALL_EDGE, false, 1.0)
+			elif _art.get("floor"):
+				draw_texture_rect(_art.floor, r, false)
 			else:
 				draw_rect(r, C_FLOOR if (x + y) % 2 == 0 else C_FLOOR_ALT)
 
 	# Stairs
 	var sr := Rect2(_tile_px(layout.stairs), Vector2(TILE, TILE)).grow(-4)
 	var locked := GameState.stairs_locked()
-	draw_rect(sr, C_STAIRS.darkened(0.55) if locked else C_STAIRS)
-	draw_string(font, sr.position + Vector2(7, 24), "UP", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.BLACK)
+	if _art.get("stairs"):
+		draw_texture_rect(_art.stairs, sr.grow(4), false, Color(0.45, 0.45, 0.45) if locked else Color.WHITE)
+	else:
+		draw_rect(sr, C_STAIRS.darkened(0.55) if locked else C_STAIRS)
+		draw_string(font, sr.position + Vector2(7, 24), "UP", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color.BLACK)
 
 	# Rest floor props
-	if layout.campfire.x >= 0:
+	if layout.campfire.x >= 0 and _art.get("campfire"):
+		draw_texture_rect(_art.campfire, Rect2(_tile_px(layout.campfire), Vector2(TILE, TILE)), false)
+	elif layout.campfire.x >= 0:
 		var c := _tile_px(layout.campfire) + Vector2(TILE, TILE) / 2
 		draw_circle(c, TILE * 0.42, C_CAMPFIRE)
 		draw_circle(c + Vector2(0, 3), TILE * 0.2, Color(1, 0.9, 0.4))
-	if layout.merchant.x >= 0:
+	if layout.merchant.x >= 0 and _art.get("merchant"):
+		draw_texture_rect(_art.merchant, Rect2(_tile_px(layout.merchant), Vector2(TILE, TILE)), false)
+	elif layout.merchant.x >= 0:
 		var mr := Rect2(_tile_px(layout.merchant), Vector2(TILE, TILE)).grow(-3)
 		draw_rect(mr, C_MERCHANT)
 		draw_string(font, mr.position + Vector2(10, 23), "$", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
 	if layout.board.x >= 0:   # notice board: a wooden panel with "!"
 		var br := Rect2(_tile_px(layout.board), Vector2(TILE, TILE)).grow(-4)
-		draw_rect(br, C_BOARD)
-		draw_rect(br, C_BOARD.lightened(0.4), false, 2.0)
+		if _art.get("board"):
+			draw_texture_rect(_art.board, br.grow(4), false)
+		else:
+			draw_rect(br, C_BOARD)
+			draw_rect(br, C_BOARD.lightened(0.4), false, 2.0)
 		draw_string(font, br.position + Vector2(11, 21), "!" if _board_has_new else "·", HORIZONTAL_ALIGNMENT_LEFT, -1, 18,
 			Color(1, 0.9, 0.4) if _board_has_new else Color(1, 1, 1, 0.5))
 
@@ -555,7 +596,11 @@ func _draw() -> void:
 				"color": Color(0.4, 0.8, 0.5) if GameState.guilds.member == agent else Color(0.65, 0.65, 0.7) }
 		var center := _tile_px(p) + Vector2(TILE, TILE) / 2
 		var col: Color = npc.get("color", Color.GRAY)
-		if npc.get("kind") == "object":
+		var token := Assets.first([["tokens", being], ["beings", being]]) if being != &"" \
+			else Assets.first([["tokens", layout.npcs[p]], ["portraits", layout.npcs[p]]])
+		if token:
+			draw_texture_rect(token, Rect2(_tile_px(p), Vector2(TILE, TILE)).grow(-2), false)
+		elif npc.get("kind") == "object":
 			var h := TILE * 0.38
 			var pts := PackedVector2Array([center + Vector2(0, -h), center + Vector2(h, 0),
 				center + Vector2(0, h), center + Vector2(-h, 0)])
@@ -591,8 +636,13 @@ func _draw() -> void:
 			if kind == "roaming":   # pulsing ring so it stands out while it moves
 				ring.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() / 150.0)
 			draw_arc(pos, radius + 4, 0, TAU, 28, ring, 3.0)
-		draw_circle(pos, radius, col)
-		draw_arc(pos, radius, 0, TAU, 20, Color(0, 0, 0, 0.6), 2.0)
+		var token := Assets.first([["tokens", first.id], ["enemies", first.id]])
+		if token:
+			draw_texture_rect(token, Rect2(pos - Vector2(radius, radius), Vector2(radius, radius) * 2), false,
+				Color(1, 1, 1, col.a))
+		else:
+			draw_circle(pos, radius, col)
+			draw_arc(pos, radius, 0, TAU, 20, Color(0, 0, 0, 0.6), 2.0)
 		if is_boss:
 			var mark: String = {"boss": "!!", "miniboss": "!", "roaming": "?", "guard": "G", "champion": "C"}[kind]
 			draw_string(font, pos + Vector2(-4.5 * mark.length(), 6), mark, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.BLACK)
@@ -605,8 +655,11 @@ func _draw() -> void:
 	var pc := C_PLAYER
 	if _invulnerable > 0.0 and int(_invulnerable * 10) % 2 == 0:
 		pc.a = 0.4
-	draw_rect(pr, pc)
-	draw_rect(pr, Color.WHITE, false, 2.0)
+	if _art.get("player"):
+		draw_texture_rect(_art.player, pr.grow(6), false, Color(1, 1, 1, pc.a))
+	else:
+		draw_rect(pr, pc)
+		draw_rect(pr, Color.WHITE, false, 2.0)
 
 
 # =========================================================
@@ -617,10 +670,7 @@ func _build_hud() -> void:
 	_hud = CanvasLayer.new()
 	add_child(_hud)
 
-	var bg := ColorRect.new()
-	bg.color = Color(0.06, 0.06, 0.08)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bg := ThemedBackground.new()
 	# Background must sit *behind* the map, so it goes on its own layer.
 	var bg_layer := CanvasLayer.new()
 	bg_layer.layer = -1
@@ -665,26 +715,27 @@ func _build_hud() -> void:
 	_party_strip.add_theme_constant_override("separation", 28)
 	_hud.add_child(_party_strip)
 
+	# Toast (floor intro, "Victory!", ...) in a system window, notices stacked below.
+	var toasts := VBoxContainer.new()
+	toasts.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	toasts.offset_top = 34
+	toasts.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	toasts.add_theme_constant_override("separation", 8)
+	toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hud.add_child(toasts)
+	_toast_panel = PanelContainer.new()
+	UIStyle.apply(_toast_panel)
+	_toast_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_toast_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toast_panel.hide()
+	toasts.add_child(_toast_panel)
 	_toast = Label.new()
-	_toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_toast.offset_top = 30
-	_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.add_theme_font_size_override("font_size", 18)
-	_toast.add_theme_color_override("font_outline_color", Color.BLACK)
-	_toast.add_theme_constant_override("outline_size", 6)
-	_hud.add_child(_toast)
-	_quest_toast = Label.new()
-	_quest_toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_quest_toast.offset_top = 84
-	_quest_toast.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_quest_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_quest_toast.add_theme_font_size_override("font_size", 16)
-	_quest_toast.add_theme_color_override("font_color", Color(0.95, 0.85, 0.55))
-	_quest_toast.add_theme_color_override("font_outline_color", Color.BLACK)
-	_quest_toast.add_theme_constant_override("outline_size", 5)
-	_quest_toast.modulate.a = 0.0
-	_hud.add_child(_quest_toast)
+	_toast_panel.add_child(_toast)
+	_notices = SystemNotice.new()
+	_notices.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	toasts.add_child(_notices)
 
 	_flash = ColorRect.new()
 	_flash.color = Color.WHITE
@@ -770,24 +821,27 @@ func _update_hud() -> void:
 		_party_strip.add_child(l)
 
 
+var _toast_tween: Tween
+
+
 func _show_toast(text: String) -> void:
 	_toast.text = text
-	_toast.modulate.a = 1.0
-	var tw := _toast.create_tween()
-	tw.tween_interval(2.0)
-	tw.tween_property(_toast, "modulate:a", 0.0, 0.6)
+	_toast_panel.show()
+	_toast_panel.modulate.a = 1.0
+	if _toast_tween:
+		_toast_tween.kill()
+	_toast_tween = _toast_panel.create_tween()
+	_toast_tween.tween_interval(2.0)
+	_toast_tween.tween_property(_toast_panel, "modulate:a", 0.0, 0.6)
+	_toast_tween.tween_callback(_toast_panel.hide)
 
 
-## Quest news ("Quest updated: ...") gets its own line so it never hides other toasts.
+## Quest / path / blessing / guild news become system notices (with a chime),
+## stacked under the main toast so they never hide it.
 func _show_quest_messages() -> void:
-	_quest_toast.text = "\n".join(GameState.quests.messages + GameState.route.messages + GameState.blessings.messages
-		+ GameState.guilds.messages)
-	GameState.guilds.messages.clear()
-	GameState.quests.messages.clear()
-	GameState.route.messages.clear()
-	GameState.blessings.messages.clear()
-	_quest_toast.modulate.a = 1.0
-	var tw := _quest_toast.create_tween()
-	tw.tween_interval(3.0)
-	tw.tween_property(_quest_toast, "modulate:a", 0.0, 0.8)
+	for pair in [[GameState.quests.messages, "quest"], [GameState.route.messages, "route"],
+			[GameState.blessings.messages, "blessing"], [GameState.guilds.messages, "guild"]]:
+		for m in pair[0]:
+			_notices.push(m, pair[1])
+		pair[0].clear()
 	_update_hud()
