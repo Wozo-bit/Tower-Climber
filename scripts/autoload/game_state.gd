@@ -2,12 +2,13 @@ extends Node
 ## Autoload "GameState": everything that survives scene changes — the party,
 ## the item bag, where you are in the tower, and the battle hand-off.
 
-## How many fight (player included): 2 on floors 1-20, then 2 more every 20
-## floors (Hayden 2026-10-25: 2 -> 4 -> 6 -> 8 -> 10 over the 100-floor
-## climb). It follows the highest floor reached, so a wipe doesn't shrink it.
+## How many fight (player included): 2 on floors 1-10, then 1 more every 10
+## floors, so each stage boss beaten opens a slot (Hayden 2026-10-25, was
+## +2 every 20): 2, 3, 4 ... 10 from floor 81. It follows the highest floor
+## reached, so a wipe doesn't shrink it.
 const PARTY_START_SIZE := 2
-const PARTY_GROWTH := 2
-const PARTY_GROWTH_FLOORS := 20
+const PARTY_GROWTH := 1
+const PARTY_GROWTH_FLOORS := 10
 const MAX_PARTY_SIZE := 10
 const BATTLE_SCENE := "res://scenes/battle.tscn"
 const TOWER_SCENE := "res://scenes/tower_floor.tscn"

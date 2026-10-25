@@ -164,7 +164,7 @@ tower grows.
 Hayden will send tweaks to the enemy family table after playing it.
 Balance pass 2 (2026-10-25, approved by Hayden: "real players do better than the bot"): normal enemy HP
 follows party slots (NORMAL_PARTY_EXP 0.5), curve +0.02/floor past 40.
-Sim: Relaxed 20/20, Normal 17/20, Hard 10/20, Hell 9/20 (README table).
+Sim (party +1/10 floors): Relaxed 20/20, Normal 20/20, Hard 13/20, Hell 10/20 (README).
 
 ### Blessings + guilds/economy (designed with Hayden 2026-10-24)
 Build in phases: (1) blessings — BUILT (BeingLibrary roster + register_being,
@@ -304,8 +304,8 @@ after floor 20 (tier 1 only).
 - Dialogue/NPCs: conversations are data in scripts/story/dialogue_library.gd
   (validated by the tests), NPCs/lore objects in npc_library.gd, played by
   DialogueRunner. Recruits join at player level - 1.
-- Party: GameState.companions (fighting: party_size() - 1, which grows 2 -> 4
-  -> 6 -> 8 -> 10 every 20 floors, Hayden 2026-10-25), reserve (bench,
+- Party: GameState.companions (fighting: party_size() - 1, which grows +1
+  every 10 floors: 2 on 1-10 ... 10 from 81; Hayden 2026-10-25, was +2/20), reserve (bench,
   max RESERVE_CAP), waiting (dismissed / overflow; they stand by rest-floor
   campfires and rejoin via the waiting_companion dialogue). UI in
   scripts/ui/party_manage_panel.gd (Tab -> Manage party).
@@ -346,7 +346,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1370 checks at last run).
+Every change gets tests in tests/ (22 suites, 1371 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

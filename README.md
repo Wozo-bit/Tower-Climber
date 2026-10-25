@@ -203,7 +203,7 @@ Twelve recruits across the 60 floors. Their names follow each one's origin (the 
 
 ## Party management
 Open it with **Tab → Manage party**.
-- **The party grows as you climb** (Hayden 2026-10-25): **2** fight on floors 1–20 (you and your childhood friend), then 2 more every 20 floors: **4** from floor 21, **6** from 41, **8** from 61 and **10** from 81 (`GameState.party_size()`, `PARTY_START_SIZE` / `PARTY_GROWTH` / `PARTY_GROWTH_FLOORS`, `MAX_PARTY_SIZE` 10). It follows the highest floor reached, so a wipe back to a checkpoint never shrinks it. When it grows, the reserve fills the new places in bench order and a notice says so. Early recruits wait on the reserve until then (still earning 50% XP).
+- **The party grows as you climb** (Hayden 2026-10-25): **2** fight on floors 1–10 (you and your childhood friend), then **one more every 10 floors**, so every stage boss you beat opens a slot: 3 from floor 11, 4 from 21, 5 from 31 ... 7 from 51 and **10** from 81 (`GameState.party_size()`, `PARTY_START_SIZE` / `PARTY_GROWTH` / `PARTY_GROWTH_FLOORS`, `MAX_PARTY_SIZE` 10). It follows the highest floor reached, so a wipe back to a checkpoint never shrinks it. When it grows, the reserve fills the new places in bench order and a notice says so. Early recruits wait on the reserve until then (still earning 50% XP).
 - **Bosses scale with it:** bosses, minibosses and roamers fight the whole party alone, so their HP follows the party slots: ×0.59 for 2, ×1 for 4, ×1.36 for 6, ×2 for 10 (`GameState.guardian_hp_mult`, `GUARDIAN_PARTY_EXP` 0.75). It uses the slots, not who's fighting, so a solo run still faces the full boss.
 - **Big parties fit the screen:** the battle field wraps and shrinks (10 vs 10 is tested at 1280×720), the turn order shows the next 8 then "+N", the floor's party strip wraps upward, and the Tab member list scrolls.
 - You always lead. Use **▲ / ▼** to change the order, which is the order in battle and on the HUD. **Front / Back** sets the row each member starts battles in.
@@ -522,14 +522,14 @@ Picked at **New Game** (and again when starting **New Game+**). During a run you
 ### What the balance simulator says
 `tools/balance_sim.tscn` plays whole runs with a bot: it fights everything, uses weaknesses, heals, buffs, keeps its summons up, takes a heal skill when the party has none, recruits, equips gear and shops, but never grinds. It also skips roaming bosses and never moves rows, Defends or Guards, so a real player should do somewhat better. The bot is noisy (battles roll their own dice), so compare 20+ runs.
 
-**Balance pass 2** (2026-10-25, after the growing party and the 4 rows), 20 runs per difficulty over all 60 floors, giving up after 6 wipes on one floor (15 on Hell):
+**Balance pass 2** (2026-10-25, after the growing party and the 4 rows; re-run after the party changed to +1 fighter every 10 floors), 20 runs per difficulty over all 60 floors, giving up after 6 wipes on one floor (15 on Hell):
 
-| | Runs cleared | Wipes per run (bot) | Hardest stages | Party level reaching floor 10 / 30 / 60 |
-|---|---|---|---|---|
-| Relaxed | 20/20 | ~1 | — | 11 / 30 / 53 |
-| Normal | 17/20 | ~9 | 3–4 | 11 / 31 / 56 |
-| Hard | 10/20 | ~15 | 3–4 | 11 / 32 / 57 |
-| Hell | 9/20 | ~42 | 1–3 | 16 / 36 / 66 |
+| | Runs cleared | Wipes per run (bot) | Hardest stages |
+|---|---|---|---|
+| Relaxed | 20/20 | ~0.1 | — |
+| Normal | 20/20 | ~7 | 2–3, 5 |
+| Hard | 13/20 | ~11 | 2–3 (the Insect Hive / Beast Den boss on floor 30 stops some runs) |
+| Hell | 10/20 | ~45 | 1–3 |
 
 - **Every enemy's HP follows the party slots**, not just bosses': normal enemies ×`pow(slots / 4, 0.5)` (`GameState.NORMAL_PARTY_EXP`): ×0.71 for 2 fighters, ×1.22 for 6, ×1.58 for 10. A duo's fights are swingier (one crit downs half the party) and a big party's were too easy.
 - **The curve steepens past floor 40** (`ENEMY_SCALE_LATE_PER_FLOOR` 0.02 per floor on top of the usual 0.05), for tier-3 classes (+20%) and bigger parties.

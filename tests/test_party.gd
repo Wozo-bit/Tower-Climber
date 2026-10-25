@@ -214,10 +214,10 @@ func test_benched_friend_keeps_name() -> void:
 	check(GameState.childhood_friend() == friend, "friend can be dismissed too (and is still found)")
 
 
-## Hayden 2026-10-25: 2 fight on floors 1-20, then 2 more every 20 floors.
+## Hayden 2026-10-25: 2 fight on floors 1-10, then 1 more every 10 floors.
 func test_party_grows() -> void:
-	var sizes := [1, 20, 21, 40, 41, 61, 81, 100, 500].map(func(f): return GameState.party_size_at(f))
-	check(sizes == [2, 2, 4, 4, 6, 8, 10, 10, 10], "2 -> 4 -> 6 -> 8 -> 10 every 20 floors, 10 at most (%s)" % [sizes])
+	var sizes := [1, 10, 11, 20, 21, 41, 51, 61, 81, 100, 500].map(func(f): return GameState.party_size_at(f))
+	check(sizes == [2, 2, 3, 3, 4, 6, 7, 8, 10, 10, 10], "+1 every 10 floors, 10 at most (%s)" % [sizes])
 	GameState.start_new_game("Ophelius", "Cassia", 1)
 	check(GameState.battle_party().size() == 2, "a new game: you and your childhood friend")
 	var bo := _member("Bo")
@@ -225,13 +225,14 @@ func test_party_grows() -> void:
 	check(GameState.reserve.has(bo) and not GameState.unbench(bo), "a third member waits on the reserve")
 	var di := _member("Di")
 	GameState._add_member(di)
-	GameState.enter_floor(20)
-	check(GameState.battle_party().size() == 2, "still 2 on floor 20")
+	GameState.enter_floor(10)
+	check(GameState.battle_party().size() == 2, "still 2 on floor 10")
 	GameState.quests.messages.clear()
+	GameState.enter_floor(11)
+	check(GameState.battle_party().size() == 3 and GameState.companions.has(bo), "floor 11: room for 3, and the reserve steps up")
+	check(GameState.quests.messages.any(func(m): return m.contains("3 fighters")), "a notice says so")
 	GameState.enter_floor(21)
-	check(GameState.battle_party().size() == 4 and GameState.companions.has(bo) and GameState.companions.has(di),
-		"floor 21: room for 4, and the reserve steps up")
-	check(GameState.quests.messages.any(func(m): return m.contains("4 fighters")), "a notice says so")
+	check(GameState.battle_party().size() == 4 and GameState.companions.has(di), "floor 21: room for 4")
 	GameState.enter_floor(15)   # back at a checkpoint after a wipe
 	check(GameState.battle_party().size() == 4, "a wipe back to an earlier floor doesn't shrink it")
 	GameState.save_game()
