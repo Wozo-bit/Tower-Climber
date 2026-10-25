@@ -7,6 +7,7 @@ var _failed := 0
 
 func _ready() -> void:
 	test_rarity_odds()
+	test_stable_order()
 	test_gear_generation()
 	test_uniques()
 	test_equipment()
@@ -116,6 +117,15 @@ func test_miniboss_battle_drops() -> void:
 	check(drops_ok, "each miniboss victory drops exactly 1 piece of gear")
 	print("    Floor 4 miniboss (Goblin Captain) vs lv10 party: %d/50 wins, avg %.1f rounds" % [wins, rounds / 50.0])
 	check(wins > 0, "the floor-4 miniboss is beatable")
+
+
+## "Sorted by id" really is by name: Godot sorts StringNames by address, so
+## a plain sort() gave a different order (and different loot) between sessions.
+func test_stable_order() -> void:
+	var ids: Array = EnemyLibrary.all().map(func(e): return String(e.id))
+	var sorted := ids.duplicate()
+	sorted.sort()
+	check(ids == sorted, "EnemyLibrary.all() is in name order")
 
 
 func test_rarity_odds() -> void:

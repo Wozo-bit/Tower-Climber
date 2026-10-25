@@ -18,6 +18,7 @@ func _ready() -> void:
 	await test_ascend_button()
 	await test_big_party()
 	await test_divinity_panel()
+	await test_apotheosis_box()
 	CutIns.skip_all()
 	GameState.delete_slot(1)
 	GameState.reset_run()
@@ -142,6 +143,28 @@ func test_divinity_panel() -> void:
 		"the new contract shows its boon, curse and stance")
 	menu.queue_free()
 	GameState.reset_run()
+	await _frames(1)
+
+
+## The completion screen's apotheosis: the Wanderer sees all 12 domains (its
+## own 3 first) and picks god / demon / devil.
+func test_apotheosis_box() -> void:
+	print("Apotheosis box")
+	_fresh(5)
+	var floor_scene: Node = load(GameState.TOWER_SCENE).instantiate()
+	add_child(floor_scene)
+	await _frames(2)
+	var rec := LegacyRecord.new()
+	rec.times_cleared = 1
+	rec.character = GameState.player
+	var box: Control = floor_scene._apotheosis_box(rec, &"neutral")
+	floor_scene.add_child(box)
+	await _frames(1)
+	var picks: Array = box.find_children("*", "Button", true, false).filter(func(b): return b.toggle_mode and not b is OptionButton)
+	check(picks.size() == DomainLibrary.domains.size() and picks[0].text == "Fate", "the Wanderer's own domains first, then every other")
+	var kind: OptionButton = box.find_children("*", "OptionButton", true, false)[0]
+	check(kind.item_count == 3, "god, demon or devil")
+	floor_scene.queue_free()
 	await _frames(1)
 
 

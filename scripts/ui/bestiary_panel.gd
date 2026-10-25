@@ -101,7 +101,7 @@ func _rebuild() -> void:
 		_detail.text = "Nothing yet. Every enemy you fight is added here."
 		return
 	var fams := by_family.keys()
-	fams.sort()
+	fams.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	var first: EnemyDef
 	for fam in fams:
 		var head := Label.new()

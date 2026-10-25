@@ -44,7 +44,7 @@ const UPSTART_WAR_BONUS := 0.2
 ## replays the same way.
 static func tick(gs: GuildState, rng: RandomNumberGenerator) -> void:
 	var ids := GuildLibrary.guilds.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	for g in ids:
 		var held := gs.territories_of(g).size()
 		gs.treasury[g] = gs.treasury_of(g) + roundi(INCOME_PER_TERRITORY * held * GameState.divinity.income_mult(g))

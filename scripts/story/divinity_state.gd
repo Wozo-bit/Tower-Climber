@@ -78,6 +78,7 @@ const STANCES := {
 var active := false
 var domain: StringName = &""
 var title := ""
+var kind := "god"
 ## Your god as a being (DomainLibrary.being_id_for): guilds you sponsor take it as patron.
 var god_id: StringName = &""
 var faith := 0
@@ -100,6 +101,7 @@ static func for_record(rec: LegacyRecord) -> DivinityState:
 		d.active = true
 		d.domain = rec.god_domain
 		d.title = rec.god_title
+		d.kind = rec.god_kind
 		d.god_id = DomainLibrary.being_id_for(rec.legacy_id)
 	return d
 

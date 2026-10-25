@@ -513,11 +513,23 @@ func _apotheosis_box(rec: LegacyRecord, ending_id: StringName) -> Control:
 	if rec.is_god():
 		head.text = "%s already watches over the tower as %s." % [rec.display_name(), rec.god_title]
 		return box
-	head.text = "APOTHEOSIS\nYou climbed to the top. The tower makes you a god. Of what?"
-	var picks := HBoxContainer.new()
-	picks.alignment = BoxContainer.ALIGNMENT_CENTER
-	picks.add_theme_constant_override("separation", 8)
+	head.text = "APOTHEOSIS\nYou climbed to the top. The tower makes you divine. Of what?"
+	var picks := HFlowContainer.new()   # the Wanderer may choose from every domain
+	picks.alignment = FlowContainer.ALIGNMENT_CENTER
+	picks.add_theme_constant_override("h_separation", 8)
+	picks.add_theme_constant_override("v_separation", 6)
 	box.add_child(picks)
+	var kind_row := HBoxContainer.new()
+	kind_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(kind_row)
+	var kind_label := Label.new()
+	kind_label.text = "You become a"
+	kind_row.add_child(kind_label)
+	var kind := OptionButton.new()
+	for k in DomainLibrary.KINDS:
+		kind.add_item(k.capitalize())
+	kind.tooltip_text = "God, demon or devil: how you'll speak to the climbers who come after you."
+	kind_row.add_child(kind)
 	var title := LineEdit.new()
 	title.max_length = DomainLibrary.TITLE_MAX_LENGTH
 	title.placeholder_text = "Your title"
@@ -538,6 +550,7 @@ func _apotheosis_box(rec: LegacyRecord, ending_id: StringName) -> Control:
 		b.pressed.connect(func():
 			chosen[0] = id
 			title.text = d.title
+			kind.select(DomainLibrary.KINDS.find(d.kind))
 			about.text = "Values: likes %s, dislikes %s. Your blessing: %s. In other characters' runs you'll watch over the climb as one of the beings." % [
 				", ".join(d.likes.map(func(r): return RouteLibrary.route_name(r))),
 				", ".join(d.dislikes.map(func(r): return RouteLibrary.route_name(r))),
@@ -549,7 +562,7 @@ func _apotheosis_box(rec: LegacyRecord, ending_id: StringName) -> Control:
 		if chosen[0] == &"":
 			about.text = "Choose a domain first."
 			return
-		if GameState.become_god(rec.legacy_id, chosen[0], title.text):
+		if GameState.become_god(rec.legacy_id, chosen[0], title.text, DomainLibrary.KINDS[kind.selected]):
 			var done := GameState.load_legacy().find(rec.legacy_id)
 			for c in box.get_children():
 				c.queue_free()

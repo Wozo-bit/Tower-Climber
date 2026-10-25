@@ -13,7 +13,17 @@ Open `project.godot` in Godot 4.7.2 and press **F5**. The game scales to fit any
 In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** pauses (Resume / Save / Settings / Quit to Title). You can rename yourself or your friend anytime from **Tab → Rename**.
 
 ## Becoming a god (Hayden 2026-10-25)
-- **Apotheosis:** conquering the tower makes your character a god. The completion screen offers the domains your ending suggests (Hero: Valor, Justice, Mercy · Villain: Tyranny, Greed, Ruin · Vigilante: Vengeance, Shadow, Freedom · the Wanderer may pick any), and you name your title (default "God of Valor" etc.). Once per character, saved in the Hall (`LegacyRecord.god_domain` / `god_title`).
+- **Apotheosis:** conquering the tower makes your character divine. The completion screen offers the domains your ending suggests, you choose what you become (**god, demon or devil**; each domain suggests one) and name your title (gender-neutral defaults like "Deity of Valor", "Sovereign of Tyranny"). Once per character, saved in the Hall (`LegacyRecord.god_domain` / `god_title` / `god_kind`).
+
+| Ending | Domains (reviewed with Hayden 2026-10-25) |
+|---|---|
+| Hero | Valor, Justice, Mercy |
+| Villain | Tyranny, Greed, Ruin |
+| Vigilante | Vengeance, Shadow, Freedom |
+| The Wanderer | Twilight, Fate, Wanderlust, or any other domain |
+
+- **Strict values:** every domain approves or forbids every guild action (trade, fortify, raid, war, ally), so the guilds you sponsor always earn or lose your favor. E.g. Mercy approves alliances, trade and fortifying and forbids war and raids; Greed forbids only alliances (it won't share the spoils).
+- **A player-god's blessing** is a bit stronger than a mythology god's: buffs ×1.25 (`PLAYER_GOD_BUFF`), same curse.
 - **Past gods join other runs:** every god in the Hall becomes a being (pantheon "Ascended") in every OTHER character's run: they take an interest by their domain's values, offer their blessing (buff + curse + the domain's skill) at shrines and after bosses, and are rivals of beings with opposite values. You never meet yourself in your own New Game+.
 - **Climbing as a god (New Game+):** a god who climbs again gets **Tab → Divinity** (`DivinityState`, saved with the run; only if the Hall says you're a god).
   - **Faith** comes from tithes. All the faith you've ever earned sets your **divinity level** (150 / 400 / 900 / 1800), and each level (and each NG+ cycle past the first) gives another **contract** slot. Your own guild never needs one.
@@ -22,7 +32,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
   - **Stance:** Aggressive, Defensive, Greedy or Devout leans the guild's AI each floor.
   - **Tithes:** every floor each sponsored guild pays 3 faith per territory and a quarter of its territory income in gold.
   - Your own god is in your run's roster (so guilds can take you as patron) but never courts you. Every guild gets its own patron back in a new run.
-  - **Your values judge your guilds:** each domain approves and forbids guild actions (e.g. Mercy approves alliances, forbids wars and raids). A sponsored guild gains favor (+3) or loses it (-6) for what it does each floor: at -5 it's **warned**, at -15 you **punish** it automatically (-20% treasury, -1 defense) and it starts over.
+  - **Your values judge your guilds:** a sponsored guild gains favor (+3) or loses it (-6) for what it does each floor: at -5 it's **warned**, at -15 you **punish** it automatically (-20% treasury, -1 defense) and it starts over.
   - **Smite** any guild (40 faith): -25% treasury, -1 defense, its wars swing against it; its patron takes offence. **Revoke** a contract: the guild returns to its old patron and feuds with you as a **renegade** for the rest of the run (sign it again to end the feud).
   - **Bless people** (40 faith): party and reserve members can take your domain's blessing (buff, curse and skill) at your divinity level, growing with it. Anyone whose values clash with your domain refuses.
   - **Miracles:** in battle the god has Miracle: Mend (party heal 30%), Wrath (huge holy hit) and Aegis (party ward), paid in **faith**, not MP (`SkillDef.faith_cost`).

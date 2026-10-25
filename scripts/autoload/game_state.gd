@@ -480,6 +480,7 @@ func load_legacy() -> LegacyBook:
 		if not r.fallen and r.times_cleared > 0 and not DomainLibrary.get_domain(dom).is_empty():
 			r.god_domain = dom
 			r.god_title = DomainLibrary.clean_title(S._s(rd, "god_title", "", 200), dom)
+			r.god_kind = DomainLibrary.clean_kind(S._s(rd, "god_kind", "", 16), dom)
 		for e in S._a(rd, "endings_seen"):
 			# Unknown ids are kept only if they look sane: a DLC ending may not be loaded right now.
 			if e is String and e.length() <= 64 and not r.endings_seen.has(StringName(e)):
@@ -505,7 +506,7 @@ func save_legacy(book: LegacyBook) -> bool:
 			"vault": r.vault.map(SaveSerializer.gear_to_dict),
 			"best_difficulty": r.best_difficulty, "ironman_cleared": r.ironman_cleared,
 			"fallen": r.fallen, "fallen_floor": r.fallen_floor, "fallen_difficulty": r.fallen_difficulty,
-			"god_domain": String(r.god_domain), "god_title": r.god_title,
+			"god_domain": String(r.god_domain), "god_title": r.god_title, "god_kind": r.god_kind,
 		})
 	return SaveSerializer.write_json(legacy_path, { "version": SaveSerializer.FORMAT_VERSION, "records": records })
 
@@ -552,9 +553,10 @@ func record_completion() -> LegacyRecord:
 
 
 ## Apotheosis: a character who conquered the tower becomes a god of `domain`
-## (DomainLibrary), titled `title` (blank = the domain's default). Once per
-## character; saved in the Hall. Returns false if they can't.
-func become_god(legacy_id: String, domain: StringName, title: String = "") -> bool:
+## (DomainLibrary), titled `title` (blank = the domain's default), of `kind`
+## god / demon / devil (blank = the domain's suggestion). Once per character;
+## saved in the Hall. Returns false if they can't.
+func become_god(legacy_id: String, domain: StringName, title: String = "", kind: String = "") -> bool:
 	var book := load_legacy()
 	var rec := book.find(legacy_id)
 	if rec == null or rec.fallen or rec.times_cleared <= 0 or rec.is_god() \
@@ -562,6 +564,7 @@ func become_god(legacy_id: String, domain: StringName, title: String = "") -> bo
 		return false
 	rec.god_domain = domain
 	rec.god_title = DomainLibrary.clean_title(title, domain)
+	rec.god_kind = DomainLibrary.clean_kind(kind, domain)
 	if not save_legacy(book):
 		return false
 	refresh_legacy_gods()
@@ -579,7 +582,7 @@ func refresh_legacy_gods() -> void:
 	for rec in load_legacy().records:
 		if rec.is_god() and rec.legacy_id != player.legacy_id:
 			BeingLibrary.register_being(DomainLibrary.being_id_for(rec.legacy_id),
-				DomainLibrary.being_spec(rec.display_name(), rec.god_title, rec.god_domain))
+				DomainLibrary.being_spec(rec.display_name(), rec.god_title, rec.god_domain, rec.god_kind))
 	if divinity.active:
 		register_self_god(divinity)
 
@@ -588,7 +591,7 @@ func refresh_legacy_gods() -> void:
 ## (values, temper, rivals), but it never makes YOU offers ("self"). Patrons
 ## you spurned are its rivals.
 func register_self_god(div: DivinityState) -> void:
-	var spec := DomainLibrary.being_spec(player.character_name, div.title, div.domain)
+	var spec := DomainLibrary.being_spec(player.character_name, div.title, div.domain, div.kind)
 	spec["self"] = true
 	for b in div.spurned:
 		if not spec.rivals.has(b):

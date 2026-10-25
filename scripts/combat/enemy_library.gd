@@ -586,7 +586,7 @@ static func _build() -> Dictionary:
 ## Every enemy definition, sorted by id.
 static func all() -> Array[EnemyDef]:
 	var ids := _enemies.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	var out: Array[EnemyDef] = []
 	for id in ids:
 		out.append(_enemies[id])

@@ -62,11 +62,15 @@ func test_domains() -> void:
 	check(DomainLibrary.validate().is_empty(), "domains are valid %s" % [DomainLibrary.validate()])
 	for route in [&"hero", &"villain", &"vigilante"]:
 		var picks := DomainLibrary.for_ending(route)
-		check(picks.size() >= 2 and picks.all(func(id): return DomainLibrary.get_domain(id).route == route),
+		check(picks.size() >= 2 and picks.all(func(id): return DomainLibrary.get_domain(id).ending == route),
 			"the %s ending suggests its own domains (%s)" % [route, picks])
-	check(DomainLibrary.for_ending(&"neutral").size() == DomainLibrary.domains.size(), "the Wanderer may pick any domain")
+	var wander := DomainLibrary.for_ending(&"neutral")
+	check(wander.size() == DomainLibrary.domains.size() and wander.slice(0, 3) == [&"fate", &"twilight", &"wanderlust"],
+		"the Wanderer gets Twilight, Fate and Wanderlust first, and may pick any domain")
+	check(DomainLibrary.domains.values().all(func(d): return not d.title.begins_with("God ") and not d.title.begins_with("Goddess")),
+		"default titles are gender-neutral")
 	check(DomainLibrary.clean_title("  Lord [b]of[/b] {Ash}  ", &"valor") == "Lord bof/b Ash", "typed titles are cleaned (no BBCode)")
-	check(DomainLibrary.clean_title("", &"valor") == "God of Valor", "a blank title uses the domain's")
+	check(DomainLibrary.clean_title("", &"valor") == "Deity of Valor", "a blank title uses the domain's")
 	check(DomainLibrary.clean_title("x".repeat(80), &"valor").length() == DomainLibrary.TITLE_MAX_LENGTH, "titles are capped")
 
 
@@ -76,10 +80,15 @@ func test_apotheosis() -> void:
 	var rec := _conquer("Ophelius", &"hero")
 	check(not rec.is_god(), "conquering the tower records the climber, not a god yet")
 	check(not GameState.become_god(rec.legacy_id, &"nonsense"), "only real domains")
-	check(GameState.become_god(rec.legacy_id, &"valor", "Shield of the Weak"), "they ascend")
+	check(GameState.become_god(rec.legacy_id, &"valor", "Shield of the Weak", "devil"), "they ascend (as a devil of Valor, their choice)")
 	var saved := GameState.load_legacy().find(rec.legacy_id)
 	check(saved.is_god() and saved.god_domain == &"valor" and saved.god_title == "Shield of the Weak", "...and the Hall remembers")
 	check(saved.god_name() == "Ophelius, Shield of the Weak", "god name")
+	check(saved.god_kind == "devil", "the kind they chose is remembered")
+	var spec := DomainLibrary.being_spec("X", "T", &"valor", "nonsense")
+	check(spec.kind == "god", "an unknown kind falls back to the domain's suggestion")
+	check(absf(spec.buff.stats[Stats.Type.STRENGTH] - 0.05 * DomainLibrary.PLAYER_GOD_BUFF) < 0.002
+		and spec.curse == DomainLibrary.get_domain(&"valor").curse, "a player-god's buff is stronger; the curse isn't")
 	check(not GameState.become_god(rec.legacy_id, &"tyranny"), "once per character")
 	GameState.start_new_game("Nobody", "Cassia", 1)
 	check(not GameState.become_god(GameState.player.legacy_id, &"valor"), "nobody ascends without conquering the tower")
@@ -93,12 +102,12 @@ func test_legacy_gods() -> void:
 	var god_id := DomainLibrary.being_id_for(rec.legacy_id)
 	GameState.start_new_game("Brenna", "Cassia", 2)
 	var b := BeingLibrary.get_being(god_id)
-	check(not b.is_empty() and b.name == "Ophelius" and b.title == "God of Tyranny" and b.pantheon == "Ascended",
+	check(not b.is_empty() and b.name == "Ophelius" and b.title == "Sovereign of Tyranny" and b.pantheon == "Ascended",
 		"a new character's run has the past god as a being")
 	check(BeingLibrary.validate().is_empty(), "the roster (with the past god) is still valid %s" % [BeingLibrary.validate()])
 	check(not BeingLibrary.rivals_of(god_id).is_empty(), "their values make them rivals (%s)" % [BeingLibrary.rivals_of(god_id)])
 	GameState.add_route_points(&"villain", 20)
-	check(GameState.blessings.offering_beings().has(god_id), "a villain-leaning climber catches the God of Tyranny's eye")
+	check(GameState.blessings.offering_beings().has(god_id), "a villain-leaning climber catches the Sovereign of Tyranny's eye")
 	check(GameState.blessings.accept(god_id) and GameState.player.blessing_id == god_id
 		and GameState.player.all_skills().any(func(s): return s.id == &"iron_decree"), "and can take their blessing and skill")
 	# The god themself, climbing again in New Game+, is a patron but never courts themself.
@@ -160,7 +169,7 @@ func test_god_in_ng_plus() -> void:
 		"a mortal run has no divinity (and no effects)")
 	_god(&"valor", &"hero")
 	var dv := GameState.divinity
-	check(dv.active and dv.domain == &"valor" and dv.title == "God of Valor", "an ascended character climbs again as a god")
+	check(dv.active and dv.domain == &"valor" and dv.title == "Deity of Valor", "an ascended character climbs again as a god")
 	check(dv.faith == 0 and dv.level() == 1 and dv.slots() == 1, "starting out: no faith, one contract")
 	dv.add_faith(150)
 	check(dv.level() == 2 and dv.slots() == 2, "faith raises divinity: more contracts")

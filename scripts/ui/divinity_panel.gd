@@ -91,7 +91,7 @@ func _rebuild() -> void:
 		_list.add_child(_person_row(c))
 	_list.add_child(_heading("Offer a contract"))
 	var ids := GuildLibrary.guilds.keys().filter(func(g): return not dv.contracts.has(g) and g != GuildLibrary.PLAYER_GUILD)
-	ids.sort()
+	ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	for g in ids:
 		_list.add_child(_offer_row(g))
 

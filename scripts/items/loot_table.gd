@@ -102,7 +102,7 @@ static func roll_drop(luck: int, item_level: int, rng: RandomNumberGenerator,
 		min_rarity: int = Rarity.Tier.COMMON) -> GearItem:
 	var rarity := maxi(Rarity.roll(luck, rng), min_rarity)
 	var base_ids := BASES.keys()
-	base_ids.sort()
+	base_ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	return make_gear(base_ids[rng.randi_range(0, base_ids.size() - 1)], rarity, item_level, rng)
 
 
@@ -121,7 +121,7 @@ static func roll_enemy_loot(def: EnemyDef, luck: int, item_level: int, rng: Rand
 			if UNIQUES.has(c) and not owned_uniques.has(c) and not candidates.has(c):
 				candidates.append(c)
 		if not candidates.is_empty() and rng.randf() < unique_chance_for(def, luck):
-			candidates.sort()
+			candidates.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 			out.append(make_unique(candidates[rng.randi_range(0, candidates.size() - 1)], item_level))
 			rolls -= 1
 	for i in rolls:

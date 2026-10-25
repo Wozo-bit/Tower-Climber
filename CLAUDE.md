@@ -49,7 +49,15 @@ curse (like beings), levels grow as they serve your values. Punish:
 automatic warnings, smite by hand (Faith), revoke contract (may turn on
 you). Other gods react BY VALUES (allies/jealous rivals). Sponsor slots
 grow with divinity (start: own guild + 1).
-- Phase 1 BUILT: DomainLibrary (9 placeholder domains, 3 per route),
+- Domain review (Hayden 2026-10-25): keep the 9 names; neutral titles
+  ("Deity of X"); player picks god/demon/devil (LegacyRecord.god_kind);
+  Wanderer gets Twilight/Fate/Wanderlust (+ any other); player-god buffs
+  x1.25; Greed forbids alliances; STRICT: every domain approves or forbids
+  every guild action (validated).
+- GOTCHA: Array.sort() on StringNames sorts by ADDRESS, not name (order
+  changes between sessions). Use sort_custom(func(a, b): return String(a)
+  < String(b)). Fixed everywhere 2026-10-25 (guild AI order, loot, NPCs).
+- Phase 1 BUILT: DomainLibrary (12 domains, 3 per ending),
   apotheosis on the completion screen, LegacyRecord.god_domain/god_title,
   GameState.become_god / refresh_legacy_gods (past gods = "ascended_<id>"
   beings, pantheon "Ascended", rivals by opposite values; never in their
@@ -334,7 +342,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1321 checks at last run).
+Every change gets tests in tests/ (22 suites, 1329 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

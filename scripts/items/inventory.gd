@@ -59,7 +59,7 @@ func remove(id: StringName, amount: int = 1) -> bool:
 func owned() -> Array[ItemDef]:
 	var out: Array[ItemDef] = []
 	var ids := counts.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	for id in ids:
 		if count(id) > 0:
 			out.append(ItemLibrary.get_item(id))

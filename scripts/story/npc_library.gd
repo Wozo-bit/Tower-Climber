@@ -395,7 +395,7 @@ static func in_this_run(id: StringName) -> bool:
 static func recruits_met_by(meet: String) -> Array:
 	var out := []
 	var ids := NPCS.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	for id in ids:
 		if NPCS[id].get("recruit", {}).get("meet", "") == meet:
 			out.append(id)
@@ -412,7 +412,7 @@ static func recruit_info(id: StringName) -> Dictionary:
 static func npcs_for_floor(floor_n: int, floor_kind: String, rng_for: Callable) -> Array[StringName]:
 	var out: Array[StringName] = []
 	var ids := NPCS.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	for id in ids:
 		var n: Dictionary = NPCS[id]
 		if not floor_kind in n.get("floors", []):

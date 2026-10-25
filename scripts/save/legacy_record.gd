@@ -32,6 +32,8 @@ extends Resource
 ## &"" = not (yet). The domain (DomainLibrary) and the title they chose.
 @export var god_domain: StringName = &""
 @export var god_title: String = ""
+## What they became: "god", "demon" or "devil" (Hayden: the player chooses).
+@export var god_kind: String = "god"
 
 
 func is_god() -> bool:

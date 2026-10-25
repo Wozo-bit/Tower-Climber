@@ -323,7 +323,7 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 		for e in group:
 			if not pool.has(e):
 				pool.append(e)
-	pool.sort()
+	pool.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	for i in range(pool.size() - 1, 0, -1):   # this board's shuffle (seeded)
 		var j := rng.randi_range(0, i)
 		var tmp = pool[i]
