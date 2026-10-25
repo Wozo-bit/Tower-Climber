@@ -23,6 +23,46 @@ tower grows. Open question for later: tier 3+ may outclass Ascendant (+20%),
 which must stay the strongest (design rule) — decide with Hayden then.
 Hayden will send tweaks to the enemy family table after playing it.
 
+### NEXT: Blessings + guilds/economy (designed with Hayden 2026-10-24, not built)
+Build in phases: (1) blessings, (2) guilds core + economy (absorbs "selling
+gear"), (3) guild simulation AI, wars/theft, founding your own guild.
+
+BLESSINGS (manhwa-style: many beings take an interest; the player chooses):
+- Many gods / demons / devils, each with VALUES (like companions; e.g. a God
+  of Justice, a Demon of Greed) and an interest level in the player that
+  rises/falls with route points and choices. Data-driven + DLC-registrable.
+- Offers come all 3 ways: shrines on rest floors once you lean their way,
+  a visit after stage bosses, and bargains (gold / item / HP / a promise =
+  quest). Accepting is always the player's choice.
+- A blessing = a buff with a matching curse, levels that grow as you keep
+  serving the being (both buff and curse grow), and a blessed skill.
+- Punishment equal to the benefit: acting against the being's values can
+  make it PUNISH you (debuffs, smiting), not just withdraw. Stray far enough
+  and you lose the blessing (warning first) — but other beings can still
+  make you a new offer afterwards.
+- NPCs/companions can be blessed too (gives them personality); not a
+  party-wide buff.
+
+GUILDS + ECONOMY:
+- Guilds own floors/territories and run them however they like: prices,
+  taxes on gold earned there, jobs on the notice board, guards/patrols,
+  a champion defending each territory. Territory changes over time.
+- Guilds "think for themselves": LOCAL game AI (utility/goal-based
+  simulation, personalities, resources), NOT an online LLM (no network/API
+  keys; game is sold). Each floor climbed = a simulation tick: guilds expand,
+  trade, steal, raid, go to WAR with each other.
+- Theft both ways: the player can steal from guilds and be stolen from;
+  wars between guilds (and the player's guild) while climbing.
+- Joining: one guild at a time, reputation + ranks (Recruit -> Member ->
+  Officer -> Master) with perks; leaving/betraying angers them.
+- Own guild: found it later (floor/level gate + charter cost, you name it),
+  members = companions/recruited NPCs, claim floors by beating champions or
+  buying them out (income + you set prices), guild hall upgrades.
+- Economy: SUPPLY AND DEMAND — prices depend on the ruling guild, standing,
+  route and blessings, AND move with supply/demand (selling lots lowers a
+  price, scarcity raises it) and events (wars, shortages). Selling gear goes
+  to guild traders.
+
 ### Layout rule
 Every screen must fit the 1280x720 design size (the window scales via
 stretch mode canvas_items/expand). The battle field scrolls instead of
