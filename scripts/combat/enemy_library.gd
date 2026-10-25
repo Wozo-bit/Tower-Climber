@@ -142,6 +142,31 @@ static func _build() -> Dictionary:
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
+		# --- Guild fighters (guards that hunt you, territory champions) ---
+		EnemyDef.make(&"guild_guard", "Guild Guard", {
+			"family": &"human",
+			"max_hp": 170, "stats": {S.HEALTH: 9, S.STRENGTH: 15, S.STAMINA: 12, S.AGILITY: 10, S.LUCK: 6},
+			"row": FRONT, "skills": [&"power_strike"] as Array[StringName], "skill_chance": 0.3,
+			"xp_reward": 70, "gold_reward": 18, "color": Color(0.6, 0.6, 0.7)}),
+		EnemyDef.make(&"guild_archer", "Guild Archer", {
+			"family": &"human",
+			"max_hp": 120, "stats": {S.STRENGTH: 10, S.STAMINA: 8, S.AGILITY: 15, S.LUCK: 8},
+			"row": BACK, "basic_attack": &"attack_ranged", "xp_reward": 60, "gold_reward": 16,
+			"color": Color(0.55, 0.6, 0.55)}),
+		EnemyDef.make(&"guild_mage", "Guild Mage", {
+			"family": &"human",
+			"max_hp": 110, "stats": {S.INTELLIGENCE: 16, S.STAMINA: 7, S.AGILITY: 10},
+			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"firebolt", &"frost_bolt"] as Array[StringName],
+			"skill_chance": 0.45, "xp_reward": 65, "gold_reward": 18, "color": Color(0.5, 0.5, 0.75)}),
+		# Champions defend a guild's territory. You can flee from them.
+		EnemyDef.make(&"guild_champion", "Guild Champion", {
+			"family": &"human",
+			"max_hp": 900, "stats": {S.HEALTH: 16, S.STRENGTH: 22, S.STAMINA: 18, S.AGILITY: 12, S.LUCK: 10},
+			"row": FRONT, "skills": [&"smash", &"war_cry", &"power_strike"] as Array[StringName], "skill_chance": 0.45,
+			"xp_reward": 500, "gold_reward": 200, "color": Color(0.85, 0.85, 0.95),
+			"lore": "(Placeholder) Every guild's best fighter, sworn to hold its floors.",
+			"loot_rolls": 1, "min_loot_rarity": 1}),
+
 		# --- Stage bosses (floor 10, 20, ...) ---
 		# Better loot: 2 rolls, +10 Luck, at least Uncommon, 8% Unique chance, Goddess Tear.
 		EnemyDef.make(&"goblin_king", "Goblin King", {

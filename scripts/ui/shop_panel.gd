@@ -174,6 +174,21 @@ func _rebuild() -> void:
 			if GameState.buy_item(id, price):
 				_message.text = "Bought a %s." % item.display_name
 			_rebuild())
+		# Theft: one try per floor, at traders (not your own guild's shop).
+		if guild_id == &"" and not full:
+			var steal := Button.new()
+			steal.text = "Steal (%d%%)" % roundi(GuildState.steal_chance(GameState.player) * 100)
+			steal.tooltip_text = "Pocket it for free. If you're caught, this floor's guild will hunt you for a while."
+			steal.disabled = not GameState.guilds.can_steal()
+			steal.pressed.connect(func():
+				match GameState.steal_item(id):
+					"stolen": _message.text = "You slipped a %s into your pack." % item.display_name
+					"caught":
+						_message.text = "Caught! The trader shouts for the guards."
+						close()
+						return
+				_rebuild())
+			b.get_parent().add_child(steal)
 
 
 func _rebuild_sell() -> void:

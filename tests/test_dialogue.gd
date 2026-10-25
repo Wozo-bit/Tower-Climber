@@ -126,18 +126,18 @@ func test_merchant_shop_and_clue() -> void:
 	_fresh(5)
 	var r := DialogueRunner.new()
 	r.start(&"merchant")
-	var texts := r.choices().map(func(c): return c.text)
-	# Trade, advice, the glowcap job, never mind (no story yet).
-	check(texts.size() == 4 and not texts.has("Heard any odd stories?"), "merchant's story is hidden early in the climb")
+	# (Checks for the story option itself, so new merchant options don't break this.)
+	var has_story := func(): return r.choices().any(func(c): return c.text == "Heard any odd stories?")
+	check(not has_story.call(), "merchant's story is hidden early in the climb")
 	r.choose(0)
 	check(r.finished and r.requests.has("shop"), "'Let's trade' ends the talk and asks for the shop")
 	GameState.floor_number = 15
 	r.start(&"merchant")
-	check(r.choices().size() == 5, "story option appears from floor 10")
+	check(has_story.call(), "story option appears from floor 10")
 	r.choose(1)
 	check(GameState.has_flag(&"clue_ash_merchant_story"), "hearing the story sets the Ashbound clue")
 	r.advance()
-	check(r.node_id == "hello" and r.choices().size() == 4, "back to the menu, story option gone")
+	check(r.node_id == "hello" and not has_story.call(), "back to the menu, story option gone")
 
 
 func test_recruiting() -> void:

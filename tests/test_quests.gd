@@ -47,6 +47,15 @@ func _defs(ids: Array) -> Array:
 	return ids.map(func(id): return EnemyLibrary.get_enemy(id))
 
 
+## Picks a dialogue choice by its text (so new options don't shift the tests).
+func _choose_text(r: DialogueRunner, text: String) -> void:
+	for c in r.choices():
+		if c.text == text:
+			r.choose(c.index)
+			return
+	printerr("    no choice '%s'" % text)
+
+
 func _rng(s: int = 1) -> RandomNumberGenerator:
 	var r := RandomNumberGenerator.new()
 	r.seed = s
@@ -111,7 +120,7 @@ func test_collect_and_deliver() -> void:
 	check(GameState.inventory.count(&"glowcap") == 0, "no quest drops before you have the quest")
 	var r := DialogueRunner.new()
 	r.start(&"merchant")
-	r.choose(3)   # "Need help with anything?"
+	_choose_text(r, "Need help with anything?")
 	check(ql.is_active(&"glowcap_delivery"), "the merchant gives the quest")
 	var fights := 0
 	while GameState.inventory.count(&"glowcap") < 3 and fights < 100:
@@ -126,7 +135,7 @@ func test_collect_and_deliver() -> void:
 		and not GameState.inventory.use_on_character(&"glowcap", GameState.player), "quest items can't be used")
 	r.start(&"merchant")
 	check(r.choices().any(func(c): return c.text == "Here are your glowcaps."), "hand-in option appears")
-	r.choose(4)
+	_choose_text(r, "Here are your glowcaps.")
 	check(ql.is_done(&"glowcap_delivery") and GameState.inventory.count(&"glowcap") == 0
 		and GameState.inventory.count(&"advanced_potion") == 2, "handed over: quest done, items rewarded")
 

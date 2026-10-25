@@ -29,6 +29,10 @@ const FAMILIES := {
 	&"wyrm": { "name": "Wyrms",
 		"affinities": { E.ICE: A.WEAK, E.WATER: A.WEAK, E.FIRE: A.ABSORB },
 		"traits": [] },
+	# Guild guards, enforcers and champions: people, so no elemental quirks.
+	&"human": { "name": "Guild fighters",
+		"affinities": {},
+		"traits": [] },
 	&"beast": { "name": "Beasts",
 		"affinities": { E.PIERCE: A.WEAK, E.BLUNT: A.RESIST },
 		"traits": [&"reckless"] },

@@ -157,6 +157,9 @@ static func check(cond: Dictionary) -> bool:
 			"in_guild": ok = (gs.guilds.member != &"") == v
 			"can_join_guild": ok = gs.guilds.can_join(context_guild) == v
 			"guild_pay_due": ok = (gs.guilds.member == context_guild and gs.guilds.pay_due()) == v
+			"can_hire_on": ok = gs.guilds.can_hire_on(context_guild) == v
+			"can_take_heist": ok = gs.guilds.can_take_heist(context_guild) == v
+			"heist_here": ok = (not gs.guilds.heist.is_empty() and gs.guilds.heist.target == context_guild) == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
 				ok = false
@@ -217,6 +220,14 @@ func _apply_effects(effects: Array) -> void:
 			gs.guilds.leave()
 		if e.has("collect_pay"):
 			gs.guilds.collect_pay()
+		if e.has("hire_on") and context_guild != &"":
+			gs.guilds.hire_on(context_guild)
+		if e.has("take_heist") and context_guild != &"":
+			gs.guilds.take_heist(context_guild)
+		if e.has("attempt_heist") and context_guild != &"":
+			var heist_rng := RandomNumberGenerator.new()
+			heist_rng.randomize()
+			gs.guilds.attempt_heist(context_guild, heist_rng)
 		if e.has("guild_rep"):
 			for g in e.guild_rep:
 				gs.guilds.add_rep(g, e.guild_rep[g])
@@ -248,6 +259,9 @@ static func fill(s: String, npc_name: String = "") -> String:
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
+	if out.contains("{tower_news}"):
+		var headlines := GameState.guilds.latest_news(3)
+		out = out.replace("{tower_news}", headlines if headlines != "" else "(Placeholder) Quiet lately. Too quiet.")
 	if context_guild != &"" and out.contains("{guild"):
 		var g := GuildLibrary.get_guild(context_guild)
 		var floors := GameState.guilds.territories_of(context_guild).map(func(t): return GuildLibrary.territory_floors(t))
@@ -257,7 +271,8 @@ static func fill(s: String, npc_name: String = "") -> String:
 			.replace("{guild_tax}", "%d%%" % roundi(g.get("tax", 0.0) * 100)) \
 			.replace("{guild_rank}", GuildLibrary.rank_name(GameState.guilds.rank)) \
 			.replace("{guild_standing}", GuildState.standing_name(GameState.guilds.rep_of(context_guild))) \
-			.replace("{guild_refusal}", GameState.guilds.join_refusal(context_guild))
+			.replace("{guild_refusal}", GameState.guilds.join_refusal(context_guild)) \
+			.replace("{guild_war}", _war_text(context_guild))
 	if context_being != &"" and out.contains("{being"):
 		var b := BeingLibrary.get_being(context_being)
 		out = out.replace("{being}", BeingLibrary.full_name(context_being)) \
@@ -269,6 +284,15 @@ static func fill(s: String, npc_name: String = "") -> String:
 
 
 ## "+5% HEA, +5% STA, +20% Holy damage / Weak to Dark" for a being's level.
+## "We're at war with The Serpent Coil over Floors 13-15" (or peace).
+static func _war_text(g: StringName) -> String:
+	var w := GameState.guilds.war_of(g)
+	if w.is_empty():
+		return "We're at peace"
+	var enemy: StringName = w.defender if w.attacker == g else w.attacker
+	return "We're at war with %s over %s" % [GuildLibrary.guild_name(enemy), GuildLibrary.territory_floors(w.territory)]
+
+
 static func blessing_summary(id: StringName, level: int) -> String:
 	var lv := BeingLibrary.level_effects(id, level)
 	return "%s  /  Price: %s" % [effects_text(lv.get("buff", {})), effects_text(lv.get("curse", {}))]

@@ -19,6 +19,8 @@ const ROAMER_THINK_MAX := 0.55
 const C_BOSS_RING := Color(1.0, 0.25, 0.2)
 const C_MINIBOSS_RING := Color(1.0, 0.8, 0.2)
 const C_ROAMER_RING := Color(0.8, 0.4, 1.0)
+const C_GUARD_RING := Color(0.4, 0.7, 1.0)
+const C_CHAMPION_RING := Color(1.0, 1.0, 1.0)
 const FLEE_STUN_TIME := 2.5
 const POST_BATTLE_GRACE := 1.2
 ## After a conversation, holding the move key won't start it again straight away.
@@ -270,8 +272,8 @@ func _update_enemies(delta: float) -> void:
 			v.stun -= delta
 			continue
 		var kind := GameState.enemy_kind(data)
-		if kind == "miniboss" or kind == "boss":
-			continue   # guardians hold their post in front of the stairs
+		if kind == "miniboss" or kind == "boss" or kind == "champion":
+			continue   # guardians and champions hold their post
 		if v.t < 1.0:
 			v.t = minf(1.0, v.t + delta / ENEMY_STEP_TIME)
 			if v.t >= 1.0:
@@ -583,15 +585,16 @@ func _draw() -> void:
 		var is_boss := kind != "normal"
 		var radius: float = TILE * (0.3 + 0.04 * data.group.size())
 		if is_boss:
-			radius = TILE * (0.62 if kind == "boss" else 0.48)
-			var ring: Color = {"boss": C_BOSS_RING, "miniboss": C_MINIBOSS_RING, "roaming": C_ROAMER_RING}[kind]
+			radius = TILE * (0.62 if kind == "boss" else (0.4 if kind == "guard" else 0.48))
+			var ring: Color = {"boss": C_BOSS_RING, "miniboss": C_MINIBOSS_RING, "roaming": C_ROAMER_RING,
+				"guard": C_GUARD_RING, "champion": C_CHAMPION_RING}[kind]
 			if kind == "roaming":   # pulsing ring so it stands out while it moves
 				ring.a = 0.55 + 0.45 * sin(Time.get_ticks_msec() / 150.0)
 			draw_arc(pos, radius + 4, 0, TAU, 28, ring, 3.0)
 		draw_circle(pos, radius, col)
 		draw_arc(pos, radius, 0, TAU, 20, Color(0, 0, 0, 0.6), 2.0)
 		if is_boss:
-			var mark: String = {"boss": "!!", "miniboss": "!", "roaming": "?"}[kind]
+			var mark: String = {"boss": "!!", "miniboss": "!", "roaming": "?", "guard": "G", "champion": "C"}[kind]
 			draw_string(font, pos + Vector2(-4.5 * mark.length(), 6), mark, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.BLACK)
 		elif data.group.size() > 1:
 			draw_string(font, pos + Vector2(-4, 5), str(data.group.size()), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.BLACK)
@@ -737,6 +740,11 @@ func _update_hud() -> void:
 					fl += "     ? Something stalks this floor"
 				else:
 					fl += "     ? %s is loose on this floor" % name_s
+			"champion":
+				fl += "     ⚔ %s's champion holds this territory" % GuildLibrary.guild_name(e.get("guild", &""))
+	var hunting := GameState.floor_enemies.filter(func(e): return e.alive and e.kind == "guard")
+	if not hunting.is_empty():
+		fl += "     ⚠ %s guards are hunting you" % GuildLibrary.guild_name(hunting[0].get("guild", &""))
 	_floor_label.text = fl
 
 	_board_has_new = layout != null and layout.board.x >= 0 \

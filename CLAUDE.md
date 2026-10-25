@@ -10,10 +10,10 @@ Building the **Skeleton** (every system working) before the **Meat** (story,
 quests, relationships). Don't write story content unless asked.
 
 Skeleton items still open (Hayden picks the order):
-guild phase 3 (NEXT, see below), balance pass (incl. bounty rewards, route
-thresholds, tier-2 skills, guild taxes/prices, market numbers), art/sound
-hooks (+ credits screen with Godot's license notice). Selling gear is DONE
-(merchant Sell tab, part of guilds phase 2).
+balance pass (incl. bounty rewards, route thresholds, tier-2 skills, guild
+taxes/prices, market numbers, guild AI activity — raids happen nearly every
+floor right now), art/sound hooks (+ credits screen with Godot's license
+notice). Selling gear and all 3 guild phases are DONE.
 
 Class advancement is BUILT as a multi-tier system: ClassRegistry.
 ADVANCEMENT_GATES (tier 2 = beat floor 20 + level 25), per-class stat build,
@@ -33,9 +33,14 @@ core + economy — BUILT (GuildLibrary: 10 guilds w/ patrons, 3-floor
 territories, ranks; GuildState: owners per territory (saved, ready for the
 AI to change), standing, membership, taxes -> treasuries, pay, per-territory
 supply & demand, selling; guild agents, guild jobs on the board, members'
-shops, Tab -> Guilds); (3) guild simulation AI (use each guild's
-"personality" + patron values/rivals), territory changes, wars, theft both
-ways, guards + champions, founding your own guild — NEXT.
+shops, Tab -> Guilds); (3) — BUILT: GuildAI.tick every floor (income +
+trade/fortify/raid/ally/war from personality, seeded per run+floor), wars
+(simulated, player swings them as member or mercenary), Tower News +
+merchant rumors, guards/champions (human enemies, "guard"/"champion" floor
+kinds with a "guild"), stealing at traders, pickpockets, heists, founding
+your own guild (registered as GuildLibrary.PLAYER_GUILD at runtime; Hayden:
+no need to leave your guild first), claiming floors via champions, income,
+tax, hall upgrades.
 - Roster = 26 figures from world mythologies (Norse, Greek, Egyptian,
   Chinese, Japanese, Mesopotamian, Celtic, Infernal). Hayden wanted
   mythology instead of invented beings. Rivalries (jealousy, spite curses).
@@ -188,7 +193,7 @@ FINAL_FLOOR = 30 (long-term target is 100 floors, roguelite-style replayability)
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (14 suites, 821 checks at last run).
+Every change gets tests in tests/ (15 suites, 896 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -198,7 +203,7 @@ Run headless from the project folder:
 C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
-test_routes, test_classes, test_blessings, test_guilds. All must pass before
+test_routes, test_classes, test_blessings, test_guilds, test_guild_ai. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

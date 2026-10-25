@@ -171,6 +171,7 @@ func reset_run() -> void:
 	route = RouteState.new()
 	blessings = BlessingState.new()
 	guilds = GuildState.new()
+	GuildLibrary.guilds.erase(GuildLibrary.PLAYER_GUILD)   # your guild belongs to one run
 	pending_talks = []
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
@@ -546,7 +547,11 @@ func enter_floor(n: int) -> void:
 		checkpoint_floor = n
 	quests.update()   # "reach floor" steps, and quests that expire past a floor
 	blessings.update()   # lingering curses run out by floor
-	guilds.on_floor()    # market prices drift back; guild pay comes due
+	# The guilds take their turn (AI: trade, raid, wars...), prices drift back,
+	# guild pay comes due. Seeded per run + floor so a run replays the same.
+	var guild_rng := RandomNumberGenerator.new()
+	guild_rng.seed = ("%s:%d:guilds" % [player.legacy_id, n]).hash()
+	guilds.on_floor(guild_rng)
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies
@@ -571,6 +576,7 @@ func current_layout() -> FloorLayout:
 				"kind": "boss" if boss_floor else "miniboss",
 				"group": StageLibrary.boss_for_floor(n) if boss_floor else StageLibrary.miniboss_for_floor(n) })
 		_maybe_spawn_roamer(layout, rng)
+		_maybe_spawn_guild_fighters(layout, rng)
 		floor_player_pos = layout.start
 		floor_ready = true
 	# Boss arenas only get their campfire + merchant once the boss is down.
@@ -663,6 +669,52 @@ func waiting_companion(npc_id: StringName) -> CharacterData:
 # =========================================================
 
 ## True if this NPC has joined you (party, reserve, or waiting at rest floors).
+## Party + reserve + waiting companions (your guild's members).
+func member_count() -> int:
+	return companions.size() + reserve.size() + waiting.size()
+
+
+## Guild fighters on a normal floor: guards of guilds that hunt you (hated,
+## robbed, or at war with your side) replace up to two normal enemies, and a
+## territory's champion waits on its first floor if you can challenge it.
+func _maybe_spawn_guild_fighters(layout: FloorLayout, rng: RandomNumberGenerator) -> void:
+	if floor_kind(floor_number) != "combat":
+		return
+	var hunters: Array = []
+	var owner := guilds.owner_of_floor(floor_number)
+	if guilds.is_hostile(owner):
+		hunters.append(owner)
+	var t := GuildLibrary.territory_of(floor_number) % maxi(1, guilds.owners.size())
+	for w in guilds.wars:   # your war's enemy patrols the contested floors
+		if w.territory == t and guilds.player_side() in [w.attacker, w.defender]:
+			var enemy: StringName = w.defender if w.attacker == guilds.player_side() else w.attacker
+			if not hunters.has(enemy):
+				hunters.append(enemy)
+	var normals := floor_enemies.filter(func(e): return e.kind == "normal")
+	var i := 0
+	for g in hunters:
+		for k in 2:
+			if i >= normals.size():
+				break
+			var e: Dictionary = normals[i]
+			e.kind = "guard"
+			e["guild"] = g
+			e.group = StageLibrary._typed(GuildLibrary.GUARD_GROUPS[rng.randi_range(0, GuildLibrary.GUARD_GROUPS.size() - 1)])
+			i += 1
+	if GuildLibrary.is_territory_start(floor_number) and guilds.champion_waiting(t) and i < normals.size():
+		var c: Dictionary = normals[i]
+		c.kind = "champion"
+		c["guild"] = owner
+		c.group = StageLibrary._typed(GuildLibrary.CHAMPION_GROUP)
+
+
+## Try to steal `id` from this floor's trader. "stolen", "caught" or "".
+func steal_item(id: StringName) -> String:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	return guilds.try_steal(id, rng)
+
+
 func has_recruited(npc_id: StringName) -> bool:
 	for c in companions + reserve + waiting:
 		if c.companion_id == npc_id:
@@ -1074,6 +1126,8 @@ func finish_battle(outcome: int) -> void:
 		if enemy_kind(e) == "roaming":
 			defeated_roamers.append(e.roamer_id)
 			_check_secret_unlock(e.roamer_id)
+		if enemy_kind(e) == "guard" or enemy_kind(e) == "champion":
+			guilds.fight_won(e.get("guild", &""), enemy_kind(e) == "champion")
 		if enemy_kind(e) == "boss":
 			checkpoint_floor = floor_number   # the arena's campfire is your new checkpoint
 			if floor_number >= FINAL_FLOOR:
@@ -1082,6 +1136,7 @@ func finish_battle(outcome: int) -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.randomize()
 		quests.on_battle_won(pending_encounter, rng)   # defeat counts + quest-item drops
+		guilds.roll_pickpocket(rng)   # lawless floors have light fingers
 		# Blessings that heal after a win ("regen_pct").
 		for m in battle_party():
 			var regen := m.effect_sum("regen_pct")

@@ -77,6 +77,7 @@ const DIALOGUES := {
 						"if": { "min_floor": 10, "not_flag": &"clue_ash_merchant_story" } },
 					# Weakness hint for the stage ahead (StageLibrary theme "hint").
 					{ "text": "Any advice for the floors ahead?", "next": "advice" },
+					{ "text": "Heard any news?", "next": "rumors" },
 					# Quest: glowcap delivery (offered, then handed in).
 					{ "text": "Need help with anything?", "next": "glowcap_ask",
 						"if": { "quest_new": &"glowcap_delivery", "max_floor": 15 } },
@@ -108,6 +109,11 @@ const DIALOGUES := {
 				"text": "{stage_hint}",
 				"next": "hello",
 			},
+			"rumors": {
+				"speaker": "Merchant",
+				"text": "(Placeholder) Word travels up and down the stairs...\n\n{tower_news}",
+				"next": "hello",
+			},
 		},
 	},
 
@@ -125,6 +131,13 @@ const DIALOGUES := {
 					{ "text": "Can I join?", "next": "refused", "if": { "guild_member": false, "can_join_guild": false } },
 					{ "text": "Show me the members' stock.", "effects": [{ "open_shop": "guild" }],
 						"if": { "guild_member": true } },
+					# Phase 3: wars, mercenaries, heists.
+					{ "text": "Need a sword in your war?", "next": "hired", "effects": [{ "hire_on": true }],
+						"if": { "can_hire_on": true } },
+					{ "text": "Any special jobs for me?", "next": "heist_given", "effects": [{ "take_heist": true }],
+						"if": { "can_take_heist": true } },
+					{ "text": "(Heist) Slip away to their vault...", "next": "heist_tried", "effects": [{ "attempt_heist": true }],
+						"if": { "heist_here": true } },
 					{ "text": "I'm here for my pay.", "next": "paid", "effects": [{ "collect_pay": true }],
 						"if": { "guild_pay_due": true } },
 					{ "text": "I'm leaving the guild.", "next": "leave_confirm", "if": { "guild_member": true } },
@@ -139,6 +152,9 @@ const DIALOGUES := {
 			"joined": { "speaker": "{guild} agent", "text": "(Placeholder) Welcome, {guild_rank}. Don't embarrass us." , "next": "hello" },
 			"refused": { "speaker": "{guild} agent", "text": "(Placeholder) Not a chance. {guild_refusal}", "next": "hello" },
 			"paid": { "speaker": "{guild} agent", "text": "(Placeholder) Your cut. Spend it wisely.", "next": "hello" },
+			"hired": { "speaker": "{guild} agent", "text": "(Placeholder) {guild_war}. Their guards will come for you now. We pay per head.", "next": "hello" },
+			"heist_given": { "speaker": "{guild} agent", "text": "(Placeholder) Our rivals keep a vault. Find one of their agents, and help yourself.", "next": "hello" },
+			"heist_tried": { "speaker": "", "text": "(Placeholder) You slip away while the agent's back is turned..." },
 			"leave_confirm": {
 				"speaker": "{guild} agent",
 				"text": "(Placeholder) Walk out on us, and we'll remember it. Sure?",
@@ -363,11 +379,11 @@ const DIALOGUES := {
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
-	"guild_member", "in_guild", "can_join_guild", "guild_pay_due"]
+	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",
-	"join_guild", "leave_guild", "collect_pay", "guild_rep"]
+	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:

@@ -241,6 +241,8 @@ static func floor_enemies_to_array(enemies: Array) -> Array:
 			"group": (e.group as Array).map(func(id): return String(id)) }
 		if e.has("roamer_id"):
 			row["roamer_id"] = String(e.roamer_id)
+		if e.has("guild"):
+			row["guild"] = String(e.guild)
 		out.append(row)
 	return out
 
@@ -256,12 +258,19 @@ static func floor_enemies_from_array(arr: Array) -> Array:
 			if id is String and EnemyLibrary.get_enemy_or_null(StringName(id)):
 				group.append(StringName(id))
 		var kind := _s(row, "kind", "normal")
-		if pos.size() != 2 or group.is_empty() or not kind in ["normal", "miniboss", "boss", "roaming"]:
+		if pos.size() != 2 or group.is_empty() or not kind in ["normal", "miniboss", "boss", "roaming", "guard", "champion"]:
 			continue
 		var e := { "pos": Vector2i(int(pos[0]), int(pos[1])), "alive": _b(row, "alive", true),
 			"kind": kind, "group": group }
 		if row.has("roamer_id"):
 			e["roamer_id"] = StringName(_s(row, "roamer_id"))
+		if kind == "guard" or kind == "champion":
+			# Guild fighters need a real guild; otherwise they're just normal enemies.
+			var g := StringName(_s(row, "guild"))
+			if GuildLibrary.guilds.has(g):
+				e["guild"] = g
+			else:
+				e["kind"] = "normal"
 		out.append(e)
 	return out
 

@@ -82,6 +82,14 @@ const BASE_GUILDS := {
 const START_OWNERS := [&"order_of_the_aegis", &"sunspear_caravan", &"mountain_crew", &"golden_ledger",
 	&"stormhammer_company", &"ninefold_lantern", &"jade_oath", &"ravenwatch", &"underworld_exchange", &"serpent_coil"]
 
+## Enemy groups for a guild's fighters (any guild; scaled to the floor).
+const GUARD_GROUPS := [[&"guild_guard", &"guild_archer"], [&"guild_guard", &"guild_guard", &"guild_mage"],
+	[&"guild_guard", &"guild_archer", &"guild_mage"]]
+const CHAMPION_GROUP := [&"guild_champion", &"guild_guard", &"guild_archer"]
+
+## The player's own guild is registered under this id once founded.
+const PLAYER_GUILD := &"player_guild"
+
 ## Live table: base guilds plus anything DLC registered.
 static var guilds: Dictionary = BASE_GUILDS.duplicate(true)
 
@@ -133,6 +141,8 @@ static func rank_name(rank: int) -> String:
 static func validate() -> PackedStringArray:
 	var problems: PackedStringArray = []
 	for id in guilds:
+		if id == PLAYER_GUILD:
+			continue   # built from the player's choices at runtime
 		var g: Dictionary = guilds[id]
 		if g.get("name", "") == "" or g.get("motto", "") == "":
 			problems.append("%s: needs a name and motto" % id)

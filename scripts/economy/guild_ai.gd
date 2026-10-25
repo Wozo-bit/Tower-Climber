@@ -1,0 +1,132 @@
+class_name GuildAI
+extends RefCounted
+## The guilds think for themselves. Every floor the player climbs is one
+## "tick": every guild earns income from its territories, then may take ONE
+## action chosen from its personality (GuildLibrary "personality": greed,
+## aggression, honor) and its situation:
+##   trade    - safe extra income (honest guilds like it)
+##   fortify  - pay for defense (more likely when threatened)
+##   raid     - steal part of another guild's treasury (greedy guilds; rivals first;
+##              can hit the player's own guild)
+##   ally     - pact with a guild that shares its patron's values (honorable guilds)
+##   war      - attack a neighbor or rival for one of its territories (aggressive guilds)
+## Wars then progress (GuildState.progress_wars). Everything lands in the
+## tower news. Local simulation only: no network, no online AI.
+##
+## Tuning numbers below are placeholders for the balance pass.
+
+const INCOME_PER_TERRITORY := 60
+## Chance a guild does anything at all on a given floor (beyond income).
+const ACT_CHANCE := 0.5
+const TRADE_GOLD := 120
+const FORTIFY_COST := 200
+const MAX_DEFENSE := 5
+const RAID_SHARE := 0.08
+const RAID_MIN_TREASURY := 300
+const WAR_COST := 600
+const NOISE := 0.3
+
+
+## One tick for every guild. `rng` should be seeded per run + floor so a run
+## replays the same way.
+static func tick(gs: GuildState, rng: RandomNumberGenerator) -> void:
+	var ids := GuildLibrary.guilds.keys()
+	ids.sort()
+	for g in ids:
+		var held := gs.territories_of(g).size()
+		gs.treasury[g] = gs.treasury_of(g) + INCOME_PER_TERRITORY * held
+	gs.player_guild_income()
+	for g in ids:
+		if g == GuildLibrary.PLAYER_GUILD or gs.territories_of(g).is_empty():
+			continue   # the player runs their own guild; guilds with no floors are broken
+		if rng.randf() >= ACT_CHANCE:
+			continue
+		_act(gs, g, rng)
+	gs.progress_wars(rng)
+
+
+static func _act(gs: GuildState, g: StringName, rng: RandomNumberGenerator) -> void:
+	var p: Dictionary = GuildLibrary.get_guild(g).get("personality", {})
+	var greed: float = p.get("greed", 0.5)
+	var aggression: float = p.get("aggression", 0.5)
+	var honor: float = p.get("honor", 0.5)
+	var options := {}
+	options["trade"] = 0.5 + (1.0 - greed) * 0.3
+	options["fortify"] = 0.25 + (0.5 if gs.is_at_war(g) else 0.0) \
+		if gs.treasury_of(g) >= FORTIFY_COST and gs.defense_of(g) < MAX_DEFENSE else -1.0
+	var raid_target := _raid_target(gs, g)
+	options["raid"] = greed * 0.8 + aggression * 0.2 - honor * 0.4 if raid_target != &"" else -1.0
+	var war_target := _war_target(gs, g)
+	options["war"] = aggression * 0.9 - honor * 0.2 if war_target.size() == 2 and gs.treasury_of(g) >= WAR_COST else -1.0
+	var ally := _ally_target(gs, g)
+	options["ally"] = honor * 0.5 if ally != &"" else -1.0
+	var best := ""
+	var best_u := -INF
+	for a in options:
+		if options[a] < 0.0:
+			continue
+		var u: float = options[a] + rng.randf() * NOISE
+		if u > best_u:
+			best_u = u
+			best = a
+	match best:
+		"trade":
+			gs.treasury[g] = gs.treasury_of(g) + TRADE_GOLD
+		"fortify":
+			gs.treasury[g] = gs.treasury_of(g) - FORTIFY_COST
+			gs.defense[g] = gs.defense_of(g) + 1
+			gs.add_news("%s fortifies its floors." % GuildLibrary.guild_name(g))
+		"raid":
+			gs.raid(g, raid_target, rng)
+		"war":
+			gs.treasury[g] = gs.treasury_of(g) - WAR_COST
+			gs.declare_war(g, war_target[0], war_target[1])
+		"ally":
+			gs.make_alliance(g, ally)
+
+
+## Who a guild would rob: a rival first, else the richest guild it isn't allied with.
+static func _raid_target(gs: GuildState, g: StringName) -> StringName:
+	var best := &""
+	var best_score := -1.0
+	for other in GuildLibrary.guilds:
+		if other == g or gs.allied(g, other) or gs.treasury_of(other) < RAID_MIN_TREASURY:
+			continue
+		var score := float(gs.treasury_of(other)) + (5000.0 if GuildLibrary.rivals_of(g).has(other) else 0.0)
+		if score > best_score:
+			best_score = score
+			best = other
+	return best
+
+
+## [defender, territory] a guild would attack: a rival's territory first,
+## else a neighbouring territory (next to one it holds). [] if none.
+static func _war_target(gs: GuildState, g: StringName) -> Array:
+	if gs.is_at_war(g):
+		return []
+	var mine := gs.territories_of(g)
+	var candidates := []
+	for t in gs.owners.size():
+		var owner: StringName = gs.owners[t]
+		if owner == g or owner == &"" or gs.allied(g, owner) or gs.is_at_war(owner):
+			continue
+		var rival := GuildLibrary.rivals_of(g).has(owner)
+		var near := mine.any(func(m): return absi(m - t) == 1)
+		if rival or near:
+			candidates.append([owner, t, 2 if rival else 1])
+	if candidates.is_empty():
+		return []
+	candidates.sort_custom(func(a, b): return a[2] > b[2] or (a[2] == b[2] and a[1] < b[1]))
+	return [candidates[0][0], candidates[0][1]]
+
+
+## A guild whose patron likes the same routes, that isn't a rival, enemy or ally yet.
+static func _ally_target(gs: GuildState, g: StringName) -> StringName:
+	var likes: Array = GuildLibrary.values_of(g).get("likes", [])
+	for other in GuildLibrary.guilds:
+		if other == g or other == GuildLibrary.PLAYER_GUILD or gs.allied(g, other) or gs.war_between(g, other) \
+				or GuildLibrary.rivals_of(g).has(other):
+			continue
+		if GuildLibrary.values_of(other).get("likes", []).any(func(r): return likes.has(r)):
+			return other
+	return &""

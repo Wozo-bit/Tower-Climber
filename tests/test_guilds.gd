@@ -129,9 +129,10 @@ func test_pay() -> void:
 	GameState.enter_floor(10)
 	check(gs.pay_due() and gs.messages.any(func(m): return m.contains("pay ready")), "5 floors later: pay is ready")
 	var gold := GameState.player.gold
+	var before := gs.treasury_of(&"sunspear_caravan")   # the guild AI earned some income meanwhile
 	var paid := gs.collect_pay()
-	check(paid == roundi(GuildState.START_TREASURY * 0.03) and GameState.player.gold == gold + paid, "Officers get 3%% of the treasury (%d)" % paid)
-	check(gs.treasury_of(&"sunspear_caravan") == GuildState.START_TREASURY - paid and not gs.pay_due(), "...which leaves the treasury, and isn't due again yet")
+	check(paid == roundi(before * 0.03) and GameState.player.gold == gold + paid, "Officers get 3%% of the treasury (%d of %d)" % [paid, before])
+	check(gs.treasury_of(&"sunspear_caravan") == before - paid and not gs.pay_due(), "...which leaves the treasury, and isn't due again yet")
 
 
 func test_market() -> void:

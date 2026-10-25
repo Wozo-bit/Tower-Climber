@@ -90,6 +90,8 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `scripts/economy/guild_library.gd`, `guild_state.gd` | The guilds (patrons, taxes, prices, members' stock, ranks) and this run's territories, standing, membership, treasuries and market. |
 | `scripts/ui/guild_panel.gd` | Tab → Guilds. (The merchant's Buy/Sell tabs and guild shops are in `shop_panel.gd`.) |
 | `tests/test_guilds.gd` | 63 guild and economy checks: territories, joining/leaving, ranks and perks, taxes, prices, pay, supply and demand, selling, guild jobs, agents, saving. Run: `godot --headless res://tests/test_guilds.tscn` |
+| `scripts/economy/guild_ai.gd` | The guild AI: what each guild does every floor (trade, fortify, raid, ally, war). |
+| `tests/test_guild_ai.gd` | 75 checks: the AI, raids, alliances, wars and fighting in them, guards and champions, stealing, pickpockets, heists, founding your guild, claiming floors, saving. Run: `godot --headless res://tests/test_guild_ai.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
@@ -199,7 +201,33 @@ Open it with **Tab → Manage party**.
 - **Supply and demand, per territory:** buying an item raises its price there, and selling lowers what traders pay. Prices drift back toward normal every floor you climb (`GuildState.BUY_PRESSURE / SELL_PRESSURE / MARKET_DECAY`).
 - **Tab → Guilds** shows every guild, its patron, floors, tax, prices and your standing.
 - Saved with the run, reset in New Game+. DLC can add guilds with `GuildLibrary.register_guild()`.
-- **Coming in phase 3:** the guild AI (guilds act on their own each floor), territory changes, wars, theft both ways, guards and champions, and founding your own guild.
+
+### The guild AI, wars and theft
+- **The guilds think for themselves** (`scripts/economy/guild_ai.gd`; a local simulation, no online AI). Every floor you climb, every guild earns **60 gold per territory**, then (half the time) takes one action picked from its personality (greed, aggression, honor) and situation:
+  - **trade** (safe income)
+  - **fortify** (defense, more likely when threatened)
+  - **raid** another treasury (greedy guilds, rivals first; yours too)
+  - **ally** (honorable guilds whose patrons share values)
+  - **declare war** on a neighbor or rival for one of its territories (aggressive guilds)
+  It's seeded per run and floor, so a run replays the same way.
+- **Tower News:** everything goes in the news (Tab → Guilds shows the latest), big events (wars, territory changes, raids on your guild) pop up as toasts, and the merchant passes on rumors ("Heard any news?").
+- **Wars** are simulated every floor. Strength comes from treasury, territories, aggression, defenses and allies. At **+6** the attacker takes the territory, at **−6** the defender holds, and after 8 floors it's a truce. Prices in a contested territory are **20% higher** while it lasts.
+- **Fighting in a war:** if your guild is at war, or you've **hired on as a mercenary** with a warring guild's agent ("Need a sword in your war?"), the enemy's **guards** hunt you on the contested floors. Every guard group you beat swings the war **1.5** your way, and a champion swings it **4**. Mercenaries earn **40 gold per fight**, and the contract ends with the war.
+- **Guards** (Guild Guard, Archer, Mage; blue ring, **G**) replace normal enemies on a guild's floors while it's hostile to you. That happens if you're Hated (−50), were caught stealing (5 floors), or are at war with your side. Beating guards costs standing with that guild.
+- **Champions** (white ring, **C**; 900 HP, can be fled) hold a territory's first floor when you can challenge it: when you have your own guild, or that guild is hostile to you. Beat one to swing a war, or **claim the territory** for your guild. It costs 20 standing, and the champion returns after 10 floors.
+- **Stealing:** traders have a **Steal (x%)** button, one try per floor. The odds come from Agility + Luck (25% + 0.5% per point, up to 75%). Success means a free item and 2 villain points. Getting caught costs 15 standing, and the floor's guild hunts you for 5 floors.
+- **Pickpockets:** after a won battle on a **hostile or greedy** guild's floors, a pickpocket may lift 10% of your gold or an item. Members of that floor's guild (Member rank and up) are left alone.
+- **Heists:** at Member rank or higher, your guild's agent may send you to rob a rival or war enemy ("Any special jobs for me?"). Talk to one of the target's agents to try it. Success splits 15% of their treasury between you and your guild. Get caught, and they hunt you.
+
+### Your own guild
+- **Founding:** once you've passed **floor 15**, Tab → Guilds → **Found a guild** for **2000 gold**. You don't have to leave your guild first; founding moves you out of it, which takes the usual standing hit. Name your guild and sign with a **patron**: your blessing's being is first in line, or any being that isn't against you, or none.
+- **You're its Master.** Your companions (party, reserve, waiting) are its members.
+- **Claim floors** by beating territory champions. Your floors pay into your treasury every floor: base + tax + 5 per member. Their merchants charge your prices, and other guilds may go to war to take them back.
+- **The guild hall** (Tab → Guilds):
+  - **withdraw** gold from the treasury
+  - set your **tax** (0–30%; higher means more income)
+  - buy **upgrades** (500 / 1000 / 1500 gold from the treasury): **Vault** (raids take less), **Barracks** (stronger in wars), **Armory** (better prices)
+- Tunables: top of `guild_ai.gd` and `guild_state.gd` (wars, theft, champions, charter, income, upgrades).
 
 ## Blessings (gods, demons and devils)
 - **Many beings watch the climb** (`scripts/story/being_library.gd`). Each has **values** (routes it likes and dislikes), and its **interest** in you is your points in routes it likes minus routes it dislikes. Dialogue choices can also please or anger one directly (an `interest` effect). Accepting a blessing is always your choice.
