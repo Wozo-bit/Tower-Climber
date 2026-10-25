@@ -104,6 +104,43 @@ func place_npc(id: StringName, rng: RandomNumberGenerator, near := Vector2i(-1, 
 	return Vector2i(-1, -1)
 
 
+## The open tile nearest `from` that's at least `min_steps` from the stairs
+## (after a guardian falls you stood in front of the stairs; Hayden kept
+## walking straight off safe floors). `from` itself if it's far enough.
+func spot_away_from_stairs(from: Vector2i, min_steps: int) -> Vector2i:
+	var dist := { from: 0 }
+	var queue: Array[Vector2i] = [from]
+	while not queue.is_empty():
+		var p: Vector2i = queue.pop_front()
+		if _steps(p, stairs) >= min_steps and not is_blocked(p):
+			return p
+		for d in [Vector2i.LEFT, Vector2i.UP, Vector2i.DOWN, Vector2i.RIGHT]:
+			var n: Vector2i = p + d
+			if not dist.has(n) and not is_blocked(n):
+				dist[n] = dist[p] + 1
+				queue.append(n)
+	return start
+
+
+## Puts NPC `id` back on a tile it stood on before, if that's still allowed
+## (free, not by the entrance/stairs/guardian/enemies, and not cutting off
+## part of the floor). False = it isn't; place it fresh instead.
+func place_npc_at(id: StringName, p: Vector2i) -> bool:
+	if is_blocked(p) or _steps(p, start) < 2 or _steps(p, stairs) < 2 or p == guardian_spot or enemy_spawns.has(p):
+		return false
+	if guardian_spot.x >= 0 and _steps(p, guardian_spot) < 2:
+		return false
+	var dist := distance_map(start)
+	if not dist.has(p):
+		return false
+	var reachable := dist.size()
+	npcs[p] = id
+	if distance_map(start).size() == reachable - 1:
+		return true
+	npcs.erase(p)
+	return false
+
+
 static func _steps(a: Vector2i, b: Vector2i) -> int:
 	return absi(a.x - b.x) + absi(a.y - b.y)
 

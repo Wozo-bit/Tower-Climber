@@ -56,6 +56,12 @@ var floor_ready := false          # false = floor_enemies needs generating
 ## [{ "pos": Vector2i, "group": Array[StringName], "alive": bool }]
 var floor_enemies: Array = []
 var floor_player_pos := Vector2i(-1, -1)
+## Where each NPC on this floor stands (id -> tile), so they stay put when
+## the floor is re-placed after a talk (someone leaving used to shuffle the
+## rest: Hayden's bug report). Cleared on a new floor; saved.
+var npc_spots: Dictionary = {}
+## The floor seed npc_spots belong to (a re-rolled floor starts fresh).
+var npc_spots_seed := 0
 ## Roaming bosses the party has beaten (they never come back).
 var defeated_roamers: Array = []
 ## Highest floor reached this run (class advancement gates check it).
@@ -182,6 +188,7 @@ func reset_run() -> void:
 	floor_seed = randi()
 	floor_ready = false
 	floor_enemies = []
+	npc_spots = {}
 	floor_player_pos = Vector2i(-1, -1)
 	defeated_roamers = []
 	highest_floor = 1
@@ -344,6 +351,7 @@ func save_game() -> bool:
 		"floor_ready": floor_ready,
 		"floor_enemies": SaveSerializer.floor_enemies_to_array(floor_enemies),
 		"floor_player_pos": [floor_player_pos.x, floor_player_pos.y],
+		"npc_spots": _npc_spots_to_dict(), "npc_spots_seed": npc_spots_seed,
 		"defeated_roamers": defeated_roamers.map(func(id): return String(id)),
 		"highest_floor": highest_floor,
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
@@ -396,6 +404,16 @@ func load_game(slot: int = -1) -> bool:
 		floor_ready = false   # enemy list was lost/invalid: regenerate the floor
 	var pos := S._a(d, "floor_player_pos")
 	floor_player_pos = Vector2i(int(pos[0]), int(pos[1])) if pos.size() == 2 else Vector2i(-1, -1)
+	# Remembered NPC tiles: any id, in-bounds tiles only (the floor re-checks them).
+	npc_spots_seed = S._i(d, "npc_spots_seed", 0)
+	var spots := S._d(d, "npc_spots")
+	for id in spots:
+		var xy = spots[id]
+		if id is String and id.length() <= 96 and xy is Array and xy.size() == 2 \
+				and (xy[0] is float or xy[0] is int) and (xy[1] is float or xy[1] is int):
+			var p := Vector2i(int(xy[0]), int(xy[1]))
+			if p.x >= 0 and p.y >= 0 and p.x < FloorLayout.WIDTH and p.y < FloorLayout.HEIGHT:
+				npc_spots[StringName(id)] = p
 	# Older saves: assume the current floor is the highest reached.
 	highest_floor = S._i(d, "highest_floor", floor_number, floor_number, 100000)
 	# A tampered save can't field more than a full party or overfill the bench.
@@ -662,6 +680,10 @@ func fighting_party() -> Array[CharacterData]:
 	return out
 
 
+## After beating a floor's guardian you're put at least this far from the stairs.
+const SAFE_STEPS_FROM_STAIRS := 4
+
+
 ## Who fights for a god (Hayden: "champions fight for you"): on floors held
 ## by a guild you sponsor (not your own guild: it has captains), its
 ## champion joins miniboss and boss fights. A guest built for the fight.
@@ -815,6 +837,7 @@ func enter_floor(n: int) -> void:
 	floor_ready = false
 	floor_enemies.clear()
 	floor_player_pos = Vector2i(-1, -1)
+	npc_spots.clear()   # a new floor: everyone finds a new spot
 	if is_rest_floor(n):
 		checkpoint_floor = n
 	quests.update()   # "reach floor" steps, and quests that expire past a floor
@@ -867,6 +890,13 @@ func current_layout() -> FloorLayout:
 	return layout
 
 
+func _npc_spots_to_dict() -> Dictionary:
+	var out := {}
+	for id in npc_spots:
+		out[String(id)] = [npc_spots[id].x, npc_spots[id].y]
+	return out
+
+
 ## "rest", "boss", "miniboss" or "combat" (NpcLibrary uses these).
 func floor_kind(n: int) -> String:
 	if is_rest_floor(n):
@@ -880,10 +910,21 @@ func floor_kind(n: int) -> String:
 
 ## (Re)places this floor's NPCs and lore objects. Called when the floor is
 ## built and again after a conversation (a clue that's been read disappears,
-## a recruit leaves with you). Each NPC rolls from its own seed, so they stand
-## in the same spot every time you come back.
+## a recruit leaves with you). Everyone goes back to the tile they had
+## (npc_spots); newcomers roll from their own seed.
 func place_npcs(layout: FloorLayout) -> void:
 	layout.npcs.clear()
+	if npc_spots_seed != floor_seed:
+		npc_spots.clear()
+		npc_spots_seed = floor_seed
+	var put := func(id: StringName, rng: RandomNumberGenerator, near := Vector2i(-1, -1)) -> Vector2i:
+		var was: Vector2i = npc_spots.get(id, Vector2i(-1, -1))
+		if was.x >= 0 and layout.place_npc_at(id, was):
+			return was
+		var p := layout.place_npc(id, rng, near)
+		if p.x >= 0:
+			npc_spots[id] = p
+		return p
 	var kind := floor_kind(floor_number)
 	if kind == "boss" and stairs_locked():
 		return   # nobody hangs around a boss fight
@@ -898,25 +939,25 @@ func place_npcs(layout: FloorLayout) -> void:
 			"merchant": near = layout.merchant
 		var rng: RandomNumberGenerator = rng_for.call(id)
 		rng.randf()   # skip the roll used for "chance"
-		layout.place_npc(id, rng, near)
+		put.call(id, rng, near)
 	# Dismissed companions wait by the campfire (anywhere, if it's crowded).
 	if layout.campfire.x >= 0:
 		for c in waiting:
 			var id := waiting_npc_id(c)
-			if layout.place_npc(id, rng_for.call(id), layout.campfire).x < 0:
-				layout.place_npc(id, rng_for.call(id))
+			if put.call(id, rng_for.call(id), layout.campfire).x < 0:
+				put.call(id, rng_for.call(id))
 	# Shrines of beings ready to offer you a blessing (rest floors only).
 	if kind == "rest":
 		for being in blessings.offering_beings().slice(0, BlessingState.MAX_SHRINES):
 			var sid := StringName("shrine:" + String(being))
-			layout.place_npc(sid, rng_for.call(sid))
+			put.call(sid, rng_for.call(sid))
 	# The guild that runs this territory has an agent on its first floor and
 	# its rest floors (join, ranks, guild shop, pay).
 	if kind == "rest" or GuildLibrary.is_territory_start(floor_number):
 		var owner := guilds.owner_of_floor(floor_number)
 		if owner != &"":
 			var gid := StringName("guild:" + String(owner))
-			layout.place_npc(gid, rng_for.call(gid))
+			put.call(gid, rng_for.call(gid))
 
 
 ## The guild behind a floor agent id ("guild:golden_ledger"), or &"".
@@ -1557,6 +1598,8 @@ func finish_battle(outcome: int, fighters: Array = []) -> void:
 			rescue_guest = null
 		if enemy_kind(e) in ["boss", "miniboss"]:
 			_free_captives(e.group[0])
+			# You won standing in front of the stairs: step back so you don't walk off by accident.
+			floor_player_pos = current_layout().spot_away_from_stairs(e.pos, SAFE_STEPS_FROM_STAIRS)
 		if enemy_kind(e) == "boss":
 			checkpoint_floor = floor_number   # the arena's campfire is your new checkpoint
 			if floor_number >= FINAL_FLOOR:

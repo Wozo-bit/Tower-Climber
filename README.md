@@ -488,6 +488,8 @@ Plan your party on floors 1–9 for the boss on floor 10.
 - **Goddess Tears** are rare. Bosses drop them, and the merchant sells them for 1500g (a Potion is 40g). The merchant also sells the Scouting Lens (200g, carry 3).
 - **Bosses and minibosses** can't be fled from; roaming bosses can. The sandbox has test buttons for all three kinds.
 - **Every 5th floor is a rest floor** (except boss floors), with a campfire, a merchant and no enemies. Reaching one makes it your checkpoint. Beating a stage boss also makes its floor your checkpoint.
+- **Safe floors ask before you leave:** stepping on the stairs of a rest floor or a cleared boss arena asks "Climb / Stay" (Stay steps you back). After beating a boss or miniboss you're put 4 steps back from the stairs (`GameState.SAFE_STEPS_FROM_STAIRS`), so you don't walk off by accident (Hayden's playtest).
+- **NPCs keep their spot:** when someone leaves a floor (a hint read, a recruit joining), everyone else stays where they were (`GameState.npc_spots`, saved).
 - **A party wipe** sends you back to your last checkpoint (floor 1 before your first rest floor), fully healed, and costs some gold (20% on Normal; see Difficulty).
 - **Enemies** wander around and chase you when you're within 5 tiles. Touching one starts the fight with its group; the number on an enemy is how many are in its group.
 - **Beating an enemy** removes it from the floor. **Fleeing** leaves it there, but it's stunned for a moment so you can get away.

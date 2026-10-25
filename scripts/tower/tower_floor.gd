@@ -72,6 +72,10 @@ var _pause: PauseMenu
 var _dialogue: DialogueBox
 var _talk_cooldown := 0.0
 var _climb_prompt: ConfirmationDialog
+## Safe floors (rest, cleared boss arena) ask before you leave them.
+var _leave_prompt: ConfirmationDialog
+## The tile you stepped onto the stairs from (Stay puts you back there).
+var _came_from := Vector2i(-1, -1)
 var _board_panel: NoticeBoardPanel
 ## Pinned quest's current step (top right).
 var _tracker: Label
@@ -192,7 +196,7 @@ func _process(delta: float) -> void:
 
 func _menus_open() -> bool:
 	return _party_menu.visible or _shop.visible or _pause.visible or _dialogue.visible \
-		or _climb_prompt.visible or _board_panel.visible or _completion_open
+		or _climb_prompt.visible or _leave_prompt.visible or _board_panel.visible or _completion_open
 
 
 ## Saves only during a real run (never in the dev sandbox).
@@ -267,6 +271,7 @@ func try_move(dir: Vector2i) -> bool:
 		return false
 	if layout.is_blocked(target):
 		return false
+	_came_from = player_tile
 	_player_from = _tile_px(player_tile)
 	player_tile = target
 	_player_to = _tile_px(target)
@@ -279,6 +284,10 @@ func _on_player_arrived() -> void:
 	if player_tile == layout.stairs:
 		if _guardian_ahead() != "":
 			_ask_before_climbing()
+		elif is_safe_floor():
+			_leave_prompt.dialog_text = "Climb to floor %d?\n\nThe campfire%s here won't come with you." % [
+				GameState.floor_number + 1, " and merchant" if layout.merchant.x >= 0 else ""]
+			_leave_prompt.popup_centered()
 		else:
 			_go_upstairs()
 		return
@@ -429,6 +438,21 @@ func _guardian_ahead() -> String:
 		return ""
 	return "the %s (%s)" % [EnemyLibrary.get_enemy(group[0]).display_name,
 		"boss" if StageLibrary.is_boss_floor(next) else "miniboss"]
+
+
+## Rest floors and cleared boss arenas: somewhere you might still want to be.
+func is_safe_floor() -> bool:
+	return layout.is_rest or (layout.is_boss_floor and not GameState.stairs_locked())
+
+
+## "Stay": step back off the stairs.
+func _stay_on_floor() -> void:
+	var back := _came_from if _came_from.x >= 0 and not layout.is_blocked(_came_from) else layout.stairs + Vector2i.LEFT
+	player_tile = back
+	_player_from = _tile_px(back)
+	_player_to = _player_from
+	_player_t = 1.0
+	GameState.floor_player_pos = back
 
 
 ## Before a miniboss/boss floor: the party locks up there, so offer a check.
@@ -851,6 +875,13 @@ func _build_hud() -> void:
 		_party_menu.open()
 		_party_menu.open_manage())
 	_hud.add_child(_climb_prompt)
+	_leave_prompt = ConfirmationDialog.new()
+	_leave_prompt.title = "Leave this floor?"
+	_leave_prompt.ok_button_text = "Climb"
+	_leave_prompt.cancel_button_text = "Stay"
+	_leave_prompt.confirmed.connect(_go_upstairs)
+	_leave_prompt.canceled.connect(_stay_on_floor)
+	_hud.add_child(_leave_prompt)
 	_dialogue = DialogueBox.new()
 	_dialogue.finished.connect(_on_dialogue_finished)
 	_hud.add_child(_dialogue)

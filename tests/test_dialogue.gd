@@ -199,6 +199,35 @@ func test_npc_placement() -> void:
 	GameState.place_npcs(layout)
 	check(not layout.npcs.values().has(&"brakka"), "recruited NPCs leave the floor")
 
+	# Hayden's bug: someone leaving (a hint read, a recruit) shuffled everyone
+	# placed after them. Everyone else must stay on their tile, on many floors.
+	var moved := 0
+	var checked := 0
+	for s in 40:
+		_fresh(15)
+		GameState.floor_seed = 1000 + s
+		GameState.floor_ready = false
+		var l := GameState.current_layout()
+		var before := {}
+		for p in l.npcs:
+			before[l.npcs[p]] = p
+		if before.size() < 3:
+			continue
+		var leaving: StringName = before.keys().filter(func(id): return NpcLibrary.is_recruitable(id))[0] 			if before.keys().any(func(id): return NpcLibrary.is_recruitable(id)) else &""
+		if leaving == &"":
+			continue
+		GameState.recruit(leaving)
+		GameState.place_npcs(l)
+		checked += 1
+		for p in l.npcs:
+			if before.get(l.npcs[p], p) != p:
+				moved += 1
+	check(checked > 5 and moved == 0, "when someone leaves, everyone else stays put (%d floors, %d moved)" % [checked, moved])
+	GameState.save_game()
+	var spots := GameState.npc_spots.duplicate()
+	GameState.load_game(1)
+	check(GameState.npc_spots == spots and not spots.is_empty(), "their spots are saved")
+
 	_fresh(4)
 	GameState.enter_floor(4)
 	# (Floor 4 starts a guild territory, so only that guild's agent stands there.)

@@ -11,6 +11,7 @@ func _ready() -> void:
 	test_rest_floor()
 	test_floor_state_and_rewards()
 	test_defeat_sends_to_checkpoint()
+	test_step_back_after_guardians()
 	test_enemy_scaling()
 	test_shop()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
@@ -87,6 +88,27 @@ func test_defeat_sends_to_checkpoint() -> void:
 	check(GameState.floor_number == 5, "wipe sends you back to the last rest floor")
 	check(GameState.player.gold == 80, "wipe costs 20% gold")
 	check(not GameState.party_all_downed() and GameState.player.current_hp() == GameState.player.max_hp(), "party revived at full")
+
+
+## Hayden: after a boss fell you stood in front of the stairs and walked off
+## the (now safe) floor by accident. Winning puts you a few steps back.
+func test_step_back_after_guardians() -> void:
+	for floor_n in [10, 9]:   # stage boss, miniboss
+		GameState.ensure_test_companions()
+		GameState.enter_floor(floor_n)
+		var layout := GameState.current_layout()
+		var idx := -1
+		for i in GameState.floor_enemies.size():
+			if GameState.enemy_kind(GameState.floor_enemies[i]) in ["boss", "miniboss"]:
+				idx = i
+		GameState.floor_player_pos = GameState.floor_enemies[idx].pos   # you walk into the guardian
+		GameState.active_enemy_index = idx
+		GameState.return_scene = ""
+		GameState.finish_battle(BattleManager.Outcome.VICTORY)
+		var p := GameState.floor_player_pos
+		var steps := absi(p.x - layout.stairs.x) + absi(p.y - layout.stairs.y)
+		check(steps >= GameState.SAFE_STEPS_FROM_STAIRS and not layout.is_blocked(p),
+			"floor %d: after the guardian falls you're %d steps from the stairs" % [floor_n, steps])
 
 
 func test_enemy_scaling() -> void:

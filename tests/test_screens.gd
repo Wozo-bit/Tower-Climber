@@ -19,6 +19,7 @@ func _ready() -> void:
 	await test_big_party()
 	await test_divinity_panel()
 	await test_apotheosis_box()
+	await test_leave_safe_floor()
 	CutIns.skip_all()
 	GameState.delete_slot(1)
 	GameState.reset_run()
@@ -164,6 +165,29 @@ func test_apotheosis_box() -> void:
 	check(picks.size() == DomainLibrary.domains.size() and picks[0].text == "Fate", "the Wanderer's own domains first, then every other")
 	var kind: OptionButton = box.find_children("*", "OptionButton", true, false)[0]
 	check(kind.item_count == 3, "god, demon or devil")
+	floor_scene.queue_free()
+	await _frames(1)
+
+
+## Safe floors ask before you leave: stepping on the stairs of a rest floor
+## shows "Climb / Stay", and Stay puts you back where you came from.
+func test_leave_safe_floor() -> void:
+	print("Leaving a safe floor")
+	_fresh(5)
+	CutIns.skip_all()
+	var floor_scene: Node = load(GameState.TOWER_SCENE).instantiate()
+	add_child(floor_scene)
+	await _frames(2)
+	var stairs: Vector2i = floor_scene.layout.stairs
+	floor_scene.player_tile = stairs + Vector2i.LEFT
+	floor_scene._player_t = 1.0
+	check(floor_scene.try_move(Vector2i.RIGHT), "walk onto the stairs")
+	floor_scene.player_tile = stairs
+	floor_scene._on_player_arrived()
+	check(floor_scene._leave_prompt.visible and floor_scene.get_tree().current_scene != null, "a rest floor asks before you leave")
+	floor_scene._leave_prompt.canceled.emit()
+	floor_scene._leave_prompt.hide()
+	check(floor_scene.player_tile == stairs + Vector2i.LEFT and GameState.floor_number == 5, "Stay: back off the stairs, still on the floor")
 	floor_scene.queue_free()
 	await _frames(1)
 
