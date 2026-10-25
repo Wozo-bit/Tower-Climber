@@ -340,7 +340,8 @@ func _cmd_skills() -> void:
 		_skill_box.add_child(none)
 	for s in actor.skills:
 		var b := Button.new()
-		b.text = "%s  (%d MP)" % [s.display_name, s.mp_cost]
+		b.text = "%s  (%s)" % [s.display_name, "%d faith of %d" % [s.faith_cost, actor.faith_box.get("faith", 0)]
+			if s.faith_cost > 0 else "%d MP" % s.mp_cost]
 		b.tooltip_text = s.description
 		var els: Array[int] = DamageCalc.attack_elements(actor, s) if s.effect == SkillDef.Effect.DAMAGE else ([] as Array[int])
 		if not els.is_empty():

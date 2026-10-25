@@ -11,6 +11,8 @@ extends RefCounted
 ##   "name": "Valor" · "title": the default title · "kind": god/demon/devil
 ##   "route": the ending route that suggests it (&"" = any ending)
 ##   "likes" / "dislikes": route ids (its values) · "temper": 0..1 (warlike)
+##   "approves" / "forbids": guild actions (GuildAI: trade, fortify, raid,
+##       war, ally) a sponsored guild earns or loses favor for
 ##   "skill": the blessed skill · "buff" / "curse": BeingLibrary effects
 ##   "offer": what it says when it offers a blessing (placeholder text)
 ##
@@ -24,45 +26,54 @@ const AF := Element.Affinity
 const BASE_DOMAINS := {
 	# --- Hero endings ---
 	&"valor": { "name": "Valor", "title": "God of Valor", "kind": "god", "route": &"hero",
-		"likes": [&"hero"], "dislikes": [&"villain"], "temper": 0.6, "skill": &"valor_strike",
+		"likes": [&"hero"], "dislikes": [&"villain"], "temper": 0.6, "approves": [&"war"], "forbids": [&"raid"],
+		"skill": &"valor_strike",
 		"buff": { "stats": { S.STRENGTH: 0.05, S.STAMINA: 0.03 } }, "curse": { "stats": { S.LUCK: -0.04 } },
 		"offer": "(Placeholder) I climbed this tower with nothing but nerve. Take some of mine." },
 	&"justice": { "name": "Justice", "title": "God of Justice", "kind": "god", "route": &"hero",
-		"likes": [&"hero"], "dislikes": [&"villain", &"vigilante"], "temper": 0.5, "skill": &"verdict_of_light",
+		"likes": [&"hero"], "dislikes": [&"villain", &"vigilante"], "temper": 0.5, "approves": [&"fortify"], "forbids": [&"raid"],
+		"skill": &"verdict_of_light",
 		"buff": { "element_power": { EL.HOLY: 0.15 }, "stats": { S.INTELLIGENCE: 0.03 } },
 		"curse": { "gold_mult": -0.05 },
 		"offer": "(Placeholder) The tower has laws now. Mine. Uphold them and I'll stand behind you." },
 	&"mercy": { "name": "Mercy", "title": "Goddess of Mercy", "kind": "god", "route": &"hero",
-		"likes": [&"hero", &"vigilante"], "dislikes": [&"villain"], "temper": 0.1, "skill": &"grace",
+		"likes": [&"hero", &"vigilante"], "dislikes": [&"villain"], "temper": 0.1, "approves": [&"ally"], "forbids": [&"war", &"raid"],
+		"skill": &"grace",
 		"buff": { "regen_pct": 0.05, "stats": { S.HEALTH: 0.03 } }, "curse": { "stats": { S.STRENGTH: -0.03 } },
 		"offer": "(Placeholder) I lost too many friends on the way up. I won't lose you." },
 
 	# --- Villain endings ---
 	&"tyranny": { "name": "Tyranny", "title": "God of Tyranny", "kind": "demon", "route": &"villain",
-		"likes": [&"villain"], "dislikes": [&"hero"], "temper": 0.9, "skill": &"iron_decree",
+		"likes": [&"villain"], "dislikes": [&"hero"], "temper": 0.9, "approves": [&"war"], "forbids": [&"ally"],
+		"skill": &"iron_decree",
 		"buff": { "stats": { S.STRENGTH: 0.05, S.HEALTH: 0.03 } },
 		"curse": { "affinities": { EL.HOLY: AF.WEAK } },
 		"offer": "(Placeholder) Every floor bows to me now. Kneel, and some of them will bow to you." },
 	&"greed": { "name": "Greed", "title": "God of Greed", "kind": "devil", "route": &"villain",
-		"likes": [&"villain", &"vigilante"], "dislikes": [&"hero"], "temper": 0.5, "skill": &"golden_hand",
+		"likes": [&"villain", &"vigilante"], "dislikes": [&"hero"], "temper": 0.5, "approves": [&"raid", &"trade"], "forbids": [&"fortify"],
+		"skill": &"golden_hand",
 		"buff": { "gold_mult": 0.15, "stats": { S.LUCK: 0.03 } }, "curse": { "price_mult": 0.1 },
 		"offer": "(Placeholder) I took the tower and everything in it. There's plenty left over. For a price." },
 	&"ruin": { "name": "Ruin", "title": "God of Ruin", "kind": "demon", "route": &"villain",
-		"likes": [&"villain"], "dislikes": [&"hero", &"vigilante"], "temper": 0.95, "skill": &"ruin_wave",
+		"likes": [&"villain"], "dislikes": [&"hero", &"vigilante"], "temper": 0.95, "approves": [&"war", &"raid"], "forbids": [&"ally", &"trade"],
+		"skill": &"ruin_wave",
 		"buff": { "element_power": { EL.DARK: 0.15 } }, "curse": { "stats": { S.INTELLIGENCE: -0.04 } },
 		"offer": "(Placeholder) I left the floors below in ashes. Help me finish the rest." },
 
 	# --- Vigilante endings ---
 	&"vengeance": { "name": "Vengeance", "title": "God of Vengeance", "kind": "devil", "route": &"vigilante",
-		"likes": [&"vigilante"], "dislikes": [&"hero"], "temper": 0.85, "skill": &"retribution",
+		"likes": [&"vigilante"], "dislikes": [&"hero"], "temper": 0.85, "approves": [&"war", &"raid"], "forbids": [&"ally"],
+		"skill": &"retribution",
 		"buff": { "stats": { S.LUCK: 0.04 }, "element_power": { EL.DARK: 0.1 } }, "curse": { "stats": { S.STAMINA: -0.03 } },
 		"offer": "(Placeholder) I remember every wrong done to me on the way up. Let me remember yours." },
 	&"shadow": { "name": "Shadow", "title": "God of Shadows", "kind": "devil", "route": &"vigilante",
-		"likes": [&"vigilante", &"villain"], "dislikes": [&"hero"], "temper": 0.5, "skill": &"night_veil",
+		"likes": [&"vigilante", &"villain"], "dislikes": [&"hero"], "temper": 0.5, "approves": [&"raid"], "forbids": [&"war"],
+		"skill": &"night_veil",
 		"buff": { "stats": { S.AGILITY: 0.05, S.LUCK: 0.03 } }, "curse": { "stats": { S.HEALTH: -0.03 } },
 		"offer": "(Placeholder) No one saw me climb. No one will see you either." },
 	&"freedom": { "name": "Freedom", "title": "God of Freedom", "kind": "god", "route": &"vigilante",
-		"likes": [&"vigilante", &"hero"], "dislikes": [&"villain"], "temper": 0.6, "skill": &"unbound_gale",
+		"likes": [&"vigilante", &"hero"], "dislikes": [&"villain"], "temper": 0.6, "approves": [&"ally"], "forbids": [&"fortify"],
+		"skill": &"unbound_gale",
 		"buff": { "stats": { S.AGILITY: 0.04 }, "element_power": { EL.WIND: 0.15 } }, "curse": { "stats": { S.STAMINA: -0.03 } },
 		"offer": "(Placeholder) No guild, no god, no master. That's how I climbed. Climb free with me." },
 }
@@ -75,6 +86,8 @@ const PANTHEON := "Ascended"
 ## Being ids for past gods: "ascended_" + the character's legacy id.
 const BEING_PREFIX := "ascended_"
 const TITLE_MAX_LENGTH := 40
+## What a guild can do on its turn (GuildAI), for "approves" / "forbids".
+const GUILD_ACTIONS := [&"trade", &"fortify", &"raid", &"war", &"ally"]
 
 
 static func register_domain(id: StringName, def: Dictionary) -> void:
@@ -161,6 +174,9 @@ static func validate() -> PackedStringArray:
 			problems.append("%s: likes no route" % id)
 		if SkillLibrary.get_skill_or_null(d.get("skill", &"")) == null:
 			problems.append("%s: unknown skill %s" % [id, d.get("skill")])
+		for a in d.get("approves", []) + d.get("forbids", []):
+			if not a in GUILD_ACTIONS:
+				problems.append("%s: unknown guild action %s" % [id, a])
 		for side in ["buff", "curse"]:
 			if (d.get(side, {}) as Dictionary).is_empty():
 				problems.append("%s: needs a %s" % [id, side])

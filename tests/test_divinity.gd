@@ -20,6 +20,11 @@ func _ready() -> void:
 	test_boons_and_tithes()
 	test_own_guild()
 	test_divinity_saves()
+	test_judgement()
+	test_smite_and_revoke()
+	test_blessing_people()
+	test_miracles_and_champions()
+	test_rival_gods()
 	GameState.delete_slot(1)
 	GameState.delete_slot(2)
 	_clear_hall()
@@ -262,3 +267,131 @@ func test_divinity_saves() -> void:
 	GameState.load_game(2)
 	check(not GameState.divinity.active and GuildLibrary.get_guild(&"golden_ledger").patron == &"mammon",
 		"tampered: a mortal can't make themself a god")
+
+
+# =========================================================
+# Phase 3: judgement, smiting, people, miracles, champions, rivals
+# =========================================================
+
+func test_judgement() -> void:
+	print("Judging your guilds")
+	check(DomainLibrary.validate().is_empty() and DomainLibrary.domains.values().all(
+		func(d): return not d.get("approves", []).is_empty() and not d.get("forbids", []).is_empty()),
+		"every domain approves and forbids guild actions")
+	_god(&"mercy", &"hero")   # Mercy forbids war and raids, approves alliances
+	var dv := GameState.divinity
+	dv.add_faith(100)
+	var g := &"stormhammer_company"
+	dv.sponsor(g)
+	dv.on_guild_action(g, &"ally")
+	check(dv.contracts[g].favor == DivinityState.APPROVED_FAVOR, "an approved act earns favor")
+	dv.on_guild_action(g, &"war")
+	check(not dv.contracts[g].warned, "one forbidden act after good service: favor drops")
+	dv.on_guild_action(g, &"war")
+	check(dv.contracts[g].warned, "straying further: a warning first")
+	var treasury := GameState.guilds.treasury_of(g)
+	dv.on_guild_action(g, &"raid")
+	check(GameState.guilds.treasury_of(g) < treasury and dv.contracts[g].favor == 0 and not dv.contracts[g].warned,
+		"keep straying: you punish them (treasury), and they start over")
+	check(dv.messages.any(func(m): return m.contains("wrath")), "and you hear about it")
+
+
+func test_smite_and_revoke() -> void:
+	print("Smite and revoke")
+	_god(&"justice", &"hero")
+	var dv := GameState.divinity
+	check(dv.smite_refusal(&"golden_ledger").contains("faith"), "smiting costs faith")
+	dv.add_faith(200)
+	var t := GameState.guilds.treasury_of(&"golden_ledger")
+	var mammon := GameState.blessings.interest(&"mammon")
+	check(dv.smite(&"golden_ledger") and GameState.guilds.treasury_of(&"golden_ledger") < t, "smite any guild")
+	check(GameState.blessings.interest(&"mammon") < mammon, "its patron takes it personally")
+	check(not dv.smite(GuildLibrary.PLAYER_GUILD), "never your own guild")
+	dv.sponsor(&"jade_oath")
+	check(dv.revoke(&"jade_oath") and GuildLibrary.get_guild(&"jade_oath").patron == &"guan_yu", "revoke: back to its old patron")
+	check(dv.renegades.has(&"jade_oath") and GameState.guilds.feud_guilds().has(&"jade_oath"), "...and it feuds with you")
+	check(dv.sponsor(&"jade_oath") and not dv.renegades.has(&"jade_oath"), "sign it again and the feud ends")
+
+
+func test_blessing_people() -> void:
+	print("Blessing people")
+	_god(&"valor", &"hero")
+	var dv := GameState.divinity
+	var friend := GameState.childhood_friend()
+	check(dv.bless_refusal(GameState.player) != "" and dv.bless_refusal(friend).contains("faith"), "not yourself; costs faith")
+	dv.add_faith(200)   # level 2
+	check(dv.bless_person(friend) and friend.blessing_id == dv.god_id and friend.blessing_level == 2,
+		"bless a companion at your divinity level")
+	check(friend.all_skills().any(func(s): return s.id == &"valor_strike"), "they get your domain's skill")
+	dv.add_faith(300)   # level 3
+	dv.on_floor()
+	check(friend.blessing_level == 3, "they grow with your divinity")
+	GameState.highest_floor = 21
+	var garrick := GameState.recruit(&"garrick")   # a mercenary who hates heroes
+	if garrick:
+		check(dv.bless_refusal(garrick).contains("won't accept"), "someone who hates your values refuses")
+
+
+func test_miracles_and_champions() -> void:
+	print("Miracles and champions")
+	_god(&"valor", &"hero")
+	var dv := GameState.divinity
+	dv.add_faith(100)
+	GameState.pending_battle_info = { "kind": "normal" }
+	var b := BattleManager.new()
+	GameState.configure_battle(b)
+	b.setup(GameState.battle_party(), EnemyLibrary.build_group([&"goblin"]), 1)
+	b.start()
+	var me: Combatant = b.party[0]
+	var wrath := SkillLibrary.get_skill(&"miracle_wrath")
+	check(me.skills.has(wrath) and not b.party[1].skills.has(wrath), "the god (only) has miracles in battle")
+	b.current = me
+	check(b.submit(BattleAction.use_skill(me, wrath, b.enemies[0])), "cast a miracle")
+	b.write_back_party()
+	check(dv.faith == 100 - wrath.faith_cost and me.mp == me.max_mp, "it costs faith, not MP")
+	dv.faith = 0
+	var b2 := BattleManager.new()
+	GameState.configure_battle(b2)
+	b2.setup(GameState.battle_party(), EnemyLibrary.build_group([&"goblin"]), 1)
+	check(not b2.party[0].can_afford(wrath), "no faith, no miracle")
+	# A sponsored guild's champion joins big fights on its floors.
+	dv.add_faith(200)
+	var owner: StringName = GameState.guilds.owner_of_floor(4)
+	dv.sponsor(owner)
+	GameState.floor_number = 4
+	GameState.pending_battle_info = { "kind": "miniboss" }
+	var fighters := GameState.fighting_party()
+	check(fighters.any(func(c): return c.companion_id == GameState.DIVINE_CHAMPION_ID), "its champion fights the miniboss with you")
+	GameState.pending_battle_info = { "kind": "normal" }
+	check(not GameState.fighting_party().any(func(c): return c.companion_id == GameState.DIVINE_CHAMPION_ID), "...not ordinary fights")
+	GameState.ironman = true
+	GameState.pending_battle_info = { "kind": "miniboss" }
+	var champ: CharacterData = GameState.fighting_party().filter(func(c): return c.companion_id == GameState.DIVINE_CHAMPION_ID)[0]
+	champ.set_current_hp(0)
+	check(not GameState.ironman_deaths([champ], BattleManager.Outcome.VICTORY).has(champ), "Ironman: their champion isn't yours to lose")
+	GameState.ironman = false
+	GameState.pending_battle_info = {}
+
+
+func test_rival_gods() -> void:
+	print("Other gods react")
+	_clear_hall()
+	var rec := _conquer("Ophelius", &"villain")
+	GameState.become_god(rec.legacy_id, &"tyranny", "")
+	rec = GameState.load_legacy().find(rec.legacy_id)
+	GameState.start_new_game("Probe", "Cassia", 2)
+	var typhon_before := GameState.blessings.interest(&"typhon")
+	GameState.start_new_game_plus(rec, 1)
+	var dv := GameState.divinity
+	check(dv.allies_greeted and GameState.blessings.interest(&"typhon") > typhon_before,
+		"like-minded gods warm to you (Typhon likes villains too)")
+	var rivals := dv.rival_gods()
+	check(not rivals.is_empty() and rivals.all(func(r): return BeingLibrary.get_being(r).values.likes.has(&"hero")),
+		"rivals are gods of opposite values (%s)" % [rivals])
+	GameState.player.lift_curse()
+	dv.add_faith(150)   # divinity grows
+	check(rivals.has(GameState.player.curse_id), "a jealous rival curses you as your divinity grows")
+	var boss: EnemyDef = EnemyLibrary.get_enemy(&"moonfang").duplicate()
+	boss.patron = rivals[0]
+	check(dv.boss_hp_mult([boss]) == DivinityState.JEALOUS_BOSS_HP, "a boss sponsored by your rival is empowered")
+	check(dv.boss_hp_mult([EnemyLibrary.get_enemy(&"goblin")]) == 1.0, "ordinary enemies aren't")

@@ -54,6 +54,9 @@ var enemy_scale := 1.0
 ## Extra HP for bosses, minibosses and roamers (set from the party size:
 ## GameState.guardian_hp_mult). They fight a whole party on their own.
 var boss_hp_mult := 1.0
+## A god's faith for miracles ({ "faith": n }; empty = no god in this fight).
+## The player's unit gets the miracle skills. Written back after the fight.
+var faith_box: Dictionary = {}
 ## HP for everyone else (GameState.normal_hp_mult, from the party size).
 var normal_hp_mult := 1.0
 ## Where element discoveries are written (GameState.bestiary). Optional.
@@ -79,7 +82,12 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 	rewards = { "xp": 0, "gold": 0, "items": {}, "gear": [], "books": [] }
 	intents.clear()
 	for c in party_chars:
-		party.append(Combatant.from_character(c))
+		var pu := Combatant.from_character(c)
+		if not faith_box.is_empty() and c == GameState.player:
+			pu.faith_box = faith_box
+			for id in DivinityState.MIRACLES:
+				pu.skills.append(SkillLibrary.get_skill(id))
+		party.append(pu)
 	for e in enemy_defs:
 		var u := Combatant.from_enemy(e, enemy_scale)
 		var hp_mult := boss_hp_mult if e.is_boss or e.is_roaming else normal_hp_mult
@@ -342,6 +350,8 @@ func write_back_party() -> void:
 		if u.source_character:
 			u.source_character.set_current_hp(u.hp)
 			u.source_character.set_current_mp(u.mp)
+	if not faith_box.is_empty():
+		GameState.divinity.faith = maxi(0, faith_box.get("faith", 0))
 
 
 func flee_chance() -> float:
@@ -367,6 +377,8 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 		return false
 
 	actor.mp -= skill.mp_cost
+	if skill.faith_cost > 0:
+		actor.faith_box["faith"] = actor.faith_box.get("faith", 0) - skill.faith_cost
 	var parts: PackedStringArray = []
 	if actor.has_trait(&"swarming"):
 		actor.swarm_allies = living(allies_of(actor)).filter(func(u): return u != actor and u.has_trait(&"swarming")).size()

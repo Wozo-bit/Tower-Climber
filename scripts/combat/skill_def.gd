@@ -16,6 +16,8 @@ enum Targeting { ENEMY_SINGLE, ENEMY_ALL, ALLY_SINGLE, ALLY_ALL, SELF }
 @export var display_name: String
 @export_multiline var description: String
 @export var mp_cost: int = 0
+## Miracles: paid from the god's faith (DivinityState) instead of MP.
+@export var faith_cost: int = 0
 @export var effect: Effect = Effect.DAMAGE
 @export var damage_type: DamageType = DamageType.MELEE
 @export var targeting: Targeting = Targeting.ENEMY_SINGLE

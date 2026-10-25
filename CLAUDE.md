@@ -62,9 +62,16 @@ grow with divinity (start: own guild + 1).
   (AI personality shift), tithes per floor. Your own god is a "self" being
   in your run (patron, never offered to you). GuildLibrary.reset_patrons
   each run. Tab -> Divinity (DivinityPanel).
-- Phase 3 (next): bless companions/NPCs, warnings + smite + revoke (favor
-  drops when a guild acts against your values), miracles (Faith in battle),
-  sponsored champions joining fights, rival gods reacting.
+- Phase 3 BUILT: domains approve/forbid guild actions (GuildAI reports
+  them: favor +/-; warn at -5, auto-punish at -15), smite any guild (faith),
+  revoke (guild returns to old patron, renegade -> feuds), bless companions
+  with your domain blessing (refused if their values clash; level = your
+  divinity), miracles (SkillDef.faith_cost; Mend/Wrath/Aegis for the god in
+  battle via BattleManager.faith_box), a sponsored guild's champion joins
+  boss/miniboss fights on its floors (not an Ironman loss), like-minded
+  gods +interest once per run, jealous rivals curse you when divinity
+  grows, rival-sponsored bosses x1.15 HP.
+- All god numbers/names are placeholders to tune/confirm with Hayden.
 
 ### Skill picks + battle layout (Hayden 2026-10-25)
 Hayden: skills should fit the class fantasy (mages need every bolt; tanks/
@@ -327,7 +334,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1291 checks at last run).
+Every change gets tests in tests/ (22 suites, 1321 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

@@ -872,7 +872,8 @@ func player_guild_income() -> void:
 ## Beings you answer to: the one who blessed you and your own guild's patron.
 func your_patrons() -> Array:
 	var out := []
-	for b in [GameState.player.blessing_id if GameState.player else &"", player_guild.get("patron", &"")]:
+	var god: StringName = GameState.divinity.god_id if GameState.divinity.active else &""
+	for b in [GameState.player.blessing_id if GameState.player else &"", player_guild.get("patron", &""), god]:
 		if b != &"" and BeingLibrary.beings.has(b) and not out.has(b):
 			out.append(b)
 	return out
@@ -895,8 +896,9 @@ func your_side() -> Array:
 
 
 ## Guilds whose patron is a rival of one of your patrons: they feud with you.
+## So do guilds that broke a god's contract with you (DivinityState.renegades).
 func feud_guilds() -> Array:
-	var out := []
+	var out: Array = GameState.divinity.renegades.filter(func(g): return g != member) if GameState.divinity.active else []
 	for b in your_patrons():
 		for g in GuildLibrary.guilds:
 			if g != member and not out.has(g) and BeingLibrary.rivals_of(b).has(GuildLibrary.get_guild(g).get("patron", &"")):

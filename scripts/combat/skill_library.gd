@@ -385,6 +385,13 @@ static func _build() -> Dictionary:
 		# =====================================================
 		# Blessed skills: usable only while blessed by that being (BeingLibrary)
 		# =====================================================
+		# Miracles: a god's battle powers, paid in faith (DivinityState.MIRACLES).
+		SkillDef.make(&"miracle_mend", "Miracle: Mend", "Heals the whole party for 30% of their max HP. Costs faith, not MP.",
+			{"faith_cost": 25, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 1.0, "heal_pct_max_hp": 0.3}),
+		SkillDef.make(&"miracle_wrath", "Miracle: Wrath", "Divine wrath on one enemy, past any guard. Costs faith, not MP.",
+			{"faith_cost": 20, "elements": [EL.HOLY] as Array[int], "damage_type": D.MAGIC, "power": 3.0, "adaptive": true}),
+		SkillDef.make(&"miracle_aegis", "Miracle: Aegis", "The whole party takes 30% less damage for 3 turns. Costs faith, not MP.",
+			{"faith_cost": 15, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
 		# Divine domains (DomainLibrary): a past god's blessed skill.
 		SkillDef.make(&"valor_strike", "Valor Strike", "A fearless blow that ignores 30% of defense.",
 			{"mp_cost": 9, "damage_type": D.MELEE, "power": 1.8, "def_pierce": 0.3}),

@@ -645,6 +645,10 @@ func fighting_party() -> Array[CharacterData]:
 	var guest := guilds.guest_captain(floor_number, pending_battle_info.get("kind", "normal"))
 	if guest and not out.has(guest):
 		out.append(guest)
+	# A god's sponsored guild sends its champion to big fights on its floors.
+	var champ := divine_champion(pending_battle_info.get("kind", "normal"))
+	if champ:
+		out.append(champ)
 	# A rescue: whoever you're saving fights beside you.
 	var rid: StringName = pending_battle_info.get("recruit", &"")
 	if rid != &"" and not has_recruited(rid):
@@ -653,6 +657,27 @@ func fighting_party() -> Array[CharacterData]:
 		if not out.has(rescue_guest):
 			out.append(rescue_guest)
 	return out
+
+
+## Who fights for a god (Hayden: "champions fight for you"): on floors held
+## by a guild you sponsor (not your own guild: it has captains), its
+## champion joins miniboss and boss fights. A guest built for the fight.
+const DIVINE_CHAMPION_ID := &"divine_champion"
+
+
+func divine_champion(fight_kind: String) -> CharacterData:
+	var owner := guilds.owner_of_floor(floor_number)
+	if not divinity.active or not fight_kind in ["boss", "miniboss"] or owner == GuildLibrary.PLAYER_GUILD \
+			or not divinity.contracts.has(owner):
+		return null
+	var c := make_premade("Champion of " + GuildLibrary.guild_name(owner).trim_prefix("The "), &"warrior",
+		{ Stats.Type.STRENGTH: 20, Stats.Type.HEALTH: 15 })
+	while c.level < maxi(1, player.level - 1):
+		c.level_up()
+	c.apply_allocation(NpcLibrary.split_points(c.unspent_points, { Stats.Type.STRENGTH: 60.0, Stats.Type.HEALTH: 40.0 }))
+	c.companion_id = DIVINE_CHAMPION_ID
+	c.full_restore()
+	return c
 
 
 ## Lowers the difficulty mid-run (it can never be raised until New Game+).
@@ -667,7 +692,8 @@ func set_difficulty(level: int) -> bool:
 ## bag, loot level and bestiary (the battle screen and the simulator use it).
 func configure_battle(battle: BattleManager) -> void:
 	battle.enemy_scale = pending_enemy_scale
-	battle.boss_hp_mult = guardian_hp_mult(party_size())
+	battle.boss_hp_mult = guardian_hp_mult(party_size()) * divinity.boss_hp_mult(pending_encounter)
+	battle.faith_box = { "faith": divinity.faith } if divinity.active else {}
 	battle.normal_hp_mult = normal_hp_mult(party_size())
 	battle.enemy_skill_mult = Difficulty.value(difficulty, "ai")
 	var rewards := reward_scale_for_floor(floor_number)
@@ -1468,9 +1494,10 @@ func set_pending_battle(encounter: Array[EnemyDef], return_to: String, scale: fl
 func ironman_deaths(fighters: Array, outcome: int) -> Array:
 	if not ironman:
 		return []
+	var yours := fighters.filter(func(c): return c.companion_id != DIVINE_CHAMPION_ID)   # a guild's champion isn't yours to lose
 	if outcome == BattleManager.Outcome.DEFEAT:
-		return fighters.duplicate()
-	return fighters.filter(func(c): return c.is_downed())
+		return yours
+	return yours.filter(func(c): return c.is_downed())
 
 
 ## Ironman: buries the fallen. Returns true if the run is over (you died).

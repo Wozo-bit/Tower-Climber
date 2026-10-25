@@ -97,6 +97,8 @@ static func _act(gs: GuildState, g: StringName, rng: RandomNumberGenerator) -> v
 		if u > best_u:
 			best_u = u
 			best = a
+	if best != "":
+		GameState.divinity.on_guild_action(g, StringName(best))   # a god judges its guilds
 	match best:
 		"trade":
 			gs.treasury[g] = gs.treasury_of(g) + TRADE_GOLD

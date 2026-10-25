@@ -86,6 +86,9 @@ func _rebuild() -> void:
 		_list.add_child(_note("None yet. Found your own guild (Tab -> Guilds, past floor %d) or offer a contract below." % GuildState.CHARTER_FLOOR))
 	for g in dv.contracts:
 		_list.add_child(_contract_row(g))
+	_list.add_child(_heading("Bless your people (%d faith each)" % DivinityState.BLESS_FAITH))
+	for c in GameState.companions + GameState.reserve:
+		_list.add_child(_person_row(c))
 	_list.add_child(_heading("Offer a contract"))
 	var ids := GuildLibrary.guilds.keys().filter(func(g): return not dv.contracts.has(g) and g != GuildLibrary.PLAYER_GUILD)
 	ids.sort()
@@ -128,7 +131,56 @@ func _contract_row(g: StringName) -> Control:
 			_message.text = "%s will act %s." % [GuildLibrary.guild_name(g), DivinityState.STANCES[stance.get_item_metadata(i)].name.to_lower()])
 		row.add_child(_label("Stance"))
 		row.add_child(stance)
+		row.add_child(_smite_button(g))
+		var revoke := Button.new()
+		revoke.text = "Revoke"
+		revoke.tooltip_text = "End the contract. They go back to their old patron, and feud with you for the rest of the run."
+		revoke.pressed.connect(func():
+			if dv.revoke(g):
+				_message.text = "%s is no longer yours. They won't forget it." % GuildLibrary.guild_name(g)
+			_rebuild())
+		row.add_child(revoke)
+	if c.get("warned", false):
+		info.text += "   ⚠ warned"
+		info.add_theme_color_override("font_color", Color(1, 0.7, 0.4))
 	return panel
+
+
+func _smite_button(g: StringName) -> Button:
+	var dv: DivinityState = GameState.divinity
+	var b := Button.new()
+	b.text = "Smite (%d)" % DivinityState.SMITE_FAITH
+	var why := dv.smite_refusal(g)
+	b.disabled = why != ""
+	b.tooltip_text = why if why != "" else "Strike them: -%d%% treasury, -1 defense, their wars turn against them. Their patron won't like it." % \
+		roundi(DivinityState.SMITE_TREASURY * 100)
+	b.pressed.connect(func():
+		if dv.smite(g):
+			_message.text = "You smite %s." % GuildLibrary.guild_name(g)
+		_rebuild())
+	return b
+
+
+func _person_row(c: CharacterData) -> Control:
+	var dv: DivinityState = GameState.divinity
+	var row := HBoxContainer.new()
+	var info := Label.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var now := "blessed by you (level %d)" % c.blessing_level if c.blessing_id == dv.god_id else (
+		"blessed by %s" % BeingLibrary.get_being(c.blessing_id).get("name", "?") if c.blessing_id != &"" else "not blessed")
+	info.text = "%s   Lv %d   ·   %s" % [c.character_name, c.level, now]
+	row.add_child(info)
+	var why := dv.bless_refusal(c)
+	var b := Button.new()
+	b.text = "Bless"
+	b.disabled = why != ""
+	b.tooltip_text = why if why != "" else "Your domain's blessing (and its curse) at level %d, plus its skill." % dv.person_level()
+	b.pressed.connect(func():
+		if dv.bless_person(c):
+			_message.text = "%s receives your blessing." % c.character_name
+		_rebuild())
+	row.add_child(b)
+	return row
 
 
 func _offer_row(g: StringName) -> Control:
@@ -150,6 +202,9 @@ func _offer_row(g: StringName) -> Control:
 			_message.text = "%s now answers to you." % GuildLibrary.guild_name(g)
 		_rebuild())
 	row.add_child(b)
+	row.add_child(_smite_button(g))
+	if dv.renegades.has(g):
+		info.text += "   ·   renegade (feuds with you)"
 	return row
 
 

@@ -212,7 +212,13 @@ func active_guardian() -> Combatant:
 	return null
 
 
+## The god's faith in this battle (shared with BattleManager.faith_box), or {}.
+var faith_box: Dictionary = {}
+
+
 func can_afford(skill: SkillDef) -> bool:
+	if skill.faith_cost > 0 and faith_box.get("faith", 0) < skill.faith_cost:
+		return false
 	return mp >= skill.mp_cost
 
 
