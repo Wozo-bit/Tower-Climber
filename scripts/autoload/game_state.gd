@@ -71,6 +71,9 @@ var pending_talks: Array = []
 ## Gods, demons and devils: interest, refusals, scorn. Per run. (The blessing
 ## itself is on each CharacterData.)
 var blessings := BlessingState.new()
+## Guilds and the economy: territories, reputation, membership, treasuries,
+## supply and demand. Per run.
+var guilds := GuildState.new()
 ## The stage theme picked for each StageLibrary slot this run (e.g. floors
 ## 1-10 = Slime Pits). Rolled on New Game / New Game+, saved with the run.
 var stage_themes: Array = []:
@@ -167,6 +170,7 @@ func reset_run() -> void:
 	quests = QuestLog.new()
 	route = RouteState.new()
 	blessings = BlessingState.new()
+	guilds = GuildState.new()
 	pending_talks = []
 	stage_themes = []   # each slot's first theme until a run rolls its own
 	ng_plus_cycle = 0
@@ -312,6 +316,7 @@ func save_game() -> bool:
 		"quests": quests.to_dict(),
 		"route": route.to_dict(),
 		"blessings": blessings.to_dict(),
+		"guilds": guilds.to_dict(),
 		"stage_themes": stage_themes.map(func(t): return String(t)),
 	}
 	var ok := SaveSerializer.write_json(slot_path(current_slot), d)
@@ -368,6 +373,7 @@ func load_game(slot: int = -1) -> bool:
 	quests = QuestLog.from_dict(S._d(d, "quests"))
 	route = RouteState.from_dict(S._d(d, "route"))
 	blessings = BlessingState.from_dict(S._d(d, "blessings"))
+	guilds = GuildState.from_dict(S._d(d, "guilds"))
 	stage_themes = S._a(d, "stage_themes")   # older saves: each slot's first theme
 	play_time_sec = S._f(d, "play_time_sec", 0.0, 0.0)
 	run_active = true
@@ -540,6 +546,7 @@ func enter_floor(n: int) -> void:
 		checkpoint_floor = n
 	quests.update()   # "reach floor" steps, and quests that expire past a floor
 	blessings.update()   # lingering curses run out by floor
+	guilds.on_floor()    # market prices drift back; guild pay comes due
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies
@@ -617,6 +624,19 @@ func place_npcs(layout: FloorLayout) -> void:
 		for being in blessings.offering_beings().slice(0, BlessingState.MAX_SHRINES):
 			var sid := StringName("shrine:" + String(being))
 			layout.place_npc(sid, rng_for.call(sid))
+	# The guild that runs this territory has an agent on its first floor and
+	# its rest floors (join, ranks, guild shop, pay).
+	if kind == "rest" or GuildLibrary.is_territory_start(floor_number):
+		var owner := guilds.owner_of_floor(floor_number)
+		if owner != &"":
+			var gid := StringName("guild:" + String(owner))
+			layout.place_npc(gid, rng_for.call(gid))
+
+
+## The guild behind a floor agent id ("guild:golden_ledger"), or &"".
+static func agent_guild(npc_id: StringName) -> StringName:
+	var s := String(npc_id)
+	return StringName(s.trim_prefix("guild:")) if s.begins_with("guild:") else &""
 
 
 ## The being behind a floor shrine id ("shrine:odin"), or &"".
@@ -849,14 +869,76 @@ func leave_over_route(c: CharacterData) -> void:
 	pending_talks.append({ "dialogue": &"companion_leaving", "companion": c })
 
 
-## What the merchant charges you (route discounts / markups).
+## What the merchant charges you: your route (hero discount / villain
+## markup), blessings and curses, the guild that runs this floor (its markup,
+## your member discount) and supply and demand in this territory.
 func shop_price(item: ItemDef) -> int:
 	var mult := 1.0
 	match route.current():
 		&"hero": mult = HERO_PRICE_MULT
 		&"villain": mult = VILLAIN_PRICE_MULT
 	mult += player.effect_sum("price_mult")   # e.g. the Demon of Greed's curse
+	mult *= guilds.price_mult(floor_number)
+	mult *= guilds.buy_mult(GuildLibrary.territory_of(floor_number), GuildState.good_key(item.id))
 	return roundi(item.price * maxf(0.1, mult))
+
+
+# =========================================================
+# Economy: taxes and selling
+# =========================================================
+
+## Base sell value of gear by rarity (+ SELL_PER_ITEM_LEVEL each item level).
+## Uniques can't be sold.
+const SELL_GEAR_BASE := [10, 25, 60, 140, 320]
+const SELL_PER_ITEM_LEVEL := 3
+## Consumables sell for this share of their price; skill books for a flat
+## amount per tier.
+const SELL_ITEM_SHARE := 0.5
+const SELL_BOOK_PER_TIER := 30
+
+
+## The floor owner's cut of battle gold you just earned. Returns the tax taken.
+func collect_battle_tax(gold_earned: int) -> int:
+	var tax := mini(guilds.collect_tax(gold_earned, floor_number), player.gold)
+	player.gold -= tax
+	return tax
+
+
+## What a trader pays for one of an item / a piece of gear right now
+## (0 = can't be sold: quest items, Uniques).
+func sell_price_item(id: StringName) -> int:
+	var item := ItemLibrary.get_item(id)
+	if item == null or item.quest_item:
+		return 0
+	var base := roundi(item.price * SELL_ITEM_SHARE) if item.price > 0 else SELL_BOOK_PER_TIER * (item.tier + 1)
+	return maxi(1, roundi(base * guilds.sell_mult(GuildLibrary.territory_of(floor_number), GuildState.good_key(id))))
+
+
+func sell_price_gear(g: GearItem) -> int:
+	if g == null or g.rarity == Rarity.Tier.UNIQUE:
+		return 0
+	var base: int = SELL_GEAR_BASE[clampi(g.rarity, 0, SELL_GEAR_BASE.size() - 1)] + SELL_PER_ITEM_LEVEL * g.item_level
+	return maxi(1, roundi(base * guilds.sell_mult(GuildLibrary.territory_of(floor_number), GuildState.good_key(&"", g))))
+
+
+## Sells one item from the bag. Returns the gold received (0 = couldn't).
+func sell_item(id: StringName) -> int:
+	var price := sell_price_item(id)
+	if price <= 0 or not inventory.remove(id):
+		return 0
+	player.gold += price
+	guilds.record_sell(GuildLibrary.territory_of(floor_number), GuildState.good_key(id))
+	return price
+
+
+## Sells a piece of gear from the bag (never equipped gear or Uniques).
+func sell_gear(g: GearItem) -> int:
+	var price := sell_price_gear(g)
+	if price <= 0 or not inventory.remove_gear(g):
+		return 0
+	player.gold += price
+	guilds.record_sell(GuildLibrary.territory_of(floor_number), GuildState.good_key(&"", g))
+	return price
 
 
 ## After a won battle: everyone on the reserve gets their share of the XP.
@@ -1100,6 +1182,7 @@ func buy_item(id: StringName, price_override: int = -1) -> bool:
 	if player.gold < price or not inventory.has_room(id):
 		return false
 	player.gold -= price
+	guilds.record_buy(GuildLibrary.territory_of(floor_number), GuildState.good_key(id))   # demand goes up
 	inventory.add(id)
 	return true
 

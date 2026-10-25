@@ -164,6 +164,11 @@ func _on_battle_ended(outcome: int) -> void:
 			var reserve_xp := GameState.grant_reserve_xp(battle.rewards.xp)
 			if reserve_xp > 0:
 				_result_label.text += "\nReserve: +%d XP each" % reserve_xp
+			# The guild that runs this floor takes its cut.
+			var tax := GameState.collect_battle_tax(battle.gold_given)
+			if tax > 0:
+				_result_label.text += "\nTax (%s): -%d gold" % [
+					GuildLibrary.guild_name(GameState.guilds.owner_of_floor(GameState.floor_number)), tax]
 			for id in battle.rewards.items:
 				_result_label.text += "\nObtained: %s x%d" % [ItemLibrary.get_item(id).display_name, battle.rewards.items[id]]
 			for sid in battle.rewards.books:

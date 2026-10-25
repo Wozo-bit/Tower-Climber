@@ -111,6 +111,46 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Guild agents ({guild...} = the guild that runs this floor). ---
+	&"guild_agent": {
+		"start": "hello",
+		"nodes": {
+			"hello": {
+				"speaker": "{guild} agent",
+				"text": "(Placeholder) Welcome to {guild} territory. Your standing with us: {guild_standing}.",
+				"choices": [
+					{ "text": "Tell me about your guild.", "next": "about" },
+					{ "text": "I want to join.", "next": "joined", "effects": [{ "join_guild": true }],
+						"if": { "can_join_guild": true } },
+					{ "text": "Can I join?", "next": "refused", "if": { "guild_member": false, "can_join_guild": false } },
+					{ "text": "Show me the members' stock.", "effects": [{ "open_shop": "guild" }],
+						"if": { "guild_member": true } },
+					{ "text": "I'm here for my pay.", "next": "paid", "effects": [{ "collect_pay": true }],
+						"if": { "guild_pay_due": true } },
+					{ "text": "I'm leaving the guild.", "next": "leave_confirm", "if": { "guild_member": true } },
+					{ "text": "Goodbye." },
+				],
+			},
+			"about": {
+				"speaker": "{guild} agent",
+				"text": "{guild_motto}\n\nWe serve {guild_patron}. We run {guild_floors}, and take {guild_tax} of what's earned there. Members pay less, and climb the ranks.",
+				"next": "hello",
+			},
+			"joined": { "speaker": "{guild} agent", "text": "(Placeholder) Welcome, {guild_rank}. Don't embarrass us." , "next": "hello" },
+			"refused": { "speaker": "{guild} agent", "text": "(Placeholder) Not a chance. {guild_refusal}", "next": "hello" },
+			"paid": { "speaker": "{guild} agent", "text": "(Placeholder) Your cut. Spend it wisely.", "next": "hello" },
+			"leave_confirm": {
+				"speaker": "{guild} agent",
+				"text": "(Placeholder) Walk out on us, and we'll remember it. Sure?",
+				"choices": [
+					{ "text": "I'm sure.", "next": "left", "effects": [{ "leave_guild": true }] },
+					{ "text": "No, I'll stay.", "next": "hello" },
+				],
+			},
+			"left": { "speaker": "{guild} agent", "text": "(Placeholder) Then get off our floors." },
+		},
+	},
+
 	# --- Gods, demons and devils ({being...} = the being you're talking to). ---
 	# Started at a shrine, after a stage boss, or by a devil's bargain.
 	&"blessing_offer": {
@@ -322,10 +362,12 @@ const DIALOGUES := {
 
 const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
-	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed"]
+	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
+	"guild_member", "in_guild", "can_join_guild", "guild_pay_due"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
-	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest"]
+	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",
+	"join_guild", "leave_guild", "collect_pay", "guild_rep"]
 
 
 static func get_dialogue(id: StringName) -> Dictionary:
@@ -439,6 +481,9 @@ static func _validate_effects(where: String, effects: Array) -> PackedStringArra
 		for b in e.get("interest", {}):
 			if not BeingLibrary.beings.has(b):
 				problems.append("%s: unknown being '%s'" % [where, b])
-		if e.get("open_shop") is String and not ItemLibrary.SHOPS.has(StringName(e.open_shop)):
+		for g in e.get("guild_rep", {}):
+			if not GuildLibrary.guilds.has(g):
+				problems.append("%s: unknown guild '%s'" % [where, g])
+		if e.get("open_shop") is String and e.open_shop != "guild" and not ItemLibrary.SHOPS.has(StringName(e.open_shop)):
 			problems.append("%s: unknown shop '%s'" % [where, e.open_shop])
 	return problems

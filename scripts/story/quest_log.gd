@@ -208,6 +208,9 @@ func give_rewards(r: Dictionary) -> String:
 		gs.set_flag(f)
 	for route_id in r.get("route_points", {}):   # never shown as numbers
 		gs.add_route_points(route_id, r.route_points[route_id])
+	for guild in r.get("guild_rep", {}):
+		gs.guilds.add_rep(guild, r.guild_rep[guild])
+		parts.append("%+d with %s" % [r.guild_rep[guild], GuildLibrary.guild_name(guild)])
 	if r.has("reveal_family"):
 		for def in EnemyLibrary.all():
 			if def.family == r.reveal_family:
@@ -342,10 +345,20 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 		desc = flavor.desc % [n, label]
 		rewards.gold = roundi(rewards.gold * flavor.gold_mult)
 		rewards["route_points"] = { flavor.route: BOUNTY_ROUTE_POINTS }
+	# Guild jobs: the guild that runs this floor posts it and pays in reputation too.
+	var guild: StringName = GameState.guilds.owner_of_floor(floor_n)
+	var giver := "Notice board"
+	if guild != &"":
+		rewards["guild_rep"] = { guild: BOUNTY_GUILD_REP }
+		giver = GuildLibrary.guild_name(guild)
 	return { "id": id, "def": {
-		"title": title, "kind": "bounty", "giver": "Notice board", "desc": desc,
+		"title": title, "kind": "bounty", "giver": giver, "desc": desc,
 		"steps": [{ "text": "Defeat %s" % label, "goal": goal }], "rewards": rewards,
 	} }
+
+
+## Reputation a guild job pays with the guild that posted it.
+const BOUNTY_GUILD_REP := 5
 
 
 ## Route flavors for bounties: { route, label, desc (with %d/%s), gold_mult }.

@@ -19,6 +19,7 @@ var _bestiary_panel: BestiaryPanel
 var _quest_panel: QuestLogPanel
 var _reputation: Label
 var _advance_panel: AdvancementPanel
+var _guild_panel: GuildPanel
 
 ## When set, the member list shows "Use here" buttons.
 ## { "kind": "item", "id": StringName } or { "kind": "heal", "caster": CharacterData, "skill": SkillDef }
@@ -83,6 +84,11 @@ func _init() -> void:
 	quests_btn.tooltip_text = "Active, completed and failed quests."
 	quests_btn.pressed.connect(func(): _quest_panel.open())
 	header.add_child(quests_btn)
+	var guilds_btn := Button.new()
+	guilds_btn.text = "Guilds"
+	guilds_btn.tooltip_text = "Who runs which floors, and where you stand with them."
+	guilds_btn.pressed.connect(func(): _guild_panel.open())
+	header.add_child(guilds_btn)
 	var close_btn := Button.new()
 	close_btn.text = "Close (Tab)"
 	close_btn.pressed.connect(close)
@@ -134,6 +140,8 @@ func _init() -> void:
 	add_child(_bestiary_panel)
 	_quest_panel = QuestLogPanel.new()
 	add_child(_quest_panel)
+	_guild_panel = GuildPanel.new()
+	add_child(_guild_panel)
 	_advance_panel = AdvancementPanel.new()
 	_advance_panel.closed.connect(_rebuild)
 	add_child(_advance_panel)
@@ -161,7 +169,7 @@ func open_manage() -> void:
 
 func close() -> void:
 	if _class_screen.visible or _stats_overlay.visible or _gear_panel.visible or _skills_panel.visible \
-			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible:
+			or _manage_panel.visible or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible or _guild_panel.visible:
 		return
 	hide()
 	closed.emit()
@@ -169,7 +177,7 @@ func close() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or _gear_panel.visible or _skills_panel.visible or _manage_panel.visible \
-			or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible:
+			or _bestiary_panel.visible or _quest_panel.visible or _advance_panel.visible or _guild_panel.visible:
 		return
 	if event.is_action_pressed("party_menu") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()

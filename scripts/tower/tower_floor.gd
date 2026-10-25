@@ -152,7 +152,7 @@ func _process(delta: float) -> void:
 		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
 	if not GameState.quests.messages.is_empty() or not GameState.route.messages.is_empty() \
-			or not GameState.blessings.messages.is_empty():
+			or not GameState.blessings.messages.is_empty() or not GameState.guilds.messages.is_empty():
 		_show_quest_messages()
 	# A companion wants a word about your route (warning, or leaving).
 	if not GameState.pending_talks.is_empty() and not _menus_open() and _player_t >= 1.0:
@@ -226,10 +226,13 @@ func try_move(dir: Vector2i) -> bool:
 	if layout.npcs.has(target):
 		var waiting := GameState.waiting_companion(layout.npcs[target])
 		var being := GameState.shrine_being(layout.npcs[target])
+		var guild := GameState.agent_guild(layout.npcs[target])
 		if waiting:
 			talk(&"waiting_companion", waiting)
 		elif being != &"":
 			talk(&"blessing_offer", null, being)
+		elif guild != &"":
+			talk(&"guild_agent", null, &"", guild)
 		else:
 			talk(NpcLibrary.get_npc(layout.npcs[target]).dialogue)
 		return false
@@ -364,10 +367,10 @@ func _go_upstairs() -> void:
 
 
 ## Opens a conversation (public so tests/automation can use it).
-func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"") -> void:
+func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"") -> void:
 	if _talk_cooldown > 0.0 or _dialogue.visible:
 		return
-	_dialogue.open(dialogue_id, with, being)
+	_dialogue.open(dialogue_id, with, being, guild)
 
 
 func _on_dialogue_finished(runner: DialogueRunner) -> void:
@@ -380,6 +383,8 @@ func _on_dialogue_finished(runner: DialogueRunner) -> void:
 	for r in runner.requests:
 		if r == "shop":
 			_shop.open()
+		elif r == "shop:guild":
+			_shop.open_guild(DialogueRunner.context_guild)
 		elif r.begins_with("shop:"):
 			_shop.open(StringName(r.trim_prefix("shop:")))
 
@@ -542,6 +547,10 @@ func _draw() -> void:
 			var col: Color = { "god": Color(1.0, 0.9, 0.5), "demon": Color(0.8, 0.2, 0.2), "devil": Color(0.6, 0.3, 0.8) }.get(
 				BeingLibrary.get_being(being).kind, Color.WHITE)
 			npc = { "name": BeingLibrary.get_being(being).name, "kind": "object", "color": col }
+		var agent := GameState.agent_guild(layout.npcs[p])
+		if agent != &"":   # a guild agent: green if you're a member, grey otherwise
+			npc = { "name": GuildLibrary.guild_name(agent).trim_prefix("The "), "kind": "npc",
+				"color": Color(0.4, 0.8, 0.5) if GameState.guilds.member == agent else Color(0.65, 0.65, 0.7) }
 		var center := _tile_px(p) + Vector2(TILE, TILE) / 2
 		var col: Color = npc.get("color", Color.GRAY)
 		if npc.get("kind") == "object":
@@ -712,6 +721,7 @@ func _update_hud() -> void:
 		fl += "  (Rest Floor)"
 	fl += "     Gold %d     Checkpoint: floor %d" % [GameState.player.gold, GameState.checkpoint_floor]
 	fl = StageLibrary.stage_name(GameState.floor_number) + "   ·   " + fl
+	fl += "     %s territory" % GuildLibrary.guild_name(GameState.guilds.owner_of_floor(GameState.floor_number))
 	for e in GameState.floor_enemies:
 		if not e.alive:
 			continue
@@ -762,7 +772,9 @@ func _show_toast(text: String) -> void:
 
 ## Quest news ("Quest updated: ...") gets its own line so it never hides other toasts.
 func _show_quest_messages() -> void:
-	_quest_toast.text = "\n".join(GameState.quests.messages + GameState.route.messages + GameState.blessings.messages)
+	_quest_toast.text = "\n".join(GameState.quests.messages + GameState.route.messages + GameState.blessings.messages
+		+ GameState.guilds.messages)
+	GameState.guilds.messages.clear()
 	GameState.quests.messages.clear()
 	GameState.route.messages.clear()
 	GameState.blessings.messages.clear()

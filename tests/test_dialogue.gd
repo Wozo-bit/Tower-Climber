@@ -197,7 +197,9 @@ func test_npc_placement() -> void:
 
 	_fresh(4)
 	GameState.enter_floor(4)
-	check(GameState.current_layout().npcs.is_empty(), "no NPCs on early combat floors")
+	# (Floor 4 starts a guild territory, so only that guild's agent stands there.)
+	check(GameState.current_layout().npcs.values().all(func(v): return String(v).begins_with("guild:")),
+		"no story NPCs on early combat floors")
 
 	# The mural: 40% of eligible combat floors, never blocking anything.
 	var seen := 0

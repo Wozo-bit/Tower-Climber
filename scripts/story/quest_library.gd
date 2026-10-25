@@ -178,6 +178,9 @@ static func validate(id: StringName, q: Dictionary) -> PackedStringArray:
 	for route_id in r.get("route_points", {}):
 		if not RouteLibrary.routes.has(route_id):
 			problems.append("%s: reward for unknown route %s" % [id, route_id])
+	for guild in r.get("guild_rep", {}):
+		if not GuildLibrary.guilds.has(guild):
+			problems.append("%s: reward for unknown guild %s" % [id, guild])
 	for key in ["auto_start", "board_if"]:
 		for k in q.get(key, {}):
 			if not k in DialogueLibrary.CONDITION_KEYS:

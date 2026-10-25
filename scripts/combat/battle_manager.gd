@@ -49,6 +49,8 @@ var owned_unique_classes: Array = []
 var enemy_scale := 1.0
 ## Where element discoveries are written (GameState.bestiary). Optional.
 var bestiary: Bestiary
+## Gold actually paid to the leader by apply_rewards (after blessings), for taxes.
+var gold_given := 0
 
 var _queue: Array[Combatant] = []
 
@@ -511,7 +513,8 @@ func apply_rewards() -> void:
 			u.source_character.add_xp(maxi(0, roundi(rewards.xp * (1.0 + u.source_character.effect_sum("xp_mult")))))
 	if not party.is_empty() and party[0].source_character:
 		var leader := party[0].source_character
-		leader.gold += maxi(0, roundi(rewards.gold * (1.0 + leader.effect_sum("gold_mult"))))
+		gold_given = maxi(0, roundi(rewards.gold * (1.0 + leader.effect_sum("gold_mult"))))
+		leader.gold += gold_given
 	if inventory:
 		for id in rewards.items:
 			inventory.add(id, rewards.items[id])

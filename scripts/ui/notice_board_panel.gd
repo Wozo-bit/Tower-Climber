@@ -106,4 +106,6 @@ static func reward_text(r: Dictionary) -> String:
 		parts.append(r.gear.get("name", "gear"))
 	if r.has("reveal_family"):
 		parts.append("notes on %s" % EnemyFamilies.family_name(r.reveal_family))
+	for guild in r.get("guild_rep", {}):
+		parts.append("%+d standing with %s" % [r.guild_rep[guild], GuildLibrary.guild_name(guild)])
 	return ", ".join(parts) if not parts.is_empty() else "—"

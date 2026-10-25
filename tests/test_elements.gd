@@ -303,10 +303,12 @@ func test_bestiary() -> void:
 func test_scouting_lens() -> void:
 	GameState.reset_run()
 	GameState.player.gold = 5000
+	var spent := 0
 	for i in 3:
+		spent += GameState.shop_price(ItemLibrary.get_item(&"scouting_lens"))   # rises a little each buy (demand)
 		GameState.buy_item(&"scouting_lens")
-	check(GameState.inventory.count(&"scouting_lens") == 3, "buy Scouting Lenses (200g each)")
-	check(not GameState.buy_item(&"scouting_lens") and GameState.player.gold == 4400, "can't carry more than 3")
+	check(GameState.inventory.count(&"scouting_lens") == 3 and spent >= 600, "buy Scouting Lenses (200g base, %d spent)" % spent)
+	check(not GameState.buy_item(&"scouting_lens") and GameState.player.gold == 5000 - spent, "can't carry more than 3")
 	check(GameState.inventory.add(&"scouting_lens", 2) == 0, "drops past the limit are refused too")
 	var b := BattleManager.new()
 	b.inventory = GameState.inventory

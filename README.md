@@ -87,6 +87,9 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 | `tests/test_classes.gd` | 42 advancement checks: the tree, lineage, gate, trials, keeping skills, builds, route-only classes, Uniques, saving. Run: `godot --headless res://tests/test_classes.tscn` |
 | `scripts/story/being_library.gd`, `blessing_state.gd` | Gods, demons and devils (their values, blessing levels, buffs + curses, bargains) and this run's interest / refusals / punishment. |
 | `tests/test_blessings.gd` | 56 blessing checks: the roster and its sensitivity rule, rivalries, interest, offers, accepting, levels, buffs and curses in combat, warnings, punishment, bargains, shrines, boss visits, blessed NPCs, saving. Run: `godot --headless res://tests/test_blessings.tscn` |
+| `scripts/economy/guild_library.gd`, `guild_state.gd` | The guilds (patrons, taxes, prices, members' stock, ranks) and this run's territories, standing, membership, treasuries and market. |
+| `scripts/ui/guild_panel.gd` | Tab → Guilds. (The merchant's Buy/Sell tabs and guild shops are in `shop_panel.gd`.) |
+| `tests/test_guilds.gd` | 63 guild and economy checks: territories, joining/leaving, ranks and perks, taxes, prices, pay, supply and demand, selling, guild jobs, agents, saving. Run: `godot --headless res://tests/test_guilds.tscn` |
 | `tests/test_routes.gd` | 67 route checks: points, locks, hints, endings and DLC endings, companions warning/leaving, prices, the black market, route bounties and classes, the Hall, saving. Run: `godot --headless res://tests/test_routes.tscn` |
 | `tests/test_loot.gd` | 80 loot, gear, stage, boss and roaming-boss checks. Run: `godot --headless res://tests/test_loot.tscn` |
 
@@ -156,6 +159,47 @@ Open it with **Tab → Manage party**.
   - **The Torn Map**: a map on floors 2–9 leads to a hidden cache from floor 6, which pays out a Cartographer's Charm.
   - **Slime Survey** (board, floor 5+): defeat 8 slimes, and the reward reveals all slime weaknesses.
 - Bounty pay (`QuestLog.BOUNTY_*`): 10 gold + 2 per floor and 15 XP + 2 per floor, per enemy asked for. The balance pass can tune it.
+
+## Guilds and the economy
+- **10 guilds run the tower** (`scripts/economy/guild_library.gd`). Floors are split into **territories of 3 floors** (`TERRITORY_FLOORS`): floors 1–3 belong to one guild, 4–6 to the next, and so on, repeating past the last. The HUD shows whose territory you're in.
+- **Every guild is signed with a patron** from the blessing roster, and the patron shapes it: the guild's values are the patron's (which routes it welcomes), rival patrons make **rival guilds**, and its tax and prices fit the patron (Mammon's Golden Ledger: 20% tax, +15% prices; Athena's Order of the Aegis: 5%, normal prices). Each guild also has personality numbers (greed, aggression, honor) waiting for the phase-3 guild AI.
+
+| Floors | Guild | Patron | Tax | Prices |
+|---|---|---|---|---|
+| 1–3 | Order of the Aegis | Athena | 5% | ×1.00 |
+| 4–6 | Sunspear Caravan | Ra | 8% | ×1.00 |
+| 7–9 | Flower-Fruit Mountain Crew | Sun Wukong | 5% | ×0.95 |
+| 10–12 | The Golden Ledger | Mammon | 20% | ×1.15 |
+| 13–15 | Stormhammer Company | Thor | 10% | ×0.95 |
+| 16–18 | Ninefold Lantern | Tamamo-no-Mae | 15% | ×1.10 |
+| 19–21 | Brotherhood of the Jade Oath | Guan Yu | 10% | ×0.90 |
+| 22–24 | Ravenwatch | The Morrigan | 10% | ×1.00 |
+| 25–27 | Underworld Exchange | Hades | 12% | ×1.05 |
+| 28–30 | The Serpent Coil | Apep | 25% | ×1.20 |
+
+- **Taxes:** the floor's guild takes its cut of the gold you win in battle there (shown on the victory screen), and it goes into the guild's **treasury**.
+- **Guild agents** stand on the first floor of each territory and on rest floors. Talk to one to:
+  - learn about the guild (patron, floors, tax)
+  - **join** (one guild at a time; it won't take you if its patron hates your route)
+  - shop its **members' stock**
+  - collect your **pay**
+  - **leave**, which costs 25 standing
+  Joining also costs 10 standing with its rival guilds.
+- **Standing and ranks:** your standing with every guild runs from −100 to 100 (Hated → Honored). Members rank up: **Recruit → Member (25) → Officer (50) → Master (80)**. Ranks give:
+  - lower tax on the guild's floors (Masters pay none)
+  - a discount at its merchants (up to 20%)
+  - more members' stock
+  - **patron favor:** each promotion raises the patron's interest in you
+  - **pay:** Officers and Masters take 3% / 6% of the treasury every 5 floors
+- **Guild jobs:** notice-board bounties are posted by the guild that runs that rest floor, and pay **+5 standing** with it.
+- **Selling:** the merchant (and other traders) have a **Sell** tab:
+  - gear sells by rarity and item level
+  - consumables sell for half their price, skill books for a flat amount
+  - Uniques, quest items and equipped gear can't be sold
+- **Supply and demand, per territory:** buying an item raises its price there, and selling lowers what traders pay. Prices drift back toward normal every floor you climb (`GuildState.BUY_PRESSURE / SELL_PRESSURE / MARKET_DECAY`).
+- **Tab → Guilds** shows every guild, its patron, floors, tax, prices and your standing.
+- Saved with the run, reset in New Game+. DLC can add guilds with `GuildLibrary.register_guild()`.
+- **Coming in phase 3:** the guild AI (guilds act on their own each floor), territory changes, wars, theft both ways, guards and champions, and founding your own guild.
 
 ## Blessings (gods, demons and devils)
 - **Many beings watch the climb** (`scripts/story/being_library.gd`). Each has **values** (routes it likes and dislikes), and its **interest** in you is your points in routes it likes minus routes it dislikes. Dialogue choices can also please or anger one directly (an `interest` effect). Accepting a blessing is always your choice.

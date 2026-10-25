@@ -289,7 +289,8 @@ static func quest_def_to_dict(q: Dictionary) -> Dictionary:
 	var r: Dictionary = q.get("rewards", {})
 	return { "title": q.title, "kind": q.kind, "giver": q.get("giver", ""), "desc": q.get("desc", ""),
 		"steps": steps, "rewards": { "gold": r.get("gold", 0), "xp": r.get("xp", 0),
-			"route_points": _stringify_keys(r.get("route_points", {})) } }
+			"route_points": _stringify_keys(r.get("route_points", {})),
+			"guild_rep": _stringify_keys(r.get("guild_rep", {})) } }
 
 
 ## Only defeat bounties are generated, so only those are accepted back.
@@ -321,4 +322,10 @@ static func quest_def_from_dict(d: Dictionary) -> Dictionary:
 			if route_id is String and RouteLibrary.routes.has(StringName(route_id)):
 				points[StringName(route_id)] = _i(rp, route_id, 0, -10, 10)
 		q.rewards["route_points"] = points
+	var gr := _d(r, "guild_rep")
+	for g in gr:
+		if g is String and GuildLibrary.guilds.has(StringName(g)):
+			if not q.rewards.has("guild_rep"):
+				q.rewards["guild_rep"] = {}
+			q.rewards.guild_rep[StringName(g)] = _i(gr, g, 0, -20, 20)
 	return q if QuestLibrary.validate(&"saved_bounty", q).is_empty() else {}

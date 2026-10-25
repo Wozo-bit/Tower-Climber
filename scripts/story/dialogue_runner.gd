@@ -22,13 +22,17 @@ var companion: CharacterData
 ## warnings, punishment). Static so conditions and {being} text can see it;
 ## only one conversation runs at a time.
 static var context_being: StringName = &""
+## The guild this conversation is with (a guild agent), for {guild...} text,
+## guild conditions and effects.
+static var context_guild: StringName = &""
 
 var _nodes: Dictionary = {}
 
 
 ## Starts a conversation. Returns false if the id doesn't exist.
-func start(id: StringName, with: CharacterData = null, being: StringName = &"") -> bool:
+func start(id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"") -> bool:
 	context_being = being
+	context_guild = guild
 	var d := DialogueLibrary.get_dialogue(id)
 	companion = with
 	requests.clear()
@@ -148,6 +152,11 @@ static func check(cond: Dictionary) -> bool:
 			"has_bargain": ok = (not BeingLibrary.get_being(context_being).get("bargain", {}).is_empty()) == v
 			"can_pay_bargain": ok = gs.blessings.can_pay(context_being) == v
 			"blessed": ok = gs.player.is_blessed() == v
+			# Guild agents (about the guild this conversation is with).
+			"guild_member": ok = (gs.guilds.member == context_guild and context_guild != &"") == v
+			"in_guild": ok = (gs.guilds.member != &"") == v
+			"can_join_guild": ok = gs.guilds.can_join(context_guild) == v
+			"guild_pay_due": ok = (gs.guilds.member == context_guild and gs.guilds.pay_due()) == v
 			_:
 				push_warning("Dialogue: unknown condition '%s'" % k)
 				ok = false
@@ -202,6 +211,15 @@ func _apply_effects(effects: Array) -> void:
 				messages.append("You can't pay what %s asks." % BeingLibrary.get_being(context_being).name)
 		if e.has("refuse_blessing") and context_being != &"":
 			gs.blessings.refuse(context_being)
+		if e.has("join_guild") and context_guild != &"":
+			gs.guilds.join(context_guild)
+		if e.has("leave_guild"):
+			gs.guilds.leave()
+		if e.has("collect_pay"):
+			gs.guilds.collect_pay()
+		if e.has("guild_rep"):
+			for g in e.guild_rep:
+				gs.guilds.add_rep(g, e.guild_rep[g])
 		if e.has("interest"):
 			for b in e.interest:
 				gs.blessings.add_interest(b, e.interest[b])
@@ -230,6 +248,16 @@ static func fill(s: String, npc_name: String = "") -> String:
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
+	if context_guild != &"" and out.contains("{guild"):
+		var g := GuildLibrary.get_guild(context_guild)
+		var floors := GameState.guilds.territories_of(context_guild).map(func(t): return GuildLibrary.territory_floors(t))
+		out = out.replace("{guild}", g.get("name", "?")).replace("{guild_motto}", g.get("motto", "")) \
+			.replace("{guild_patron}", BeingLibrary.full_name(g.get("patron", &""))) \
+			.replace("{guild_floors}", ", ".join(floors) if not floors.is_empty() else "no floors right now") \
+			.replace("{guild_tax}", "%d%%" % roundi(g.get("tax", 0.0) * 100)) \
+			.replace("{guild_rank}", GuildLibrary.rank_name(GameState.guilds.rank)) \
+			.replace("{guild_standing}", GuildState.standing_name(GameState.guilds.rep_of(context_guild))) \
+			.replace("{guild_refusal}", GameState.guilds.join_refusal(context_guild))
 	if context_being != &"" and out.contains("{being"):
 		var b := BeingLibrary.get_being(context_being)
 		out = out.replace("{being}", BeingLibrary.full_name(context_being)) \
