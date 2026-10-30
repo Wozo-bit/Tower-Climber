@@ -12,6 +12,7 @@ var _failed := 0
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_guild_ai"
 	GameState.unlocks_path = "user://test_saves_guild_ai_unlocks.json"
+	Tips.path = "user://test_saves_guild_ai_tips.json"
 	test_ai_ticks()
 	test_raids_and_alliances()
 	test_wars()

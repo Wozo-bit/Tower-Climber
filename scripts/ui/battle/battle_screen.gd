@@ -106,6 +106,8 @@ func _start_battle() -> void:
 	if CutInData.is_big_fight(kind):
 		CutIns.play(CutInData.boss(kind, encounter, GameState.floor_number, info))
 	await _cutins_done()
+	Tips.check("battle")
+	await Tips.show_pending()
 	battle.start()
 
 
@@ -171,6 +173,7 @@ func _on_turn_started(actor: Combatant) -> void:
 	else:
 		_prompt.text = "%s's turn — choose a command." % actor.display_name
 		_show_commands(true)
+		Tips.show_pending()   # e.g. the first weakness hit
 
 
 func _on_action_resolved(result: Dictionary) -> void:
@@ -184,6 +187,8 @@ func _on_action_resolved(result: Dictionary) -> void:
 		var card: UnitCard = _cards.get(e.target)
 		if card == null:
 			continue
+		if e.get("weak", false) and actor and actor.side == Combatant.Side.PARTY:
+			Tips.event(&"weakness")
 		match e.kind:
 			"damage":
 				var txt: String = ("%d!" if e.crit else "%d") % e.amount

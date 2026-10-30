@@ -13,6 +13,8 @@ var vsync := true
 var ui_theme: StringName = UITheme.DEFAULT
 ## Full-screen splashes for bosses, ultimate skills, gods, level-ups and wars.
 var cutins := true
+## Tutorial tips the first time you meet each system (the Tips autoload).
+var tips := true
 
 ## The palette changed (screens with their own backgrounds repaint).
 signal ui_theme_changed
@@ -67,6 +69,7 @@ func save_settings() -> void:
 	cfg.set_value("video", "vsync", vsync)
 	cfg.set_value("video", "ui_theme", String(ui_theme))
 	cfg.set_value("video", "cutins", cutins)
+	cfg.set_value("game", "tips", tips)
 	cfg.save(PATH)
 
 
@@ -82,3 +85,4 @@ func load_settings() -> void:
 	var theme_id = cfg.get_value("video", "ui_theme", String(ui_theme))
 	ui_theme = StringName(theme_id) if UITheme.is_valid(theme_id) else UITheme.DEFAULT
 	cutins = cfg.get_value("video", "cutins", cutins) == true
+	tips = cfg.get_value("game", "tips", tips) == true

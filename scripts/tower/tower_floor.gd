@@ -26,6 +26,8 @@ const FLEE_STUN_TIME := 2.5
 const POST_BATTLE_GRACE := 1.2
 ## After a conversation, holding the move key won't start it again straight away.
 const TALK_COOLDOWN := 0.35
+## How often the floor looks for tutorial tips that are due (seconds).
+const TIP_CHECK_EVERY := 0.5
 
 const C_FLOOR := Color(0.16, 0.16, 0.2)
 const C_FLOOR_ALT := Color(0.18, 0.18, 0.22)
@@ -71,6 +73,7 @@ var _flash: ColorRect
 var _pause: PauseMenu
 var _dialogue: DialogueBox
 var _talk_cooldown := 0.0
+var _tip_check := 0.0
 var _climb_prompt: ConfirmationDialog
 ## Safe floors (rest, cleared boss arena) ask before you leave them.
 var _leave_prompt: ConfirmationDialog
@@ -163,6 +166,7 @@ func _handle_battle_return() -> void:
 			_show_toast("You got away!")
 		BattleManager.Outcome.DEFEAT:
 			_show_toast("You wake up on floor %d..." % GameState.floor_number)
+			Tips.event(&"defeat")
 		_:
 			_show_toast(_floor_intro_text())
 
@@ -187,11 +191,22 @@ func _process(delta: float) -> void:
 		var talk_req: Dictionary = GameState.pending_talks.pop_front()
 		_talk_cooldown = 0.0
 		talk(talk_req.dialogue, talk_req.get("companion"), talk_req.get("being", &""))
+	# Tutorial tips, at a calm moment (the window pauses the game).
+	_tip_check -= delta
+	if _tip_check <= 0.0 and not _menus_open() and _player_t >= 1.0 and GameState.pending_talks.is_empty():
+		_tip_check = TIP_CHECK_EVERY
+		_tips_now("floor")
 
 	if not _menus_open():
 		_update_player(delta)
 		_update_enemies(delta)
 	queue_redraw()
+
+
+## Queues the tips due here and shows them (pauses until they're closed).
+func _tips_now(place: String) -> void:
+	Tips.check(place, layout)
+	Tips.show_pending()
 
 
 func _menus_open() -> bool:
@@ -250,6 +265,7 @@ func try_move(dir: Vector2i) -> bool:
 		return false
 	if target == layout.board:
 		_board_panel.open()
+		_tips_now("board")
 		return false
 	if layout.npcs.has(target):
 		var waiting := GameState.waiting_companion(layout.npcs[target])
@@ -421,6 +437,8 @@ func _on_dialogue_finished(runner: DialogueRunner) -> void:
 	if not runner.messages.is_empty():
 		_show_toast("\n".join(runner.messages))
 	for r in runner.requests:
+		if r.begins_with("shop"):
+			_tips_now("shop")
 		if r == "shop":
 			_shop.open()
 		elif r == "shop:guild":

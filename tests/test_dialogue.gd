@@ -9,6 +9,7 @@ var _failed := 0
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_dialogue"
 	GameState.unlocks_path = "user://test_saves_dialogue_unlocks.json"
+	Tips.path = "user://test_saves_dialogue_tips.json"
 	test_library_is_valid()
 	test_validator_catches_typos()
 	test_runner_basics()

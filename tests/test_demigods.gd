@@ -13,6 +13,7 @@ const DEMIGODS := [&"heracles", &"perseus", &"achilles", &"gilgamesh", &"cu_chul
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_demigods"
 	GameState.unlocks_path = "user://test_saves_demigods_unlocks.json"
+	Tips.path = "user://test_saves_demigods_tips.json"
 	if FileAccess.file_exists(GameState.unlocks_path):
 		DirAccess.remove_absolute(GameState.unlocks_path)
 	test_demigod_classes()

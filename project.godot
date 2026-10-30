@@ -21,6 +21,7 @@ GameState="*res://scripts/autoload/game_state.gd"
 Settings="*res://scripts/autoload/settings.gd"
 Audio="*res://scripts/autoload/audio.gd"
 CutIns="*res://scripts/autoload/cut_ins.gd"
+Tips="*res://scripts/autoload/tips.gd"
 
 [display]
 

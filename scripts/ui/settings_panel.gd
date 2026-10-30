@@ -41,6 +41,16 @@ func _init() -> void:
 	_add_check(box, "V-Sync", "vsync")
 	_add_theme_picker(box)
 	_add_check(box, "Cut-in splashes", "cutins")
+	var tips_row := HBoxContainer.new()
+	box.add_child(tips_row)
+	_add_check(tips_row, "Tutorial tips", "tips")
+	var reset := Button.new()
+	reset.text = "Show all tips again"
+	reset.tooltip_text = "Forget which tips you've seen, so each shows again when it comes up."
+	reset.pressed.connect(func():
+		Tips.reset()
+		reset.text = "Tips reset")
+	tips_row.add_child(reset)
 
 	var note := Label.new()
 	note.text = "Controls: WASD / arrows move · Tab party · Esc pause"

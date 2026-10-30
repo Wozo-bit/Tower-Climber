@@ -285,7 +285,11 @@ more routes/endings: keep new route content data-driven and registrable.
 - Build quests/routes as data (like DialogueLibrary), validated by tests;
   placeholder text only, no real story.
 
-Tutorial is deliberately deferred until the game is closer to complete.
+Tutorial tips BUILT 2026-10-30 (Hayden's picks): system window that pauses,
+shown the first time you meet each system (~30 tips, all four topics), seen
+list for the whole save file (user://tips.json; tests redirect Tips.path),
+Tab -> Guide to reread, Settings toggle + reset. TipLibrary (data + when
+due), Tips autoload (queue/window). Text is placeholder.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
@@ -346,7 +350,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (22 suites, 1371 checks at last run).
+Every change gets tests in tests/ (23 suites, 1435 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -357,7 +361,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

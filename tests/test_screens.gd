@@ -12,6 +12,7 @@ var _failed := 0
 func _ready() -> void:
 	GameState.save_dir = "user://test_saves_screens"
 	GameState.unlocks_path = "user://test_saves_screens_unlocks.json"
+	Tips.path = "user://test_saves_screens_tips.json"
 	await test_floor_screen()
 	await test_battle_screen()
 	await test_captain_in_battle()
