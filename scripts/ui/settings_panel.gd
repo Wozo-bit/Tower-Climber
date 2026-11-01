@@ -5,6 +5,9 @@ extends Control
 
 signal closed
 
+var _controls: ControlsPanel
+var _keys_note: Label
+
 
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -26,7 +29,7 @@ func _init() -> void:
 		margin.add_theme_constant_override("margin_" + side, 20)
 	panel.add_child(margin)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
+	box.add_theme_constant_override("separation", 9)
 	margin.add_child(box)
 
 	var title := Label.new()
@@ -38,6 +41,14 @@ func _init() -> void:
 	_add_slider(box, "Music volume", "music_volume")
 	_add_slider(box, "Sound effects", "sfx_volume")
 	_add_check(box, "Fullscreen", "fullscreen")
+	var sizes := []
+	for s in Settings.WINDOW_SIZES:
+		sizes.append("%d x %d" % [s.x, s.y])
+	_add_picker(box, "Window size", sizes, Settings.window_size, func(i): Settings.window_size = i,
+		"Used when not in fullscreen.")
+	var scales := Settings.UI_SCALES.map(func(s): return "%d%%" % roundi(s * 100))
+	_add_picker(box, "Interface size", scales, Settings.UI_SCALES.find(Settings.ui_scale),
+		func(i): Settings.ui_scale = Settings.UI_SCALES[i], "Makes menus and text bigger or smaller.")
 	_add_check(box, "V-Sync", "vsync")
 	_add_theme_picker(box)
 	_add_check(box, "Cut-in splashes", "cutins")
@@ -52,19 +63,39 @@ func _init() -> void:
 		reset.text = "Tips reset")
 	tips_row.add_child(reset)
 
-	var note := Label.new()
-	note.text = "Controls: WASD / arrows move · Tab party · Esc pause"
-	note.modulate = Color(1, 1, 1, 0.5)
-	box.add_child(note)
+	var controls_btn := Button.new()
+	controls_btn.text = "Controls..."
+	controls_btn.tooltip_text = "Change the keys."
+	controls_btn.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	controls_btn.pressed.connect(func(): _controls.open())
+	box.add_child(controls_btn)
+	_keys_note = Label.new()
+	_keys_note.modulate = Color(1, 1, 1, 0.5)
+	_keys_note.add_theme_font_size_override("font_size", 14)
+	_keys_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(_keys_note)
 
 	var back := Button.new()
 	back.text = "Back"
 	back.pressed.connect(close)
 	box.add_child(back)
 
+	_controls = ControlsPanel.new()
+	_controls.closed.connect(_refresh_keys_note)
+	add_child(_controls)
+	_refresh_keys_note()
+
 
 func open() -> void:
+	_refresh_keys_note()
 	show()
+
+
+func _refresh_keys_note() -> void:
+	var k := Settings.keys
+	_keys_note.text = "%s / %s / %s / %s move · %s party · %s pause" % [
+		InputBindings.key_name("move_up"), InputBindings.key_name("move_left"), InputBindings.key_name("move_down"),
+		InputBindings.key_name("move_right"), InputBindings.keys_text(k, "party_menu"), InputBindings.keys_text(k, "pause")]
 
 
 func close() -> void:
@@ -74,7 +105,7 @@ func close() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause")):
+	if visible and not _controls.visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause")):
 		get_viewport().set_input_as_handled()
 		close()
 
@@ -111,6 +142,26 @@ func _add_check(parent: Node, label: String, prop: String) -> void:
 		Settings.set(prop, on)
 		Settings.apply())
 	parent.add_child(cb)
+
+
+## A labelled dropdown that applies at once.
+func _add_picker(parent: Node, label: String, items: Array, selected: int, on_pick: Callable, tip := "") -> void:
+	var row := HBoxContainer.new()
+	var l := Label.new()
+	l.text = label
+	l.custom_minimum_size.x = 160
+	row.add_child(l)
+	var opt := OptionButton.new()
+	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	opt.tooltip_text = tip
+	for it in items:
+		opt.add_item(it)
+	opt.selected = maxi(0, selected)
+	opt.item_selected.connect(func(i):
+		on_pick.call(i)
+		Settings.apply())
+	row.add_child(opt)
+	parent.add_child(row)
 
 
 ## The menu colour scheme (UITheme palettes); changes the whole game at once.

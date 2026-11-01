@@ -13,6 +13,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_difficulty"
 	GameState.unlocks_path = "user://test_saves_difficulty_unlocks.json"
 	Tips.path = "user://test_saves_difficulty_tips.json"
+	Settings.path = "user://test_saves_difficulty_settings.cfg"
 	GameState.legacy_path = "user://test_hall_difficulty.json"
 	_cleanup()
 	test_difficulty_data()
@@ -43,7 +44,7 @@ func _cleanup() -> void:
 	for slot in range(1, GameState.SLOT_COUNT + 1):
 		GameState.delete_slot(slot)
 	if FileAccess.file_exists(GameState.legacy_path):
-		DirAccess.remove_absolute(GameState.legacy_path)
+		SaveSerializer.delete_file(GameState.legacy_path)
 
 
 const D := Difficulty.Level

@@ -24,7 +24,7 @@ func _init() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(820, 620)
+	UIStyle.fit_to_screen(panel, Vector2(820, 620))
 	UIStyle.apply(panel)
 	center.add_child(panel)
 	var margin := MarginContainer.new()

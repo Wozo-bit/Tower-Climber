@@ -12,6 +12,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_party"
 	GameState.unlocks_path = "user://test_saves_party_unlocks.json"
 	Tips.path = "user://test_saves_party_tips.json"
+	Settings.path = "user://test_saves_party_settings.cfg"
 	test_bench_and_swap()
 	test_order_and_rows()
 	test_caps_and_overflow()
@@ -335,5 +336,5 @@ func test_solo() -> void:
 	check(GameState.player.epithet == "", "tampered save: no made-up titles")
 	GameState.pending_battle_info = {}
 	if FileAccess.file_exists(GameState.legacy_path):
-		DirAccess.remove_absolute(GameState.legacy_path)
+		SaveSerializer.delete_file(GameState.legacy_path)
 	GameState.legacy_path = hall

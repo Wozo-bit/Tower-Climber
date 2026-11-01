@@ -151,7 +151,7 @@ func _handle_battle_return() -> void:
 			if _alive_enemy_count() == 0 and not layout.is_boss_floor:
 				_show_toast("Floor cleared! The stairs are waiting.")
 			if StageLibrary.is_miniboss_floor(GameState.floor_number) and not GameState.stairs_locked():
-				_show_toast("Miniboss defeated! The stairs are open. (Tab to check your loot)")
+				_show_toast("Miniboss defeated! The stairs are open. (%s to check your loot)" % InputBindings.key_name("party_menu"))
 			if layout.is_boss_floor and not GameState.stairs_locked():
 				_show_toast("The boss falls! A campfire flickers to life. (Checkpoint saved)")
 			if GameState.pending_unlock_message != "":
@@ -811,12 +811,18 @@ func _build_hud() -> void:
 	_hud.add_child(top)
 	_floor_label = Label.new()
 	_floor_label.add_theme_font_size_override("font_size", 16)
+	# Shortened with "..." when the window is narrow (the hint keeps its place).
+	_floor_label.clip_text = true
+	_floor_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_floor_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_floor_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	top.add_child(_floor_label)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(spacer)
 	var hint := Label.new()
-	hint.text = "WASD move · Tab party"
+	hint.text = "%s%s%s%s move · %s party" % [InputBindings.key_name("move_up"), InputBindings.key_name("move_left"),
+		InputBindings.key_name("move_down"), InputBindings.key_name("move_right"), InputBindings.key_name("party_menu")]
 	hint.modulate = Color(1, 1, 1, 0.5)
 	top.add_child(hint)
 
@@ -938,6 +944,7 @@ func _update_hud() -> void:
 	if not hunting.is_empty():
 		fl += "     ⚠ %s guards are hunting you" % GuildLibrary.guild_name(hunting[0].get("guild", &""))
 	_floor_label.text = fl
+	_floor_label.tooltip_text = fl
 
 	_board_has_new = layout != null and layout.board.x >= 0 \
 		and not GameState.quests.board_offers(GameState.floor_number).is_empty()

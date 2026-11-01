@@ -162,22 +162,8 @@ func _process(delta: float) -> void:
 ## Adds movement/menu keys at runtime so the project works without
 ## editing Project Settings > Input Map. Rebind there later if you like.
 func _register_input_actions() -> void:
-	var actions := {
-		"move_up": [KEY_W, KEY_UP],
-		"move_down": [KEY_S, KEY_DOWN],
-		"move_left": [KEY_A, KEY_LEFT],
-		"move_right": [KEY_D, KEY_RIGHT],
-		"party_menu": [KEY_TAB, KEY_I],
-		"pause": [KEY_ESCAPE, KEY_P],
-	}
-	for action in actions:
-		if InputMap.has_action(action):
-			continue
-		InputMap.add_action(action)
-		for key in actions[action]:
-			var ev := InputEventKey.new()
-			ev.physical_keycode = key
-			InputMap.action_add_event(action, ev)
+	# The defaults; Settings puts the player's own keys in on startup.
+	InputBindings.apply(InputBindings.defaults())
 
 
 func _init() -> void:
@@ -319,10 +305,10 @@ func slot_path(slot: int) -> String:
 ## "completed" slots hold a marker left by conquering the tower (New Game+ uses them).
 func slot_info(slot: int) -> Dictionary:
 	var path := slot_path(slot)
-	if not FileAccess.file_exists(path):
+	if not FileAccess.file_exists(path) and not FileAccess.file_exists(SaveSerializer.backup_path(path, 1)):
 		return { "state": "empty", "summary": "Empty" }
-	var d := SaveSerializer.read_json(path)
-	if d.is_empty():
+	var d := SaveSerializer.read_json(path, slot_file_ok)
+	if not slot_file_ok(d):
 		return { "state": "corrupt", "summary": "Unreadable save" }
 	if d.get("completed", false):
 		var name_s := SaveSerializer._s(d, "character_name", "?", 32)
@@ -392,7 +378,7 @@ func save_game() -> bool:
 ## has no valid run.
 func load_game(slot: int = -1) -> bool:
 	var s := current_slot if slot < 0 else slot
-	var d := SaveSerializer.read_json(slot_path(s))
+	var d := SaveSerializer.read_json(slot_path(s), slot_file_ok)
 	if d.is_empty() or d.get("completed", false) or not d.get("player") is Dictionary:
 		return false
 	var S := SaveSerializer
@@ -468,10 +454,14 @@ func load_game(slot: int = -1) -> bool:
 	return true
 
 
+## A slot file worth loading: a run with a player, or a "conquered" marker.
+static func slot_file_ok(d: Dictionary) -> bool:
+	return d.get("completed", false) == true or d.get("player") is Dictionary
+
+
+## Deletes the slot and its backups (so a deleted run never comes back).
 func delete_slot(slot: int) -> void:
-	var path := slot_path(slot)
-	if FileAccess.file_exists(path):
-		DirAccess.remove_absolute(path)
+	SaveSerializer.delete_file(slot_path(slot))
 
 
 ## Kept for older callers: clears the current slot.
@@ -856,7 +846,7 @@ func enter_floor(n: int) -> void:
 		_party_grows()
 	var gate: int = ClassRegistry.ADVANCEMENT_GATES[2].floor
 	if n == gate + 1 and battle_party().any(func(m): return m.class_change_open()):
-		quests.messages.append("Advancement is open. Each climber may also change class once, with a free respec (Tab).")
+		quests.messages.append("Advancement is open. Each climber may also change class once, with a free respec (%s)." % InputBindings.key_name("party_menu"))
 	floor_seed = randi()
 	floor_ready = false
 	floor_enemies.clear()
@@ -1525,7 +1515,7 @@ func _check_secret_unlock(roamer_id: StringName) -> void:
 		return
 	set_flag(SecretPaths.PATHS[path].unlock_flag)
 	var def := ClassRegistry.get_class_def(SecretPaths.PATHS[path].class_id)
-	pending_unlock_message = "✦ Secret class unlocked: %s! (Tab → party menu)" % def.display_name
+	pending_unlock_message = "✦ Secret class unlocked: %s! (%s → party menu)" % [def.display_name, InputBindings.key_name("party_menu")]
 
 
 ## Secret classes from questlines, plus New Game+ classes during an NG+ run.

@@ -156,12 +156,7 @@ static func text(id: StringName) -> String:
 
 ## The first key bound to an action ("Tab"), so the text follows rebinding.
 static func key_name(action: String) -> String:
-	if InputMap.has_action(action):
-		for ev in InputMap.action_get_events(action):
-			if ev is InputEventKey:
-				var code: int = ev.physical_keycode if ev.physical_keycode != 0 else ev.keycode
-				return OS.get_keycode_string(code)
-	return action
+	return InputBindings.key_name(action)
 
 
 static func ids_for(place: String) -> Array:

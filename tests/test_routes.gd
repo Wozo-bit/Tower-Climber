@@ -13,6 +13,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_routes"
 	GameState.unlocks_path = "user://test_saves_routes_unlocks.json"
 	Tips.path = "user://test_saves_routes_tips.json"
+	Settings.path = "user://test_saves_routes_settings.cfg"
 	GameState.legacy_path = "user://test_hall_routes.json"
 	_cleanup()
 	test_data_is_valid()
@@ -43,7 +44,7 @@ func check(cond: bool, label: String) -> void:
 func _cleanup() -> void:
 	GameState.delete_slot(1)
 	if FileAccess.file_exists(GameState.legacy_path):
-		DirAccess.remove_absolute(GameState.legacy_path)
+		SaveSerializer.delete_file(GameState.legacy_path)
 	RouteLibrary.endings = RouteLibrary.BASE_ENDINGS.duplicate(true)
 
 

@@ -12,6 +12,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_quests"
 	GameState.unlocks_path = "user://test_saves_quests_unlocks.json"
 	Tips.path = "user://test_saves_quests_tips.json"
+	Settings.path = "user://test_saves_quests_settings.cfg"
 	test_library_is_valid()
 	test_start_and_pin()
 	test_defeat_goals()

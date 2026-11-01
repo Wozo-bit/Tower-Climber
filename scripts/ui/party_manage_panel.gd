@@ -29,7 +29,7 @@ func _init() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(1060, 500)
+	UIStyle.fit_to_screen(panel, Vector2(1060, 500))
 	UIStyle.apply(panel)
 	center.add_child(panel)
 	var margin := MarginContainer.new()
@@ -66,9 +66,15 @@ func _init() -> void:
 	body.add_child(party_col)
 	_party_title = _heading()
 	party_col.add_child(_party_title)
+	# Scrolls when up to 10 fighters don't fit (small window / big interface).
+	var party_scroll := ScrollContainer.new()
+	party_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	party_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	party_col.add_child(party_scroll)
 	_party_box = VBoxContainer.new()
+	_party_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_party_box.add_theme_constant_override("separation", 6)
-	party_col.add_child(_party_box)
+	party_scroll.add_child(_party_box)
 
 	var reserve_col := VBoxContainer.new()
 	reserve_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL

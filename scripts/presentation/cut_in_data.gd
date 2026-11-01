@@ -105,7 +105,7 @@ static func level_up(ups: Array, class_ready := false) -> Dictionary:
 		parts.append("%s  Lv %d" % [u[0], u[1]])
 	var sub := "   ·   ".join(parts)
 	if class_ready:
-		sub += "\nA class can be chosen! (Tab)"
+		sub += "\nA class can be chosen! (%s)" % InputBindings.key_name("party_menu")
 	return make("level_up", "LEVEL UP", sub, Assets.texture("cutins", "level_up"), UITheme.color("accent"), "▲")
 
 

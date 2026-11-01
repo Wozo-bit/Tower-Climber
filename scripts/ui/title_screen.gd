@@ -57,6 +57,30 @@ func _ready() -> void:
 		GameState.ironman_ended_message = ""
 		add_child(dlg)
 		dlg.popup_centered.call_deferred()
+	_tell_restored()
+
+
+## A damaged save file was swapped for its backup (SaveSerializer.read_json).
+func _tell_restored() -> void:
+	if SaveSerializer.restored.is_empty():
+		return
+	var names := []
+	for p in SaveSerializer.restored:
+		var what: String = { GameState.legacy_path: "the Hall of Climbers", GameState.unlocks_path: "your unlocked demigods",
+			Tips.path: "the list of tips you've seen" }.get(p, "a game file")
+		for slot in range(1, GameState.SLOT_COUNT + 1):
+			if p == GameState.slot_path(slot):
+				what = "save slot %d" % slot
+		if not names.has(what):
+			names.append(what)
+	SaveSerializer.restored.clear()
+	var dlg := AcceptDialog.new()
+	dlg.title = "Save restored"
+	var list := ", ".join(names)
+	dlg.dialog_text = "%s was damaged, so its most recent backup was loaded instead.\nYou may have lost a little progress." % (
+		list.substr(0, 1).to_upper() + list.substr(1))
+	add_child(dlg)
+	dlg.popup_centered.call_deferred()
 
 
 func _refresh() -> void:

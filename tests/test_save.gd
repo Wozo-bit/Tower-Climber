@@ -11,6 +11,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves"
 	GameState.unlocks_path = "user://test_saves_unlocks.json"
 	Tips.path = "user://test_saves_tips.json"
+	Settings.path = "user://test_saves_settings.cfg"
 	GameState.legacy_path = "user://test_hall.json"
 	_cleanup()
 	test_new_game()
@@ -19,6 +20,7 @@ func _ready() -> void:
 	test_new_game_plus()
 	test_ascendant()
 	test_json_safety()
+	test_backups()
 	test_three_slots()
 	test_ng_plus_slot_choice()
 	test_settings()
@@ -40,9 +42,7 @@ func check(cond: bool, label: String) -> void:
 func _cleanup() -> void:
 	for slot in range(1, GameState.SLOT_COUNT + 1):
 		GameState.delete_slot(slot)
-	for p in [GameState.legacy_path]:
-		if FileAccess.file_exists(p):
-			DirAccess.remove_absolute(p)
+	SaveSerializer.delete_file(GameState.legacy_path)
 
 
 func test_new_game() -> void:
@@ -252,7 +252,9 @@ func test_json_safety() -> void:
 		"no scripts or Godot resource data in the save")
 	check(FileAccess.get_file_as_string(GameState.legacy_path).begins_with("{"), "the Hall of Climbers is JSON too")
 
-	# Garbage file: fails to load, game state untouched.
+	# Garbage file with no backups: fails to load, game state untouched.
+	for n in range(1, SaveSerializer.BACKUPS + 1):
+		DirAccess.remove_absolute(SaveSerializer.backup_path(path, n))
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	f.store_string("[gd_resource type=\"Resource\"]\nnot json at all {{{")
 	f.close()
@@ -281,6 +283,49 @@ func test_json_safety() -> void:
 	check(GameState.floor_number == 1, "floor number clamped")
 	check(GameState.floor_enemies.size() == 1 and GameState.floor_enemies[0].group.size() == 1 and GameState.floor_enemies[0].group[0] == &"goblin", "unknown enemies and bad rows dropped")
 	check(GameState.has_flag(&"clue_ash_scorched_mural") and GameState.story_flags.size() == 1, "only valid flags kept")
+
+
+func test_backups() -> void:
+	print("-- save backups --")
+	_cleanup()
+	var path := GameState.slot_path(1)
+	GameState.start_new_game("Backer", "Cassia", 1)
+	GameState.save_game()
+	GameState.player.level = 7
+	GameState.save_game()
+	GameState.player.level = 9
+	GameState.save_game()
+	check(FileAccess.file_exists(SaveSerializer.backup_path(path, 1)) and FileAccess.file_exists(SaveSerializer.backup_path(path, 2)),
+		"each save keeps the last %d versions" % SaveSerializer.BACKUPS)
+	check(not FileAccess.file_exists(SaveSerializer.backup_path(path, 3)), "no more than that")
+	check(SaveSerializer._parse(SaveSerializer.backup_path(path, 1)).player.level == 7, ".bak1 is the newest backup")
+	# The slot gets damaged: the newest good backup takes its place.
+	FileAccess.open(path, FileAccess.WRITE).store_string("{half a sa")
+	SaveSerializer.restored.clear()
+	check(GameState.slot_info(1).state == "run", "a damaged slot is restored from its backup")
+	check(SaveSerializer.restored == [path], "and the title screen is told (%s)" % [SaveSerializer.restored])
+	check(FileAccess.file_exists(path + ".broken"), "the damaged file is kept aside")
+	check(GameState.load_game(1) and GameState.player.level == 7, "loading gives the backup's run")
+	# A file that parses but isn't a run counts as damaged too.
+	SaveSerializer.write_json(path, { "version": 3, "nonsense": true })
+	check(GameState.slot_info(1).state == "run", "a save with no player falls back too")
+	# A broken file is never rotated into the backups.
+	FileAccess.open(path, FileAccess.WRITE).store_string("junk")
+	GameState.save_game()
+	check(SaveSerializer._parse(SaveSerializer.backup_path(path, 1)) != null, "a broken file isn't kept as a backup")
+	# Deleting a slot deletes its backups, so the run can't come back.
+	GameState.delete_slot(1)
+	check(GameState.slot_info(1).state == "empty", "a deleted slot stays empty")
+	check(not FileAccess.file_exists(SaveSerializer.backup_path(path, 1)) and not FileAccess.file_exists(path + ".broken"),
+		"its backups are gone too")
+	# The Hall and the unlocks file have backups as well.
+	GameState.start_new_game("Backer", "Cassia", 1)
+	GameState.record_completion()
+	GameState.record_completion()
+	FileAccess.open(GameState.legacy_path, FileAccess.WRITE).store_string("oops")
+	check(GameState.load_legacy().records.size() == 1, "a damaged Hall of Climbers is restored")
+	SaveSerializer.restored.clear()
+	_cleanup()
 
 
 func test_three_slots() -> void:

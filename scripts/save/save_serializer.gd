@@ -15,6 +15,18 @@ const FORMAT_VERSION := 3
 # Low-level helpers
 # =========================================================
 
+## Backups (Hayden 2026-11-01): every write keeps the previous BACKUPS good
+## versions (<file>.bak1 = newest). Reading a broken file falls back to the
+## newest good backup, puts it back in place (the broken one is kept as
+## <file>.broken) and notes the path in `restored` for the title screen.
+const BACKUPS := 2
+static var restored: Array[String] = []
+
+
+static func backup_path(path: String, n: int) -> String:
+	return "%s.bak%d" % [path, n]
+
+
 static func write_json(path: String, data: Dictionary) -> bool:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	# Write to a temp file first, then swap it in, so a crash mid-write can't
@@ -26,19 +38,67 @@ static func write_json(path: String, data: Dictionary) -> bool:
 	f.store_string(JSON.stringify(data, "\t"))
 	f.close()
 	if FileAccess.file_exists(path):
-		DirAccess.remove_absolute(path)
+		if _parse(path) != null:
+			_rotate(path)   # the old version becomes .bak1
+		else:
+			DirAccess.remove_absolute(path)   # never back up a broken file
 	return DirAccess.rename_absolute(tmp, path) == OK
 
 
-## Returns {} if the file is missing, unreadable or not a JSON object.
-static func read_json(path: String) -> Dictionary:
+## path -> .bak1 -> .bak2 ... (the oldest falls off).
+static func _rotate(path: String) -> void:
+	var last := backup_path(path, BACKUPS)
+	if FileAccess.file_exists(last):
+		DirAccess.remove_absolute(last)
+	for n in range(BACKUPS - 1, 0, -1):
+		if FileAccess.file_exists(backup_path(path, n)):
+			DirAccess.rename_absolute(backup_path(path, n), backup_path(path, n + 1))
+	DirAccess.rename_absolute(path, backup_path(path, 1))
+
+
+## The file as a Dictionary, or null if it's missing or not a JSON object.
+static func _parse(path: String) -> Variant:
 	if not FileAccess.file_exists(path):
-		return {}
+		return null
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
-		return {}
+		return null
 	var parsed = JSON.parse_string(f.get_as_text())
-	return parsed if parsed is Dictionary else {}
+	return parsed if parsed is Dictionary else null
+
+
+## Returns {} if the file is missing, unreadable or not a JSON object (and no
+## backup is good either). `valid` can reject a file that parses but isn't
+## usable (e.g. a save with no player); that falls back to a backup too.
+static func read_json(path: String, valid := Callable()) -> Dictionary:
+	var d = _parse(path)
+	if d != null and (not valid.is_valid() or valid.call(d)):
+		return d
+	for n in range(1, BACKUPS + 1):
+		var b = _parse(backup_path(path, n))
+		if b != null and (not valid.is_valid() or valid.call(b)):
+			if FileAccess.file_exists(path):
+				if FileAccess.file_exists(path + ".broken"):
+					DirAccess.remove_absolute(path + ".broken")
+				DirAccess.rename_absolute(path, path + ".broken")
+			var f := FileAccess.open(path, FileAccess.WRITE)
+			if f:
+				f.store_string(FileAccess.get_file_as_string(backup_path(path, n)))
+				f.close()
+			restored.append(path)
+			push_warning("Restored %s from backup %d." % [path, n])
+			return b
+	return d if d != null else {}
+
+
+## Removes a file and every backup of it (deleting a save slot, Ironman).
+static func delete_file(path: String) -> void:
+	var paths := [path, path + ".tmp", path + ".broken"]
+	for n in range(1, BACKUPS + 1):
+		paths.append(backup_path(path, n))
+	for p in paths:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(p)
 
 
 static func _i(d: Dictionary, key: String, default: int, lo: int = -9007199254740991, hi: int = 9007199254740991) -> int:

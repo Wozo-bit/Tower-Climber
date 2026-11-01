@@ -633,10 +633,10 @@ func _status_row(u: Combatant) -> Control:
 	# Two columns (6+ members) use the compact layout.
 	var compact := _status_grid.columns > 1
 	var cells := [
-		[("▶ " if u == battle.current else "") + u.display_name, 100 if compact else 140],
-		["DOWN" if not u.is_alive() else ("%d/%d" if compact else "HP %d/%d") % [u.hp, u.max_hp], 70 if compact else 110],
-		[("%d/%d" if compact else "MP %d/%d") % [u.mp, u.max_mp], 54 if compact else 84],
-		[u.row_name(), 52],
+		[("▶ " if u == battle.current else "") + u.display_name, 84 if compact else 140],
+		["DOWN" if not u.is_alive() else ("%d/%d" if compact else "HP %d/%d") % [u.hp, u.max_hp], 62 if compact else 110],
+		[("%d/%d" if compact else "MP %d/%d") % [u.mp, u.max_mp], 48 if compact else 84],
+		[u.row_name(), 44 if compact else 52],
 	]
 	for cell in cells:
 		var l := Label.new()
@@ -649,7 +649,7 @@ func _status_row(u: Combatant) -> Control:
 		row.add_child(l)
 	var hp := ProgressBar.new()
 	hp.show_percentage = false
-	hp.custom_minimum_size = Vector2(30, 6)
+	hp.custom_minimum_size = Vector2(20, 6)
 	hp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	hp.max_value = maxi(u.max_hp, 1)
@@ -753,7 +753,7 @@ func _build_ui() -> void:
 	window.add_child(bottom)
 
 	_command_box = VBoxContainer.new()
-	_command_box.custom_minimum_size.x = 150
+	_command_box.custom_minimum_size.x = 130
 	_command_box.add_theme_constant_override("separation", 2)
 	bottom.add_child(_command_box)
 	_add_command("Attack", _cmd_attack)
@@ -765,7 +765,8 @@ func _build_ui() -> void:
 	bottom.add_child(VSeparator.new())
 
 	_sub_pane = Control.new()
-	_sub_pane.custom_minimum_size.x = 330
+	_sub_pane.custom_minimum_size.x = 240
+	_sub_pane.size_flags_horizontal = Control.SIZE_EXPAND_FILL   # wider screens give the log more room
 	_sub_pane.clip_contents = true
 	bottom.add_child(_sub_pane)
 	var sub_scroll := ScrollContainer.new()
@@ -785,6 +786,7 @@ func _build_ui() -> void:
 
 	_status_grid = GridContainer.new()
 	_status_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_status_grid.size_flags_stretch_ratio = 1.6
 	_status_grid.add_theme_constant_override("h_separation", 18)
 	_status_grid.add_theme_constant_override("v_separation", 0)
 	bottom.add_child(_status_grid)

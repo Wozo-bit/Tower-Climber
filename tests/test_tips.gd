@@ -12,6 +12,7 @@ func _ready() -> void:
 	GameState.legacy_path = "user://test_saves_tips_hall.json"
 	GameState.unlocks_path = "user://test_saves_tips_unlocks.json"
 	Tips.path = "user://test_saves_tips_tips.json"
+	Settings.path = "user://test_saves_tips_settings.cfg"
 	_clear_seen()
 	var tips_were_on := Settings.tips
 	Settings.tips = true
@@ -40,7 +41,7 @@ func check(cond: bool, label: String) -> void:
 
 func _clear_seen() -> void:
 	if FileAccess.file_exists(Tips.path):
-		DirAccess.remove_absolute(Tips.path)
+		SaveSerializer.delete_file(Tips.path)
 	Tips._seen_path = ""   # read the file again
 	Tips.queue.clear()
 
@@ -85,9 +86,14 @@ func test_seen_list() -> void:
 	SaveSerializer.write_json(Tips.path, { "version": 1, "seen": ["battle", 5, "fake", "battle", null] })
 	Tips._seen_path = ""
 	check(Tips.seen() == [&"battle"], "tampered list is cleaned (%s)" % [Tips.seen()])
+	Tips.mark_seen(&"rows")   # a second write, so there's a backup
 	FileAccess.open(Tips.path, FileAccess.WRITE).store_string("{not json")
 	Tips._seen_path = ""
-	check(Tips.seen().is_empty(), "broken file = nothing seen")
+	check(Tips.seen() == [&"battle"], "broken file = its backup (%s)" % [Tips.seen()])
+	SaveSerializer.delete_file(Tips.path)
+	FileAccess.open(Tips.path, FileAccess.WRITE).store_string("{not json")
+	Tips._seen_path = ""
+	check(Tips.seen().is_empty(), "broken file, no backup = nothing seen")
 	Tips.mark_seen(&"rows")
 	Tips.reset()
 	Tips._seen_path = ""

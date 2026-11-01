@@ -45,7 +45,7 @@ func _init() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(980, 600)
+	UIStyle.fit_to_screen(panel, Vector2(980, 600))
 	UIStyle.apply(panel)
 	center.add_child(panel)
 	var margin := MarginContainer.new()
@@ -72,41 +72,47 @@ func _init() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
 	_gold_label = Label.new()
+	_gold_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header.add_child(_gold_label)
+	# The buttons wrap onto a second line when the screen is narrow.
+	var header_buttons := HFlowContainer.new()
+	header_buttons.alignment = FlowContainer.ALIGNMENT_END
+	header_buttons.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_child(header_buttons)
 	var manage_btn := Button.new()
 	manage_btn.text = "Manage party"
 	manage_btn.tooltip_text = "Order, rows, the reserve and dismissing companions."
 	manage_btn.pressed.connect(open_manage)
-	header.add_child(manage_btn)
+	header_buttons.add_child(manage_btn)
 	var bestiary_btn := Button.new()
 	bestiary_btn.text = "Bestiary"
 	bestiary_btn.tooltip_text = "Enemies you've fought and what you've learned about them."
 	bestiary_btn.pressed.connect(func(): _bestiary_panel.open())
-	header.add_child(bestiary_btn)
+	header_buttons.add_child(bestiary_btn)
 	var quests_btn := Button.new()
 	quests_btn.text = "Quests"
 	quests_btn.tooltip_text = "Active, completed and failed quests."
 	quests_btn.pressed.connect(func(): _quest_panel.open())
-	header.add_child(quests_btn)
+	header_buttons.add_child(quests_btn)
 	var guilds_btn := Button.new()
 	guilds_btn.text = "Guilds"
 	guilds_btn.tooltip_text = "Who runs which floors, and where you stand with them."
 	guilds_btn.pressed.connect(func(): _guild_panel.open())
-	header.add_child(guilds_btn)
+	header_buttons.add_child(guilds_btn)
 	_divinity_btn = Button.new()
 	_divinity_btn.text = "Divinity"
 	_divinity_btn.tooltip_text = "Your faith, and the guilds you sponsor as a god."
 	_divinity_btn.pressed.connect(func(): _divinity_panel.open())
-	header.add_child(_divinity_btn)
+	header_buttons.add_child(_divinity_btn)
 	var guide_btn := Button.new()
 	guide_btn.text = "Guide"
 	guide_btn.tooltip_text = "Reread the tips you've seen."
 	guide_btn.pressed.connect(func(): _guide_panel.open())
-	header.add_child(guide_btn)
+	header_buttons.add_child(guide_btn)
 	var close_btn := Button.new()
-	close_btn.text = "Close (Tab)"
+	close_btn.text = "Close (%s)" % InputBindings.key_name("party_menu")
 	close_btn.pressed.connect(close)
-	header.add_child(close_btn)
+	header_buttons.add_child(close_btn)
 
 	var body := HBoxContainer.new()
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -122,7 +128,7 @@ func _init() -> void:
 	_members_box.add_theme_constant_override("separation", 8)
 	members_scroll.add_child(_members_box)
 	_actions_box = VBoxContainer.new()
-	_actions_box.custom_minimum_size.x = 320
+	_actions_box.custom_minimum_size.x = 280
 	body.add_child(_actions_box)
 
 	_message = Label.new()
@@ -332,18 +338,24 @@ func _member_row(member: CharacterData) -> Control:
 	else:
 		hp_l.text = "HP %d/%d   MP %d/%d" % [member.current_hp(), member.max_hp(), member.current_mp(), member.max_mp()]
 	info.add_child(hp_l)
+	# Buttons wrap under each other when the screen is narrow.
+	var buttons := HFlowContainer.new()
+	buttons.alignment = FlowContainer.ALIGNMENT_END
+	buttons.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	buttons.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(buttons)
 
 	if not _pending.is_empty():
 		var use := Button.new()
 		use.text = "▶ Here"
 		use.pressed.connect(_apply_pending.bind(member))
-		row.add_child(use)
+		buttons.add_child(use)
 	else:
 		if member == GameState.player or member.companion_id == &"childhood_friend":
 			var rename_btn := Button.new()
 			rename_btn.text = "Rename"
 			rename_btn.pressed.connect(_open_rename.bind(member))
-			row.add_child(rename_btn)
+			buttons.add_child(rename_btn)
 		var stats_btn := Button.new()
 		stats_btn.text = "Stats" + (" (%d)" % member.unspent_points if member.unspent_points > 0 else "")
 		if member.unspent_points > 0:
@@ -351,17 +363,17 @@ func _member_row(member: CharacterData) -> Control:
 		stats_btn.pressed.connect(func():
 			_stats_panel.bind(member)
 			_stats_overlay.show())
-		row.add_child(stats_btn)
+		buttons.add_child(stats_btn)
 		var skills_btn := Button.new()
 		skills_btn.text = "Skills" + (" (%d)" % member.skill_picks if member.skill_picks > 0 else "")
 		if member.skill_picks > 0:
 			skills_btn.modulate = Color(1, 0.9, 0.4)
 		skills_btn.pressed.connect(func(): _skills_panel.open(member))
-		row.add_child(skills_btn)
+		buttons.add_child(skills_btn)
 		var gear_btn := Button.new()
 		gear_btn.text = "Gear"
 		gear_btn.pressed.connect(func(): _gear_panel.open(member))
-		row.add_child(gear_btn)
+		buttons.add_child(gear_btn)
 		if member == GameState.player:
 			for sid in GameState.unlocked_secret_classes():
 				if member.class_id == sid:
@@ -377,20 +389,20 @@ func _member_row(member: CharacterData) -> Control:
 					sbtn.disabled = true
 					sbtn.tooltip_text = "Needs %s (you have %d%%). A respec can help." % [
 						sdef.requirement_text(), roundi(sdef.qualification_share(member.stats) * 100)]
-				row.add_child(sbtn)
+				buttons.add_child(sbtn)
 		if member.can_choose_class():
 			var class_btn := Button.new()
 			class_btn.text = "Choose class!"
 			class_btn.modulate = Color(0.5, 1, 1)
 			class_btn.pressed.connect(func(): _class_screen.open(member))
-			row.add_child(class_btn)
+			buttons.add_child(class_btn)
 		if member.advancement_open():
 			var adv_btn := Button.new()
 			adv_btn.text = "✦ Advance"
 			adv_btn.modulate = Color(0.6, 1, 0.8)
 			adv_btn.tooltip_text = "Advance to a stronger class (needs its trial)."
 			adv_btn.pressed.connect(func(): _advance_panel.open(member))
-			row.add_child(adv_btn)
+			buttons.add_child(adv_btn)
 		# The one free class change, once the tier-2 gate's floor is beaten.
 		if member.class_change_open():
 			var change_btn := Button.new()
@@ -398,7 +410,7 @@ func _member_row(member: CharacterData) -> Control:
 			change_btn.modulate = Color(0.75, 0.85, 1)
 			change_btn.tooltip_text = "Once per character, before advancing: give up this class, respec for free, and choose again."
 			change_btn.pressed.connect(_confirm_class_change.bind(member))
-			row.add_child(change_btn)
+			buttons.add_child(change_btn)
 		# NG+ Ascension: shown on a top-tier line once you're in New Game+.
 		if GameState.ng_plus_cycle >= 1 and def and def.tier >= ClassRegistry.ASCENSION_GATE.tier 				and member.class_id != &"ascendant" and not member.ascended:
 			var asc_btn := Button.new()
@@ -408,7 +420,7 @@ func _member_row(member: CharacterData) -> Control:
 			asc_btn.disabled = why != ""
 			asc_btn.tooltip_text = why if why != "" else 				"Ascend: +%d%% to every stat and the Apotheosis skill. Once per character." % roundi(ClassRegistry.ASCENSION_BONUS * 100)
 			asc_btn.pressed.connect(_confirm_ascend.bind(member))
-			row.add_child(asc_btn)
+			buttons.add_child(asc_btn)
 	return panel
 
 

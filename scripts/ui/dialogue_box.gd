@@ -34,6 +34,7 @@ func _init() -> void:
 	panel.offset_right = -80
 	panel.offset_top = -230
 	panel.offset_bottom = -50
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN   # many choices grow it upward, never off the bottom
 	UIStyle.apply(panel)
 	add_child(panel)
 	var margin := MarginContainer.new()

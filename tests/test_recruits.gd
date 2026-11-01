@@ -12,6 +12,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_recruits"
 	GameState.unlocks_path = "user://test_saves_recruits_unlocks.json"
 	Tips.path = "user://test_saves_recruits_tips.json"
+	Settings.path = "user://test_saves_recruits_settings.cfg"
 	test_roster()
 	test_wanderers()
 	test_campfire_and_loyalty()

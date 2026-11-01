@@ -247,6 +247,16 @@ stretch mode canvas_items/expand). The battle field never scrolls: crowded
 rows wrap into columns and the field scales down to fit, so every unit and
 the command buttons are always on screen. If Hayden still sees
 cut-off screens, ask for his resolution + Windows display scaling.
+Interface size goes up to 120% (Hayden 2026-11-01), so every screen must
+also fit 1067x600: tests/test_display.gd checks all screens at 8 shapes.
+Big panels use UIStyle.fit_to_screen; long lists scroll; button rows wrap.
+
+### Release polish (Hayden 2026-11-01)
+Key rebinding (InputBindings: move, party, pause, confirm/cancel; 2 keys
+each; Settings -> Controls), window size + interface size in Settings,
+save backups (SaveSerializer keeps .bak1/.bak2, auto-restores a broken
+file, title screen says so; delete_file removes backups). Tests redirect
+Settings.path too (test_save used to write the real settings.cfg).
 
 ### Quests + routes (designed with Hayden 2026-10-24)
 Part 1 (quests) is BUILT: QuestLibrary (data + validator), QuestLog
@@ -350,7 +360,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (23 suites, 1435 checks at last run).
+Every change gets tests in tests/ (24 suites, 1673 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -361,7 +371,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips, test_display. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

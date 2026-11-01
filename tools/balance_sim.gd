@@ -38,6 +38,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://sim_saves"
 	GameState.unlocks_path = "user://sim_saves_unlocks.json"
 	Tips.path = "user://sim_saves_tips.json"
+	Settings.path = "user://sim_saves_settings.cfg"
 	Settings.cutins = false
 	if _args.has("guilds"):
 		_guild_world(int(_args.get("runs", "40")))

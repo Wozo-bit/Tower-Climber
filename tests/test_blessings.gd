@@ -17,6 +17,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_blessings"
 	GameState.unlocks_path = "user://test_saves_blessings_unlocks.json"
 	Tips.path = "user://test_saves_blessings_tips.json"
+	Settings.path = "user://test_saves_blessings_settings.cfg"
 	GameState.legacy_path = "user://test_hall_blessings.json"
 	test_roster_is_valid()
 	test_interest_and_offers()
@@ -32,7 +33,7 @@ func _ready() -> void:
 	test_save_and_ng_plus()
 	GameState.delete_slot(1)
 	if FileAccess.file_exists(GameState.legacy_path):
-		DirAccess.remove_absolute(GameState.legacy_path)
+		SaveSerializer.delete_file(GameState.legacy_path)
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
 	get_tree().quit(0 if _failed == 0 else 1)

@@ -14,8 +14,9 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_demigods"
 	GameState.unlocks_path = "user://test_saves_demigods_unlocks.json"
 	Tips.path = "user://test_saves_demigods_tips.json"
+	Settings.path = "user://test_saves_demigods_settings.cfg"
 	if FileAccess.file_exists(GameState.unlocks_path):
-		DirAccess.remove_absolute(GameState.unlocks_path)
+		SaveSerializer.delete_file(GameState.unlocks_path)
 	test_demigod_classes()
 	test_omen()
 	test_legend_chain()
@@ -248,7 +249,7 @@ func test_saving() -> void:
 func test_unlocks() -> void:
 	print("Unlocked demigods")
 	if FileAccess.file_exists(GameState.unlocks_path):
-		DirAccess.remove_absolute(GameState.unlocks_path)
+		SaveSerializer.delete_file(GameState.unlocks_path)
 	_fresh()
 	check(GameState.unlocked_demigods().is_empty(), "nothing unlocked at first")
 	GameState.recruit(&"theseus")

@@ -11,6 +11,7 @@ func _ready() -> void:
 	GameState.save_dir = "user://test_saves_divinity"
 	GameState.unlocks_path = "user://test_saves_divinity_unlocks.json"
 	Tips.path = "user://test_saves_divinity_tips.json"
+	Settings.path = "user://test_saves_divinity_settings.cfg"
 	GameState.legacy_path = "user://test_hall_divinity.json"
 	_clear_hall()
 	test_domains()
@@ -47,7 +48,7 @@ func check(cond: bool, label: String) -> void:
 
 func _clear_hall() -> void:
 	if FileAccess.file_exists(GameState.legacy_path):
-		DirAccess.remove_absolute(GameState.legacy_path)
+		SaveSerializer.delete_file(GameState.legacy_path)
 
 
 ## Plays a run to the end on the given route and records it in the Hall.
