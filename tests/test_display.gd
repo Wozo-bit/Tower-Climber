@@ -207,6 +207,15 @@ func test_shape(win: Vector2i, scale: float, label: String) -> void:
 	title.queue_free()
 	await _frames(1)
 
+	# The Dev Sandbox (not in the released game, but Hayden tests with it).
+	if scale <= 1.0:
+		var sandbox: Node = load("res://scenes/progression_sandbox.tscn").instantiate()
+		add_child(sandbox)
+		await _frames(2)
+		_expect_fit(sandbox, "dev sandbox", label)
+		sandbox.queue_free()
+		await _frames(1)
+
 	# The floor, the Tab menu and every sub-screen.
 	_fresh()
 	var floor_scene: Node = load(GameState.TOWER_SCENE).instantiate()

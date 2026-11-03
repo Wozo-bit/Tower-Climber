@@ -73,13 +73,14 @@ func _ready() -> void:
 	_info.add_theme_font_size_override("font_size", 18)
 	right.add_child(_info)
 
-	var row1 := HBoxContainer.new()
+	# Every row wraps, so nothing runs off a 1280x720 window.
+	var row1 := HFlowContainer.new()
 	right.add_child(row1)
 	_add_button(row1, "Gain 100 XP", func(): character.add_xp(100))
 	_add_button(row1, "Level up", func(): character.level_up())
 	_add_button(row1, "Jump to level 10", _jump_to_ten)
 
-	var row2 := HBoxContainer.new()
+	var row2 := HFlowContainer.new()
 	right.add_child(row2)
 	_respec_btn = _add_button(row2, "Respec", _do_respec)
 	_add_button(row2, "+500 gold", func(): character.gold += 500; _refresh())
@@ -114,8 +115,8 @@ func _ready() -> void:
 		get_tree().change_scene_to_file(GameState.TOWER_SCENE))
 
 	# Jump straight to any floor to test its enemies, miniboss or boss.
-	var floor_row := HBoxContainer.new()
-	floor_row.add_theme_constant_override("separation", 8)
+	var floor_row := HFlowContainer.new()
+	floor_row.add_theme_constant_override("h_separation", 8)
 	right.add_child(floor_row)
 	var floor_label := Label.new()
 	floor_label.text = "Floor:"
@@ -133,16 +134,18 @@ func _ready() -> void:
 	floor_row.add_child(_floor_info)
 
 	# Pick which theme each stage uses (e.g. floors 1-10: Goblin Warrens or Slime Pits).
-	var theme_row := HBoxContainer.new()
-	theme_row.add_theme_constant_override("separation", 8)
+	var theme_row := HFlowContainer.new()
+	theme_row.add_theme_constant_override("h_separation", 16)
 	right.add_child(theme_row)
 	if GameState.stage_themes.is_empty():
 		GameState.stage_themes = []   # fills in each slot's default
 	for i in StageLibrary.STAGE_SLOTS.size():
 		var slot: Dictionary = StageLibrary.STAGE_SLOTS[i]
+		var pair := HBoxContainer.new()   # label + picker stay together when wrapping
+		theme_row.add_child(pair)
 		var lbl := Label.new()
 		lbl.text = "Floors %d-%d:" % [i * StageLibrary.FLOORS_PER_STAGE + 1, (i + 1) * StageLibrary.FLOORS_PER_STAGE]
-		theme_row.add_child(lbl)
+		pair.add_child(lbl)
 		var opt := OptionButton.new()
 		for t in slot.themes:
 			opt.add_item(StageLibrary.THEMES[t].name)
@@ -154,7 +157,7 @@ func _ready() -> void:
 			GameState.stage_themes = picks
 			GameState.floor_ready = false
 			_floor_info.text = describe_floor(int(_floor_pick.value)))
-		theme_row.add_child(opt)
+		pair.add_child(opt)
 
 	var log_title := Label.new()
 	log_title.text = "Log"

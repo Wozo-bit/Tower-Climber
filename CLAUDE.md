@@ -360,7 +360,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (24 suites, 1673 checks at last run).
+Every change gets tests in tests/ (24 suites, 1678 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
