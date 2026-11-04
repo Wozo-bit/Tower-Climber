@@ -208,7 +208,7 @@ func _build_ui() -> void:
 	ui.add_child(_client)
 	_skip = ConfirmationDialog.new()
 	_skip.title = "Skip the prologue?"
-	_skip.dialog_text = "Go straight to the test client?\n(You can skip it every time in Settings.)"
+	_skip.dialog_text = "Go straight to the test client?\n(Settings can skip this every time, along with the later scenes in this room.)"
 	_skip.ok_button_text = "Skip"
 	_skip.cancel_button_text = "Stay"
 	_skip.confirmed.connect(leave_return if mode != MODE_PROLOGUE else start_test)

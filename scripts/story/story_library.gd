@@ -79,8 +79,8 @@ const SCENES := {
 	&"ch1_fallen": { "chapter": 1, "floors": [10], "when": "enter", "dialogue": &"ch1_fallen" },
 	&"ch1_end": { "chapter": 1, "floors": [10], "when": "guardian_down", "dialogue": &"ch1_end" },
 	&"ch2_opening": { "chapter": 2, "floors": [11], "when": "enter", "dialogue": &"ch2_opening" },
-	&"ch2_odin": { "chapter": 2, "floors": [12, 13], "when": "enter", "dialogue": &"ch2_odin" },
-	&"ch2_loki": { "chapter": 2, "floors": [14], "when": "guardian_down", "dialogue": &"ch2_loki" },
+	&"ch2_first_bid": { "chapter": 2, "floors": [12, 13], "when": "enter", "dialogue": &"ch2_first_bid" },
+	&"ch2_second_bid": { "chapter": 2, "floors": [14], "when": "guardian_down", "dialogue": &"ch2_second_bid" },
 	&"ch2_tess": { "chapter": 2, "floors": [15], "when": "enter", "dialogue": &"ch2_tess" },
 	&"ch2_friday": { "chapter": 2, "floors": [16, 17], "when": "enter", "dialogue": &"ch2_friday" },
 	&"ch2_envoy": { "chapter": 2, "floors": [18], "when": "enter", "dialogue": &"ch2_envoy" },
@@ -445,106 +445,57 @@ const DIALOGUES := {
 			},
 		},
 	},
-	&"ch2_odin": {
+	&"ch2_first_bid": {
 		"start": [
-			{ "if": { "blessed_by": &"odin" }, "node": "his" },
+			{ "if": { "blessed_by_bid": &"first" }, "node": "his" },
 			{ "if": { "blessed": true }, "node": "marked" },
 			{ "node": "a" },
 		],
 		"nodes": {
-			"a": {
-				"text": "The torches on this floor burn low all at once. A raven lands on nothing, and looks at you with one eye.",
-				"next": "offer",
-			},
-			"marked": {
-				"text": "The torches burn low all at once. A raven lands on nothing, and looks at the mark you carry with open distaste.",
-				"next": "offer",
-			},
-			"his": {
-				"speaker": "Odin",
-				"portrait": "odin",
-				"text": "Mine already, and still they whisper your name in other halls. Listen well, Tester. You are not the first I have watched climb.",
-				"next": "first",
-			},
+			"a": { "text": "{bid1.omen}", "next": "offer" },
+			"marked": { "text": "{bid1.marked}", "next": "offer" },
+			"his": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.his}", "next": "friend" },
 			"offer": {
-				"speaker": "Odin",
-				"portrait": "odin",
-				"text": "So you are the one they sent. I traded an eye to know what's coming, and I still did not see you. I would like to know why, and I pay for what I learn.",
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "{bid1.offer}",
 				"choices": [
-					{ "text": "Then tell me what you already know.", "next": "first",
-						"effects": [{ "interest": { &"odin": 8, &"loki": -3 } }, { "set_flag": &"ch2_heard_odin" }] },
+					{ "text": "Then tell me what you already know.", "next": "truth",
+						"effects": [{ "bid_interest": { "first": 8, "second": -3 } }, { "set_flag": &"ch2_heard_first" }] },
 					{ "text": "I don't work for gods.", "next": "refuse",
-						"effects": [{ "interest": { &"odin": -2 } }, { "set_flag": &"ch2_refused_odin" }] },
+						"effects": [{ "bid_interest": { "first": -2 } }, { "set_flag": &"ch2_refused_first" }] },
 				],
 			},
-			"first": {
-				"speaker": "Odin",
-				"portrait": "odin",
-				"text": "A small truth, then, as a down payment. There was a Tester before you. Nobody remembers how they ended. That is what should trouble you.",
-				"next": "friend",
-			},
-			"refuse": {
-				"speaker": "Odin",
-				"portrait": "odin",
-				"text": "Good. The ones who kneel at once are never worth the eye. I will ask again, when you've bled a little more.",
-				"next": "friend",
-			},
+			"truth": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.truth}", "next": "friend" },
+			"refuse": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.refuse}", "next": "friend" },
 			"friend": {
 				"speaker": "{friend}",
-				"text": "Why did the torches do that? And why are you nodding at a bird?",
+				"text": "You went somewhere just now. You were nodding at nothing. Please tell me that's a thing people do.",
 			},
 		},
 	},
-	&"ch2_loki": {
+	&"ch2_second_bid": {
 		"start": "a",
 		"nodes": {
-			"a": {
-				"style": "system",
-				"text": "[ Miniboss defeated. ]",
-				"next": "b",
-			},
-			"b": {
-				"speaker": "Loki",
-				"portrait": "loki",
-				"text": "Lovely work. Don't get up. Has the old man been at you yet, with the one eye and the terribly serious voice? He'll want your whole life for one good answer.",
-				"next": "c",
-			},
+			"a": { "style": "system", "text": "[ Miniboss defeated. ]", "next": "b" },
+			"b": { "speaker": "{bid2}", "portrait": "{bid2_id}", "text": "{bid2.hook}", "next": "c" },
 			"c": {
-				"speaker": "Loki",
-				"portrait": "loki",
-				"text": "Me, I'll give you the answer free, and you can owe me whatever you think it was worth. Everyone says that's a bad deal. Everyone's so dull.",
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "{bid2.offer}",
 				"choices": [
 					{ "text": "All right. What's the answer?", "next": "answer",
-						"effects": [{ "interest": { &"loki": 8, &"odin": -3 } }, { "set_flag": &"ch2_heard_loki" }] },
+						"effects": [{ "bid_interest": { "second": 8, "first": -3 } }, { "set_flag": &"ch2_heard_second" }] },
 					{ "text": "Why does everyone want me?", "next": "why",
-						"effects": [{ "interest": { &"loki": 2 } }] },
+						"effects": [{ "bid_interest": { "second": 2 } }] },
 					{ "text": "Get out of my head.", "next": "out",
-						"effects": [{ "interest": { &"loki": -2 } }, { "set_flag": &"ch2_refused_loki" }] },
+						"effects": [{ "bid_interest": { "second": -2 } }, { "set_flag": &"ch2_refused_second" }] },
 				],
 			},
-			"answer": {
-				"speaker": "Loki",
-				"portrait": "loki",
-				"text": "The window you keep reading? Ask who's writing it. And ask why it's so very careful around you.",
-				"next": "slip",
-			},
-			"why": {
-				"speaker": "Loki",
-				"portrait": "loki",
-				"text": "Because you can leave, darling. Nobody else in this tower can. Imagine what we'd give to learn how.",
-				"next": "slip",
-			},
-			"out": {
-				"speaker": "Loki",
-				"portrait": "loki",
-				"text": "Oh, I like that. Say it again when you're less sure I'm in there.",
-				"next": "slip",
-			},
-			"slip": {
-				"style": "glitch",
-				"text": "[ Do not listen to that one. ]",
-				"next": "fix",
-			},
+			"answer": { "speaker": "{bid2}", "portrait": "{bid2_id}", "text": "{bid2.answer}", "next": "slip" },
+			"why": { "speaker": "{bid2}", "portrait": "{bid2_id}", "text": "{bid2.why}", "next": "slip" },
+			"out": { "speaker": "{bid2}", "portrait": "{bid2_id}", "text": "{bid2.out}", "next": "slip" },
+			"slip": { "style": "glitch", "text": "[ Do not listen to that one. ]", "next": "fix" },
 			"fix": {
 				"style": "system",
 				"text": "[ Notice dismissed. ]",
@@ -745,25 +696,15 @@ const DIALOGUES := {
 	},
 	&"ch2_end": {
 		"start": [
-			{ "if": { "flag": &"ch2_heard_odin", "not_flag": &"ch2_heard_loki" }, "node": "odin" },
-			{ "if": { "flag": &"ch2_heard_loki", "not_flag": &"ch2_heard_odin" }, "node": "loki" },
+			{ "if": { "flag": &"ch2_heard_first", "not_flag": &"ch2_heard_second" }, "node": "first" },
+			{ "if": { "flag": &"ch2_heard_second", "not_flag": &"ch2_heard_first" }, "node": "second" },
 			{ "node": "both" },
 		],
 		"nodes": {
-			"odin": {
-				"speaker": "Odin",
-				"portrait": "odin",
-				"text": "Well struck. Loki has been telling everyone you are his. I would prove him wrong, if I were you, and I would do it soon.",
-				"next": "d",
-			},
-			"loki": {
-				"speaker": "Loki",
-				"portrait": "loki",
-				"text": "That's my Tester! Oh, the old man's going to be sour about this. He'll send someone. I can hardly wait.",
-				"next": "d",
-			},
+			"first": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.claim}", "next": "d" },
+			"second": { "speaker": "{bid2}", "portrait": "{bid2_id}", "text": "{bid2.claim}", "next": "d" },
 			"both": {
-				"text": "The boss falls. A raven on the wreckage turns its one eye on you. Somewhere behind you, someone is slowly applauding. Neither of them says a word. They're both still bidding.",
+				"text": "The boss falls. In the silence you can feel them, {bid1} on one side and {bid2} on the other. Neither says a word. They're both still bidding.",
 				"next": "d",
 			},
 			"d": {
@@ -854,6 +795,94 @@ const DIALOGUES := {
 }
 
 
+## Who bids for the Tester in Chapter 2 (Hayden 2026-11-04: different gods make
+## for different runs). One rival pair per run, picked once by bid_pair(): the
+## pair you already lean toward is likelier, a blessing from either settles it,
+## and each run rolls a little luck. "first" asks for patience and pays in truth;
+## "second" tempts. Living-religion figures stay out of this (validated), and
+## the pair must be enemies in their own myths (Hayden: pairings have to make
+## sense), so: real rivals in BeingLibrary, same pantheon. Text tokens: {bid1}, {bid2},
+## {bid1_id}, {bid2_id}, {bid1.<line>}, {bid2.<line>}.
+const BID_LUCK := 12
+const BID_BLESSED := 100
+const BID_FIRST_LINES := ["omen", "marked", "offer", "truth", "refuse", "his", "claim"]
+const BID_SECOND_LINES := ["hook", "offer", "answer", "why", "out", "claim"]
+const BID_PAIRS := [
+	{ "first": &"odin", "second": &"loki",
+		"first_lines": {
+			"omen": "The torches on this floor burn low all at once. A raven lands on nothing, and looks at you with one eye.",
+			"marked": "The torches burn low all at once. A raven lands on nothing, and looks at the mark you carry with open distaste.",
+			"offer": "So you are the one they sent. I traded an eye to know what's coming, and I still did not see you. I would like to know why, and I pay for what I learn.",
+			"truth": "A small truth, then, as a down payment. There was a Tester before you. Nobody remembers how they ended. That is what should trouble you.",
+			"refuse": "Good. The ones who kneel at once are never worth the eye. I will ask again, when you've bled a little more.",
+			"his": "Mine already, and still they whisper your name in other halls. Listen well, Tester. You are not the first I have watched climb.",
+			"claim": "Well struck. Loki has been telling everyone you are his. I would prove him wrong, if I were you, and I would do it soon.",
+		},
+		"second_lines": {
+			"hook": "Lovely work. Don't get up. Has the old man been at you yet, with the one eye and the terribly serious voice? He'll want your whole life for one good answer.",
+			"offer": "Me, I'll give you the answer free, and you can owe me whatever you think it was worth. Everyone says that's a bad deal. Everyone's so dull.",
+			"answer": "The window you keep reading? Ask who's writing it. And ask why it's so very careful around you.",
+			"why": "Because you can leave, darling. Nobody else in this tower can. Imagine what we'd give to learn how.",
+			"out": "Oh, I like that. Say it again when you're less sure I'm in there.",
+			"claim": "That's my Tester! Oh, the old man's going to be sour about this. He'll send someone. I can hardly wait.",
+		} },
+	{ "first": &"zeus", "second": &"typhon",
+		"first_lines": {
+			"omen": "The air turns sharp and tastes of iron. Thunder rolls through a floor with no sky, and every hair on your arms stands up.",
+			"marked": "The air turns sharp and tastes of iron. Thunder rolls through a floor with no sky, and the mark you carry prickles like a burn.",
+			"offer": "I have thrown down giants and fathers, and I know a threat to my throne when it walks. Or a weapon. Stand where I can see you, and I will tell you which you are.",
+			"truth": "Then hear this, and be humbled. Another Tester stood where you stand. I watched them climb. I cannot recall their face, and I forget nothing.",
+			"refuse": "Bold. I have struck down kings for less, and raised up a few of them for exactly that. We will speak again.",
+			"his": "You wear my favour, and still the others circle you. Know this, Tester: you are not the first to wear it. The last one I cannot name, and that angers me.",
+			"claim": "Well fought. The monster in the deep has been roaring your name as if it owned you. Remind him who holds the lightning.",
+		},
+		"second_lines": {
+			"hook": "SMALL THING. YOU KILL WELL. The floor shakes with every word. The thunder-king buried me under a mountain, and I can still hear you climbing over my head.",
+			"offer": "HE WILL ASK YOU TO KNEEL. I ASK NOTHING. BREAK WHAT YOU LIKE, AND TELL ME HOW IT FELT. WHAT IS AN ANSWER WORTH TO YOU?",
+			"answer": "THE VOICE IN YOUR WINDOWS IS NO GOD. I KNOW ALL THE GODS. I HAVE EATEN SOME. ASK IT WHAT IT IS.",
+			"why": "BECAUSE NO WALL HOLDS YOU, SMALL THING. YOU GO OUT AND YOU COME BACK. I HAVE WANTED OUT FOR A VERY LONG TIME.",
+			"out": "HA. GOOD. THE MOUNTAIN IS TOO QUIET. KEEP SHOUTING AT ME.",
+			"claim": "YES. YES, BREAK IT ALL. THE THUNDER-KING HEARD THAT. LET HIM COME DOWN AND TAKE YOU FROM ME.",
+		} },
+	{ "first": &"ra", "second": &"apep",
+		"first_lines": {
+			"omen": "There is no sun in the tower. Now there is light on your face anyway, warm and level, as if a dawn has stopped to look at you.",
+			"marked": "There is no sun in the tower. Now there is light on your face anyway, and the mark you carry casts a shadow it shouldn't.",
+			"offer": "Every night I cross the dark and every morning I return, and I have never once seen anyone do what you do. Walk in my light a while. I reward those who keep the order of things.",
+			"truth": "Then I will light one corner for you. Someone came before you, Tester. They went into the night, as all do. They are the first I have not seen come out of it.",
+			"refuse": "As you like. The sun does not beg. It will be here in the morning, and so will my question.",
+			"his": "You walk in my light, and still the dark calls your name. Hear me: another walked here before you, and my light could not follow them.",
+			"claim": "The day is yours. The serpent has been hissing that the dark already has you. Prove it a liar before my next crossing.",
+		},
+		"second_lines": {
+			"hook": "Sssuch a bright little thing, and so far from morning. Every night I try to swallow the sun, you know. Every night I come so close. I do admire persistence.",
+			"offer": "He gives his truths a sliver at a time, and calls it mercy. I give you the whole dark at once. Ask, and owe me only what you can't remember owing.",
+			"answer": "The one who writes in your little windows does not sleep, and does not cross. Ask what it does all night.",
+			"why": "Because you step off the world, little flame, and step back on. I have coiled round the whole of creation and found no such door. Show me.",
+			"out": "Mmm. They all say that, in the daylight.",
+			"claim": "Sweet little flame. You've made the old sun nervous. Do come down and see me, when the lights go out.",
+		} },
+	{ "first": &"anubis", "second": &"set",
+		"first_lines": {
+			"omen": "The floor goes quiet in a way you can feel in your teeth. A black jackal sits at the far end of the corridor, watching you with no hurry at all.",
+			"marked": "The floor goes quiet in a way you can feel in your teeth. A black jackal watches the mark you carry, and then, patiently, you.",
+			"offer": "I have weighed every heart that ever stopped. Yours does not sit on the scale the way it should. Walk with me a little. I only wish to understand, and I am never in a rush.",
+			"truth": "Then you are owed an honest measure. There was a Tester before you. I have weighed all the dead of this tower, and I have not weighed them.",
+			"refuse": "That is your right. I do not chase anyone. In the end, everyone comes to me, and I will ask you again then.",
+			"his": "You have my favour, and I keep my books honest. So: another Tester came before you. Their heart has never reached my scale. I would like to know why.",
+			"claim": "Fairly done. The red one has been saying you belong to him. Nobody belongs to him. Everyone, eventually, comes to me.",
+		},
+		"second_lines": {
+			"hook": "Ha! Now that's a killing. Sand hisses along the floor. Did the dog talk to you yet? All that patience. All those scales. Nobody ever got anywhere by waiting, friend.",
+			"offer": "I killed a king for his throne, and I'd do it again, and I'd tell you how. Ask me anything. I don't keep books. You can pay me whenever it hurts most.",
+			"answer": "That voice in your windows keeps its own scales, friend, and you're on them. Why else would it grade you?",
+			"why": "Because you walk out of the storm and back in again, and nobody weighs you when you do. A man could do a lot with a trick like that.",
+			"out": "Ha! Good. Hate me. It's the first honest thing anyone's done in this tower.",
+			"claim": "That's the way! Take it, whatever it is! The dog'll tell you it all gets weighed in the end. So make it heavy.",
+		} },
+]
+
+
 ## The real world comes back at milestones (Hayden 2026-11-04): the prologue
 ## room again, with its objects' dialogues named "<id>_<object>" and a talk
 ## "<id>_back" once you're back in the tower. Each plays once per run.
@@ -868,6 +897,44 @@ static func return_due() -> StringName:
 	if not gs.run_active or gs.ng_plus_cycle > 0 or gs.has_flag(RETURN_TIER2) or not gs.player.has_class():
 		return &""
 	return RETURN_TIER2 if gs.player.get_class_def().tier >= 2 else &""
+
+
+## This run's bidders (one of BID_PAIRS). Picked the first time anyone asks, and
+## kept as a flag ("bid_pair_<first>") so it stays the same for the whole run.
+static func bid_pair() -> Dictionary:
+	for pair in BID_PAIRS:
+		if GameState.has_flag(StringName("bid_pair_%s" % pair.first)):
+			return pair
+	var rng := RandomNumberGenerator.new()
+	rng.seed = ("%s:bidders" % GameState.player.legacy_id).hash()
+	var best: Dictionary = BID_PAIRS[0]
+	var best_score := -INF
+	for pair in BID_PAIRS:
+		var score := float(GameState.blessings.interest(pair.first) + GameState.blessings.interest(pair.second)) \
+			+ rng.randf_range(0.0, BID_LUCK)
+		if GameState.player.blessing_id == pair.first or GameState.player.blessing_id == pair.second:
+			score += BID_BLESSED
+		if score > best_score:
+			best_score = score
+			best = pair
+	GameState.story_flags[StringName("bid_pair_%s" % best.first)] = true
+	return best
+
+
+## Fills {bid1}, {bid2}, {bid1_id}, {bid2_id}, {bid1.line}, {bid2.line}.
+static func fill_bid_tokens(s: String) -> String:
+	if not s.contains("{bid"):
+		return s
+	var pair := bid_pair()
+	var out := s
+	for side in [["bid1", "first", "first_lines"], ["bid2", "second", "second_lines"]]:
+		var being: StringName = pair[side[1]]
+		var lines: Dictionary = pair[side[2]]
+		for key in lines:
+			out = out.replace("{%s.%s}" % [side[0], key], lines[key])
+		out = out.replace("{%s_id}" % side[0], String(being)) \
+			.replace("{%s}" % side[0], BeingLibrary.get_being(being).get("name", "?"))
+	return out
 
 
 static func get_dialogue(id: StringName) -> Dictionary:
@@ -960,6 +1027,25 @@ static func validate() -> PackedStringArray:
 		if s.get("floors", []).is_empty():
 			problems.append("scene %s: no floors" % id)
 		problems.append_array(DialogueLibrary._validate_condition("scene %s" % id, s.get("if", {})))
+	for pair in BID_PAIRS:
+		for side in ["first", "second"]:
+			var b := BeingLibrary.get_being(pair[side])
+			if b.is_empty():
+				problems.append("bid pair: unknown being %s" % pair[side])
+			elif b.get("living", false):
+				problems.append("bid pair: %s is from a living religion" % pair[side])
+			elif b.get("skill", &"") == &"":
+				problems.append("bid pair: %s has no blessing skill" % pair[side])
+		if not BeingLibrary.rivals_of(pair.first).has(pair.second):
+			problems.append("bid pair: %s and %s aren't rivals" % [pair.first, pair.second])
+		if BeingLibrary.get_being(pair.first).get("pantheon") != BeingLibrary.get_being(pair.second).get("pantheon"):
+			problems.append("bid pair: %s and %s are from different myths" % [pair.first, pair.second])
+		for key in BID_FIRST_LINES:
+			if String(pair.first_lines.get(key, "")) == "":
+				problems.append("bid pair %s: missing line %s" % [pair.first, key])
+		for key in BID_SECOND_LINES:
+			if String(pair.second_lines.get(key, "")) == "":
+				problems.append("bid pair %s: missing line %s" % [pair.second, key])
 	for q in SETUP_QUESTIONS:
 		if q.get("options", []).size() < 2:
 			problems.append("setup question %s needs options" % q.id)

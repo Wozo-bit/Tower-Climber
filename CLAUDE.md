@@ -311,6 +311,10 @@ story, so writing story text is OK now; it's a first draft he'll rewrite.
 Chapter 2 "The Bidding" (floors 11-20) + first real-world return BUILT
 2026-11-04 (Hayden's picks: gods bid, friend knows too much, Tess returns
 wrong, return on the first tier-2 class). Tester 0041 = the previous Tester.
+The bidding gods are a rival pair per run (StoryLibrary.BID_PAIRS; Hayden wants
+run variety, but pairings must make sense: enemies in their own myths, same
+pantheon, validated; no living-religion figures). LATER (Hayden): more NG+ story, a
+god storyline.
 
 Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
 campfire floor travel (never ticks guilds/wages), guild actions from Tab,
@@ -390,7 +394,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2175 checks at last run).
+Every change gets tests in tests/ (26 suites, 2187 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

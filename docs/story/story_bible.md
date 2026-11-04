@@ -126,19 +126,25 @@ much; Tess comes back wrong; the room returns on your first advancement.
 | Floor | Beat |
 | --- | --- |
 | 11 | `[ Chapter 2: The Bidding ]`. Word has climbed ahead of you. The friend asks what "the Tester" means. |
-| 12-13 | Odin's bid: a raven, an eye, "I pay for what I learn." Listening: Odin +8 interest, Loki -3. A small truth: **there was a Tester before you** (the rumour stage of the previous Tester). |
-| 14 | After the miniboss, Loki's counter-bid: "Because you can leave, darling." The System slips: `[ Do not listen to that one. ]`, then `[ Notice dismissed. ]`. |
+| 12-13 | The first god's bid: patient, and pays in truth. Listening: that god +8 interest, the rival -3. A small truth: **there was a Tester before you** (the rumour stage of the previous Tester). |
+| 14 | After the miniboss, the rival's counter-bid: temptation, and the core of it, that **you can leave** and nobody else can. The System slips: `[ Do not listen to that one. ]`, then `[ Notice dismissed. ]`. |
 | 15 | The campfire: Tess is back, same scarf, same joke, no memory of you or of dying. The friend: "See? Told you." Marn: "Fourth time I've met that girl... I didn't say it doesn't send something." |
 | 16-17 | The friend says the exact phone message from the prologue, "You coming out Friday? Everyone's asking.", and doesn't know why. Press them, lie, or tell them the truth about your room (they believe too much of it). |
 | 18 | The floor's guild, threatened by both gods, wants you on its side: stand with them (Hero), sell out (Villain), or tell them off (Vigilante). |
 | 19 | After the miniboss, a window not meant for you: `[ Tester 0041: session active. ]` `[ Session length: 11,302 days. ]`, then `[ Display error. Disregard. ]`. Thirty-one years. |
 | 20 | Going in together (changes if you told them about the room). After the boss: whoever you listened to claims you, or both keep bidding. `[ Chapter 2 complete. ]` `[ You will want to see home first. If you can. ]` |
 
+**Who bids changes per run** (Hayden, 2026-11-04): Odin and Loki, Zeus and Typhon, Ra and Apep, or Anubis and Set, each with their own lines (`StoryLibrary.BID_PAIRS`). Pairs must be enemies in their own myths. You draw the pair you already lean toward, a blessing from either settles it, and each run rolls some luck. Figures from living religions stay out of it.
+
 **First return** (the player's first tier-2 class, first runs only): you're back in
 the room. Nine days have passed. The phone has eleven messages, the notebook has a
 new page with your new class in a child's handwriting, your reflection lags, stone
 shows through one floorboard, and the PC won't let you log off. `[ Resynchronising. ]`
 Then the friend: "You were gone for a second there."
+
+## New Game+ (later, Hayden 2026-11-04)
+
+More story in New Game+, including a **god storyline**, to be designed later. Today NG+ only has its own wake-up scene and skips the real-world returns; the Ascending return and the mimic final boss are also still to build.
 
 ## Chapters 3-6 (one-line arcs, to fill in later)
 

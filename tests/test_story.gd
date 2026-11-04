@@ -25,6 +25,7 @@ func _ready() -> void:
 	await test_prologue()
 	await test_floor()
 	await test_chapter_two()
+	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
 	SaveSerializer.delete_file(Settings.path)
@@ -374,7 +375,7 @@ func test_chapter_two() -> void:
 	_fresh()
 	check(StoryLibrary.due(11, false) == &"ch2_opening", "floor 11 opens it")
 	check(StoryLibrary.due(14, false) == &"", "floor 14 waits for the miniboss")
-	check(StoryLibrary.due(14, true) == &"ch2_loki", "then Loki")
+	check(StoryLibrary.due(14, true) == &"ch2_second_bid", "then the rival")
 	check(StoryLibrary.due(20, true) == &"ch2_threshold", "floor 20: before the boss comes first")
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch2_threshold"))
 	check(StoryLibrary.due(20, false) == &"", "the ending waits for the boss")
@@ -382,24 +383,58 @@ func test_chapter_two() -> void:
 	# The gods' bids are real interest.
 	_fresh(12)
 	var bonus := func(b: StringName) -> int: return GameState.blessings.beings.get(b, {}).get("bonus", 0)
-	_play(&"ch2_odin", 0)
-	check(bonus.call(&"odin") == 8 and bonus.call(&"loki") == -3, "listening to Odin: he warms, Loki cools")
-	check(GameState.has_flag(&"ch2_heard_odin"), "remembered")
+	var pair := StoryLibrary.bid_pair()
+	_play(&"ch2_first_bid", 0)
+	check(bonus.call(pair.first) == 8 and bonus.call(pair.second) == -3, "listening to the first: they warm, the rival cools")
+	check(GameState.has_flag(&"ch2_heard_first"), "remembered")
+	check(StoryLibrary.bid_pair() == pair, "the bidders stay the same")
 	_fresh(14)
-	_play(&"ch2_loki", 0)
-	check(bonus.call(&"loki") == 8 and bonus.call(&"odin") == -3, "and the other way round")
+	pair = StoryLibrary.bid_pair()
+	_play(&"ch2_second_bid", 0)
+	check(bonus.call(pair.second) == 8 and bonus.call(pair.first) == -3, "and the other way round")
 	check(GameState.has_flag(&"ch2_system_warned"), "the System slips")
 	# Blessed variants.
 	_fresh(12)
 	var r := DialogueRunner.new()
-	r.start(&"ch2_odin")
-	check(r.node_id == "a", "unmarked")
-	GameState.player.bless(&"thor", 1)
-	r.start(&"ch2_odin")
+	pair = StoryLibrary.bid_pair()
+	r.start(&"ch2_first_bid")
+	check(r.node_id == "a" and r.text() == pair.first_lines.omen, "unmarked")
+	GameState.player.bless(&"amaterasu", 1)
+	r.start(&"ch2_first_bid")
 	check(r.node_id == "marked", "marked by someone else")
-	GameState.player.bless(&"odin", 1)
-	r.start(&"ch2_odin")
-	check(r.node_id == "his", "already his")
+	GameState.player.bless(pair.first, 1)
+	r.start(&"ch2_first_bid")
+	check(r.node_id == "his", "already theirs")
+	check(r.speaker() == BeingLibrary.get_being(pair.first).name and r.portrait_id() == String(pair.first), "speaker and portrait follow the god")
+	# Different runs, different gods.
+	var seen := {}
+	for i in 60:
+		_fresh()
+		GameState.player.legacy_id = "bid-run-%d" % i
+		var p: Dictionary = StoryLibrary.bid_pair()
+		seen[p.first] = true
+		r.start(&"ch2_second_bid")
+		r.advance()
+		check(not r.text().contains("{") and not r.speaker().contains("{"), "no unfilled text") if r.text().contains("{") or r.speaker().contains("{") else null
+	check(seen.size() == StoryLibrary.BID_PAIRS.size(), "every pair turns up across runs (%s)" % [seen.keys()])
+	_fresh()
+	GameState.player.legacy_id = "bid-blessed"
+	GameState.player.bless(&"set", 1)
+	check(StoryLibrary.bid_pair().first == &"anubis", "a blessing from either settles it")
+	_fresh()
+	GameState.player.legacy_id = "bid-lean"
+	GameState.add_route_points(&"villain", 40)
+	var villain_first: StringName = StoryLibrary.bid_pair().second
+	check(BeingLibrary.get_being(villain_first).values.likes.has(&"villain"), "you draw the ones who like your path (%s)" % villain_first)
+	_fresh()
+	var kept := StoryLibrary.bid_pair()
+	GameState.save_game()
+	GameState.load_game(1)
+	check(StoryLibrary.bid_pair() == kept, "saved with the run")
+	for bid in StoryLibrary.BID_PAIRS:
+		for side in ["first_lines", "second_lines"]:
+			for key in bid[side]:
+				check(not bid[side][key].contains("Placeholder"), "real lines") if bid[side][key].contains("Placeholder") else null
 	# Tess, the phone, the ending.
 	_fresh(15)
 	r.start(&"ch2_tess")
@@ -418,10 +453,11 @@ func test_chapter_two() -> void:
 	check(phone.text.contains("You coming out Friday? Everyone's asking."), "the words match the phone exactly")
 	r.start(&"ch2_end")
 	check(r.node_id == "both", "heard neither")
-	GameState.set_flag(&"ch2_heard_odin")
+	check(r.text().contains(BeingLibrary.get_being(StoryLibrary.bid_pair().first).name), "names both (%s)" % r.text())
+	GameState.set_flag(&"ch2_heard_first")
 	r.start(&"ch2_end")
-	check(r.node_id == "odin", "Odin claims you")
-	GameState.set_flag(&"ch2_heard_loki")
+	check(r.node_id == "first", "the one you heard claims you")
+	GameState.set_flag(&"ch2_heard_second")
 	r.start(&"ch2_end")
 	check(r.node_id == "both", "both bid: neither claims you")
 	_play(&"ch2_end")
@@ -512,6 +548,29 @@ func test_chapter_two() -> void:
 	check(GameState.has_flag(StoryLibrary.RETURN_TIER2) and floor_scene.is_inside_tree(), "skipped by the setting")
 	Settings.skip_prologue = false
 	floor_scene.queue_free()
+	await _frames(1)
+
+
+func test_skip_warning() -> void:
+	print("-- the skip setting warns --")
+	Settings.skip_prologue = false
+	var panel := SettingsPanel.new()
+	add_child(panel)
+	panel.open()
+	await _frames(1)
+	panel._skip_check.button_pressed = true
+	check(panel._skip_warning.visible and not Settings.skip_prologue, "turning it on asks first")
+	check(panel._skip_warning.dialog_text.contains("later story scenes"), "and says what you'd miss")
+	panel._skip_warning.hide()
+	panel._skip_warning.canceled.emit()
+	check(not panel._skip_check.button_pressed and not Settings.skip_prologue, "Keep them: stays off")
+	panel._skip_check.button_pressed = true
+	panel._skip_warning.hide()
+	panel._skip_warning.confirmed.emit()
+	check(panel._skip_check.button_pressed and Settings.skip_prologue, "Skip them: on")
+	panel._skip_check.button_pressed = false
+	check(not Settings.skip_prologue and not panel._skip_warning.visible, "turning it off doesn't ask")
+	panel.queue_free()
 	await _frames(1)
 
 

@@ -80,7 +80,7 @@ func raw_speaker() -> String:
 
 ## The node's explicit "portrait" art id ("" = work it out from the speaker).
 func portrait_id() -> String:
-	return str(_node().get("portrait", ""))
+	return StoryLibrary.fill_bid_tokens(str(_node().get("portrait", "")))
 
 
 ## "" (normal), "system" (a System window line) or "glitch" (the System slipping).
@@ -181,6 +181,7 @@ static func check(cond: Dictionary) -> bool:
 			"can_pay_bargain": ok = gs.blessings.can_pay(context_being) == v
 			"blessed": ok = gs.player.is_blessed() == v
 			"blessed_by": ok = gs.player.blessing_id == v
+			"blessed_by_bid": ok = gs.player.blessing_id == StoryLibrary.bid_pair()[v]
 			# Guild agents (about the guild this conversation is with).
 			"guild_member": ok = (gs.guilds.member == context_guild and context_guild != &"") == v
 			"in_guild": ok = (gs.guilds.member != &"") == v
@@ -292,6 +293,10 @@ func _apply_effects(effects: Array) -> void:
 			gs.guilds.attempt_heist(context_guild, heist_rng)
 		if e.has("pay_ransom") and context_guild != &"":
 			gs.guilds.pay_ransom(context_guild)
+		if e.has("bid_interest"):
+			var pair := StoryLibrary.bid_pair()
+			for side in e.bid_interest:
+				gs.blessings.add_interest(pair[side], e.bid_interest[side])
 		if e.has("floor_guild_rep"):
 			var ruler := gs.guilds.owner_of_floor(gs.floor_number)
 			if ruler != &"":
@@ -327,6 +332,7 @@ static func fill(s: String, npc_name: String = "") -> String:
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
+	out = StoryLibrary.fill_bid_tokens(out)
 	if out.contains("{floor_guild}"):
 		var ruler := GameState.guilds.owner_of_floor(GameState.floor_number)
 		out = out.replace("{floor_guild}", GuildLibrary.guild_name(ruler) if ruler != &"" else "The guild that runs this floor")

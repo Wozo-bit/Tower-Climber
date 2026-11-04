@@ -4,6 +4,8 @@ extends Control
 ## Changes apply immediately and save when you press Back.
 
 signal closed
+var _skip_check: CheckBox
+var _skip_warning: ConfirmationDialog
 
 var _controls: ControlsPanel
 var _keys_note: Label
@@ -55,8 +57,7 @@ func _init() -> void:
 	story_row.add_theme_constant_override("separation", 24)
 	box.add_child(story_row)
 	_add_check(story_row, "Cut-in splashes", "cutins")
-	_add_check(story_row, "Skip the prologue", "skip_prologue")
-	story_row.get_child(1).tooltip_text = "New Game goes straight to character setup, without the opening room."
+	_add_skip_scenes(story_row)
 	var tips_row := HBoxContainer.new()
 	box.add_child(tips_row)
 	_add_check(tips_row, "Tutorial tips", "tips")
@@ -147,6 +148,37 @@ func _add_check(parent: Node, label: String, prop: String) -> void:
 		Settings.set(prop, on)
 		Settings.apply())
 	parent.add_child(cb)
+
+
+## "Skip the prologue" also skips the story's later visits home, so turning it
+## on asks first (Hayden 2026-11-04).
+func _add_skip_scenes(parent: Node) -> void:
+	_skip_check = CheckBox.new()
+	_skip_check.text = "Skip the prologue and home scenes"
+	_skip_check.tooltip_text = "New Game goes straight to character setup, and you won't return to your room at story milestones."
+	_skip_check.button_pressed = Settings.skip_prologue
+	parent.add_child(_skip_check)
+	_skip_warning = ConfirmationDialog.new()
+	_skip_warning.title = "Skip these scenes?"
+	_skip_warning.dialog_text = "This skips the opening room AND the later story scenes back in your room, including what happens right after them.\nYou'd miss part of the story.\n\nSkip them anyway?"
+	_skip_warning.dialog_autowrap = true
+	_skip_warning.min_size = Vector2i(460, 0)
+	_skip_warning.ok_button_text = "Skip them"
+	_skip_warning.cancel_button_text = "Keep them"
+	_skip_warning.confirmed.connect(func(): _set_skip_scenes(true))
+	_skip_warning.canceled.connect(func(): _skip_check.set_pressed_no_signal(false))
+	add_child(_skip_warning)
+	_skip_check.toggled.connect(func(on: bool):
+		if on:
+			_skip_warning.popup_centered()
+		else:
+			_set_skip_scenes(false))
+
+
+func _set_skip_scenes(on: bool) -> void:
+	Settings.skip_prologue = on
+	_skip_check.set_pressed_no_signal(on)
+	Settings.apply()
 
 
 ## A labelled dropdown that applies at once.
