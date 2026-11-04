@@ -331,6 +331,15 @@ friend_away alt, or mark prayers from afar "far": true (test_friend_away walks e
 path). Reunion on rejoin (StoryLibrary.FRIEND_REUNION; friend_not_told /
 friend_caught_up change later scenes). Story only, no stat or route cost.
 
+100 FLOORS (Hayden 2026-11-04): FINAL_FLOOR 100. Floor 60 = false summit
+(everyone believes it's the top; scene summit_false). New stages: Titanfall
+61-70, Gods' Host 71-80 (soldiers, never the gods), The Unfinished 81-90
+(glitched: weaknesses change per fight), Echoes 91-100 (echoing: copy your
+skills). Final boss Tester 0041; NG+ = mimics of your Hall character + party
+(GameState.boss_group / register_mimics; LegacyRecord.party). Tier 4 at floor
+70 (+30%; one capstone per tier-3 class). Story for floors 21-100 is still to
+write: only summit_false and the floor-100 scenes exist.
+
 Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
 campfire floor travel (never ticks guilds/wages), guild actions from Tab,
 donations, merchant weapons + books, declining gods (curse by temper, good
@@ -352,7 +361,7 @@ due), Tips autoload (queue/window). Text is placeholder.
 
 Placeholders to confirm with Hayden later: title "Tower Climber",
 default friend name "Rowan", Ashbound Knight secret-class details,
-FINAL_FLOOR = 60 (long-term target is 100 floors, roguelite-style replayability), tier-2/tier-3/demigod class names, Ashbound's Cinderbrand/Wyrmflame Knight.
+FINAL_FLOOR = 100 (roguelite-style replayability), tier-2/tier-3/demigod class names, Ashbound's Cinderbrand/Wyrmflame Knight.
 Secret classes (Hayden 2026-10-25): a build hint on floors 2-9, their own
 advancement lines, and one free class change + free respec per character
 after floor 20 (tier 1 only).
@@ -409,7 +418,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2529 checks at last run).
+Every change gets tests in tests/ (26 suites, 2577 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

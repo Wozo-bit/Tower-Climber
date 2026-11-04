@@ -16,11 +16,12 @@ var _classes: Dictionary = {}  # StringName -> ClassDef
 const ADVANCEMENT_GATES := {
 	2: { "floor": 20, "level": 25 },
 	3: { "floor": 40, "level": 45 },   # Hayden 2026-10-25 (may change)
+	4: { "floor": 70, "level": 60 },   # Hayden 2026-11-04
 }
 
 ## Every stat +x% per tier. The Ascendant (NG+) always gets ASCENDANT_EDGE
 ## more than the best normal tier, so it stays the strongest (design rule).
-const TIER_STAT_BONUS := { 2: 0.1, 3: 0.2 }
+const TIER_STAT_BONUS := { 2: 0.1, 3: 0.2, 4: 0.3 }
 const ASCENDANT_EDGE := 0.1
 ## Demigods' own classes are a little stronger than their tier.
 const DEMIGOD_EDGE := 0.05
@@ -35,6 +36,7 @@ func _init() -> void:
 	_register_tier_three()
 	_register_demigods()
 	_register_secret()
+	_register_tier_four()
 	_load_resource_classes()
 
 
@@ -111,6 +113,61 @@ func _register_tier_three() -> void:
 		var id := StringName(String(from) + "_t3")
 		_advanced(id, tier3[from][0], "" + tier3[from][1], from, parent.required_stats,
 			parent.threshold, parent.required_route)
+
+
+## Tier 4 (floor 70, Hayden 2026-11-04): one last mastery for every tier-3 class,
+## demigods' and the secret line's included. Same build and route as the class
+## before it. Placeholder names. Runs after everything tier 3 is registered.
+func _register_tier_four() -> void:
+	var tier4 := {
+		&"bastion_t3": ["Eternal Bulwark", "The last wall left standing."],
+		&"juggernaut_t3": ["Titanbreaker", "It hits. Things stop being there."],
+		&"paladin_t3": ["Exarch", "Judgment wearing armour."],
+		&"pyromancer_t3": ["Ember Sovereign", "Everything burns eventually. They just hurry it along."],
+		&"stormcaller_t3": ["Storm Eternal", "The storm stopped asking."],
+		&"warlock_t3": ["Pact Sovereign", "Every debt in the tower is owed to them now. Villain route only."],
+		&"sharpshooter_t3": ["Godshot", "They've aimed higher."],
+		&"ranger_t3": ["Gale Sovereign", "The wind carries their arrows out of habit."],
+		&"assassin_t3": ["Silent End", "You'll never know. Nobody has."],
+		&"trickster_t3": ["Luck Incarnate", "The dice stopped pretending."],
+		&"executioner_t3": ["Last Judge", "The sentence was always this. Vigilante route only."],
+		&"cleric_t3": ["Living Miracle", "Where they walk, the wounded stand."],
+		&"oracle_t3": ["Fate Weaver", "They don't see the thread. They hold it."],
+		&"berserker_t3": ["War Incarnate", "War found out what it was for."],
+		&"warlord_t3": ["Emperor of the Climb", "Every floor knows their name, and pays."],
+		&"grandmaster_t3": ["Enlightened Fist", "There was never a difference between the body and the blow."],
+		&"shadowfist_t3": ["Void Fist", "A blow from where nothing is."],
+		&"stormblade_t3": ["Thunder Saint", "Lightning stops to bow."],
+		&"arcane_knight_t3": ["Spell Fortress", "A castle that walks and reads."],
+		&"blademaster_t3": ["Sword God", "They have stopped drawing it. It's enough that it's there."],
+		&"runeguard_t3": ["Rune Sovereign", "The last rune is the one that holds the tower up."],
+		&"beastcaller_t3": ["Wild King", "The tower has animals in it. All of them are theirs."],
+		&"spiritbinder_t3": ["Spirit Sovereign", "The dead take their orders gently."],
+		&"necromancer_class_t3": ["Death Incarnate", "Death stopped being a door, and became a job. Villain route only."],
+		&"cinderbrand_t3": ["Ashen Sovereign", "Everything that ever burned answers to them."],
+		&"lionheart_t3": ["Thirteenth Labor", "The one the songs don't have yet."],
+		&"gorgonbane_t3": ["Written in Stars", "They hung him in the sky. He climbed down."],
+		&"myrmidon_lord_t3": ["Glory Undying", "He chose the short life. The tower disagreed."],
+		&"king_of_uruk_t3": ["He Who Saw the Deep", "He looked for the end of death, and found the stairs."],
+		&"hound_of_ulster_t3": ["The Warp Spasm", "Even his allies stand back."],
+		&"dragonslayer_t3": ["Dragon's Heir", "He tasted the blood, and understood everything."],
+		&"labyrinth_hero_t3": ["Master of the Maze", "Nobody finds him, and nobody gets out."],
+		&"amazon_queen_t3": ["Queen Unconquered", "No one has ever taken the belt."],
+		&"songweaver_t3": ["Song at the Gate", "This time he doesn't look back."],
+		&"swift_huntress_t3": ["She Was Never Caught", "They've stopped running after her."],
+		&"wild_man_t3": ["Brother Unbroken", "They said death would part them. It's trying."],
+		&"fianna_captain_t3": ["Thumb of All Knowing", "He knows how this ends. He's still going."],
+		&"oni_slayer_t3": ["Peach Immortal", "The oni have started telling stories about him."],
+		&"sky_lancer_t3": ["He Reached Olympus", "The fall was only ever a rumour."],
+	}
+	for from in tier4:
+		var parent := get_class_def(from)
+		var id := StringName(String(from).trim_suffix("_t3") + "_t4")
+		_advanced(id, tier4[from][0], tier4[from][1], from, parent.required_stats, parent.threshold, parent.required_route)
+		var def := get_class_def(id)
+		def.unique_to = parent.unique_to
+		if parent.unique_to != &"":
+			def.stat_bonus_pct = TIER_STAT_BONUS[4] + DEMIGOD_EDGE
 
 
 ## Demigods' own classes (Hayden 2026-10-25): only that demigod can have one

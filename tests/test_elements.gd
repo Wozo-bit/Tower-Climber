@@ -364,7 +364,8 @@ func test_stage_themes() -> void:
 		rng.seed = s
 		seen[StageLibrary.roll_themes(rng)[0]] = true
 	check(seen.has(&"goblin_warrens") and seen.has(&"slime_pits"), "floors 1-10 roll Goblin Warrens or Slime Pits")
-	check(StageLibrary.validate_themes(["nonsense", 5]) == [&"goblin_warrens", &"orc_stronghold", &"insect_hive", &"elemental_rift", &"demon_gate", &"celestial_spire"],
+	check(StageLibrary.validate_themes(["nonsense", 5]) == [&"goblin_warrens", &"orc_stronghold", &"insect_hive", &"elemental_rift", &"demon_gate", &"celestial_spire",
+			&"titan_deeps", &"gods_host", &"the_unfinished", &"echoes"],
 		"bad picks fall back to defaults (and the pseudo-god slots never repeat)")
 
 	GameState.reset_run()
@@ -372,8 +373,8 @@ func test_stage_themes() -> void:
 	check(StageLibrary.stage_name(4) == "Stage 1: Slime Pits", "the run's pick is used")
 	check(StageLibrary.miniboss_for_floor(4)[0] == &"big_slime" and StageLibrary.miniboss_for_floor(9)[0] == &"mire_slime",
 		"slime minibosses on 4 and 9")
-	check(StageLibrary.boss_for_floor(10)[0] == &"king_slime" and StageLibrary.boss_for_floor(70)[0] == &"king_slime",
-		"King Slime on floor 10 (and when the stages repeat)")
+	check(StageLibrary.boss_for_floor(10)[0] == &"king_slime" and StageLibrary.boss_for_floor(110)[0] == &"king_slime",
+		"King Slime on floor 10 (and if stages ever repeat)")
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4
 	var all_slimes := true

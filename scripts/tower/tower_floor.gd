@@ -485,7 +485,7 @@ func _on_dialogue_finished(runner: DialogueRunner) -> void:
 ## "the Goblin Captain (miniboss)" if the next floor has a miniboss or boss, else "".
 func _guardian_ahead() -> String:
 	var next := GameState.floor_number + 1
-	var group: Array[StringName] = StageLibrary.boss_for_floor(next) if StageLibrary.is_boss_floor(next) \
+	var group: Array[StringName] = GameState.boss_group(next) if StageLibrary.is_boss_floor(next) \
 		else StageLibrary.miniboss_for_floor(next)
 	if group.is_empty() or GameState.guardian_beaten(next):
 		return ""

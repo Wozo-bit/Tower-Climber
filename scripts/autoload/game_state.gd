@@ -17,7 +17,9 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 ## Beating the boss on this floor completes the game (character goes into the
 ## Hall of Climbers). The design target is 100 floors; 30 for now (tier-2
 ## advancement opens after floor 20, so it gets played).
-const FINAL_FLOOR := 60
+const FINAL_FLOOR := 100
+## The legend says the tower ends here. It doesn't (Hayden 2026-11-04).
+const FALSE_SUMMIT_FLOOR := 60
 ## Each New Game+ cycle multiplies enemy strength by this much more (NG+1 = x1.5).
 const NG_PLUS_SCALE_PER_CYCLE := 0.5
 
@@ -82,7 +84,7 @@ const ADAPT_FROM_FLOOR := 30
 ## Floor -> chance a melee enemy leaps at your back rows on its turn.
 const FLANK_BY_FLOOR := { 11: 0.15, 21: 0.25, 41: 0.35 }
 ## Late bosses get mechanics from these floors (BattleManager.boss_tier).
-const BOSS_TIER_FLOORS := { 30: 1, 50: 2 }
+const BOSS_TIER_FLOORS := { 30: 1, 50: 2, 90: 3 }
 ## What the party has learned about enemies (weaknesses, traits). Per run.
 var bestiary := Bestiary.new()
 ## Active / completed / failed quests and notice-board bounties. Per run.
@@ -188,6 +190,7 @@ func _init() -> void:
 
 ## Wipes all run state back to a fresh level-1 start.
 func reset_run() -> void:
+	_mimic_group.clear()
 	player = CharacterData.new()
 	companions.clear()
 	reserve.clear()
@@ -307,6 +310,7 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1, p_difficulty: int
 		if g.carries_into_ng_plus():
 			inventory.add_gear(g.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
 	companions.append(make_childhood_friend(record.friend_name))
+	register_mimics(record.highest_cycle_cleared + 1)
 	for f in record.past_flags:   # the gods remember your last climb
 		story_flags[f] = true
 	ng_plus_cycle = record.highest_cycle_cleared + 1
@@ -449,6 +453,7 @@ func load_game(slot: int = -1) -> bool:
 	checkpoint_floor = S._i(d, "checkpoint_floor", 1, 1, floor_number)
 	floor_seed = S._i(d, "floor_seed", randi())
 	floor_ready = S._b(d, "floor_ready", false)
+	register_mimics(S._i(d, "ng_plus_cycle", 0, 0, 999))   # the save's boss group may name them
 	floor_enemies = S.floor_enemies_from_array(S._a(d, "floor_enemies"))
 	if floor_ready and floor_enemies.is_empty() and not is_rest_floor(floor_number):
 		floor_ready = false   # enemy list was lost/invalid: regenerate the floor
@@ -554,6 +559,9 @@ func load_legacy() -> LegacyBook:
 		r.last_cleared_at = S._s(rd, "last_cleared_at")
 		r.best_play_time_sec = S._f(rd, "best_play_time_sec", 0.0, 0.0)
 		r.friend_name = CharacterData.clean_name(S._s(rd, "friend_name"))
+		for pd in S._a(rd, "party"):
+			if pd is Dictionary and r.party.size() < MAX_PARTY_SIZE:
+				r.party.append(S.character_from_dict(pd))
 		r.slot = S._i(rd, "slot", 1, 1, SLOT_COUNT)
 		r.best_difficulty = S._i(rd, "best_difficulty", -1, -1, Difficulty.Level.HELL)
 		r.ironman_cleared = S._b(rd, "ironman_cleared", false)
@@ -589,6 +597,7 @@ func save_legacy(book: LegacyBook) -> bool:
 	for r in book.records:
 		records.append({
 			"legacy_id": r.legacy_id, "character": SaveSerializer.character_to_dict(r.character),
+			"party": r.party.map(SaveSerializer.character_to_dict),
 			"times_cleared": r.times_cleared, "highest_cycle_cleared": r.highest_cycle_cleared,
 			"first_cleared_at": r.first_cleared_at, "last_cleared_at": r.last_cleared_at,
 			"best_play_time_sec": r.best_play_time_sec, "friend_name": r.friend_name, "slot": r.slot,
@@ -629,6 +638,10 @@ func record_completion() -> LegacyRecord:
 	var friend := childhood_friend()
 	if friend:
 		rec.friend_name = friend.character_name
+	# Who stood beside you: New Game+'s final boss brings mimics of them.
+	rec.party.clear()
+	for c in companions:
+		rec.party.append(c.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
 	# Unequipped Uniques (bag + companions' gear) go in the vault for New Game+.
 	rec.vault.clear()
 	var loose: Array = inventory.gear.duplicate()
@@ -956,6 +969,72 @@ static func flank_chance_for(n: int) -> float:
 	return chance
 
 
+## New Game+'s final boss is you: mimics of the character and party that last
+## conquered the tower (Hayden 2026-11-03). Fixed to their real strength, so the
+## floor's scaling is divided out; New Game+ and difficulty scaling still apply.
+const MIMIC_LEADER_HP := 4.0
+const MIMIC_PARTY_HP := 2.0
+const MIMIC_PREFIX := "mimic_"
+var _mimic_group: Array[StringName] = []
+
+
+## The boss group for a boss floor: the stage's, or your mimics on the last floor.
+func boss_group(n: int) -> Array[StringName]:
+	if n == FINAL_FLOOR and not _mimic_group.is_empty():
+		return _mimic_group.duplicate()
+	return StageLibrary.boss_for_floor(n)
+
+
+## Builds this run's mimics from the Hall of Climbers ([] in a first run).
+func register_mimics(cycle: int) -> void:
+	_mimic_group.clear()
+	if cycle <= 0:
+		return
+	var rec := load_legacy().find(player.legacy_id)
+	if rec == null or rec.character == null:
+		return
+	var members: Array = [rec.character] + rec.party
+	for i in members.size():
+		var def := mimic_def(members[i], i, rec if i == 0 else null)
+		EnemyLibrary.register_enemy(def)
+		_mimic_group.append(def.id)
+
+
+## An enemy copy of `c`. `rec` = the leader's Hall record (it's the boss).
+func mimic_def(c: CharacterData, index: int, rec: LegacyRecord) -> EnemyDef:
+	var scale := StageLibrary.guardian_scale(FINAL_FLOOR) / maxf(0.01, float(StageLibrary.THEMES[&"echoes"].power))
+	var d := EnemyDef.new()
+	d.id = StringName("%s%d" % [MIMIC_PREFIX, index])
+	d.display_name = "%s's Echo" % c.character_name
+	if rec and rec.is_god():
+		d.display_name = "%s's Echo" % rec.god_name()
+	d.family = &"echo"
+	d.traits = []
+	d.is_boss = rec != null
+	d.row = c.battle_row if c.battle_row >= 0 else SkillLibrary.default_row_for_class(c.class_id)
+	d.basic_attack = SkillLibrary.basic_attack_for_class(c.class_id).id
+	d.color = Color(0.92, 0.92, 1.0) if rec else Color(0.7, 0.72, 0.85)
+	d.skill_chance = 0.6
+	d.xp_reward = 2600 if rec else 300
+	d.gold_reward = 1000 if rec else 100
+	d.lore = "It has your face. It has been practising."
+	var sk: Array[StringName] = []
+	for s in c.all_skills():
+		if s.effect != SkillDef.Effect.SUMMON and s.faith_cost <= 0:
+			sk.append(s.id)
+	d.skills = sk
+	var st := {}
+	for stat in Stats.all():
+		st[stat] = maxi(1, roundi(c.stats.get_total(stat) / scale))
+	d.stats = st
+	var hp_after := guardian_hp_mult(party_size_at(FINAL_FLOOR)) if rec else normal_hp_mult(party_size_at(FINAL_FLOOR))
+	var wanted := c.max_hp() * (MIMIC_LEADER_HP if rec else MIMIC_PARTY_HP)
+	d.max_hp = maxi(1, roundi(wanted / (scale * Combatant.ENEMY_HP_MULT * hp_after)))
+	if rec:
+		d.drops = [{ "item": &"goddess_tear", "chance": 1.0, "count": 1 }]
+	return d
+
+
 ## This floor's twist (FloorMods), or &"".
 func current_floor_mod() -> StringName:
 	return FloorMods.for_floor(floor_number, floor_seed, is_rest_floor(floor_number))
@@ -1018,11 +1097,11 @@ func current_layout() -> FloorLayout:
 			floor_enemies.append({ "pos": spawn, "alive": true, "kind": "normal", "group": group })
 		if layout.guardian_spot.x >= 0:
 			var boss_floor := StageLibrary.is_boss_floor(n)
-			var group: Array[StringName] = StageLibrary.boss_for_floor(n) if boss_floor else StageLibrary.miniboss_for_floor(n)
+			var group: Array[StringName] = boss_group(n) if boss_floor else StageLibrary.miniboss_for_floor(n)
 			var full_size := group.size()
 			group.resize(mini(full_size, maxi(1, max_group)))   # escorts match your party's size too
 			if boss_floor and Difficulty.is_hell(difficulty) and full_size > 1:
-				group.append(StageLibrary.boss_for_floor(n)[-1])   # Hell: stage bosses bring an extra escort
+				group.append(boss_group(n)[-1])   # Hell: stage bosses bring an extra escort
 			floor_enemies.append({ "pos": layout.guardian_spot, "alive": not guardian_beaten(n),
 				"kind": "boss" if boss_floor else "miniboss", "group": group })
 		_maybe_spawn_roamer(layout, rng)

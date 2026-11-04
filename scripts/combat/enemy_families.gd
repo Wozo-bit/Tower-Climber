@@ -62,6 +62,21 @@ const FAMILIES := {
 	&"dragon": { "name": "Dragons",
 		"affinities": { E.ICE: A.WEAK, E.PIERCE: A.WEAK, E.FIRE: A.RESIST, E.SLASH: A.RESIST },
 		"traits": [&"dragonscale"] },
+	# --- Floors 61-100 (Hayden 2026-11-04) ---
+	&"titan": { "name": "Titans",
+		"affinities": { E.LIGHTNING: A.WEAK, E.PIERCE: A.WEAK, E.BLUNT: A.RESIST, E.EARTH: A.RESIST },
+		"traits": [&"thick_skulled"] },
+	&"host": { "name": "The Gods' Host",
+		"affinities": { E.DARK: A.WEAK, E.BLUNT: A.WEAK, E.HOLY: A.RESIST, E.LIGHTNING: A.RESIST },
+		"traits": [] },
+	# Their weaknesses are different every fight (BattleManager).
+	&"unfinished": { "name": "The Unfinished",
+		"affinities": {},
+		"traits": [&"glitched"] },
+	# They fight with your own skills (BattleManager).
+	&"echo": { "name": "Echoes",
+		"affinities": {},
+		"traits": [&"echoing"] },
 }
 
 const TRAITS := {
@@ -79,6 +94,10 @@ const TRAITS := {
 		"desc": "Survives its first killing blow with 1 HP, unless that blow is Holy or Fire." },
 	&"dragonscale": { "name": "Dragonscale",
 		"desc": "Takes less damage from anything that isn't one of its weaknesses." },
+	&"glitched": { "name": "Glitched",
+		"desc": "Its weakness and resistance are different every fight. Nothing you learned last time holds." },
+	&"echoing": { "name": "Echoing",
+		"desc": "Fights with skills copied from someone in your party." },
 }
 
 ## Gelatinous: physical damage multiplier on the first physical hit each round.

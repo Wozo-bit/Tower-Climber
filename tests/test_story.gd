@@ -1042,7 +1042,8 @@ func test_god_scenes() -> void:
 				break
 			GameState.set_flag(StoryLibrary.seen_flag(id))
 			order.append(id)
-	check(order.has(&"god_top") and order.back() == &"god_top", "the storyline ends on floor 60")
+	var god_scenes := order.filter(func(i): return String(i).begins_with("god_"))
+	check(god_scenes.back() == &"god_top", "the storyline ends on floor 100 (%s)" % [order.back()])
 	check(order.find(&"god_first_prayer") < order.find(&"god_davin"), "Ilse asks before you reach Davin")
 	check(order.find(&"god_friend_prayer") < order.find(&"god_found_out"), "the friend prays before they find out")
 

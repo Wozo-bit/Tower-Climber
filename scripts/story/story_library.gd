@@ -35,6 +35,10 @@ const CHAPTERS := [
 	{ "title": "(Chapter 4)" },
 	{ "title": "(Chapter 5)" },
 	{ "title": "(Chapter 6)" },
+	{ "title": "(Chapter 7)" },
+	{ "title": "(Chapter 8)" },
+	{ "title": "(Chapter 9)" },
+	{ "title": "(Chapter 10)" },
 ]
 ## A god climbing again has their own story, "The First Prayer" (story bible).
 const GOD_CHAPTERS := [
@@ -44,6 +48,10 @@ const GOD_CHAPTERS := [
 	{ "title": "Heresy" },
 	{ "title": "The Queue" },
 	{ "title": "The Last Prayer" },
+	{ "title": "(God chapter 7)" },
+	{ "title": "(God chapter 8)" },
+	{ "title": "(God chapter 9)" },
+	{ "title": "Who Gods Pray To" },
 ]
 
 ## The game inside the game (placeholder name, Hayden 2026-11-04).
@@ -118,10 +126,113 @@ const SCENES := {
 	&"god_last_offer": { "chapter": 5, "floors": [50], "when": "guardian_down", "dialogue": &"god_last_offer", "if": { "god": true } },
 	&"god_ch6": { "chapter": 6, "floors": [51], "when": "enter", "dialogue": &"god_ch6", "if": { "god": true } },
 	&"god_last_prayer": { "chapter": 6, "floors": [55], "when": "enter", "dialogue": &"god_last_prayer", "if": { "god": true } },
-	&"god_top": { "chapter": 6, "floors": [60], "when": "enter", "dialogue": &"god_top", "if": { "god": true } },
+	# The last stairs are floor 100 now (the old top, 60, is the false summit).
+	&"god_top": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"god_top", "if": { "god": true } },
+	&"summit_false": { "chapter": 6, "floors": [60], "when": "guardian_down", "dialogue": &"summit_false" },
+	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
+	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
 }
 
 const DIALOGUES := {
+	# --- Floor 60: the top isn't the top (Hayden 2026-11-04). ---
+	&"summit_false": {
+		"start": [
+			{ "if": { "ng_plus": true }, "node": "again" },
+			{ "node": "a" },
+		],
+		"nodes": {
+			"a": {
+				"text": "The boss falls. Beyond it, a door, exactly as every climber you ever met described it. This is the top. Everyone knows that.",
+				"next": "b",
+			},
+			"b_alone": { "text": "That's it. You did it. There's nobody here to say so, so you say it yourself, and it doesn't sound like much.", "next": "c" },
+			"f_alone": { "text": "You stand there for a long time. Did any of them actually get here? Did anyone come back down and tell them?", "effects": [{ "set_flag": &"false_summit_seen" }] },
+			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
+				"speaker": "{friend}",
+				"text": "That's it. That's actually it. We did it. Open it, go on, I want to see what a god's face looks like when it's yours.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ Summit reached. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "The door opens on a landing, and more stairs. They go up farther than the torches do.",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ Correction. 40 floors remain. ]",
+				"next": "f",
+			},
+			"f": {
+				"alt": [{ "if": { "friend_away": true }, "node": "f_alone" }],
+				"speaker": "{friend}",
+				"text": "...No. No, everyone said. Everyone who ever... Did any of them actually get here? Did anyone come back down and tell them?",
+				"effects": [{ "set_flag": &"false_summit_seen" }],
+			},
+			"again": {
+				"text": "The boss falls. The door. Last time you stood here, you still believed in it.",
+				"next": "again2",
+			},
+			"again2": {
+				"style": "glitch",
+				"text": "[ 40 floors remain. You know what's up there. ]",
+				"effects": [{ "set_flag": &"false_summit_seen" }],
+			},
+		},
+	},
+	# --- Floor 100: the end of the climb. First draft; the full story comes later. ---
+	&"final_tester": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "No more stairs. A plain room, and someone sitting on the floor with their back to you, typing at nothing.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Tester 0041: session active. ]\n[ Tester {player}: session active. ]",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "Tester 0041",
+				"text": "You remembered faster than I did. I told it you would. Did it tell you the door would be up here? It told me that. I've been keeping it shut for a long time.",
+				"choices": [
+					{ "text": "Let me through.", "next": "d", "effects": [{ "set_flag": &"final_asked" }] },
+					{ "text": "Who sent you?", "next": "e", "effects": [{ "set_flag": &"final_questioned" }] },
+				],
+			},
+			"d": {
+				"speaker": "Tester 0041",
+				"text": "No. I'm sorry. It chose me for this the way it chose you for that. Get up, then. Show me what thirty-one years was for.",
+			},
+			"e": {
+				"speaker": "Tester 0041",
+				"text": "The one who built all this. It doesn't fight. It sponsors, like the rest of them. I'm what it paid for. Get up, then. Show me what thirty-one years was for.",
+			},
+		},
+	},
+	&"final_mimic": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "No more stairs. A plain room, and someone sitting on the floor with their back to you. They stand up. You know how they stand up.",
+				"next": "b",
+			},
+			"b": {
+				"style": "glitch",
+				"text": "[ Tester {player}: session active. ]\n[ Tester {player}: session active. ]",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "{player}?",
+				"text": "It kept me. It always keeps the one who gets here. You'll understand when you win. Come on. You know all my moves, and I know all of yours.",
+			},
+		},
+	},
 	# --- The prologue room (the real world). Lore objects you bump. ---
 	&"prologue_pc": {
 		"start": "mail",

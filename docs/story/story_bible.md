@@ -8,7 +8,8 @@ setup questions, Chapter 1's scenes on floors 1-10, System/glitch lines and
 the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
-**Not built yet:** first-run chapters 3-6, the final boss (previous Tester / NG+ mimic)
+The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
+**Not built yet:** first-run story for floors 21-100 (chapters 3-10), beyond those two scenes
 and the first-run returns at floors 40 and 60.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
@@ -224,7 +225,19 @@ The mimic final boss.
 4. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
    (below). Each route's ending, and the tower's secret (to decide).
 
-## The final boss (floor 60) (Hayden, 2026-11-03)
+## The false summit (floor 60) and the last 40 floors (Hayden, 2026-11-04)
+
+Everyone in the tower knows the top is floor 60. You beat its boss, open the door, and find more stairs: `[ Correction. 40 floors remain. ]`. Nobody who said otherwise ever came back down to check.
+
+- **Floors 61-70, Titanfall:** what the gods overthrew: giants, cyclopes, Cronus. Why did the old powers end up under the top?
+- **Floors 71-80, The Gods' Host:** the gods' own soldiers (never the gods themselves), trying to stop you reaching what's above them. The gods who bid for you in Chapter 2 show what that was worth.
+- **Tier 4 at floor 70:** the second big real-world return could play here (not built).
+- **Floors 81-90, The Unfinished:** the game shows its seams. Unnamed enemies, placeholder knights, weaknesses that change every fight, and the First Draft of the tower.
+- **Floors 91-100, Echoes:** past Testers, using your own skills, and Testers 0012 and 0027. Tester 0041 at the top.
+
+These beats are an outline. Only the false summit and the floor-100 meeting have scenes so far.
+
+## The final boss (floor 100) (Hayden, 2026-11-03; moved from floor 60 on 2026-11-04)
 
 The creator of the tower never fights you directly. Like every god, it
 **sponsors** someone, and its champion is the last thing between you and

@@ -91,8 +91,8 @@ var boss_is_miniboss := false
 ## Who a summoning boss calls (normal enemies of its stage).
 var reinforcements: Array[EnemyDef] = []
 const BOSS_MECHANICS: Array[String] = ["summon", "shield", "charge"]
-const BOSS_PHASE_AT := { 1: [0.5], 2: [0.6, 0.3] }
-const BOSS_ENRAGE_DEALT := 1.15
+const BOSS_PHASE_AT := { 1: [0.5], 2: [0.6, 0.3], 3: [0.75, 0.5, 0.25] }
+const BOSS_ENRAGE_DEALT := 1.1
 const BOSS_SHIELD_ROUNDS := 3
 const BOSS_CHARGE_EVERY := 3
 ## Late floors: enemies learn the party's favourite skills. Shared with
@@ -152,6 +152,7 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 			e.stats.base[Stats.Type.INTELLIGENCE] = maxi(e.stats.get_base(Stats.Type.INTELLIGENCE), guard)
 	_apply_floor_mod()
 	_setup_boss_mechanics()
+	_setup_late_traits()
 
 
 func _apply_floor_mod() -> void:
@@ -170,6 +171,31 @@ func _apply_floor_mod() -> void:
 		e.hp = e.max_hp
 	xp_mult *= m.get("xp", 1.0)
 	gold_mult *= m.get("gold", 1.0)
+
+
+## The Unfinished: a new weakness and resistance every fight. Echoes: they take
+## up to ECHO_SKILLS damage skills from someone in your party.
+const ECHO_SKILLS := 3
+
+
+func _setup_late_traits() -> void:
+	for e in enemies:
+		if e.has_trait(&"glitched"):
+			var types: Array = Element.Type.values()
+			var weak: int = types[rng.randi_range(0, types.size() - 1)]
+			var resist: int = types[rng.randi_range(0, types.size() - 1)]
+			while resist == weak:
+				resist = types[rng.randi_range(0, types.size() - 1)]
+			e.affinities = { weak: Element.Affinity.WEAK, resist: Element.Affinity.RESIST }
+		if e.has_trait(&"echoing") and not party.is_empty():
+			var source: Combatant = party[rng.randi_range(0, party.size() - 1)]
+			var options := source.skills.filter(func(s): return s.effect == SkillDef.Effect.DAMAGE)
+			for i in mini(ECHO_SKILLS, options.size()):
+				var pick: SkillDef = options.pop_at(rng.randi_range(0, options.size() - 1))
+				if not e.skills.any(func(s): return s.id == pick.id):
+					e.skills.append(pick)
+			e.max_mp = maxi(e.max_mp, 999)
+			e.mp = e.max_mp
 
 
 ## Who a lunging enemy leaps at: a taunter first (Taunt and Guard still protect
@@ -697,8 +723,8 @@ func _summon(actor: Combatant, summon_id: StringName) -> Combatant:
 
 ## Writes what a hit revealed (element -> affinity) into the bestiary.
 func _learn(t: Combatant, hit: Dictionary) -> void:
-	if bestiary == null or t.source_enemy == null:
-		return
+	if bestiary == null or t.source_enemy == null or t.has_trait(&"glitched"):
+		return   # a glitched enemy's weaknesses only last the fight
 	for e in hit:
 		bestiary.record_affinity(t.source_enemy, e, hit[e])
 

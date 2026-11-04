@@ -54,6 +54,22 @@ The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invi
 - **"The First Prayer" (a god climbing again, floors 1-60):** `god_*` scenes in `StoryLibrary.SCENES`, needing the `god` condition. People pray to you in System windows; what they ask depends on your domain (`DOMAIN_LINES`). Answering can make **believers** (`DivinityState.believers`, shown in Tab → Divinity): each earns `BELIEVER_FAITH` per floor, on top of tithes. Effects: `believers`, `faith`, `halve_believers`, `domain_route`, `patron_interest`, `floor_patron_interest`. Conditions: `god`, `faith`, `min_cycle`, `past_patron`, `floor_guild_yours`. A god's chapters have their own titles (`GOD_CHAPTERS`). Living-religion figures never speak here (`past_patron_voice`).
 - `StoryLibrary.validate()` checks it all (tests/test_story.gd). Scenes don't start by themselves in headless runs (`StoryLibrary.auto_play`), so other test suites stay quiet.
 
+## The last 40 floors (Hayden 2026-11-04)
+The climb is 100 floors (`GameState.FINAL_FLOOR`). Everyone in the tower believes floor 60 is the top: its boss opens onto more stairs (`[ Correction. 40 floors remain. ]`, scene `summit_false`).
+
+| Floors | Stage | Family | What's different |
+|---|---|---|---|
+| 61-70 | Titanfall (boss: Cronus) | Titans | Thick-skulled; fear Lightning and Pierce |
+| 71-80 | The Gods' Host (boss: the Anointed Champion) | Soldiers of the gods, never the gods themselves | Fear Dark and Blunt; Holy is wasted on them |
+| 81-90 | The Unfinished (boss: the First Draft) | Glitched | A new weakness and resistance every fight; the Bestiary can't record them |
+| 91-100 | Echoes (boss: Tester 0041) | Past Testers | Echoing: each copies up to 3 damage skills from someone in your party and never runs out of MP |
+
+- **Final boss:** Tester 0041 on a first run. In New Game+, mimics of the character and party that last conquered the tower (`GameState.boss_group`, `register_mimics`; the Hall now keeps `LegacyRecord.party`). They fight at that run's real strength, plus New Game+ and difficulty scaling, with 4x HP for the leader and 2x for the party. Older Hall records have no party saved, so the leader comes alone.
+- **Tier 4:** floor 70 + level 60, +30% stats, one mastery per tier-3 class (39, demigods' and the Ashbound line's included), each with a capstone skill. The Ascendant gains Ascendant's Throne at that gate and stays the strongest.
+- **Boss mechanics:** bosses from floor 90 run all three, at 75%, 50% and 25% HP.
+- **Story:** only the false summit and the floor-100 meeting have scenes. Floors 21-100 of the first-run story are still to write (outline in the story bible). The god storyline's "last stairs" scene moved from floor 60 to floor 100.
+- **Sim** (bot, 24 runs to floor 100, after tuning the new bosses): Normal 15/24, Hard 7/24. Relaxed cleared 16/16 before that tuning. The bot doesn't brace for blasts or scout glitched enemies.
+
 ## Playtest changes (Hayden 2026-11-04)
 - **Floor travel:** every campfire offers Travel to any floor you've reached (`TravelPanel`, `GameState.travel_to_floor`). Plain floors refill with enemies; beaten minibosses and bosses stay dead (`cleared_guardians`). Going back never takes a guild-AI turn, charges wages or moves your checkpoint, including walking back up old stairs (`climb_to_floor`).
 - **Guilds from the menu:** Tab → Guilds has "Contact your guild" (the agent's whole conversation, except the members' shop, which needs a trip to their floor) and "Guild jobs..." (bounties from your guild's floors). Your own guild can take **donations** of your gold, and the panel says why war isn't available yet.
@@ -67,7 +83,7 @@ The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invi
 - **The late game** (`FloorMods`, `BattleManager`):
   - **Floor twists:** from floor 30, about a third of plain floors have one: Null Field, Mana Well, Silent Floor, Gold Vein, Blood Moon.
   - **Enemies adapt:** from floor 30, after 5 uses of a skill by one character on one floor, each further use does 10% less, down to half. Basic attacks don't fade; a new floor resets it.
-  - **Boss mechanics:** bosses from floor 30 get one mechanic at 50% HP, from floor 50 two (at 60% and 30%): reinforcements, a barrier only a weakness breaks (or 3 rounds), or a charged blast to brace for. Each also makes them hit 15% harder. Late minibosses just enrage. A boss's mechanics follow from its id.
+  - **Boss mechanics:** bosses from floor 30 get one mechanic at 50% HP, from floor 50 two (at 60% and 30%): reinforcements, a barrier only a weakness breaks (or 3 rounds), or a charged blast to brace for. Each also makes them hit 10% harder. Late minibosses just enrage. A boss's mechanics follow from its id.
 - **Ashbound:** "The Ashen Trail" quest starts with your first clue and lists what's left. The Ashen Wyrmling now comes however late you find the last clue (it used to stop after floor 29).
 - **Backspace** works in text boxes again (it was also a Cancel key, which stops editing). **Ironman** campfires no longer say they revive anyone. The Tab menu's items and spells scroll. The "(Placeholder)" tags are gone; `docs/story/unwritten_text.md` lists the temporary text.
 
