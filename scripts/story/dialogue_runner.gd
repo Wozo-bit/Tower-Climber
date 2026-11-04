@@ -80,7 +80,7 @@ func raw_speaker() -> String:
 
 ## The node's explicit "portrait" art id ("" = work it out from the speaker).
 func portrait_id() -> String:
-	return StoryLibrary.fill_bid_tokens(str(_node().get("portrait", "")))
+	return StoryLibrary.fill_story_tokens(str(_node().get("portrait", "")))
 
 
 ## "" (normal), "system" (a System window line) or "glitch" (the System slipping).
@@ -165,6 +165,13 @@ static func check(cond: Dictionary) -> bool:
 			"gold": ok = gs.player.gold >= v
 			"item": ok = gs.inventory.count(v) > 0
 			"ng_plus": ok = (gs.ng_plus_cycle > 0) == v
+			"god": ok = gs.divinity.active == v
+			"faith": ok = gs.divinity.active and gs.divinity.faith >= v
+			"min_cycle": ok = gs.ng_plus_cycle >= v
+			"past_patron": ok = StoryLibrary.past_patron_voice() == v
+			"floor_guild_yours":
+				var floor_ruler := gs.guilds.owner_of_floor(gs.floor_number)
+				ok = (floor_ruler != &"" and (floor_ruler == GuildLibrary.PLAYER_GUILD or gs.divinity.is_sponsor_of(floor_ruler))) == v
 			"on_secret_path": ok = SecretPaths.is_on_path(v, gs.story_flags)
 			"recruited": ok = gs.has_recruited(v)
 			"quest_new": ok = gs.quests.is_new(v)
@@ -297,6 +304,29 @@ func _apply_effects(effects: Array) -> void:
 			var pair := StoryLibrary.bid_pair()
 			for side in e.bid_interest:
 				gs.blessings.add_interest(pair[side], e.bid_interest[side])
+		# God storyline (StoryLibrary "god_*"). Nothing happens for a non-god.
+		if gs.divinity.active:
+			if e.has("believers"):
+				gs.divinity.add_believers(e.believers)
+				messages.append("%+d believer%s." % [e.believers, "" if absi(e.believers) == 1 else "s"])
+			if e.has("halve_believers"):
+				gs.divinity.lose_half_believers()
+			if e.has("faith"):
+				if e.faith >= 0:
+					gs.divinity.add_faith(e.faith)
+				else:
+					gs.divinity.faith = maxi(0, gs.divinity.faith + e.faith)
+				messages.append("%+d faith." % e.faith)
+			if e.has("domain_route"):
+				var liked: Array = DomainLibrary.get_domain(gs.divinity.domain).get("likes", [])
+				if not liked.is_empty():
+					gs.add_route_points(liked[0], e.domain_route)
+		if e.has("patron_interest") and StoryLibrary.past_patron() != &"":
+			gs.blessings.add_interest(StoryLibrary.past_patron(), e.patron_interest)
+		if e.has("floor_patron_interest"):
+			var floor_patron := StoryLibrary.floor_patron()
+			if floor_patron != &"":
+				gs.blessings.add_interest(floor_patron, e.floor_patron_interest)
 		if e.has("floor_guild_rep"):
 			var ruler := gs.guilds.owner_of_floor(gs.floor_number)
 			if ruler != &"":
@@ -332,7 +362,7 @@ static func fill(s: String, npc_name: String = "") -> String:
 		.replace("{friend}", friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME) \
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
-	out = StoryLibrary.fill_bid_tokens(out)
+	out = StoryLibrary.fill_story_tokens(out)
 	if out.contains("{floor_guild}"):
 		var ruler := GameState.guilds.owner_of_floor(GameState.floor_number)
 		out = out.replace("{floor_guild}", GuildLibrary.guild_name(ruler) if ruler != &"" else "The guild that runs this floor")

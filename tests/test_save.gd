@@ -176,7 +176,9 @@ func test_new_game_plus() -> void:
 	check(p.get_equipped(GearItem.Slot.ARMOR) == null, "equipped non-Unique gear does not")
 	check(GameState.inventory.gear.size() == 1 and GameState.inventory.gear[0].class_lock == &"mage", "vaulted Unique lands in the bag; Legendary + quest Unique don't")
 	check(p.gold == 0 and GameState.inventory.count(&"goddess_tear") == 0 and GameState.inventory.count(&"potion") == GameState.STARTING_ITEMS[&"potion"], "gold and consumables reset")
-	check(GameState.floor_number == 1 and GameState.story_flags.is_empty(), "tower progress and story flags reset")
+	check(GameState.floor_number == 1 and GameState.story_flags.keys().all(func(f): return StoryLibrary.is_past_flag(String(f))),
+		"tower progress and story flags reset, bar what the gods remember (%s)" % [GameState.story_flags.keys()])
+	check(not GameState.has_flag(&"clue_ash_scorched_mural"), "a clue from the last run is gone")
 	check(GameState.companions.size() == 1 and GameState.companions[0].level == 1, "childhood friend rejoins at level 1")
 	check(GameState.childhood_friend().character_name == "Cassia", "and keeps the name you gave them")
 	check(GameState.ng_plus_cycle == 2, "cycle = highest cleared + 1 (NG+2)")

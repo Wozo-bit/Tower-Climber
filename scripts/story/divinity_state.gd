@@ -18,6 +18,9 @@ const TITHE_GOLD_SHARE := 0.25
 const CONTRACT_FAITH := 60
 ## Divinity level from all the faith you've ever earned (level 1 at 0).
 const LEVEL_FAITH := [0, 150, 400, 900, 1800]
+## Faith per floor for each believer (answered prayers, StoryLibrary "god_*"
+## scenes), so a god with no guild still has something to spend.
+const BELIEVER_FAITH := 1
 ## A contract's level (1-3) from its favor; favor grows each floor it serves you.
 const CONTRACT_LEVEL_FAVOR := [0, 10, 25]
 const FAVOR_PER_FLOOR := 1
@@ -89,6 +92,8 @@ var kind := "god"
 var god_id: StringName = &""
 var faith := 0
 var faith_earned := 0
+## People who pray to you because you answered (or kept) them.
+var believers := 0
 ## guild id -> { "boon", "curse", "stance", "favor", "since" }
 var contracts: Dictionary = {}
 ## Patrons whose guilds you took: they hold it against you (rivals of your god).
@@ -433,7 +438,7 @@ func on_floor() -> void:
 	claim_own_guild()
 	var gs: GuildState = GameState.guilds
 	_update_people()
-	var faith_gain := 0
+	var faith_gain := believers * BELIEVER_FAITH
 	var gold_gain := 0
 	for g in contracts.keys():
 		var held := gs.territories_of(g).size()
@@ -459,6 +464,16 @@ func add_faith(n: int) -> void:
 	if level() > before:
 		messages.append("Your divinity grows (level %d): %d contract%s." % [level(), slots(), "" if slots() == 1 else "s"])
 		_jealousy()
+
+
+## Gain (or lose) believers. Never below zero.
+func add_believers(n: int) -> void:
+	believers = maxi(0, believers + n)
+
+
+## Half of them stop praying (rounded so at least one goes, if you have any).
+func lose_half_believers() -> void:
+	believers = believers / 2
 
 
 ## A rival god, jealous of your rise, curses you for a few floors.
@@ -489,7 +504,7 @@ func to_dict() -> Dictionary:
 		c[String(g)] = { "boon": String(e.boon), "curse": String(e.curse), "stance": String(e.stance),
 			"favor": e.favor, "since": e.since, "warned": e.get("warned", false) }
 	return { "active": active, "domain": String(domain), "title": title, "god_id": String(god_id),
-		"faith": faith, "faith_earned": faith_earned, "contracts": c, "spurned": spurned.map(func(b): return String(b)),
+		"faith": faith, "faith_earned": faith_earned, "believers": believers, "contracts": c, "spurned": spurned.map(func(b): return String(b)),
 		"renegades": renegades.map(func(g): return String(g)), "allies_greeted": allies_greeted }
 
 
@@ -501,6 +516,7 @@ static func from_dict(d: Dictionary, rec: LegacyRecord) -> DivinityState:
 	var S := SaveSerializer
 	st.faith = S._i(d, "faith", 0, 0, 1000000)
 	st.faith_earned = S._i(d, "faith_earned", st.faith, st.faith, 10000000)
+	st.believers = S._i(d, "believers", 0, 0, 100000)
 	var cd := S._d(d, "contracts")
 	for g in cd:
 		if not (g is String and cd[g] is Dictionary):

@@ -313,8 +313,17 @@ Chapter 2 "The Bidding" (floors 11-20) + first real-world return BUILT
 wrong, return on the first tier-2 class). Tester 0041 = the previous Tester.
 The bidding gods are a rival pair per run (StoryLibrary.BID_PAIRS; Hayden wants
 run variety, but pairings must make sense: enemies in their own myths, same
-pantheon, validated; no living-religion figures). LATER (Hayden): more NG+ story, a
-god storyline.
+pantheon, validated; no living-religion figures).
+God storyline "The First Prayer" BUILT 2026-11-04, floors 1-60 (Hayden's picks;
+story bible): prayers are System windows, answering makes believers
+(DivinityState.believers, +1 faith/floor each); the Hall keeps past_flags
+(StoryLibrary.past_flags: bid pair, who you heard/refused, patron, ending), so
+gods remember and the same pair returns for that character. Chapters 1-2 are
+rewritten for all NG+ ("ng_plus"), prayers only for gods ("god"), so a character
+who refused godhood gets the rewrites only. Past patrons from living religions
+stay silent (past_patron_voice). Ascending return BUILT (RETURN_ASCEND, floor 41+
+when Ascended or the Ascendant). None of it decides what the System or the
+tower's secret is.
 
 Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
 campfire floor travel (never ticks guilds/wages), guild actions from Tab,
@@ -394,7 +403,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2187 checks at last run).
+Every change gets tests in tests/ (26 suites, 2480 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

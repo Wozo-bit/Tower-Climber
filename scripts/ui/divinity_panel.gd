@@ -78,8 +78,8 @@ func _rebuild() -> void:
 		_list.remove_child(c)
 		c.queue_free()
 	var dv: DivinityState = GameState.divinity
-	_header.text = "%s, %s   ·   Faith %d   ·   Divinity level %d   ·   Contracts %d / %d" % [
-		GameState.player.character_name, dv.title, dv.faith, dv.level(), dv.others().size(), dv.slots()]
+	_header.text = "%s, %s   ·   Faith %d   ·   Believers %d   ·   Divinity level %d   ·   Contracts %d / %d" % [
+		GameState.player.character_name, dv.title, dv.faith, dv.believers, dv.level(), dv.others().size(), dv.slots()]
 	_list.add_child(_note("Guilds you sponsor take you as their patron: they follow your values, pay tithes every floor (faith + gold) and get the boon you grant, paid for by the curse you choose. Their level grows as they serve you."))
 	_list.add_child(_heading("Your guilds"))
 	if dv.contracts.is_empty():

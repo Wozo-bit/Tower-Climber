@@ -30,6 +30,11 @@ extends RefCounted
 ##   "gold": int             the player has at least this much gold
 ##   "item": &"id"           the bag has at least one
 ##   "ng_plus": bool         true = only in New Game+, false = only first run
+##   "god": bool             you are (or aren't) a god climbing again (DivinityState)
+##   "faith": n              a god with at least n faith
+##   "min_cycle": n          New Game+ cycle n or later
+##   "past_patron": "speaks" / "silent" / "none"   who blessed your last climb (StoryLibrary)
+##   "floor_guild_yours": bool   this floor's guild is your own or under your contract
 ##   "on_secret_path": &"id" the player has found enough clues for that path
 ##   "recruited": &"npc_id"  that NPC is in the party / reserve
 ##   "quest_new": &"id"      that quest was never started (so it can be offered)
@@ -531,12 +536,14 @@ const CONDITION_KEYS := ["flag", "any_flag", "remote", "blessed_by", "blessed_by
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
 	"holds_captive", "can_pay_ransom", "favor_new", "favor_active", "favor_done", "can_pay_fee", "refuses_you",
-	"patron_pantheon", "can_pay_down", "owes_wage", "can_pay_owed", "demigod_unlocked"]
+	"patron_pantheon", "can_pay_down", "owes_wage", "can_pay_owed", "demigod_unlocked",
+	"god", "faith", "min_cycle", "past_patron", "floor_guild_yours"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "floor_guild_rep", "bid_interest", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
 	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom",
-	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed"]
+	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed",
+	"believers", "faith", "halve_believers", "domain_route", "patron_interest", "floor_patron_interest"]
 
 
 ## Story scenes (StoryLibrary) play through here too.

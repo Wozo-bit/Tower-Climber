@@ -120,7 +120,8 @@ const TIPS := {
 		"A tier-3 class at a high enough level can Ascend ({key:party_menu}), beyond any normal class." ] },
 	&"divinity": { "topic": &"late", "title": "Divinity", "places": ["floor", "menu"], "lines": [
 		"You are a god now. Sponsor guilds in {key:party_menu} -> Divinity: they pay tithes and follow your values.",
-		"Faith fuels your miracles in battle. Guilds that act against your values can be smitten, or cut loose." ] },
+		"Faith fuels your miracles in battle. Guilds that act against your values can be smitten, or cut loose.",
+		"People will pray to you. Answer them and they become believers, who earn you faith every floor." ] },
 }
 
 

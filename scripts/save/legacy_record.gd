@@ -38,6 +38,9 @@ extends Resource
 ## hardest difficulty they did it on.
 @export var solo_cleared: bool = false
 @export var solo_best_difficulty: int = -1
+## What the gods remember of this character's last clear (StoryLibrary.past_flags):
+## story flags ("past_*", "bid_pair_*") that their next New Game+ starts with.
+@export var past_flags: Array[StringName] = []
 
 
 func is_god() -> bool:

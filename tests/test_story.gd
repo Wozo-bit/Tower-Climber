@@ -28,8 +28,17 @@ func _ready() -> void:
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
+	test_god_data()
+	test_memory()
+	test_believers()
+	test_rewrites()
+	test_god_scenes()
+	await test_ascend_return()
+	test_god_chapters()
+	test_living_stay_silent()
 	SaveSerializer.delete_file(Settings.path)
 	SaveSerializer.delete_file(Tips.path)
+	SaveSerializer.delete_file(GameState.legacy_path)
 	for slot in range(1, GameState.SLOT_COUNT + 1):
 		GameState.delete_slot(slot)
 	GameState.reset_run()
@@ -587,6 +596,572 @@ func test_quest_log() -> void:
 	panel.open()
 	check(panel._list.get_node("Chapter").text.begins_with("Chapter 2"), "chapter 2 on floor 15")
 	panel.queue_free()
+
+
+## A conqueror's New Game+ through the real flow: clear the tower (with these
+## flags set, blessed by `patron`), ascend into `domain`, start again.
+## `domain` empty = a character who didn't take godhood.
+func _ng(domain: StringName = &"mercy", flags: Array = [], patron: StringName = &"") -> LegacyRecord:
+	SaveSerializer.delete_file(GameState.legacy_path)
+	GameState.start_new_game("Climber", "Rowan", 1)
+	for f in flags:
+		GameState.set_flag(f)
+	if patron != &"":
+		GameState.player.bless(patron, 1)
+	var rec := GameState.complete_run()
+	if domain != &"":
+		GameState.become_god(rec.legacy_id, domain)
+	rec = GameState.load_legacy().find(rec.legacy_id)
+	GameState.start_new_game_plus(rec, 1)
+	return rec
+
+
+## Walks every path through a dialogue (each choice, breadth-first by replay),
+## calling `visit` on each node's filled text. Bounded so loops can't hang it.
+func _walk(id: StringName, visit: Callable) -> void:
+	var paths: Array = [[]]
+	var guard := 0
+	while not paths.is_empty() and guard < 200:
+		guard += 1
+		var path: Array = paths.pop_back()
+		var r := DialogueRunner.new()
+		r.start(id)
+		var steps := 0
+		for pick in path:
+			r.choose(pick)
+		while not r.finished and steps < 40:
+			steps += 1
+			visit.call(id, r)
+			if r.has_choices():
+				for c in r.choices():
+					paths.append(path + [c.index])
+				break
+			r.advance()
+
+
+func _unfilled_check(label: String) -> void:
+	var bad: PackedStringArray = []
+	var visit := func(id: StringName, r: DialogueRunner) -> void:
+		for s in [r.text(), r.speaker(), r.portrait_id()] + r.choices().map(func(c): return c.text):
+			if "{" in s or "}" in s:
+				bad.append("%s/%s: %s" % [id, r.node_id, s])
+	for id in StoryLibrary.DIALOGUES:
+		_walk(id, visit)
+	check(bad.is_empty(), "%s: no unfilled text %s" % [label, bad.slice(0, 5)])
+
+
+func test_god_data() -> void:
+	print("-- god storyline: data --")
+	check(StoryLibrary.DOMAIN_LINES.size() == DomainLibrary.BASE_DOMAINS.size(), "every domain has its prayers")
+	for pair in StoryLibrary.BID_PAIRS:
+		for side in ["first_lines", "second_lines"]:
+			check(StoryLibrary.NG_BID_LINES.all(func(k): return pair[side].has(k)), "%s %s: lines for meeting you again" % [pair.first, side])
+	check(StoryLibrary.validate().is_empty(), "still validates (%s)" % [StoryLibrary.validate()])
+	var god_scenes := StoryLibrary.SCENES.keys().filter(func(k): return String(k).begins_with("god_"))
+	check(god_scenes.all(func(k): return StoryLibrary.SCENES[k].get("if", {}).has("god")), "every god scene needs a god")
+	# First runs and mortals never get a god scene.
+	_fresh()
+	for k in god_scenes:
+		check(not DialogueRunner.check(StoryLibrary.SCENES[k].if), "%s: not on a first run" % k) \
+			if DialogueRunner.check(StoryLibrary.SCENES[k].if) else null
+	check(StoryLibrary.due(3, false) == &"ch1_memory", "floor 3 first run: only the memory")
+	check(StoryLibrary.due(25, false) == &"", "floor 25 first run: nothing")
+	_ng(&"")
+	check(not GameState.divinity.active, "a conqueror who refused godhood")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_memory"))
+	check(StoryLibrary.due(3, false) == &"", "no prayers for a mortal in New Game+")
+	check(StoryLibrary.due(25, false) == &"", "no shrine for a mortal either")
+	_unfilled_check("a mortal in New Game+")
+	# Every domain, every path: all tokens fill in, and every path ends.
+	for domain in DomainLibrary.BASE_DOMAINS:
+		_ng(domain)
+		check(GameState.divinity.domain == domain, "%s: a god" % domain)
+		_unfilled_check("%s" % domain)
+	_fresh()
+	_unfilled_check("a first run")
+
+
+func test_memory() -> void:
+	print("-- the gods remember --")
+	var flags := [&"ch2_heard_first", &"ch2_refused_second", &"ch1_warned_tess", &"bid_pair_ra", &"ch2_tess_real"]
+	var rec := _ng(&"valor", flags, &"odin")
+	var saved := GameState.load_legacy().find(rec.legacy_id)
+	for f in [&"past_heard_first", &"past_refused_second", &"past_warned_tess", &"bid_pair_ra", &"past_patron_odin"]:
+		check(saved.past_flags.has(f), "the Hall keeps %s" % f)
+		check(GameState.has_flag(f), "and New Game+ starts with it: %s" % f)
+	check(saved.past_flags.any(func(f): return String(f).begins_with("past_ending_")), "and how it ended")
+	check(not GameState.has_flag(&"ch2_heard_first") and not GameState.has_flag(&"ch2_tess_real"), "the run itself starts fresh")
+	check(StoryLibrary.bid_pair().first == &"ra", "the same two gods come back")
+	check(StoryLibrary.past_patron() == &"odin" and StoryLibrary.past_patron_voice() == "speaks", "the old patron")
+	check(GameState.player.blessing_id == &"", "but the blessing itself is gone")
+	# A tampered Hall can only add memories, never progress.
+	check(StoryLibrary.is_past_flag("past_anything") and StoryLibrary.is_past_flag("bid_pair_odin"), "real memories")
+	check(not StoryLibrary.is_past_flag("ch1_complete") and not StoryLibrary.is_past_flag(7), "anything else is refused")
+	var d := SaveSerializer.read_json(GameState.legacy_path)
+	d.records[0].past_flags = ["past_ok", "scene_ch1_wake", 12, "x".repeat(200)]
+	SaveSerializer.write_json(GameState.legacy_path, d)
+	var cleaned: Array[StringName] = GameState.load_legacy().records[0].past_flags
+	check(cleaned.size() == 1 and cleaned[0] == &"past_ok", "a tampered Hall is cleaned on load (%s)" % [cleaned])
+	# An old Hall with no memory still works.
+	d.records[0].erase("past_flags")
+	SaveSerializer.write_json(GameState.legacy_path, d)
+	check(GameState.load_legacy().records[0].past_flags.is_empty(), "an older Hall file loads fine")
+	# A second clear overwrites the memory with the newer climb.
+	_ng(&"", [&"ch2_heard_second"])
+	var again := GameState.complete_run()
+	check(not again.past_flags.has(&"past_heard_second"), "the memory follows the latest climb")
+	# Each ending has its tale at the shrine.
+	var r := DialogueRunner.new()
+	for tale in StoryLibrary.PAST_TALES:
+		_ng(&"mercy")
+		for f in GameState.story_flags.keys():
+			if String(f).begins_with("past_ending_"):
+				GameState.story_flags.erase(f)
+		if tale != &"none":
+			GameState.set_flag(StringName("past_ending_%s" % tale))
+		r.start(&"god_shrine")
+		r.advance()
+		check(r.text().contains(StoryLibrary.PAST_TALES[tale]), "the shrine tells the %s tale" % tale)
+
+
+func test_believers() -> void:
+	print("-- believers --")
+	_ng()
+	var dv := GameState.divinity
+	check(dv.believers == 0 and dv.faith == 0, "a god starts with nobody")
+	dv.on_floor()
+	check(dv.faith == 0, "no believers, no guild: no faith")
+	_play(&"god_first_prayer", 0)
+	check(dv.believers == 1 and dv.faith == 10 and GameState.has_flag(&"god_ilse_answered"), "answering Ilse: a believer and some faith")
+	var before := dv.faith
+	dv.on_floor()
+	check(dv.faith == before + DivinityState.BELIEVER_FAITH, "each believer earns faith per floor")
+	GameState.save_game()
+	GameState.load_game(1)
+	check(GameState.divinity.believers == 1, "believers are saved")
+	dv = GameState.divinity
+	_ng()
+	dv = GameState.divinity
+	_play(&"god_first_prayer", 1)
+	check(dv.believers == 0 and dv.faith == 0 and GameState.has_flag(&"god_ilse_silent"), "silence earns nothing")
+	dv.add_believers(-5)
+	check(dv.believers == 0, "never below zero")
+	dv.add_believers(7)
+	dv.lose_half_believers()
+	check(dv.believers == 3, "half of them stop")
+	# Effects do nothing for anyone who isn't a god (and don't break).
+	_fresh()
+	_play(&"god_first_prayer", 0)
+	check(GameState.divinity.believers == 0 and not GameState.divinity.active, "a first run can't gain believers")
+	# The panel shows them.
+	_ng()
+	GameState.divinity.add_believers(4)
+	var panel := DivinityPanel.new()
+	add_child(panel)
+	panel.open()
+	check(panel._header.text.contains("Believers 4"), "Tab -> Divinity shows them (%s)" % panel._header.text)
+	panel.queue_free()
+
+
+func test_rewrites() -> void:
+	print("-- chapters 1-2 change in New Game+ --")
+	_ng()
+	var r := DialogueRunner.new()
+	r.start(&"ch1_wake")
+	check(r.node_id == "god_a", "a god wakes differently")
+	r.advance()
+	r.advance()
+	check(r.text().contains(GameState.divinity.title) and r.text().contains("Worshippers: 0"), "registered, zero worshippers (%s)" % r.text())
+	GameState.ng_plus_cycle = 2
+	r.start(&"ch1_wake")
+	check(r.node_id == "god_cycle", "the second time round you've learned the sound of it")
+	GameState.ng_plus_cycle = 1
+	r.start(&"ch1_memory")
+	check(r.node_id == "again", "you know the water tower story")
+	_play(&"ch1_memory", 0)
+	check(GameState.has_flag(&"ch1_memory_finished"), "you can finish it for them")
+	r.start(&"ch1_slip")
+	check(r.text().contains("Deities do not require grading"), "the System won't grade a god")
+	r.start(&"ch1_carving")
+	check(r.node_id == "again", "the carving: you look closer")
+	r.start(&"ch2_friday")
+	check(r.node_id == "again", "you were counting the floors to Friday")
+	r.start(&"ch2_session")
+	r.advance()
+	check(r.text().contains("Tester 0042") and r.text().contains("Climb: 2"), "a second line in the session list (%s)" % r.text())
+	r.start(&"ch2_end")
+	check(r.node_id == "again", "chapter 2 ends differently")
+	_play(&"ch2_end")
+	check(GameState.has_flag(&"ch2_complete"), "and still completes")
+	# Mortals get the rewrites, not the god lines.
+	_ng(&"")
+	r.start(&"ch1_wake")
+	check(r.node_id == "again", "a mortal's New Game+ keeps the old wake-up")
+	r.start(&"ch1_slip")
+	check(r.node_id == "again" and not r.text().contains("Deities"), "not called a deity")
+	r.start(&"ch1_end")
+	check(r.node_id == "back", "no old patron: \"So you came back\"")
+	r.advance()
+	check(r.text().contains("came back"), "(%s)" % r.text())
+	# Tess can be saved.
+	_ng()
+	r.start(&"ch1_legend")
+	check(r.node_id == "again", "you know what's coming for her")
+	_play(&"ch1_legend", 0)
+	check(GameState.has_flag(&"ch1_warned_tess") and GameState.has_flag(&"ch1_met_tess"), "warned")
+	r.start(&"ch1_fallen")
+	check(r.node_id == "saved" and r.text().contains("scarf"), "she waited: the scarf on the rail")
+	_play(&"ch1_fallen")
+	check(GameState.has_flag(&"ch1_tess_turned_back") and not GameState.has_flag(&"ch1_tess_fell"), "she didn't fall")
+	r.start(&"ch2_tess")
+	check(r.node_id == "real", "the real Tess, frightened")
+	_play(&"ch2_tess")
+	check(GameState.has_flag(&"ch2_tess_real") and not GameState.has_flag(&"ch2_tess_returned"), "a different joke, and Marn saw it")
+	var real: Dictionary = StoryLibrary.DIALOGUES[&"ch2_tess"].nodes
+	check(real.real_scarf.text.contains("waited on the stairs") and real.marn_real2.text.contains("different joke"), "the joke really changed")
+	_ng()
+	_play(&"ch1_legend", 1)
+	check(GameState.has_flag(&"ch1_kept_quiet"), "or you keep quiet")
+	r.start(&"ch1_fallen")
+	check(r.node_id == "knew", "and you knew")
+	_play(&"ch1_fallen")
+	check(GameState.has_flag(&"ch1_tess_fell"), "she falls")
+	r.start(&"ch2_tess")
+	check(r.node_id == "again", "she comes back wrong")
+	r.advance()
+	r.advance()
+	check(r.text().contains("supposed to tell me something"), "and she almost remembers (%s)" % r.text())
+	# You saved her last time, and the tower put her back.
+	_ng(&"mercy", [&"ch1_warned_tess"])
+	r.start(&"ch1_legend")
+	check(r.node_id == "again_saved", "a later climb remembers saving her")
+	# Bids remember what you said.
+	_ng(&"mercy", [&"ch2_heard_first", &"ch2_refused_second", &"bid_pair_zeus"])
+	var pair := StoryLibrary.bid_pair()
+	r.start(&"ch2_first_bid")
+	check(r.node_id == "re_yes" and r.text() == pair.first_lines.recall_yes, "the first remembers you listened")
+	r.advance()
+	check(r.text() == pair.first_lines.peer, "and talks to you as a peer")
+	r.start(&"ch2_second_bid")
+	check(r.node_id == "re_no" and r.text() == pair.second_lines.recall_no, "the second remembers you refused")
+	_ng(&"", [&"ch2_refused_first", &"bid_pair_zeus"])
+	r.start(&"ch2_first_bid")
+	check(r.node_id == "re_no", "a mortal is remembered too")
+	r.advance()
+	check(r.text() == StoryLibrary.bid_pair().first_lines.mortal, "but isn't called a peer")
+	var bonus := func(b: StringName) -> int: return GameState.blessings.beings.get(b, {}).get("bonus", 0)
+	_ng(&"mercy", [&"bid_pair_ra"])
+	var ra_was: int = bonus.call(&"ra")
+	var apep_was: int = bonus.call(&"apep")
+	_play(&"ch2_first_bid", 0)
+	check(bonus.call(&"ra") == ra_was + 6 and bonus.call(&"apep") == apep_was - 2 and GameState.has_flag(&"ng_sided_first"), "hearing one out is real interest")
+	# The old patron's voice after floor 10.
+	_ng(&"mercy", [], &"odin")
+	r.start(&"ch1_end")
+	check(r.node_id == "old", "the one who blessed you remembers")
+	r.advance()
+	check(r.speaker() == "Odin" and r.portrait_id() == "odin" and r.text() == StoryLibrary.PATRON_REMEMBERS.god, "by name")
+	var odin_was: int = bonus.call(&"odin")
+	_play(&"ch1_end", 0)
+	check(bonus.call(&"odin") == odin_was + 5 and GameState.has_flag(&"ch1_complete"), "thanking them warms them")
+	_ng(&"mercy", [], &"odin")
+	odin_was = bonus.call(&"odin")
+	_play(&"ch1_end", 1)
+	check(bonus.call(&"odin") == odin_was - 5, "refusing them cools them")
+
+
+func test_god_scenes() -> void:
+	print("-- the first prayer --")
+	_ng()
+	var r := DialogueRunner.new()
+	check(StoryLibrary.due(3, false) == &"ch1_memory", "floor 3: the memory comes first")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_memory"))
+	check(StoryLibrary.due(3, false) == &"god_first_prayer", "then the first prayer")
+	r.start(&"god_first_prayer")
+	check(r.style() == "system" and r.text().contains("Prayer received"), "a System window")
+	r.advance()
+	check(r.text().contains(GameState.divinity.title) and r.text().contains("floor 12"), "she asks for you by title (%s)" % r.text())
+	# Prayers change with the domain.
+	_ng(&"vengeance")
+	r.start(&"god_petition")
+	r.advance()
+	check(r.text() == StoryLibrary.DOMAIN_LINES[&"vengeance"].plea, "vengeance is asked for vengeance")
+	_ng(&"mercy")
+	r.start(&"god_petition")
+	r.advance()
+	check(r.text() == StoryLibrary.DOMAIN_LINES[&"mercy"].plea, "mercy is asked for mercy")
+	_play(&"god_petition", 0)
+	check(GameState.divinity.believers == 2 and GameState.route.points_of(&"hero") == 3, "granting it: believers, and your values' route")
+	# Davin: three ways down.
+	_ng()
+	GameState.inventory.remove(&"potion", GameState.inventory.count(&"potion"))
+	GameState.inventory.add(&"potion", 1)
+	_play(&"god_davin", 0)
+	check(GameState.has_flag(&"god_davin_saved") and GameState.inventory.count(&"potion") == 0, "searching costs a potion, and he lives")
+	check(GameState.divinity.believers == 1, "he believes in someone now")
+	check(DialogueRunner.check(StoryLibrary.SCENES[&"god_ilse_wrong"].if), "you never answered Ilse: she thanks someone else")
+	GameState.set_flag(&"god_ilse_answered")
+	check(DialogueRunner.check(StoryLibrary.SCENES[&"god_ilse_thanks"].if), "you did: she thanks you")
+	_play(&"god_ilse_thanks")
+	check(GameState.divinity.believers == 3, "and tells everyone")
+	_ng()
+	GameState.inventory.remove(&"potion", GameState.inventory.count(&"potion"))
+	GameState.player.gold = 150
+	var davin := DialogueRunner.new()
+	davin.start(&"god_davin")
+	davin.choose(davin.choices()[0].index)
+	davin.advance()
+	check(davin.choices().size() == 2, "no potion: gold or nothing")
+	davin.choose(davin.choices()[0].index)
+	check(GameState.player.gold == 50 and GameState.has_flag(&"god_davin_saved"), "100 gold carries him down")
+	_ng()
+	GameState.inventory.remove(&"potion", GameState.inventory.count(&"potion"))
+	GameState.player.gold = 0
+	davin.start(&"god_davin")
+	davin.choose(davin.choices()[0].index)
+	davin.advance()
+	check(davin.choices().size() == 1, "nothing to give")
+	davin.choose(davin.choices()[0].index)
+	check(GameState.has_flag(&"god_davin_lost"), "and he doesn't make it")
+	_ng()
+	_play(&"god_davin", 1)
+	check(GameState.has_flag(&"god_davin_lost") and not GameState.has_flag(&"god_davin_searched"), "or you walk on")
+	r.start(&"god_heretic")
+	check(r.node_id == "ilse", "floor 40: the prayer against you is hers")
+	r.start(&"god_last_prayer")
+	check(r.node_id == "bitter", "floor 55: and so is the last one")
+	r.start(&"god_shrine")
+	check(r.node_id == "stranger", "the shrine isn't hers")
+	_ng()
+	GameState.set_flag(&"god_davin_saved")
+	r.start(&"god_shrine")
+	check(r.node_id == "ilse", "she built the shrine")
+	r.start(&"god_last_prayer")
+	check(r.node_id == "unknown", "she never knew it was you")
+	GameState.set_flag(&"god_ilse_answered")
+	r.start(&"god_last_prayer")
+	check(r.node_id == "thanks", "\"It was enough.\"")
+	_ng()
+	GameState.set_flag(&"god_plea_refused")
+	r.start(&"god_heretic")
+	check(r.node_id == "plea", "someone you refused complains")
+	_ng()
+	r.start(&"god_heretic")
+	check(r.node_id == "stranger", "or a stranger does")
+	_play(&"god_heretic", 2)
+	check(GameState.divinity.faith == 20 and GameState.has_flag(&"god_heretic_smote"), "silencing them is easy, and pays")
+	# The friend's prayer, and what follows from it.
+	_ng()
+	r.start(&"god_friend_prayer")
+	r.advance()
+	r.advance()
+	check(r.speaker() == "Rowan" and r.text().contains("Climber"), "the friend prays about you, to you (%s)" % r.text())
+	_play(&"god_friend_prayer", 0)
+	check(GameState.has_flag(&"god_told_friend"), "you can tell them")
+	r.start(&"ch2_threshold")
+	check(r.node_id == "told_god", "and floor 20 changes")
+	r.start(&"god_found_out")
+	check(r.node_id == "ask", "floor 35: should they still pray?")
+	_ng()
+	_play(&"god_friend_prayer", 2)
+	check(GameState.has_flag(&"god_silent_friend"), "or say nothing")
+	r.start(&"god_found_out")
+	check(r.node_id == "caught", "floor 35: they find out")
+	_play(&"god_found_out")
+	check(GameState.has_flag(&"god_friend_caught"), "and go quiet")
+	# The reprisal: shield them or lose half.
+	_ng()
+	GameState.divinity.add_believers(6)
+	GameState.divinity.faith = 50
+	_play(&"god_reprisal", 0)
+	check(GameState.divinity.believers == 6 and GameState.divinity.faith == 10 and GameState.has_flag(&"god_shielded"), "40 faith shields them")
+	_ng()
+	GameState.divinity.add_believers(6)
+	GameState.divinity.faith = 39
+	var rep := DialogueRunner.new()
+	rep.start(&"god_reprisal")
+	for i in 3:
+		rep.advance()
+	check(rep.choices().size() == 1, "not enough faith: you can only watch")
+	rep.choose(rep.choices()[0].index)
+	check(GameState.divinity.believers == 3 and GameState.divinity.faith == 39, "and half of them stop")
+	# Whoever you didn't side with is the one who strikes.
+	_ng(&"mercy", [&"bid_pair_odin"])
+	check(StoryLibrary.foe_side() == "second", "sided with nobody: the tempter strikes")
+	GameState.set_flag(&"ng_sided_second")
+	check(StoryLibrary.foe_side() == "first", "side with them, and the other one does")
+	r.start(&"god_reprisal")
+	r.advance()
+	r.advance()
+	check(r.speaker() == "Odin" and r.portrait_id() == "odin" and r.text() == StoryLibrary.bid_pair().first_lines.strike, "by name")
+	# The last offer.
+	var bonus := func(b: StringName) -> int: return GameState.blessings.beings.get(b, {}).get("bonus", 0)
+	_ng(&"mercy", [&"bid_pair_ra"])
+	var ra_before: int = bonus.call(&"ra")
+	var apep_before: int = bonus.call(&"apep")
+	_play(&"god_last_offer", 0)
+	check(bonus.call(&"ra") == ra_before + 15 and bonus.call(&"apep") == apep_before - 15 and GameState.divinity.faith == 60, "standing with one")
+	_ng(&"mercy", [&"bid_pair_ra"])
+	_play(&"god_last_offer", 2)
+	check(GameState.divinity.believers == 2 and GameState.has_flag(&"god_allied_nobody"), "or with your own people")
+	# The chaplain: not on your own floors.
+	_ng()
+	GameState.enter_floor(13)
+	var ruler := GameState.guilds.owner_of_floor(13)
+	check(DialogueRunner.check(StoryLibrary.SCENES[&"god_chaplain"].if), "a chaplain prays behind their patron's back")
+	var patron := StoryLibrary.floor_patron()
+	var rep_before := GameState.guilds.rep_of(ruler)
+	var patron_before: int = bonus.call(patron)
+	_play(&"god_chaplain", 0)
+	check(GameState.guilds.rep_of(ruler) == rep_before + 5 and bonus.call(patron) == patron_before - 5 and GameState.divinity.faith == 20, "faith, standing, and an angry patron")
+	GameState.divinity.contracts[ruler] = { "boon": &"wealth", "curse": &"burden", "stance": &"", "favor": 0, "since": 13, "warned": false }
+	check(not DialogueRunner.check(StoryLibrary.SCENES[&"god_chaplain"].if), "no chaplain on a floor that's already yours")
+	# The queue and the top: the System slips.
+	_ng()
+	r.start(&"god_queue")
+	check(r.text() == "[ Prayers waiting: 11,302. ]", "the queue")
+	_play(&"god_queue", 0)
+	check(GameState.has_flag(&"god_saw_queue"), "it talks back")
+	var top: Dictionary = StoryLibrary.DIALOGUES[&"god_top"].nodes
+	check(top.pray4.style == "glitch" and top.pray4.text == "[ I heard that. ]", "who do gods pray to?")
+	_play(&"god_top", 0)
+	check(GameState.has_flag(&"god_prayed") and GameState.has_flag(&"god_arc_complete"), "you can try")
+	_ng()
+	_play(&"god_top", 1)
+	check(GameState.has_flag(&"god_did_not_pray") and GameState.has_flag(&"god_arc_complete"), "or not")
+	# All in order, floor by floor, for a god.
+	_ng()
+	var order := []
+	for n in range(1, GameState.FINAL_FLOOR + 1):
+		var guard := 0
+		while guard < 10:
+			guard += 1
+			var id := StoryLibrary.due(n, true)
+			if id == &"":
+				break
+			GameState.set_flag(StoryLibrary.seen_flag(id))
+			order.append(id)
+	check(order.has(&"god_top") and order.back() == &"god_top", "the storyline ends on floor 60")
+	check(order.find(&"god_first_prayer") < order.find(&"god_davin"), "Ilse asks before you reach Davin")
+	check(order.find(&"god_friend_prayer") < order.find(&"god_found_out"), "the friend prays before they find out")
+
+
+func test_ascend_return() -> void:
+	print("-- the Ascending return --")
+	_ng(&"")
+	var p := GameState.player
+	p.class_id = &"pyromancer"
+	check(StoryLibrary.return_due() == &"", "New Game+, not Ascended: nothing")
+	p.ascended = true
+	GameState.highest_floor = 1
+	check(StoryLibrary.return_due() == &"", "still Ascended from last climb, on floor 1: not yet")
+	GameState.highest_floor = ClassRegistry.ASCENSION_GATE.floor + 1
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_ASCEND, "past the gate's floor: the room")
+	GameState.set_flag(StoryLibrary.RETURN_ASCEND)
+	check(StoryLibrary.return_due() == &"", "once a run")
+	_ng(&"")
+	GameState.player.class_id = &"ascendant"
+	GameState.highest_floor = 1
+	check(StoryLibrary.return_due() == &"", "the Ascendant waits for the same floor")
+	GameState.highest_floor = ClassRegistry.ASCENSION_GATE.floor + 1
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_ASCEND, "and then goes home too")
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	GameState.player.ascended = true
+	GameState.highest_floor = 50
+	check(StoryLibrary.return_due() == &"", "never on a first run")
+	# The room: exactly as it was.
+	_ng()
+	GameState.player.ascended = true
+	check(not Prologue.WRONG_TILES.has(StoryLibrary.RETURN_ASCEND), "no stone through the floor this time")
+	var r := DialogueRunner.new()
+	r.start(&"return_ascend_pc")
+	r.advance()
+	check(r.text().contains("Welcome back, Climber"), "the email knows your name (%s)" % r.text())
+	var first: Dictionary = StoryLibrary.DIALOGUES[&"prologue_pc"].nodes.mail
+	check(StoryLibrary.DIALOGUES[&"return_ascend_pc"].nodes.a.text == first.text, "the invitation, word for word")
+	r.start(&"return_ascend_phone")
+	check(r.node_id == "god", "a god's phone holds a prayer")
+	r.advance()
+	check(r.text().contains("Prayer received"), "(%s)" % r.text())
+	_ng(&"")
+	r.start(&"return_ascend_phone")
+	check(r.node_id == "a" and r.text().contains("Friday"), "a mortal's holds only the first night's messages")
+	r.start(&"return_ascend_notebook")
+	r.advance()
+	check(r.text().contains("ME."), "the last page")
+	Prologue.mode = StoryLibrary.RETURN_ASCEND
+	var room: Prologue = load(Prologue.SCENE).instantiate()
+	room.auto_leave = false
+	var left := [false]
+	room.return_finished.connect(func(): left[0] = true)
+	add_child(room)
+	await _frames(2)
+	check(GameState.player.character_name == "Climber", "the run survives the room")
+	for obj in StoryLibrary.PROLOGUE_OBJECTS:
+		room.look_at_object(obj)
+		check(room._dialogue.runner.dialogue_id == StringName("return_ascend_%s" % obj), "%s: its own words" % obj)
+		if obj != &"pc":
+			while room._dialogue.visible:
+				room._dialogue.runner.advance()
+				room._dialogue._refresh()
+		else:
+			room._dialogue.runner.advance()
+			room._dialogue._refresh()
+			room._dialogue.runner.choose(room._dialogue.runner.choices()[1].index)
+			room._dialogue._refresh()
+			check(not left[0], "\"Not yet\" stays in the room")
+	room.look_at_object(&"pc")
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	room._dialogue.runner.choose(room._dialogue.runner.choices()[0].index)
+	room._dialogue._refresh()
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(left[0], "resuming the test takes you back")
+	check(Prologue.mode == Prologue.MODE_PROLOGUE, "the room resets")
+	check(GameState.pending_talks.any(func(t): return t.dialogue == &"return_ascend_back"), "and the friend has words")
+	GameState.pending_talks.clear()
+	room.queue_free()
+	await _frames(1)
+
+
+func test_god_chapters() -> void:
+	print("-- a god's chapters --")
+	_fresh()
+	check(StoryLibrary.chapter_name(1) == "Chapter 1: Tester", "a first run: Tester")
+	_ng(&"")
+	check(StoryLibrary.chapter_name(3) == "Chapter 3: (Chapter 3)", "a mortal's New Game+: the normal chapters")
+	_ng()
+	check(StoryLibrary.chapter_name(1) == "Chapter 1: Nobody's God", "a god: their own")
+	check(StoryLibrary.chapter_name(6) == "Chapter 6: The Last Prayer", "to the end")
+	check(StoryLibrary.DIALOGUES[&"god_ch3"].nodes.a.text.contains(StoryLibrary.GOD_CHAPTERS[2].title), "chapter 3's window matches")
+	check(StoryLibrary.DIALOGUES[&"god_ch4"].nodes.a.text.contains(StoryLibrary.GOD_CHAPTERS[3].title), "chapter 4's window matches")
+	check(StoryLibrary.DIALOGUES[&"god_ch5"].nodes.a.text.contains(StoryLibrary.GOD_CHAPTERS[4].title), "chapter 5's window matches")
+	check(StoryLibrary.DIALOGUES[&"god_ch6"].nodes.a.text.contains(StoryLibrary.GOD_CHAPTERS[5].title), "chapter 6's window matches")
+
+
+## SENSITIVITY RULE: figures from living religions are only ever gods, and in
+## this story never a speaking role: a past patron is a quiet presence at most.
+func test_living_stay_silent() -> void:
+	print("-- living-religion figures --")
+	var living := BeingLibrary.SPECS.keys().filter(func(b): return BeingLibrary.get_being(b).get("living", false))
+	check(not living.is_empty(), "there are some (%s)" % [living])
+	for b in living:
+		_ng(&"mercy", [], b)
+		check(StoryLibrary.past_patron_voice() == "silent", "%s doesn't speak" % b)
+		var r := DialogueRunner.new()
+		r.start(&"ch1_end")
+		check(r.node_id == "warm" and r.choices().is_empty(), "%s: only an old warmth" % b)
+		_walk(&"ch1_end", func(_id, run: DialogueRunner) -> void:
+			check(run.speaker() != BeingLibrary.get_being(b).name, "%s never speaks" % b) if run.speaker() == BeingLibrary.get_being(b).name else null)
+	for pair in StoryLibrary.BID_PAIRS:
+		for side in ["first", "second"]:
+			check(not BeingLibrary.get_being(pair[side]).get("living", false), "%s can speak" % pair[side])
+	# Your own past god never appears as your "old patron".
+	_ng(&"mercy")
+	GameState.set_flag(StringName(StoryLibrary.PAST_PATRON_PREFIX + String(GameState.divinity.god_id)))
+	check(StoryLibrary.past_patron() == &"", "you aren't your own old patron")
 
 
 func test_glitch() -> void:

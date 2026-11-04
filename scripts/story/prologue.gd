@@ -9,8 +9,9 @@ extends Control
 ##
 ## The same room comes back for the real-world returns at later milestones
 ## (StoryLibrary.RETURN_*): `mode` picks its dialogues, and the PC logs you back
-## in to the tower instead of opening the client. Each return makes the room a
-## little more wrong (WRONG_TILES).
+## in to the tower instead of opening the client. The first-run returns make the
+## room a little more wrong (WRONG_TILES); the Ascending return is the room
+## exactly as it was on the first night, which is its own kind of wrong.
 
 ## The save slot New Game picked (set by the title screen before coming here).
 static var pending_slot := 1

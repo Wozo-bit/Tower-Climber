@@ -7,8 +7,9 @@ Names in [brackets] are placeholders.
 setup questions, Chapter 1's scenes on floors 1-10, System/glitch lines and
 the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
-**Not built yet:** chapters 3-6, the final boss (previous Tester / NG+ mimic)
-and the later real-world returns.
+New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
+**Not built yet:** first-run chapters 3-6, the final boss (previous Tester / NG+ mimic)
+and the first-run returns at floors 40 and 60.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -144,7 +145,64 @@ Then the friend: "You were gone for a second there."
 
 ## New Game+ (later, Hayden 2026-11-04)
 
-More story in New Game+, including a **god storyline**, to be designed later. Today NG+ only has its own wake-up scene and skips the real-world returns; the Ascending return and the mimic final boss are also still to build.
+### "The First Prayer": the god storyline (built 2026-11-04)
+
+Approved and built on floors 1-60 (first draft text, in `scripts/story/story_library.gd`: `god_*` scenes, `DOMAIN_LINES`, and each `BID_PAIRS` god's `NG_BID_LINES`).
+
+Hayden's picks: the heart is **prayers** (what do you owe the people who believe in you?), with old gods as the pressure; **gods remember you**, because the Hall saves a short record of your last run; Chapters 1-2 are **layered and rewritten**; the **Ascending return** is in. A character always draws the **same two bidding gods** in New Game+, so the memory lands (new characters still roll their own pair); and **believers** are a real number.
+
+**Why you're climbing again.** You took the top and woke at the bottom. `[ Deity registered. ]` `[ Worshippers: 0. ]` A god nobody prays to is only a title. Then someone prays.
+
+**How prayers play.** A prayer is a System window from someone on your floors. You answer or stay silent, and the answer can be remembered for dozens of floors. **Believers** are a new number: each one gives +1 faith per floor, so a god with no guild has faith to spend early (today they earn none until they own territory). Later answers can cost faith. What people ask you for depends on your domain.
+
+**Who gets what.** God scenes need a god. The rewritten Chapter 1-2 beats play for every NG+ character, god or not. Speaking roles stay with the Chapter 2 bidders (never living-religion figures); a past patron from a living religion is only ever a silent, respectful presence.
+
+**Chapter 1: "Nobody's God" (floors 1-10)**
+
+| Floor | Beat |
+| --- | --- |
+| 1 | *Rewrite.* The wake-up, then `[ Deity registered: {title}. ]` `[ Worshippers: 0. ]` |
+| 2-3 | *Rewrite.* The friend starts the water-tower story and you already know how it ends. You can finish it for them, which delights and unsettles them. |
+| 3 | **The first prayer.** Ilse, a stranger: "They say there's a new one. My brother is on floor 12 and he hasn't come back." Answer or stay silent. |
+| 4 | *Rewrite.* `[ Deities do not require grading. ]` ... `[ Adequate. ]` |
+| 5 | *Rewrite.* Tess and the god of second breakfasts. You know what's on floor 10. You can warn her. |
+| 8-9 | *Rewrite* of the carving (you've been here). **A petition** that fits your domain (Mercy gets begged for a stranger's life, Vengeance for a name). Grant, refuse or stay silent. |
+| 10 | *Rewrite.* Warned: her red scarf is tied to the rail, and she turned back. Not warned: she falls, and you knew. After the boss, the god who once blessed you speaks: they remember. |
+
+**Chapter 2: "The Bidding" again (floors 11-20).** The same two gods return, because they remember you, and they no longer bid *for* you. They negotiate with you as an equal.
+
+| Floor | Beat |
+| --- | --- |
+| 12 | **Davin.** You know the name, so you can search. Give up a potion (or 100 gold) and he lives, and floor 13 brings Ilse's thanks, or thanks to the wrong god if you never answered her. Walk on, and her prayers stop. |
+| 12-14 | *Rewrite.* The bids become peer talks, and each god recalls what you said last time. |
+| 13 | **A chaplain** of the floor's guild prays to you behind their patron's back: faith and standing, and the old patron is angered. |
+| 15 | *Rewrite.* You warned Tess: the real Tess, scared, with a new joke. Marn: "First time I've ever heard a different one. What did you do?" You didn't: wrong Tess returns, and she says "Someone was supposed to tell me something." |
+| 16-17 | *Rewrite.* "You coming out Friday?" You heard it last time too, and it still isn't theirs. |
+| 17 | **The friend's prayer.** `[ Prayer received. ]` "I don't know who I'm talking to. {player} keeps going away. Look after them." They're standing right next to you. Tell them, answer anonymously, or stay silent. |
+| 19 | *Rewrite.* `[ Tester 0041: session active. ]` and under it, `[ Tester 0042: session active. ]` `[ Climb: 2. ]` |
+| 20 | *Rewrite.* Going in together; `[ Worshippers: {n}. ]` |
+
+**Chapters 3-6 (god runs only, about two scenes per chapter)**
+
+| Floor | Chapter | Beat |
+| --- | --- | --- |
+| 25 | 3 "Congregation" | Ilse (or a stranger, if she stopped praying) has built a shrine, and what they say you stand for is wrong. Correct them or let it stand. |
+| 30 | 3 | After the boss, a jealous god strikes your believers. Spend faith to shield them, or lose half and the shrine. |
+| 35 | 4 "Heresy" | The friend finds out, or if you told them, asks whether they should still pray. |
+| 40 | 4 | **A prayer against you**, from someone you failed. Listen, answer or smite. |
+| 41+ | | **The Ascending return** (below). |
+| 45 | 5 "The Queue" | `[ Prayers waiting: 11,302. ]` You can't read them all. `[ You stop reading them, eventually. ]` `[ That was not a system message. ]` |
+| 50 | 5 | The two gods' last offer: an alliance with one, or neither. |
+| 55 | 6 "The Last Prayer" | Ilse's last prayer: "You don't have to answer this one. It was enough." |
+| 60 | 6 | Before the top: who do gods pray to? You can try. `[ Prayer received. ]` ... `[ I heard that. ]` |
+
+None of this decides what the System is or what the tower's secret is.
+
+**Ascending return (NG+).** When you Ascend, or as the Ascendant from floor 41: your room, exactly as on the first night. The email again: *"Welcome back, {player}."* If you're a god, the phone holds a prayer.
+
+### Still to build
+
+The mimic final boss.
 
 ## Chapters 3-6 (one-line arcs, to fill in later)
 

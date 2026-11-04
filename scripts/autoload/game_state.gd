@@ -307,6 +307,8 @@ func start_new_game_plus(record: LegacyRecord, slot: int = -1, p_difficulty: int
 		if g.carries_into_ng_plus():
 			inventory.add_gear(g.duplicate_deep(Resource.DEEP_DUPLICATE_ALL))
 	companions.append(make_childhood_friend(record.friend_name))
+	for f in record.past_flags:   # the gods remember your last climb
+		story_flags[f] = true
 	ng_plus_cycle = record.highest_cycle_cleared + 1
 	roll_stage_themes()
 	quests.update()
@@ -562,6 +564,9 @@ func load_legacy() -> LegacyBook:
 			# Unknown ids are kept only if they look sane: a DLC ending may not be loaded right now.
 			if e is String and e.length() <= 64 and not r.endings_seen.has(StringName(e)):
 				r.endings_seen.append(StringName(e))
+		for f in S._a(rd, "past_flags"):
+			if StoryLibrary.is_past_flag(f) and not r.past_flags.has(StringName(f)):
+				r.past_flags.append(StringName(f))
 		for gd in S._a(rd, "vault"):
 			if gd is Dictionary:
 				var g := S.gear_from_dict(gd)
@@ -585,6 +590,7 @@ func save_legacy(book: LegacyBook) -> bool:
 			"solo_cleared": r.solo_cleared, "solo_best_difficulty": r.solo_best_difficulty,
 			"fallen": r.fallen, "fallen_floor": r.fallen_floor, "fallen_difficulty": r.fallen_difficulty,
 			"god_domain": String(r.god_domain), "god_title": r.god_title, "god_kind": r.god_kind,
+			"past_flags": r.past_flags.map(func(f): return String(f)),
 		})
 	return SaveSerializer.write_json(legacy_path, { "version": SaveSerializer.FORMAT_VERSION, "records": records })
 
@@ -611,6 +617,7 @@ func record_completion() -> LegacyRecord:
 	var ending: Dictionary = RouteLibrary.pick_ending()
 	if not ending.is_empty() and not rec.endings_seen.has(ending.id):
 		rec.endings_seen.append(ending.id)
+	rec.past_flags = StoryLibrary.past_flags(ending.get("id", &""))
 	var friend := childhood_friend()
 	if friend:
 		rec.friend_name = friend.character_name
