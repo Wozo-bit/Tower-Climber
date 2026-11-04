@@ -118,6 +118,8 @@ func unbless() -> void:
 
 
 func curse(id: StringName, level: int, until_floor: int) -> void:
+	if godless():
+		return   # none of them can touch you
 	curse_id = id
 	curse_level = level
 	curse_until_floor = until_floor
@@ -554,6 +556,11 @@ func can_take_secret_class(def: ClassDef) -> bool:
 		and not in_line_of(def.id) and def.qualifies(stats) and def.route_allows()
 
 
+## The Unsworn line: no god can bless or curse them (Hayden 2026-11-04).
+func godless() -> bool:
+	return in_line_of(ClassRegistry.GODLESS_LINE)
+
+
 ## Is this character already somewhere in `root`'s class line?
 func in_line_of(root: StringName) -> bool:
 	return has_class() and ClassRegistry.is_in_lineage(class_id, root)
@@ -565,6 +572,9 @@ func take_secret_class(def: ClassDef) -> bool:
 	# Found late: you join the new line at the tier you've already earned.
 	var tier := get_class_def().tier if has_class() else 1
 	class_id = ClassRegistry.line_at_tier(def.id, tier)
+	if godless():   # no punishment: they simply stop being able to reach you
+		unbless()
+		lift_curse()
 	_apply_class_bonus()
 	battle_row = -1   # use the new class's default row
 	class_chosen.emit(def)

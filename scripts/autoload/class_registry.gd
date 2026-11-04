@@ -30,6 +30,8 @@ const ASCENSION_BONUS := 0.05
 const ASCENSION_GATE := { "floor": 40, "level": 50, "tier": 3 }
 ## Share of spent points a quest class wants in its two stats.
 const QUEST_CLASS_THRESHOLD := 0.55
+## This line can't be blessed or cursed by gods (CharacterData.godless).
+const GODLESS_LINE := &"unsworn"
 
 
 func _init() -> void:
@@ -180,7 +182,7 @@ func _register_quest_classes() -> void:
 		&"margin_walker", "Margin Walker", "Lives in the space around the words.", "Author of Monsters", "Everything you ever drew answers when you call.", "Author of Towers", "You wrote this floor. You wrote all of them. Didn't you?")
 	_quest_line(&"stairwarden", "Stairwarden", "Marn's trade: hold the door so someone else gets out.", [Stats.Type.HEALTH, Stats.Type.STAMINA],
 		&"longwatch", "Longwatch", "Awake when everyone else needs to sleep.", "Keeper of the Ledger", "Writes down everyone. Forgets no one.", "The One Who Stays", "Somebody has to. They decided a long time ago.")
-	_quest_line(&"unsworn", "Unsworn", "Refused every god who bid. Now they're all curious, and none of them can touch you.", [Stats.Type.STRENGTH, Stats.Type.LUCK],
+	_quest_line(&"unsworn", "Unsworn", "Refused every god who bid. No god can bless or curse you, and any blessing you hold is lost.", [Stats.Type.STRENGTH, Stats.Type.LUCK],
 		&"heretic_blade", "Heretic Blade", "Cuts what was never meant to bleed.", "Godspurner", "Heaven keeps a list. You're at the top of it.", "Nobody's Champion", "No one lent you this strength. Nobody can take it back.")
 	_quest_line(&"glitchwalker", "Glitchwalker", "You found where the tower doesn't quite meet. You can walk through that.", [Stats.Type.INTELLIGENCE, Stats.Type.AGILITY],
 		&"seam_runner", "Seam Runner", "Takes corners the walls didn't plan on.", "Exploit", "Finds the thing the tower forgot to check.", "Out of Bounds", "Standing somewhere that was never built.")

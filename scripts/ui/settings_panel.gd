@@ -68,6 +68,9 @@ func _init() -> void:
 		Tips.reset()
 		reset.text = "Tips reset")
 	tips_row.add_child(reset)
+	tips_row.add_theme_constant_override("separation", 16)
+	_add_check(tips_row, "God blessing offers", "god_offers")
+	tips_row.get_child(-1).tooltip_text = "Off: gods never offer you a blessing, so there's nothing to refuse. Nobody curses you for it, and nobody gifts you a skill. The story still plays."
 
 	var controls_btn := Button.new()
 	controls_btn.text = "Controls..."

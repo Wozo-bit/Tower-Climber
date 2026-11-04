@@ -502,8 +502,9 @@ func _confirm_secret_class(member: CharacterData, def: ClassDef) -> void:
 	var dlg := ConfirmationDialog.new()
 	var current := member.get_class_def()
 	dlg.title = "Secret class"
-	dlg.dialog_text = "Take up the %s line?\n\n%s\n\nThis replaces %s and its skills, and you join the new line at the tier you've earned.\nGear locked to your old class goes back in the bag." % [
-		def.display_name, def.description, current.display_name if current else "your current class"]
+	dlg.dialog_text = "Take up the %s line?\n\n%s\n\nThis replaces %s and its skills, and you join the new line at the tier you've earned.\nGear locked to your old class goes back in the bag.%s" % [
+		def.display_name, def.description, current.display_name if current else "your current class",
+		"\n\nNo god will ever bless or curse you again. You lose your blessing." if def.id == ClassRegistry.GODLESS_LINE else ""]
 	dlg.confirmed.connect(func():
 		if GameState.take_secret_class(member, def.id):
 			_say("%s is now: %s!" % [member.character_name, member.class_title()])

@@ -85,6 +85,8 @@ func wants_to_offer(id: StringName) -> bool:
 	var player: CharacterData = GameState.player
 	if BeingLibrary.get_being(id).get("self", false):
 		return false   # your own god (you, in New Game+)
+	if not Settings.god_offers or player.godless():
+		return false   # the player turned offers off, or walks the Unsworn line
 	return not s.get("scorned", false) and player.blessing_id != id and interest(id) >= OFFER_INTEREST \
 		and GameState.floor_number >= s.get("refused_floor", -999) + REOFFER_FLOORS
 

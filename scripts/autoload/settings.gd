@@ -25,6 +25,8 @@ var cutins := true
 var tips := true
 ## New Game goes straight to the test client, without the real-world room.
 var skip_prologue := false
+## False: gods never make blessing offers (no shrines, no visits, no penalty).
+var god_offers := true
 ## Index into WINDOW_SIZES (used when not fullscreen).
 var window_size := 0
 var ui_scale := 1.0
@@ -118,6 +120,7 @@ func save_settings() -> void:
 	cfg.set_value("video", "cutins", cutins)
 	cfg.set_value("game", "tips", tips)
 	cfg.set_value("game", "skip_prologue", skip_prologue)
+	cfg.set_value("game", "god_offers", god_offers)
 	cfg.set_value("video", "window_size", window_size)
 	cfg.set_value("video", "ui_scale", ui_scale)
 	for a in InputBindings.ACTIONS:
@@ -139,6 +142,7 @@ func load_settings() -> void:
 	cutins = cfg.get_value("video", "cutins", cutins) == true
 	tips = cfg.get_value("game", "tips", tips) == true
 	skip_prologue = cfg.get_value("game", "skip_prologue", skip_prologue) == true
+	god_offers = cfg.get_value("game", "god_offers", god_offers) == true
 	var ws = cfg.get_value("video", "window_size", window_size)
 	window_size = clampi(int(ws), 0, WINDOW_SIZES.size() - 1) if (ws is int or ws is float) else 0
 	ui_scale = clean_scale(cfg.get_value("video", "ui_scale", ui_scale))

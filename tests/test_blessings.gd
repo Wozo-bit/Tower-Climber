@@ -27,6 +27,7 @@ func _ready() -> void:
 	test_warning_and_punishment()
 	test_bargains()
 	test_refusing()
+	test_offer_setting()
 	test_rewards_and_prices()
 	test_shrines_and_boss_visits()
 	test_blessed_npcs()
@@ -37,6 +38,33 @@ func _ready() -> void:
 	GameState.reset_run()
 	print("\n==== %d passed, %d failed ====" % [_passed, _failed])
 	get_tree().quit(0 if _failed == 0 else 1)
+
+
+func test_offer_setting() -> void:
+	print("-- the setting that stops offers --")
+	GameState.start_new_game("NoGods", "Rowan", 1)
+	GameState.blessings.add_interest(&"odin", 50)
+	check(GameState.blessings.wants_to_offer(&"odin"), "on by default: gods offer")
+	Settings.god_offers = false
+	check(not GameState.blessings.wants_to_offer(&"odin") and GameState.blessings.offering_beings().is_empty(), "off: nobody offers")
+	check(not GameState.blessings.accept(&"odin") and not GameState.player.is_blessed(), "and nothing can be accepted")
+	GameState.enter_floor(GameState.REST_FLOOR_INTERVAL)
+	var layout := GameState.current_layout()
+	GameState.place_npcs(layout)
+	check(not layout.npcs.values().any(func(id): return GameState.shrine_being(id) != &""), "no shrines on rest floors")
+	var kept := GameState.make_premade("Kept", &"warrior", { Stats.Type.STRENGTH: 12 })
+	kept.bless(&"thor", 1)
+	check(kept.is_blessed(), "a blessing you already hold stays")
+	Settings.save_settings()
+	Settings.god_offers = true
+	Settings.load_settings()
+	check(not Settings.god_offers, "the choice is saved")
+	Settings.god_offers = true
+	Settings.save_settings()
+	check(GameState.blessings.wants_to_offer(&"odin"), "turning it back on brings them back")
+	layout = GameState.current_layout()
+	GameState.place_npcs(layout)
+	check(layout.npcs.values().any(func(id): return GameState.shrine_being(id) != &""), "shrines return")
 
 
 func check(cond: bool, label: String) -> void:

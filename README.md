@@ -65,6 +65,10 @@ Like the Ashbound Knight: 3 clues (`SecretPaths`), then a guaranteed roaming bos
 | Unsworn, Heretic Blade, Godspurner, Nobody's Champion | Strength + Luck | Floors 31-60 | The Gods' Bailiff |
 | Glitchwalker, Seam Runner, Exploit, Out of Bounds | Intelligence + Agility | Floors 45-85 | Missing Entity |
 
+**The Unsworn line can't be blessed or cursed by gods** (`CharacterData.godless`): taking it drops any blessing and curse with no punishment, and gods stop making offers.
+
+**Settings -> God blessing offers** (on by default): when off, no shrines appear and no god visits after a boss, so there's nothing to refuse, no curse for refusing and no gifted skill. A blessing you already hold stays, and the story scenes still play.
+
 ## The last 40 floors (Hayden 2026-11-04)
 The climb is 100 floors (`GameState.FINAL_FLOOR`). Everyone in the tower believes floor 60 is the top: its boss opens onto more stairs (`[ Correction. 40 floors remain. ]`, scene `summit_false`).
 

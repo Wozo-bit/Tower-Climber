@@ -307,6 +307,26 @@ func test_quest_classes() -> void:
 	var ash := ClassRegistry.get_class_def(&"ashbound_knight")
 	hero.class_id = &"cinderbrand"
 	check(hero.in_line_of(&"ashbound_knight") and not hero.can_take_secret_class(ash), "the Ashbound line can't step down either")
+	# The Unsworn: no god can reach them.
+	GameState.set_flag(&"godless_unlocked")
+	var heretic := GameState.make_premade("Heretic", &"warrior", { Stats.Type.STRENGTH: 12, Stats.Type.LUCK: 8 })
+	GameState.player = heretic
+	heretic.bless(&"thor", 2)
+	heretic.curse(&"loki", 1, 50)
+	check(heretic.is_blessed() and heretic.curse_id == &"loki" and not heretic.godless(), "blessed and cursed before")
+	GameState.blessings.add_interest(&"odin", 50)
+	check(GameState.blessings.wants_to_offer(&"odin"), "a god is ready to offer")
+	check(GameState.take_secret_class(heretic, &"unsworn"), "takes the class")
+	check(heretic.godless() and not heretic.is_blessed() and heretic.curse_id == &"", "blessing and curse both gone")
+	check(not GameState.blessings.wants_to_offer(&"odin") and GameState.blessings.offering_beings().is_empty(), "no god offers anymore")
+	heretic.curse(&"loki", 1, 50)
+	check(heretic.curse_id == &"", "curses don't land")
+	heretic.class_id = &"unsworn_t4"
+	check(heretic.godless(), "the whole line, at every tier")
+	var plain := GameState.make_premade("Plain", &"warrior", { Stats.Type.STRENGTH: 12 })
+	plain.curse(&"loki", 1, 50)
+	check(plain.curse_id == &"loki" and not plain.godless(), "everyone else can still be cursed")
+	GameState.reset_run()
 	# Companions can't take them (the path is the player's).
 	var pal := GameState.make_premade("Pal", &"rogue", { Stats.Type.AGILITY: 12, Stats.Type.LUCK: 8 })
 	check(not GameState.take_secret_class(pal, &"inkblade"), "quest classes are yours alone")
