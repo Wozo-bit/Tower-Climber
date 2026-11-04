@@ -23,7 +23,7 @@ change, cut or replace anything. Names in [brackets] are placeholders.
 ## The premise in one paragraph
 
 You get an invitation to the closed test of a game nobody has heard of:
-**[GAME NAME]**, "a tower that makes gods". Late at night you log in, and the
+**Tower of Recognition**, "a tower that makes gods". Late at night you log in, and the
 character setup asks strange questions, ending with *"Name the person you
 trust most."* Then the screen breaks. You wake on cold stone at the foot of a
 tower, and someone with the name you just typed is shaking you awake, telling
@@ -67,7 +67,7 @@ the tower keeps showing you things from your own childhood.
 A small walkable room in the real world, at night. Things to interact with:
 
 - **The PC:** the invitation email: *"You have been selected for the closed
-  test of [GAME NAME]. One tester per region. Do not share this invitation."*
+  test of Tower of Recognition. One tester per region. Do not share this invitation."*
   Using the PC starts the test (below).
 - **The bookshelf:** an old notebook full of tower drawings you made as a
   kid, with floors numbered and monsters named. (The first seed of "the
@@ -160,10 +160,10 @@ and gods sponsor guilds and champions.
 
 ## Open questions for Hayden
 
-1. The game-within-the-game's name: the same as the real title, or different?
-2. Should the real world come back mid-story (dreams, glitches showing your
+1. Should the real world come back mid-story (dreams, glitches showing your
    room)?
 
-Answered 2026-11-03: setup questions give stats + a nudge; keep "You
+Answered: the game inside the game is called **Tower of Recognition**
+(placeholder, 2026-11-04); setup questions give stats + a nudge; keep "You
 remembered faster this time"; final boss = the previous Tester, NG+ = a
 mimic of you and your old party.
