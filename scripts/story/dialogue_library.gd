@@ -653,7 +653,7 @@ const DIALOGUES := {
 	},
 }
 
-const CONDITION_KEYS := ["flag", "any_flag", "remote", "blessed_by", "blessed_by_bid", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
+const CONDITION_KEYS := ["flag", "any_flag", "remote", "blessed_by", "blessed_by_bid", "godless", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",

@@ -144,18 +144,21 @@ func test_companions_react() -> void:
 	var sword := LootTable.make_gear(&"sword", Rarity.Tier.COMMON, 1, RandomNumberGenerator.new())
 	brakka.equip(sword)
 	GameState.add_route_points(&"hero", 12)
-	check(GameState.pending_talks.is_empty(), "companions who like your route stay quiet")
+	check(GameState.pending_talks.map(func(t): return t.dialogue) == [&"friend_shift_hero"], "companions who like your route stay quiet; your friend starts to change")
+	GameState.pending_talks.clear()
 	GameState.route = RouteState.new()
 	GameState.add_route_points(&"villain", 10)
-	var talks := GameState.pending_talks.map(func(t): return [t.dialogue, t.companion.character_name])
-	check(talks.has([&"companion_warning", "Brakka"]) and talks.has([&"companion_warning", "Cassia"]),
-		"leaning villain: Brakka and your friend warn you first")
+	var talks := GameState.pending_talks.filter(func(t): return t.has("companion")).map(func(t): return [t.dialogue, t.companion.character_name])
+	check(talks.has([&"companion_warning", "Brakka"]) and not talks.has([&"companion_warning", "Cassia"]),
+		"leaning villain: Brakka warns you; your friend never does")
 	check(GameState.companions.has(brakka), "a warning isn't leaving")
 	GameState.pending_talks.clear()
 	GameState.add_route_points(&"villain", 4)
-	check(GameState.pending_talks.is_empty() and GameState.companions.has(brakka), "no second warning; still with you below the line")
+	check(not GameState.pending_talks.any(func(t): return t.dialogue == &"companion_warning") and GameState.companions.has(brakka), "no second warning; still with you below the line")
 	GameState.add_route_points(&"villain", 6)
-	check(GameState.waiting.has(brakka) and GameState.waiting.has(friend), "at 20 villain points they walk away (the friend too)")
+	check(GameState.waiting.has(brakka), "at 20 villain points Brakka walks away")
+	check(not GameState.waiting.has(friend) and GameState.companions.has(friend), "your friend never does")
+	check(GameState.has_flag(&"friend_mood_villain"), "it changes them instead")
 	check(brakka.equipment.is_empty() and GameState.inventory.gear.has(sword), "their gear stays with you")
 	check(GameState.pending_talks.any(func(t): return t.dialogue == &"companion_leaving"), "a leaving conversation")
 	check(GameState.refuses_to_rejoin(brakka) and not GameState.rejoin(brakka), "they won't come back while you're a villain")
@@ -175,8 +178,10 @@ func test_companions_react() -> void:
 	r.choose(0)
 	check(r.messages.has("Brakka won't travel with someone like you."), "...and says so")
 	_fresh(5)
+	GameState.recruit(&"brakka")
 	GameState.lock_route(&"villain")
 	check(GameState.pending_talks.any(func(t): return t.dialogue == &"companion_warning"), "locking a disliked route also warns")
+	check(GameState.pending_talks.any(func(t): return t.dialogue == &"friend_shift_villain"), "and shapes your friend")
 
 
 func test_merchant_and_black_market() -> void:

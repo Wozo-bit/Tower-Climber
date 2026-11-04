@@ -196,6 +196,7 @@ static func check(cond: Dictionary) -> bool:
 			"can_pay_bargain": ok = gs.blessings.can_pay(context_being) == v
 			"blessed": ok = gs.player.is_blessed() == v
 			"blessed_by": ok = gs.player.blessing_id == v
+			"godless": ok = gs.player.godless() == v
 			"blessed_by_bid": ok = gs.player.blessing_id == StoryLibrary.bid_pair()[v]
 			# Guild agents (about the guild this conversation is with).
 			"guild_member": ok = (gs.guilds.member == context_guild and context_guild != &"") == v

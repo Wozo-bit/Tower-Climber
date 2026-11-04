@@ -33,7 +33,7 @@ const CHAPTERS := [
 	{ "title": "The Bidding" },
 	{ "title": "What the Tower Sends" },
 	{ "title": "The Second Hand" },
-	{ "title": "(Chapter 5)" },
+	{ "title": "The Bidding War" },
 	{ "title": "(Chapter 6)" },
 	{ "title": "(Chapter 7)" },
 	{ "title": "(Chapter 8)" },
@@ -133,6 +133,15 @@ const SCENES := {
 	&"ch4_first_name": { "chapter": 4, "floors": [39], "when": "guardian_down", "dialogue": &"ch4_first_name" },
 	&"ch4_threshold": { "chapter": 4, "floors": [40], "when": "enter", "dialogue": &"ch4_threshold" },
 	&"ch4_end": { "chapter": 4, "floors": [40], "when": "guardian_down", "dialogue": &"ch4_end" },
+	&"ch5_opening": { "chapter": 5, "floors": [41], "when": "enter", "dialogue": &"ch5_opening" },
+	&"ch5_camp": { "chapter": 5, "floors": [42, 43], "when": "enter", "dialogue": &"ch5_camp" },
+	&"ch5_stop_correcting": { "chapter": 5, "floors": [44], "when": "guardian_down", "dialogue": &"ch5_stop_correcting" },
+	&"ch5_am_i_real": { "chapter": 5, "floors": [45], "when": "enter", "dialogue": &"ch5_am_i_real" },
+	&"ch5_break": { "chapter": 5, "floors": [46, 47], "when": "enter", "dialogue": &"ch5_break" },
+	&"ch5_field": { "chapter": 5, "floors": [48], "when": "enter", "dialogue": &"ch5_field" },
+	&"ch5_with_you": { "chapter": 5, "floors": [49], "when": "guardian_down", "dialogue": &"ch5_with_you" },
+	&"ch5_threshold": { "chapter": 5, "floors": [50], "when": "enter", "dialogue": &"ch5_threshold" },
+	&"ch5_choice": { "chapter": 5, "floors": [50], "when": "guardian_down", "dialogue": &"ch5_choice" },
 	&"god_ch3": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"god_ch3", "if": { "god": true } },
 	&"god_shrine": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"god_shrine", "if": { "god": true } },
 	&"god_reprisal": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"god_reprisal", "if": { "god": true } },
@@ -1287,12 +1296,12 @@ const DIALOGUES := {
 			},
 			"d": {
 				"style": "system",
-				"text": "[ Chapter 2 complete. ]\n[ Class advancement is open. Advance when you are ready. ]",
+				"text": "[ Chapter 2 complete. ]\n[ Class advancement is open, when you're ready. ]",
 				"next": "e",
 			},
 			"e": {
 				"style": "glitch",
-				"text": "[ You will want to see home first. If you can. ]",
+				"text": "[ You're going home for a moment. I can't stop it. Look around while you can. ]",
 				"effects": [{ "set_flag": &"ch2_complete" }],
 			},
 		},
@@ -1825,7 +1834,7 @@ const DIALOGUES := {
 			},
 			"b": {
 				"style": "glitch",
-				"text": "[ When you advance, you'll go home again. It always lets you. There's a list on the PC now. Look at the first name. ]",
+				"text": "[ After the next one, you'll go home again. It always lets you. There's a list on the PC now. Look at the first name. ]",
 				"next": "c",
 			},
 			"c": {
@@ -1880,7 +1889,367 @@ const DIALOGUES := {
 		},
 	},
 
-	# --- The second return to the real world (first tier-3 class). ---
+	# --- The friend never leaves over your route. Your choices change who they become. ---
+	&"friend_shift_hero": {
+		"start": "a",
+		"nodes": {
+			"away": { "text": "You think of your friend, waiting at a fire a long way down, and wonder who they'll be when you get back." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "away" }],
+				"speaker": "{friend}",
+				"text": "I keep doing it now. Stopping for people. Going back for the one who fell behind. I never used to, you know. I used to laugh at people like that. That's you. You've ruined me. I don't think I mind.",
+			},
+		},
+	},
+	&"friend_shift_villain": {
+		"start": "a",
+		"nodes": {
+			"away": { "text": "You think of your friend, waiting at a fire a long way down, and wonder who they'll be when you get back." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "away" }],
+				"speaker": "{friend}",
+				"text": "That last one, the way they begged. I kept waiting to feel something, and it didn't come. You stopped flinching, so I stopped too. It's fine. It's easier. So who's next?",
+			},
+		},
+	},
+	&"friend_shift_vigilante": {
+		"start": "a",
+		"nodes": {
+			"away": { "text": "You think of your friend, waiting at a fire a long way down, and wonder who they'll be when you get back." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "away" }],
+				"speaker": "{friend}",
+				"text": "I caught myself keeping a list. Who hurt who, who owes what. I never used to keep lists. You got me started. It's a good list. You should see who's on it.",
+			},
+		},
+	},
+
+	# --- Chapter 5: The Bidding War. This run's two gods fight over you. ---
+	&"ch5_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The stairs shake, and keep shaking. Dust falls from far above. Somewhere overhead, something the size of a floor has just been thrown at something else.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Chapter 5: The Bidding War ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ {bid1} and {bid2} have stopped bidding. They know you were expected, and neither will let the other have you. ]",
+				"next": "d",
+			},
+			"d_alone": { "text": "You climb on by yourself, into the noise.", "effects": [{ "set_flag": &"ch5_started" }] },
+			"d_villain": {
+				"speaker": "{friend}",
+				"text": "Two gods tearing a tower apart over you. Good. Let them wear each other down. Then we walk in and take what's left.",
+				"effects": [{ "set_flag": &"ch5_started" }],
+			},
+			"d_vigilante": {
+				"speaker": "{friend}",
+				"text": "How many climbers are standing under that, do you think? Somebody ought to send those two the bill. I'm putting it on the list.",
+				"effects": [{ "set_flag": &"ch5_started" }],
+			},
+			"d": {
+				"alt": [
+					{ "if": { "friend_away": true }, "node": "d_alone" },
+					{ "if": { "route": &"villain" }, "node": "d_villain" },
+					{ "if": { "route": &"vigilante" }, "node": "d_vigilante" },
+				],
+				"speaker": "{friend}",
+				"text": "There are people under that. Whole camps of them. Come on, I don't care whose war it is. Let's get up there, and get as many of them out of the way as we can.",
+				"effects": [{ "set_flag": &"ch5_started" }],
+			},
+		},
+	},
+	&"ch5_camp": {
+		"start": [
+			{ "if": { "godless": true }, "node": "godless" },
+			{ "node": "a" },
+		],
+		"nodes": {
+			"godless": {
+				"text": "Two warbands have a climbers' camp between them. Both sets of priests point at you and start to pray, and it slides off you like rain off stone. They're not used to that. It makes them very polite, and very frightened.",
+				"next": "b",
+			},
+			"a": {
+				"text": "Two warbands have a climbers' camp between them, with the climbers' tents still standing. One side wears the mark of {bid1}, the other the mark of {bid2}. Both captains turn to you at once, and both bow.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "War captain",
+				"text": "Tester. Say the word, and this camp burns or it doesn't. Whoever you stand with takes the floor. Our gods will know what you chose.",
+				"choices": [
+					{ "text": "Stand with {bid1}.", "next": "first", "effects": [{ "bid_interest": { "first": 10, "second": -8 } }, { "set_flag": &"ch5_stood_first" }] },
+					{ "text": "Stand with {bid2}.", "next": "second", "effects": [{ "bid_interest": { "second": 10, "first": -8 } }, { "set_flag": &"ch5_stood_second" }] },
+					{ "text": "Drive them both off the camp.", "next": "neither", "effects": [{ "bid_interest": { "first": -4, "second": -4 } }, { "set_flag": &"ch5_stood_neither" }, { "route_points": { &"hero": 2, &"vigilante": 2 } }, { "hurt_party": 0.2 }] },
+				],
+			},
+			"first": {
+				"text": "The marks of {bid2} withdraw. The camp survives, more or less. The climbers look at you the way people look at weather.",
+			},
+			"second": {
+				"text": "The marks of {bid1} withdraw. The camp survives, more or less. The climbers look at you the way people look at weather.",
+			},
+			"neither": {
+				"text": "It costs you. It costs them more. Neither god will thank you for it, and a very old climber in the last tent nods at you once and goes back to mending her boots.",
+			},
+		},
+	},
+	&"ch5_stop_correcting": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"style": "glitch",
+				"text": "[ Be careful at the next campfire. They've started to notice. It isn't their fault. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ Stop correcting me. ]",
+				"next": "e",
+			},
+			"e": {
+				"text": "No correction comes. Something behind the window is very quiet for a long time, the way a house is quiet after an argument.",
+				"effects": [{ "set_flag": &"ch5_system_argued" }],
+			},
+		},
+	},
+	&"ch5_am_i_real": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"text": "You sit at this fire alone. You try to remember whether your friend's eyes are the colour you've been picturing. You think of the last time you saw them, and you can't say what they'd have asked you.",
+				"effects": [{ "set_flag": &"ch5_friend_unasked" }],
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"text": "The fire is low. Your friend's been drawing in the dirt with a stick, and they scrub it out with their boot when you sit down. Then they draw it again: a door. They look at it for a while.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{friend}",
+				"text": "I tried to remember what's behind your blue door. Your kitchen. Just your kitchen. I've been in it a thousand times. And there's nothing there. It's like reaching for a stair that isn't.",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "{friend}",
+				"text": "I can't tell you my mother's name. I can't remember being hungry until you were. You go away and your eyes stop, and I stop too, don't I? I just stand here. {player}. Am I real?",
+				"choices": [
+					{ "text": "\"I don't know what you are. I know you're my friend.\"", "next": "unknown", "effects": [{ "set_flag": &"ch5_friend_unknown" }] },
+					{ "text": "Tell the truth: the room, the notebook, the name you typed.", "next": "truth", "effects": [{ "set_flag": &"ch5_friend_truth" }] },
+					{ "text": "\"Of course you're real. You're tired. Get some sleep.\"", "next": "lie", "effects": [{ "set_flag": &"ch5_friend_lie" }] },
+				],
+			},
+			"unknown": {
+				"speaker": "{friend}",
+				"text": "...That's the worst answer you could've given. It's also the only one I'd have believed. All right. All right. I can work with that.",
+			},
+			"truth": {
+				"text": "You tell them everything. It takes a long time. When you get to the part about typing a name, they laugh, once, and put their hand over their mouth.",
+				"next": "truth2",
+			},
+			"truth2": {
+				"speaker": "{friend}",
+				"text": "\"The person you trust most.\" And it was me. Whoever that is. Whoever I'm doing an impression of. ...Thanks for telling me. Don't look at me for a bit, okay?",
+			},
+			"lie": {
+				"speaker": "{friend}",
+				"text": "Yeah. You're right. Long climb. I'm tired. ...You've got a tell, you know. You've always had it. I just can't remember how I know that.",
+			},
+		},
+	},
+	&"ch5_break": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"style": "glitch",
+				"text": "[ I reached for them just now, and they weren't there. You left them at the fire. Go and get them, you idiot. They're the only part of me that still laughs. ]",
+				"next": "alone2",
+			},
+			"alone2": {
+				"style": "glitch",
+				"text": "[ I didn't mean to say that. ]",
+				"effects": [{ "set_flag": &"ch5_break_heard" }],
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "All I'm saying is, if we do get to the top, I want first go at whatever the view's...",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{friend}",
+				"style": "glitch",
+				"text": "...you said you'd come back for the top floor, you said one more day, you IDIOT, you left the file open and I've been holding the door for...",
+				"next": "c",
+			},
+			"c": {
+				"text": "It's your friend's mouth. It isn't their voice. It's older, and very tired, and it knows exactly how to say your name. Then it stops, like a hand pulled off a wall.",
+				"next": "d",
+			},
+			"d": {
+				"speaker": "{friend}",
+				"text": "...the view's like. What? Why've you stopped? You've gone white. What did I say?",
+				"choices": [
+					{ "text": "\"Nothing. Keep walking.\"", "next": "e", "effects": [{ "set_flag": &"ch5_break_hid" }] },
+					{ "text": "\"You called me an idiot.\"", "next": "f", "effects": [{ "set_flag": &"ch5_break_told" }] },
+				],
+			},
+			"e": { "next": "sys", "text": "They give you a long look. They've been getting better at those." },
+			"f": {
+				"speaker": "{friend}",
+				"text": "Well. You are one. ...Why are you crying?",
+				"next": "sys",
+			},
+			"sys": {
+				"style": "glitch",
+				"text": "[ I didn't mean for that to reach you. ]",
+				"effects": [{ "set_flag": &"ch5_break_heard" }],
+			},
+		},
+	},
+	&"ch5_field": {
+		"start": [
+			{ "if": { "flag": &"ch4_kept_ledger" }, "node": "ledger" },
+			{ "node": "a" },
+		],
+		"nodes": {
+			"ledger": {
+				"text": "The war came through here first. The floor's a field of marks and banners, and nobody's left standing to argue about them. Near the stairs is a bright red scarf. You take out the ledger and find page nine. You have a pen. Five.",
+				"next": "b",
+			},
+			"a": {
+				"text": "The war came through here first. The floor's a field of marks and banners, and nobody's left standing to argue about them. Near the stairs is a bright red scarf, and you don't stop to look at who's wearing it. You've seen how this goes.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Dying priest",
+				"text": "Tester. Tell them... whichever one you serve... tell them we held. Tell them it was worth it. Was it worth it? Which one were you with?",
+				"choices": [
+					{ "text": "\"It was worth it.\"", "next": "kind", "effects": [{ "set_flag": &"ch5_lied_to_priest" }, { "route_points": { &"hero": 1 } }] },
+					{ "text": "\"Neither of them is coming for you.\"", "next": "true", "effects": [{ "set_flag": &"ch5_told_priest" }, { "route_points": { &"vigilante": 1 } }] },
+					{ "text": "Step over them.", "next": "over", "effects": [{ "set_flag": &"ch5_passed_priest" }, { "route_points": { &"villain": 1 } }] },
+				],
+			},
+			"kind": { "text": "They smile, and don't say anything else." },
+			"true": { "text": "They nod, as if you've confirmed the time, and don't say anything else." },
+			"over": { "text": "You don't hear whether they say anything else." },
+		},
+	},
+	&"ch5_with_you": {
+		"start": [
+			{ "if": { "flag": &"ch5_friend_truth" }, "node": "truth" },
+			{ "if": { "flag": &"ch5_friend_lie" }, "node": "lie" },
+			{ "node": "a" },
+		],
+		"nodes": {
+			"alone": { "text": "One floor to go. You've got a decision coming, and nobody beside you to make it with. The window opens and closes without saying anything. You think it's trying to keep you company." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "Whatever you decide up there, I've thought about it, and I'm with you. If I don't know what I am, then the one thing I've got that's actually mine is who I pick. So. I pick you.",
+			},
+			"truth": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "I've thought about what you told me. If I'm an impression, I'd like to be a good one. So whatever you decide up there, I'm with you. Not because I was made to. I checked.",
+			},
+			"lie": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "You don't have to tell me. I've worked out most of it, you know, with the stick and the dirt. You lied to be kind. So whatever you decide up there, I'm with you. You'd be lost without me.",
+			},
+		},
+	},
+	&"ch5_threshold": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The stairs open onto a hall with no roof. Above it, high up, you can see the two of them, {bid1} and {bid2}, not fighting for the moment. Waiting to see who walks out of this room.",
+			},
+		},
+	},
+	&"ch5_choice": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The boss falls, and the war stops. All of it, all at once, on every floor. In the silence, {bid1} and {bid2} come down the air and stand in the wreckage, and for the first time neither of them looks at the other.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "Enough. We will have your answer, Tester. The top is close, and it opens for you and no one else. Say what you mean to do with it, and we will know whether to clear the way or burn the stairs.",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "And do mean it. There's no taking this one back. Whatever you say here is who you are from now on, to every god, every guild, and that sweet thing following you around.",
+				"next": "d",
+			},
+			"d": {
+				"text": "This is the choice. Everyone on the floors below you will live with it.",
+				"choices": [
+					{ "text": "\"Nobody gets the tower. I'm getting every climber out.\"", "next": "hero", "if": { "route_locked": false }, "effects": [{ "lock_route": &"hero" }, { "set_flag": &"ch5_chose_hero" }] },
+					{ "text": "\"I'll take it. The tower, and the two of you with it.\"", "next": "villain", "if": { "route_locked": false }, "effects": [{ "lock_route": &"villain" }, { "set_flag": &"ch5_chose_villain" }] },
+					{ "text": "\"You'll both answer for this. Then whoever built it will.\"", "next": "vigilante", "if": { "route_locked": false }, "effects": [{ "lock_route": &"vigilante" }, { "set_flag": &"ch5_chose_vigilante" }] },
+					{ "text": "\"You already know what I am.\"", "next": "already", "if": { "route_locked": true } },
+				],
+			},
+			"already": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "So we do. I only hoped you'd say it out loud. Clear the stairs, old enemy. Let's see what it does.",
+				"next": "sys",
+			},
+			"hero_alone": { "text": "You say it to the wreckage and to the gods, with nobody at your shoulder. It sounds smaller than it did in your head. You mean it anyway.", "next": "sys_hero" },
+			"hero": {
+				"alt": [{ "if": { "friend_away": true }, "node": "hero_alone" }],
+				"speaker": "{friend}",
+				"text": "Every climber? That's thousands of people. That's the stupidest thing I've ever heard. ...Right. Who do we start with? I'll carry the old ones.",
+				"next": "sys_hero",
+			},
+			"villain_alone": { "text": "You say it, and it's so quiet afterward you can hear your own pulse. Nobody's beside you to flinch. That turns out to be convenient.", "next": "sys_villain" },
+			"villain": {
+				"alt": [{ "if": { "friend_away": true }, "node": "villain_alone" }],
+				"speaker": "{friend}",
+				"text": "Ha. There it is. I've been waiting for you to say it. I won't be any trouble, you know. Whoever stands in front of you, I'll hold them still.",
+				"next": "sys_villain",
+			},
+			"vigilante_alone": { "text": "You say it, and start a new page in your head. It's already a long list. There's no one to read it to but the window.", "next": "sys_vigilante" },
+			"vigilante": {
+				"alt": [{ "if": { "friend_away": true }, "node": "vigilante_alone" }],
+				"speaker": "{friend}",
+				"text": "Good. I'll get the list. It's longer than you think, and some of them are going to be people we like. I wrote those in pen.",
+				"next": "sys_vigilante",
+			},
+			"sys": { "style": "system", "text": "[ Chapter 5 complete. ]", "next": "sys2" },
+			"sys2": { "style": "glitch", "text": "[ Ten floors to the top they all believe in. It isn't the top. You know that, don't you? You must. ]", "effects": [{ "set_flag": &"ch5_complete" }] },
+			"sys_hero": { "style": "system", "text": "[ Chapter 5 complete. ]", "next": "sys_hero2" },
+			"sys_hero2": { "style": "glitch", "text": "[ That's what I hoped you'd say. It's going to hurt. ]", "effects": [{ "set_flag": &"ch5_complete" }] },
+			"sys_villain": { "style": "system", "text": "[ Chapter 5 complete. ]", "next": "sys_villain2" },
+			"sys_villain2": { "style": "glitch", "text": "[ ...All right. I'll still do the floors. ]", "effects": [{ "set_flag": &"ch5_complete" }] },
+			"sys_vigilante": { "style": "system", "text": "[ Chapter 5 complete. ]", "next": "sys_vigilante2" },
+			"sys_vigilante2": { "style": "glitch", "text": "[ Yes. Start with me, if you have to. ]", "effects": [{ "set_flag": &"ch5_complete" }] },
+		},
+	},
+
+	# --- The second return to the real world (after floor 40's boss). ---
 	&"return_tier3_pc": {
 		"start": "a",
 		"nodes": {
@@ -1957,7 +2326,7 @@ const DIALOGUES := {
 			},
 			"b": {
 				"speaker": "{friend}",
-				"text": "No, don't tell me. {class}, is it now? Looks good on you. ...Is there a me, there? Where you go? You don't have to answer that. Come on.",
+				"text": "No, don't tell me. ...Is there a me, there? Where you go? You don't have to answer that. Come on.",
 			},
 		},
 	},
@@ -1990,7 +2359,7 @@ const DIALOGUES := {
 		"start": "a",
 		"nodes": {
 			"a": {
-				"text": "The notebook is open on the shelf. You left it closed. There's a new page after the last tower, in the same careful child's letters: a figure on floor 20, labelled {class}.",
+				"text": "The notebook is open on the shelf. You left it closed. There's a new page after the last tower, in the same careful child's letters: a figure on floor 20, sword up, standing over something with too many teeth. It has your haircut.",
 				"next": "b",
 			},
 			"b": {
@@ -2033,7 +2402,7 @@ const DIALOGUES := {
 			},
 			"b": {
 				"speaker": "{friend}",
-				"text": "New look suits you, though. {class}, is it? Come on. It's a long way up, and I'm told you've got gods to disappoint.",
+				"text": "Come on. It's a long way up, and I'm told you've got gods to disappoint.",
 			},
 		},
 	},
@@ -3049,22 +3418,21 @@ const FRIEND_MISSED_FLAG := &"friend_missed_scene"
 const RETURN_ASCEND := &"return_ascend"
 const RETURN_TIER3 := &"return_tier3"
 const RETURNS := [RETURN_TIER2, RETURN_TIER3, RETURN_ASCEND]
+## Each plays after this floor's boss, whatever your level or class: story scenes
+## are never locked behind advancing (Hayden 2026-11-04).
+const RETURN_FLOORS := { RETURN_TIER2: 20, RETURN_TIER3: 40, RETURN_ASCEND: 40 }
 
 
 ## The real-world return that's due now, or &"".
 static func return_due() -> StringName:
 	var gs := GameState
-	if not gs.run_active or not gs.player.has_class():
+	if not gs.run_active:
 		return &""
 	if gs.ng_plus_cycle > 0:
-		var ascended := gs.player.ascended or gs.player.class_id == &"ascendant"
-		var high_enough := gs.highest_floor > ClassRegistry.ASCENSION_GATE.floor
-		return RETURN_ASCEND if ascended and high_enough and not gs.has_flag(RETURN_ASCEND) else &""
-	var tier := gs.player.get_class_def().tier
-	if tier >= 2 and not gs.has_flag(RETURN_TIER2):
-		return RETURN_TIER2
-	if tier >= 3 and not gs.has_flag(RETURN_TIER3):
-		return RETURN_TIER3
+		return RETURN_ASCEND if gs.guardian_beaten(RETURN_FLOORS[RETURN_ASCEND]) and not gs.has_flag(RETURN_ASCEND) else &""
+	for id in [RETURN_TIER2, RETURN_TIER3]:
+		if gs.guardian_beaten(RETURN_FLOORS[id]) and not gs.has_flag(id):
+			return id
 	return &""
 
 

@@ -9,8 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapters 3-4 (floors 21-40), the second return and four more quest classes too.
-**Not built yet:** first-run story for floors 41-100 (chapters 5-10), beyond those two scenes
+Chapters 3-5 (floors 21-50), the second return and four more quest classes too.
+**Not built yet:** first-run story for floors 51-100 (chapters 6-10), beyond those two scenes
 and the first-run returns at floors 40 and 60.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
@@ -50,7 +50,7 @@ the tower keeps showing you things from your own childhood.
 1. **The friend.** Warm, loyal, funny, and impossible. They remember a shared
    childhood that is *almost* yours: the right street, the wrong house; your
    real treehouse, but a game-world tree. The player decides how much to
-   trust them. (Existing hook: they can still leave on some routes.)
+   trust them. (Hayden 2026-11-04: they never leave over your route. Your choices mold who they become.)
 2. **The System.** It starts as cold, formatted windows. Now and then it
    slips: a word of praise, a pause, a correction ("[ Adequate. ]" becomes
    "[ Floor cleared. ]"). Over the chapters it becomes clear the System is
@@ -139,7 +139,7 @@ much; Tess comes back wrong; the room returns on your first advancement.
 
 **Who bids changes per run** (Hayden, 2026-11-04): Odin and Loki, Zeus and Typhon, Ra and Apep, or Anubis and Set, each with their own lines (`StoryLibrary.BID_PAIRS`). Pairs must be enemies in their own myths. You draw the pair you already lean toward, a blessing from either settles it, and each run rolls some luck. Figures from living religions stay out of it.
 
-**First return** (the player's first tier-2 class, first runs only): you're back in
+**First return** (after floor 20's boss, first runs only): you're back in
 the room. Nine days have passed. The phone has eleven messages, the notebook has a
 new page with your new class in a child's handwriting, your reflection lags, stone
 shows through one floorboard, and the PC won't let you log off. `[ Resynchronising. ]`
@@ -185,7 +185,24 @@ Hayden's picks (2026-11-04): Marn falls; the System is both trying to help and l
 | 39 | After the miniboss: `[ When you advance, you'll go home again. Look at the first name. ]` `[ That message was not sent. ]` `[ Yes it was. ]` |
 | 40 | The boss fades slowly enough to see how it was drawn. `[ Chapter 4 complete. ]` `[ You drew the monsters. ]` ... `[ I did the floors. ]` |
 
-**Second return** (first tier-3 class, first runs only): 140 days gone, the messages have stopped. The PC lists the Testers: 0012 and 0027 greyed out, 0041 active, and first of all "Tester 0001: J-", the rest rubbed away. Two names blacked out under BUILD CREDITS; the second is the length of yours. The notebook's cover has an erased AND, and every floor number is in the second hand. A years-old thread on your phone reads only "not sent". Log off: `[ I'm not the one stopping you. I promise. ]` Back on the stairs, the friend: "Is there a me, there?"
+**Second return** (after floor 40's boss, first runs only; returns follow floors, never levels or classes, Hayden 2026-11-04): 140 days gone, the messages have stopped. The PC lists the Testers: 0012 and 0027 greyed out, 0041 active, and first of all "Tester 0001: J-", the rest rubbed away. Two names blacked out under BUILD CREDITS; the second is the length of yours. The notebook's cover has an erased AND, and every floor number is in the second hand. A years-old thread on your phone reads only "not sent". Log off: `[ I'm not the one stopping you. I promise. ]` Back on the stairs, the friend: "Is there a me, there?"
+
+## Chapter 5: "The Bidding War" (floors 41-50)
+
+Hayden's picks (2026-11-04): this run's gods fight over you; one big choice locks your route on floor 50; the friend works it out AND breaks for a moment.
+
+| Floor | Beat |
+| --- | --- |
+| 41 | The tower shakes. `[ Chapter 5: The Bidding War ]`. The friend's line depends on who you've made them. |
+| 42-43 | Two warbands, a climbers' camp between them. Stand with either god (+10 / -8 interest) or drive both off, at a cost. The Unsworn get their own version. |
+| 44 | `[ Be careful at the next campfire. ]` `[ That message was not sent. ]` `[ Stop correcting me. ]` Nothing corrects it. |
+| 45 | The friend tried to remember your kitchen, and there's nothing there. "Am I real?" Don't know, tell the truth, or lie (they notice). |
+| 46-47 | They break mid-sentence, in another voice: "you said you'd come back for the top floor, you IDIOT, you left the file open and I've been holding the door for..." Then they don't remember it. `[ I didn't mean for that to reach you. ]` |
+| 48 | The war's aftermath. A red scarf (and a fifth mark, if you kept the ledger). A dying priest asks if it was worth it. |
+| 49 | "The one thing I've got that's actually mine is who I pick." Depends on what you told them. |
+| 50 | After the boss, both gods come down: say what you mean to do with the top. Get everyone out (Hero), take it (Villain), make them answer (Vigilante). It locks your route. `[ That's what I hoped you'd say. ]` / `[ ...All right. I'll still do the floors. ]` / `[ Yes. Start with me, if you have to. ]` |
+
+**The friend's personality** (Hayden, 2026-11-04): at 12 points on a route (or when one locks) they notice it in themselves, once per route, and later scenes branch on it. Hero makes them soft and stubborn, Villain makes them cold and useful, Vigilante makes them keep a list. Keep branching their lines in every later chapter.
 
 ## Quest classes (Hayden, 2026-11-04)
 
@@ -259,10 +276,9 @@ None of this decides what the System is or what the tower's secret is.
 
 The mimic final boss.
 
-## Chapters 5-6 (one-line arcs, to fill in later)
+## Chapter 6 (one-line arc, to fill in later)
 
-1. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
-2. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
+1. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
    (below). Each route's ending, and the tower's secret (to decide).
 
 ## The false summit (floor 60) and the last 40 floors (Hayden, 2026-11-04)

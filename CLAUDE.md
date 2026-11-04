@@ -285,7 +285,8 @@ more routes/endings: keep new route content data-driven and registrable.
   Player sees HINTS only (reputation line in Tab, NPC reactions), no meter.
 - Companions who strongly disagree warn first, then leave (wait at rest
   floors, refuse to rejoin unless the route changes back). The childhood
-  friend CAN leave too on certain routes (big story moment).
+  friend NEVER leaves over a route (Hayden 2026-11-04): choices mold their
+  personality instead; keep branching their lines by route in every chapter.
 - NG+: route resets to neutral; the Hall of Climbers records which endings
   that character has seen.
 - Notice board: both generated bounties fitting the current stage (3 per
@@ -344,6 +345,9 @@ THE SECRET (Hayden picked 2026-11-04): you built the game with your real childho
 friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
+Chapter 5 "The Bidding War" BUILT 2026-11-04; floor 50's choice locks the route.
+RULE (Hayden): story scenes are never locked behind levels or advancement; returns
+home follow floor bosses (StoryLibrary.RETURN_FLOORS).
 Chapter 3 BUILT 2026-11-04 (Marn falls, System helps and is lonely). Quest
 classes BUILT 2026-11-04: Inkblade, Stairwarden, Unsworn, Glitchwalker (SecretPaths;
 names placeholders; found late = join at your tier; player only). Unsworn line:
@@ -427,7 +431,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2757 checks at last run).
+Every change gets tests in tests/ (26 suites, 2839 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

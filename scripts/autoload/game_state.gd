@@ -1515,6 +1515,7 @@ func rejoin(c: CharacterData) -> bool:
 	_add_member(c)
 	if c.companion_id == &"childhood_friend":   # they've got something to say about it
 		pending_talks.append({ "dialogue": StoryLibrary.FRIEND_REUNION })
+		_check_friend_mood()
 	return true
 
 
@@ -1522,8 +1523,11 @@ func rejoin(c: CharacterData) -> bool:
 # Routes (Hero / Villain / Vigilante ...) — see RouteLibrary
 # =========================================================
 
-## Placeholder values for the childhood friend (recruits keep theirs in NpcLibrary).
-const CHILDHOOD_FRIEND_VALUES := { "likes": [&"hero"], "dislikes": [&"villain"] }
+## The childhood friend never leaves over your route (Hayden 2026-11-04): your
+## choices change who they become instead (_check_friend_mood, and story scenes
+## that branch on the route). Once a route has this many points, or locks, they
+## notice it in themselves.
+const FRIEND_MOOD_POINTS := 12
 ## A companion who's been warned leaves once a route they dislike has this many
 ## points (or gets locked).
 const COMPANION_LEAVE_POINTS := 20
@@ -1550,7 +1554,7 @@ func lock_route(id: StringName) -> bool:
 ## { "likes": [route ids], "dislikes": [...] } for a companion.
 func companion_values(c: CharacterData) -> Dictionary:
 	if c.companion_id == &"childhood_friend":
-		return CHILDHOOD_FRIEND_VALUES
+		return {}   # they follow you anywhere, and it changes them
 	return NpcLibrary.get_npc(c.companion_id).get("values", {})
 
 
@@ -1572,6 +1576,7 @@ func refuses_to_rejoin(c: CharacterData) -> bool:
 
 ## After the route changes: companions who dislike it warn you first, then leave.
 func _check_companions() -> void:
+	_check_friend_mood()
 	for c in companions + reserve:
 		if not disagrees(c):
 			continue
@@ -1583,6 +1588,20 @@ func _check_companions() -> void:
 		var r := route.current()
 		if route.locked == r or route.points_of(r) >= COMPANION_LEAVE_POINTS:
 			leave_over_route(c)
+
+
+## Your route shapes your friend: one conversation per route, the first time it
+## takes hold. If they're off waiting at a campfire, it waits until they're back.
+func _check_friend_mood() -> void:
+	var r := route.current()
+	if r == &"" or (route.locked != r and route.points_of(r) < FRIEND_MOOD_POINTS):
+		return
+	var flag := StringName("friend_mood_%s" % r)
+	var talk := StringName("friend_shift_%s" % r)
+	if has_flag(flag) or friend_away() or not DialogueLibrary.has_dialogue(talk):
+		return
+	story_flags[flag] = true
+	pending_talks.append({ "dialogue": talk })
 
 
 ## The companion walks away: gear to the bag, waits at rest floors, and won't

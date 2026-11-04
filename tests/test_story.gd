@@ -27,6 +27,7 @@ func _ready() -> void:
 	await test_chapter_two()
 	test_chapter_three()
 	await test_chapter_four()
+	test_chapter_five()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -131,7 +132,7 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(41, false) == &"", "no chapter 5 scenes yet")
+	check(StoryLibrary.due(51, false) == &"", "no chapter 6 scenes yet")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -492,11 +493,18 @@ func test_chapter_two() -> void:
 	check(GameState.route.points_of(&"vigilante") == 3 and GameState.guilds.rep_of(ruler) < rep, "telling them off: Vigilante, standing falls")
 	# The return to the room.
 	_fresh()
-	check(StoryLibrary.return_due() == &"", "no return before advancing")
+	check(StoryLibrary.return_due() == &"", "no return before floor 20's boss")
 	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
-	check(StoryLibrary.return_due() == &"", "a tier-1 class isn't enough")
 	GameState.player.class_id = &"pyromancer"
-	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER2, "the first tier-2 class brings it")
+	check(StoryLibrary.return_due() == &"", "advancing doesn't bring it")
+	GameState.player.class_id = &"mage"
+	GameState.cleared_guardians.append(20)
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER2, "floor 20's boss does, whatever your class")
+	var no_class := CharacterData.new()
+	var kept_player := GameState.player
+	GameState.player = no_class
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER2, "even with no class at all")
+	GameState.player = kept_player
 	var was_active := GameState.run_active
 	GameState.run_active = false
 	check(StoryLibrary.return_due() == &"", "not in the sandbox")
@@ -508,7 +516,7 @@ func test_chapter_two() -> void:
 	check(StoryLibrary.return_due() == &"", "once")
 	var c := DialogueRunner.new()
 	c.start(&"return_tier2_notebook")
-	check(c.text().contains("Pyromancer"), "the notebook draws your class (%s)" % c.text())
+	check(c.text().contains("floor 20"), "the notebook has a new page (%s)" % c.text())
 	# The room in return mode keeps the run.
 	GameState.current_slot = 1
 	var name_before := GameState.player.character_name
@@ -550,7 +558,7 @@ func test_chapter_two() -> void:
 	# The setting skips it.
 	_fresh()
 	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
-	GameState.player.class_id = &"pyromancer"
+	GameState.cleared_guardians.append(20)
 	var floor_scene: Node = load(GameState.TOWER_SCENE).instantiate()
 	add_child(floor_scene)
 	await _frames(2)
@@ -642,7 +650,6 @@ func test_chapter_four() -> void:
 	check(StoryLibrary.due(31, false) == &"ch4_opening", "floor 31 opens it")
 	check(StoryLibrary.due(34, false) == &"", "floor 34 waits for the miniboss")
 	check(StoryLibrary.due(34, true) == &"ch4_comments", "then the old comments")
-	check(StoryLibrary.due(41, false) == &"", "no chapter 5 scenes yet")
 	# It remembers how you treated it.
 	var r := DialogueRunner.new()
 	r.start(&"ch4_opening")
@@ -698,16 +705,17 @@ func test_chapter_four() -> void:
 	# The second return.
 	_fresh()
 	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
-	GameState.player.class_id = &"pyromancer_t3"
+	GameState.cleared_guardians.append(20)
+	GameState.cleared_guardians.append(40)
 	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER2, "the first return comes first")
 	GameState.set_flag(StoryLibrary.RETURN_TIER2)
-	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER3, "then the second")
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER3, "then the second, at floor 40")
 	GameState.set_flag(StoryLibrary.RETURN_TIER3)
 	check(StoryLibrary.return_due() == &"", "once each")
-	GameState.player.class_id = &"pyromancer"
+	GameState.cleared_guardians.erase(40)
 	GameState.story_flags.erase(StoryLibrary.RETURN_TIER3)
-	check(StoryLibrary.return_due() == &"", "tier 2 doesn't bring the second")
-	GameState.player.class_id = &"pyromancer_t3"
+	check(StoryLibrary.return_due() == &"", "floor 20 alone doesn't bring the second")
+	GameState.cleared_guardians.append(40)
 	GameState.ng_plus_cycle = 1
 	check(StoryLibrary.return_due() != StoryLibrary.RETURN_TIER3, "first runs only")
 	GameState.ng_plus_cycle = 0
@@ -734,6 +742,129 @@ func test_chapter_four() -> void:
 	GameState.pending_talks.clear()
 	room.queue_free()
 	await _frames(1)
+
+
+func test_chapter_five() -> void:
+	print("-- chapter 5 --")
+	var ch5 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 5 and not s.get("if", {}).get("god", false))
+	var covered := {}
+	for s in ch5:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 41-50 (%s)" % [covered.keys()])
+	_fresh()
+	check(StoryLibrary.chapter_name(5) == "Chapter 5: The Bidding War", "its title")
+	check(StoryLibrary.due(41, false) == &"ch5_opening", "floor 41 opens it")
+	check(StoryLibrary.due(51, false) == &"", "no chapter 6 scenes yet")
+	check(StoryLibrary.due(50, false) == &"ch5_threshold", "floor 50: the gods wait")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch5_threshold"))
+	check(StoryLibrary.due(50, true) == &"ch5_choice", "boss down: the choice")
+	# This run's gods.
+	_fresh(42)
+	var pair := StoryLibrary.bid_pair()
+	var bonus := func(b: StringName) -> int: return GameState.blessings.beings.get(b, {}).get("bonus", 0)
+	var r := DialogueRunner.new()
+	r.start(&"ch5_camp")
+	check(not r.text().contains("{") and r.text().contains(BeingLibrary.get_being(pair.first).name), "names this run's gods")
+	r.advance()
+	var labels: Array = r.choices().map(func(c): return c.text)
+	check(labels[0].contains(BeingLibrary.get_being(pair.first).name) and labels[1].contains(BeingLibrary.get_being(pair.second).name), "the choices do too (%s)" % [labels])
+	_play(&"ch5_camp", 0)
+	check(bonus.call(pair.first) == 10 and bonus.call(pair.second) == -8, "taking a side moves real interest")
+	_fresh(42)
+	var hp := GameState.player.current_hp()
+	_play(&"ch5_camp", 2)
+	check(GameState.has_flag(&"ch5_stood_neither") and GameState.player.current_hp() < hp, "fighting both costs blood")
+	_fresh(42)
+	GameState.set_flag(&"godless_unlocked")
+	GameState.player = GameState.make_premade("Heretic", &"warrior", { Stats.Type.STRENGTH: 12, Stats.Type.LUCK: 8 })
+	GameState.take_secret_class(GameState.player, &"unsworn")
+	r.start(&"ch5_camp")
+	check(r.node_id == "godless", "the Unsworn get their own moment")
+	# The friend, and the choice's consequences.
+	_fresh(45)
+	r.start(&"ch5_am_i_real")
+	check(r.node_id == "a", "they've been drawing a door")
+	r.advance()
+	r.advance()
+	check(r.text().contains("Am I real?") and r.choices().size() == 3, "they ask you straight")
+	_play(&"ch5_am_i_real", 1)
+	check(GameState.has_flag(&"ch5_friend_truth"), "you told them")
+	r.start(&"ch5_with_you")
+	check(r.node_id == "truth", "and they remember what you said")
+	_fresh(49)
+	GameState.set_flag(&"ch5_friend_lie")
+	r.start(&"ch5_with_you")
+	check(r.node_id == "lie", "the lie is remembered too")
+	_fresh(46)
+	r.start(&"ch5_break")
+	r.advance()
+	check(r.style() == "glitch" and r.speaker() == "Rowan", "their mouth, someone else's words")
+	check(r.text().contains("IDIOT"), "the words only the real one would use")
+	_play(&"ch5_break", 0)
+	check(GameState.has_flag(&"ch5_break_heard"), "the System didn't mean for that")
+	# The System stops taking it back.
+	_fresh(44)
+	r.start(&"ch5_stop_correcting")
+	r.advance()
+	r.advance()
+	r.advance()
+	check(r.text() == "[ Stop correcting me. ]", "it argues back")
+	# The big choice.
+	var routes := { 0: &"hero", 1: &"villain", 2: &"vigilante" }
+	var endings := { &"hero": "hoped", &"villain": "still do the floors", &"vigilante": "Start with me" }
+	for i in routes:
+		_fresh(50)
+		var last := DialogueRunner.new()
+		last.start(&"ch5_choice")
+		while not last.finished and not last.has_choices():
+			last.advance()
+		check(last.choices().size() == 3, "three ways to answer")
+		last.choose(last.choices()[i].index)
+		check(GameState.route.locked == routes[i], "it locks %s" % routes[i])
+		check(GameState.companions.has(GameState.childhood_friend()), "your friend stays")
+		check(GameState.has_flag(StringName("friend_mood_%s" % routes[i])), "and it changes them")
+		var said := ""
+		while not last.finished:
+			said = last.text()
+			last.advance()
+		check(said.contains(endings[routes[i]]), "the System's reaction (%s)" % said)
+		check(GameState.has_flag(&"ch5_complete"), "chapter 5 complete")
+	_fresh(50)
+	GameState.lock_route(&"villain")
+	r.start(&"ch5_choice")
+	while not r.has_choices():
+		r.advance()
+	check(r.choices().size() == 1, "already locked: nothing to choose")
+	# Their personality shows.
+	_fresh(41)
+	r.start(&"ch5_opening")
+	r.advance()
+	r.advance()
+	r.advance()
+	var plain := r.node_id
+	GameState.add_route_points(&"villain", 30)
+	r.start(&"ch5_opening")
+	r.advance()
+	r.advance()
+	r.advance()
+	check(plain == "d" and r.node_id == "d_villain", "your friend sounds different on your route (%s, %s)" % [plain, r.node_id])
+	# The shift, once per route.
+	_fresh()
+	GameState.add_route_points(&"hero", GameState.FRIEND_MOOD_POINTS - 1)
+	check(not GameState.pending_talks.any(func(t): return t.dialogue == &"friend_shift_hero"), "not yet")
+	GameState.add_route_points(&"hero", 1)
+	check(GameState.pending_talks.any(func(t): return t.dialogue == &"friend_shift_hero"), "they notice it in themselves")
+	GameState.pending_talks.clear()
+	GameState.add_route_points(&"hero", 5)
+	check(GameState.pending_talks.is_empty(), "once")
+	check(not GameState.disagrees(GameState.childhood_friend()), "they never disagree enough to go")
+	_fresh()
+	GameState.dismiss(GameState.childhood_friend())
+	GameState.add_route_points(&"villain", 20)
+	check(not GameState.has_flag(&"friend_mood_villain"), "away at a fire: it waits")
+	GameState.rejoin(GameState.childhood_friend())
+	check(GameState.has_flag(&"friend_mood_villain"), "they catch up when they're back")
 
 
 func test_skip_warning() -> void:
@@ -1228,25 +1359,17 @@ func test_ascend_return() -> void:
 	_ng(&"")
 	var p := GameState.player
 	p.class_id = &"pyromancer"
-	check(StoryLibrary.return_due() == &"", "New Game+, not Ascended: nothing")
-	p.ascended = true
-	GameState.highest_floor = 1
-	check(StoryLibrary.return_due() == &"", "still Ascended from last climb, on floor 1: not yet")
-	GameState.highest_floor = ClassRegistry.ASCENSION_GATE.floor + 1
-	check(StoryLibrary.return_due() == StoryLibrary.RETURN_ASCEND, "past the gate's floor: the room")
+	check(StoryLibrary.return_due() == &"", "New Game+, floor 40 not beaten: not yet")
+	GameState.cleared_guardians.append(40)
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_ASCEND, "floor 40's boss: the room, Ascended or not")
 	GameState.set_flag(StoryLibrary.RETURN_ASCEND)
 	check(StoryLibrary.return_due() == &"", "once a run")
-	_ng(&"")
-	GameState.player.class_id = &"ascendant"
-	GameState.highest_floor = 1
-	check(StoryLibrary.return_due() == &"", "the Ascendant waits for the same floor")
-	GameState.highest_floor = ClassRegistry.ASCENSION_GATE.floor + 1
-	check(StoryLibrary.return_due() == StoryLibrary.RETURN_ASCEND, "and then goes home too")
 	_fresh()
 	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
-	GameState.player.ascended = true
-	GameState.highest_floor = 50
-	check(StoryLibrary.return_due() == &"", "never on a first run")
+	GameState.set_flag(StoryLibrary.RETURN_TIER3)
+	GameState.set_flag(StoryLibrary.RETURN_TIER2)
+	GameState.cleared_guardians.append(40)
+	check(StoryLibrary.return_due() != StoryLibrary.RETURN_ASCEND, "never on a first run")
 	# The room: exactly as it was.
 	_ng()
 	GameState.player.ascended = true
