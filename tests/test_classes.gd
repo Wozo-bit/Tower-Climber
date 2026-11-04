@@ -22,6 +22,7 @@ func _ready() -> void:
 	test_uniques_and_loot()
 	test_save_roundtrip()
 	test_secret_line()
+	test_quest_classes()
 	test_class_change()
 	GameState.delete_slot(1)
 	GameState.reset_run()
@@ -242,6 +243,74 @@ func test_secret_line() -> void:
 	var teaser := NpcLibrary.get_npc(&"ash_carving")
 	check(teaser.get("max_floor", 99) < 10 and not SecretPaths.PATHS.ashbound.clue_flags.has(teaser.get("gone_flag")),
 		"a hint before the level-10 class choice (not one of the 3 clues)")
+
+
+## Hayden 2026-11-04: quest classes like the Ashbound Knight, one per story thread.
+func test_quest_classes() -> void:
+	print("Quest classes")
+	check(SecretPaths.PATHS.size() == 5, "five secret paths")
+	var seen_floors := []
+	for id in [&"notebook", &"ledger", &"godless", &"seams"]:
+		var path: Dictionary = SecretPaths.PATHS[id]
+		var root: StringName = path.class_id
+		var def := ClassRegistry.get_class_def(root)
+		check(def != null and def.is_secret and def.tier == 1, "%s is a hidden class" % root)
+		var line := []
+		var at := root
+		while true:
+			line.append(at)
+			var next := ClassRegistry.advancements_for(at)
+			if next.is_empty():
+				break
+			at = next[0].id
+		check(line.size() == 4 and ClassRegistry.get_class_def(at).tier == 4, "%s has a 4-tier line (%s)" % [root, line])
+		for c in line:
+			check(not SkillLibrary.CLASS_SKILLS.get(c, []).is_empty(), "%s has skills" % c) if SkillLibrary.CLASS_SKILLS.get(c, []).is_empty() else null
+		var roamer := StageLibrary.roamer_info(path.final_roamer)
+		check(roamer.get("secret_path") == id and EnemyLibrary.get_enemy_or_null(path.final_roamer) != null, "%s's boss exists" % id)
+		seen_floors.append(roamer.min_floor)
+		# Every clue has an object you can find.
+		for f in path.clue_flags:
+			var has_object := NpcLibrary.NPCS.values().any(func(n): return n.get("gone_flag") == f)
+			check(has_object, "%s can be found" % f) if not has_object else null
+		var q := QuestLibrary.QUESTS.values().filter(func(x): return x.get("auto_start", {}).get("any_flag", []).has(path.clue_flags[0]))
+		check(q.size() == 1 and q[0].steps.size() == 4, "%s has a quest listing its clues" % id)
+		# The whole path.
+		GameState.reset_run()
+		GameState.player = GameState.make_premade("Finder", &"rogue", { Stats.Type.AGILITY: 10 })
+		GameState.player.legacy_id = "quest-%s" % id
+		check(not GameState.unlocked_secret_classes().has(root), "%s starts locked" % root)
+		for f in path.clue_flags:
+			GameState.set_flag(f)
+		check(StageLibrary.guaranteed_roamer(90, [], GameState.story_flags).get("spawn") == "secret", "all clues bring a boss, however late")
+		GameState._check_secret_unlock(path.final_roamer)
+		check(GameState.unlocked_secret_classes().has(root), "beating it unlocks %s" % root)
+	check(seen_floors == [8, 27, 33, 47], "they spread up the climb (%s)" % [seen_floors])
+	check(QuestLibrary.validate_all().is_empty(), "quests validate %s" % [QuestLibrary.validate_all()])
+	check(StoryLibrary.validate().is_empty(), "story validates")
+	check(DialogueLibrary.validate_all().is_empty(), "clue dialogues validate")
+	# Found late: you join at the tier you've earned.
+	check(ClassRegistry.line_at_tier(&"inkblade", 1) == &"inkblade" and ClassRegistry.line_at_tier(&"inkblade", 3) == &"inkblade_t3"
+		and ClassRegistry.line_at_tier(&"inkblade", 9) == &"inkblade_t4", "the line by tier")
+	GameState.reset_run()
+	var hero := GameState.make_premade("Late", &"rogue", { Stats.Type.AGILITY: 12, Stats.Type.LUCK: 8 })
+	GameState.player = hero
+	GameState.set_flag(&"notebook_unlocked")
+	hero.class_id = &"assassin_t3"
+	hero._apply_class_bonus()
+	var ink := ClassRegistry.get_class_def(&"inkblade")
+	check(hero.can_take_secret_class(ink), "a tier-3 rogue can switch")
+	check(GameState.take_secret_class(hero, &"inkblade"), "and does")
+	check(hero.class_id == &"inkblade_t3", "joining at tier 3 (%s)" % hero.class_id)
+	check(not hero.can_take_secret_class(ink), "already in that line: no going back down")
+	check(hero.all_skills().any(func(s): return s.id == &"full_page") and hero.all_skills().any(func(s): return s.id == &"ink_slash"), "with the line's skills")
+	var ash := ClassRegistry.get_class_def(&"ashbound_knight")
+	hero.class_id = &"cinderbrand"
+	check(hero.in_line_of(&"ashbound_knight") and not hero.can_take_secret_class(ash), "the Ashbound line can't step down either")
+	# Companions can't take them (the path is the player's).
+	var pal := GameState.make_premade("Pal", &"rogue", { Stats.Type.AGILITY: 12, Stats.Type.LUCK: 8 })
+	check(not GameState.take_secret_class(pal, &"inkblade"), "quest classes are yours alone")
+	GameState.reset_run()
 
 
 ## One free class change after the tier-2 gate's floor, while still tier 1.

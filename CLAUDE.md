@@ -340,6 +340,10 @@ skills). Final boss Tester 0041; NG+ = mimics of your Hall character + party
 70 (+30%; one capstone per tier-3 class). Story for floors 21-100 is still to
 write: only summit_false and the floor-100 scenes exist.
 
+Chapter 3 BUILT 2026-11-04 (Marn falls, System helps and is lonely). Quest
+classes BUILT 2026-11-04: Inkblade, Stairwarden, Unsworn, Glitchwalker (SecretPaths;
+names placeholders; found late = join at your tier; player only).
+
 Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
 campfire floor travel (never ticks guilds/wages), guild actions from Tab,
 donations, merchant weapons + books, declining gods (curse by temper, good
@@ -418,7 +422,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2577 checks at last run).
+Every change gets tests in tests/ (26 suites, 2667 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

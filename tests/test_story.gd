@@ -25,6 +25,7 @@ func _ready() -> void:
 	await test_prologue()
 	await test_floor()
 	await test_chapter_two()
+	test_chapter_three()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -129,7 +130,7 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(21, false) == &"", "no chapter 3 scenes yet")
+	check(StoryLibrary.due(31, false) == &"", "no chapter 4 scenes yet")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -561,6 +562,72 @@ func test_chapter_two() -> void:
 	await _frames(1)
 
 
+func test_chapter_three() -> void:
+	print("-- chapter 3 --")
+	var ch3 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 3 and not s.get("if", {}).get("god", false))
+	var covered := {}
+	for s in ch3:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 21-30 (%s)" % [covered.keys()])
+	_fresh()
+	check(StoryLibrary.chapter_name(3) == "Chapter 3: What the Tower Sends", "its title")
+	check(StoryLibrary.due(21, false) == &"ch3_opening", "floor 21 opens it")
+	check(StoryLibrary.due(24, false) == &"", "floor 24 waits for the miniboss")
+	check(StoryLibrary.due(24, true) == &"ch3_small_talk", "then the System makes small talk")
+	check(StoryLibrary.due(30, false) == &"ch3_brace", "floor 30: bracing")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch3_brace"))
+	check(StoryLibrary.due(30, true) == &"ch3_end", "boss down: Marn at the fire")
+	var r := DialogueRunner.new()
+	r.start(&"ch3_opening")
+	check(r.node_id == "a" and r.style() == "glitch", "the System speaks out of turn")
+	GameState.set_flag(StoryLibrary.RETURN_TIER2)
+	r.start(&"ch3_opening")
+	check(r.node_id == "home", "it knows you went home")
+	r.advance()
+	check(r.text().contains("not sent"), "then something takes it back")
+	# Trying to help.
+	_fresh(22)
+	var hp := GameState.player.current_hp()
+	_play(&"ch3_warning", 0)
+	check(GameState.has_flag(&"ch3_trusted_system") and GameState.player.current_hp() == hp, "trust it: no harm")
+	_fresh(22)
+	hp = GameState.player.current_hp()
+	_play(&"ch3_warning", 1)
+	check(GameState.has_flag(&"ch3_ignored_system") and GameState.player.current_hp() < hp and GameState.player.current_hp() > 0, "ignore it: it costs blood")
+	check(GameState.route.points_of(&"hero") == 2, "but it was kind")
+	# Lonely.
+	_fresh(24)
+	_play(&"ch3_small_talk", 1)
+	check(GameState.has_flag(&"ch3_kind_to_system"), "it remembers you answered")
+	# Marn.
+	_fresh(26)
+	_play(&"ch3_door", 0)
+	check(GameState.has_flag(&"ch3_marn_fell") and GameState.has_flag(&"ch3_barred_door"), "you bar the door on him")
+	_fresh(26)
+	hp = GameState.player.current_hp()
+	_play(&"ch3_door", 1)
+	check(GameState.has_flag(&"ch3_marn_fell") and GameState.player.current_hp() < hp, "going in doesn't save him")
+	_fresh(28)
+	_play(&"ch3_doubt", 0)
+	check(GameState.route.points_of(&"hero") == 4, "the vow leans a route")
+	_fresh(28)
+	_play(&"ch3_doubt", 1)
+	check(GameState.route.points_of(&"vigilante") == 4, "another")
+	_fresh(28)
+	_play(&"ch3_doubt", 2)
+	check(GameState.route.points_of(&"villain") == 4, "and another")
+	_fresh(29)
+	r.start(&"ch3_last_page")
+	r.advance()
+	check(r.text().contains("Tester"), "your name is in the ledger (%s)" % r.text())
+	_fresh(30)
+	_play(&"ch3_end")
+	check(GameState.has_flag(&"ch3_complete"), "chapter 3 complete")
+	var end_nodes: Dictionary = StoryLibrary.DIALOGUES[&"ch3_end"].nodes
+	check(end_nodes.e.text == "[ I'm sorry. ]" and not end_nodes.f.text.contains("not sent"), "and this time nothing takes it back")
+
+
 func test_skip_warning() -> void:
 	print("-- the skip setting warns --")
 	Settings.skip_prologue = false
@@ -666,12 +733,12 @@ func test_god_data() -> void:
 		check(not DialogueRunner.check(StoryLibrary.SCENES[k].if), "%s: not on a first run" % k) \
 			if DialogueRunner.check(StoryLibrary.SCENES[k].if) else null
 	check(StoryLibrary.due(3, false) == &"ch1_memory", "floor 3 first run: only the memory")
-	check(StoryLibrary.due(25, false) == &"", "floor 25 first run: nothing")
+	check(StoryLibrary.due(25, false) != &"god_shrine", "floor 25 first run: no shrine")
 	_ng(&"")
 	check(not GameState.divinity.active, "a conqueror who refused godhood")
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_memory"))
 	check(StoryLibrary.due(3, false) == &"", "no prayers for a mortal in New Game+")
-	check(StoryLibrary.due(25, false) == &"", "no shrine for a mortal either")
+	check(StoryLibrary.due(25, false) != &"god_shrine", "no shrine for a mortal either")
 	_unfilled_check("a mortal in New Game+")
 	# Every domain, every path: all tokens fill in, and every path ends.
 	for domain in DomainLibrary.BASE_DOMAINS:
@@ -1133,7 +1200,7 @@ func test_god_chapters() -> void:
 	_fresh()
 	check(StoryLibrary.chapter_name(1) == "Chapter 1: Tester", "a first run: Tester")
 	_ng(&"")
-	check(StoryLibrary.chapter_name(3) == "Chapter 3: (Chapter 3)", "a mortal's New Game+: the normal chapters")
+	check(StoryLibrary.chapter_name(3) == "Chapter 3: What the Tower Sends", "a mortal's New Game+: the normal chapters")
 	_ng()
 	check(StoryLibrary.chapter_name(1) == "Chapter 1: Nobody's God", "a god: their own")
 	check(StoryLibrary.chapter_name(6) == "Chapter 6: The Last Prayer", "to the end")

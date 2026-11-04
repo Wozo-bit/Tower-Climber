@@ -503,6 +503,79 @@ const NPCS := {
 		"floors": ["combat"], "min_floor": 2, "max_floor": 9, "chance": 0.5,
 		"gone_flag": &"hint_ash_carving",
 	},
+	# Quest class clues (SecretPaths): the notebook, Marn's ledger, the godless, the seams.
+	&"note_page": {
+		"name": "Torn page", "kind": "object", "dialogue": &"note_page",
+		"color": Color(0.85, 0.85, 0.75),
+		"floors": ["combat"], "min_floor": 2, "max_floor": 14, "chance": 0.35,
+		"gone_flag": &"clue_note_page",
+	},
+	&"note_door": {
+		"name": "Chalk door", "kind": "object", "dialogue": &"note_door",
+		"color": Color(0.8, 0.8, 0.85),
+		"floors": ["rest"], "min_floor": 5, "max_floor": 30,
+		"gone_flag": &"clue_note_door",
+	},
+	&"note_name": {
+		"name": "Scrawled warning", "kind": "object", "dialogue": &"note_name",
+		"color": Color(0.5, 0.5, 0.6),
+		"floors": ["combat"], "min_floor": 6, "max_floor": 30, "chance": 0.3,
+		"gone_flag": &"clue_note_name",
+	},
+	&"marn_pack": {
+		"name": "Marn's old pack", "kind": "object", "dialogue": &"marn_pack",
+		"color": Color(0.5, 0.4, 0.3),
+		"floors": ["combat"], "min_floor": 28, "max_floor": 50, "chance": 0.4, "if": { "flag": &"ch3_marn_fell" },
+		"gone_flag": &"clue_marn_pack",
+	},
+	&"marn_fire": {
+		"name": "Cold campfire", "kind": "object", "dialogue": &"marn_fire",
+		"color": Color(0.3, 0.3, 0.35),
+		"floors": ["rest"], "min_floor": 30, "max_floor": 55, "near": "campfire", "if": { "flag": &"ch3_marn_fell" },
+		"gone_flag": &"clue_marn_fire",
+	},
+	&"marn_marks": {
+		"name": "Tally marks", "kind": "object", "dialogue": &"marn_marks",
+		"color": Color(0.55, 0.5, 0.45),
+		"floors": ["combat"], "min_floor": 28, "max_floor": 50, "chance": 0.35, "if": { "flag": &"ch3_marn_fell" },
+		"gone_flag": &"clue_marn_marks",
+	},
+	&"defaced_shrine": {
+		"name": "Defaced shrine", "kind": "object", "dialogue": &"defaced_shrine",
+		"color": Color(0.6, 0.55, 0.5),
+		"floors": ["combat"], "min_floor": 31, "max_floor": 60, "chance": 0.35,
+		"gone_flag": &"clue_god_shrine",
+	},
+	&"tithe_box": {
+		"name": "Unpaid tithe box", "kind": "object", "dialogue": &"tithe_box",
+		"color": Color(0.7, 0.6, 0.3),
+		"floors": ["rest"], "min_floor": 35, "max_floor": 60, "near": "merchant",
+		"gone_flag": &"clue_god_tithe",
+	},
+	&"broken_idol_object": {
+		"name": "Broken idol", "kind": "object", "dialogue": &"broken_idol_object",
+		"color": Color(0.5, 0.45, 0.55),
+		"floors": ["combat"], "min_floor": 36, "max_floor": 60, "chance": 0.3,
+		"gone_flag": &"clue_god_idol",
+	},
+	&"seam_wall": {
+		"name": "Flickering wall", "kind": "object", "dialogue": &"seam_wall",
+		"color": Color(0.9, 0.3, 0.9),
+		"floors": ["combat"], "min_floor": 45, "max_floor": 80, "chance": 0.35,
+		"gone_flag": &"clue_seam_wall",
+	},
+	&"seam_stair": {
+		"name": "Stair to nowhere", "kind": "object", "dialogue": &"seam_stair",
+		"color": Color(0.6, 0.6, 0.75),
+		"floors": ["rest"], "min_floor": 50, "max_floor": 85,
+		"gone_flag": &"clue_seam_stair",
+	},
+	&"seam_note": {
+		"name": "Debug note", "kind": "object", "dialogue": &"seam_note",
+		"color": Color(0.25, 0.9, 0.35),
+		"floors": ["combat"], "min_floor": 45, "max_floor": 85, "chance": 0.3,
+		"gone_flag": &"clue_seam_note",
+	},
 	# Ashbound clue 1 of 3: on normal floors of stage 2 until you've read it.
 	&"scorched_mural": {
 		"name": "Scorched mural", "kind": "object", "dialogue": &"scorched_mural",

@@ -494,6 +494,127 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Quest class clues (SecretPaths) ---
+	&"note_page": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A torn page, pressed flat under a stone. A child's drawing of a hero with a very long sword. You know that sword. You could never get the hands right.",
+				"effects": [{ "set_flag": &"clue_note_page" }],
+			},
+		},
+	},
+	&"note_door": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A door drawn on the wall in chalk, at about the height of a nine-year-old. Beside it, carefully: SECRIT ROOM. KEEP OUT THIS MEANS YOU.",
+				"effects": [{ "set_flag": &"clue_note_door" }],
+			},
+		},
+	},
+	&"note_name": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "Scrawled along the wall in big careful letters: BEWARE THE GOBBLING KING. HE IS ON PAGE 31. You remember page 31. You were very proud of his teeth.",
+				"effects": [{ "set_flag": &"clue_note_name" }],
+			},
+		},
+	},
+	&"marn_pack": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "An old pack against the wall, worn like his was. A different ledger inside, older, in the same hand. The first line reads: hold the door. Somebody has to, and it may as well be you.",
+				"effects": [{ "set_flag": &"clue_marn_pack" }],
+			},
+		},
+	},
+	&"marn_fire": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A second campfire, long cold, a little way off from the warm one. Someone sat here on watch, night after night. The stone's worn smooth where they sat. It's about your size.",
+				"effects": [{ "set_flag": &"clue_marn_fire" }],
+			},
+		},
+	},
+	&"marn_marks": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "Tally marks cut into a doorframe, hundreds of them, going up past where you can reach. At the bottom: \"You don't have to win. You just have to still be standing when they get through.\"",
+				"effects": [{ "set_flag": &"clue_marn_marks" }],
+			},
+		},
+	},
+	&"defaced_shrine": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A shrine with the face chiselled off. No curse in the air, no answer when you touch it. Under the ruined face, someone has cut: I SAID NO. IT WAS ALLOWED.",
+				"effects": [{ "set_flag": &"clue_god_shrine" }],
+			},
+		},
+	},
+	&"tithe_box": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A tithe box, nailed shut, with a final demand pinned to it from four different gods. The last one is in a tired hand: \"We know you can read this. Please stop climbing.\"",
+				"effects": [{ "set_flag": &"clue_god_tithe" }],
+			},
+		},
+	},
+	&"broken_idol_object": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A god's idol, broken cleanly in half and carefully set back upright, as a courtesy. Its pieces don't hum. There's a note: \"Nobody's coming. It's wonderful.\" You don't know how you feel about that.",
+				"effects": [{ "set_flag": &"clue_god_idol" }],
+			},
+		},
+	},
+	&"seam_wall": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A wall flickers when you look at it from the side. For a moment, your hand goes through it up to the wrist. It doesn't hurt. It doesn't feel like anything, and that's the problem.",
+				"effects": [{ "set_flag": &"clue_seam_wall" }],
+			},
+		},
+	},
+	&"seam_stair": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "A stair that goes up three steps and stops in midair. There's a boot print on the air above it, and then another. Someone walked up there. It's still holding them.",
+				"effects": [{ "set_flag": &"clue_seam_stair" }],
+			},
+		},
+	},
+	&"seam_note": {
+		"start": "look",
+		"nodes": {
+			"look": {
+				"speaker": "",
+				"text": "Words hanging in the air, unattached to anything: TODO: CHECK WHAT HAPPENS IF THEY LEAVE THE LEVEL. Under that, in a different hand: Nothing happens. Nothing happens at all. Come and see.",
+				"effects": [{ "set_flag": &"clue_seam_note" }],
+			},
+		},
+	},
 	# --- Lore objects (Ashbound clues 1 and 3) ---
 	&"scorched_mural": {
 		"start": "look",
@@ -541,7 +662,7 @@ const CONDITION_KEYS := ["flag", "any_flag", "remote", "blessed_by", "blessed_by
 	"god", "faith", "min_cycle", "past_patron", "floor_guild_yours", "friend_away"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
-	"route_points", "floor_guild_rep", "bid_interest", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
+	"route_points", "floor_guild_rep", "bid_interest", "hurt_party", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
 	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom",
 	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed",
 	"believers", "faith", "halve_believers", "domain_route", "patron_interest", "floor_patron_interest"]

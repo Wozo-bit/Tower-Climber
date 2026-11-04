@@ -28,6 +28,8 @@ const DEMIGOD_EDGE := 0.05
 ## NG+: a character in a top-tier class can Ascend their own line (below the Ascendant).
 const ASCENSION_BONUS := 0.05
 const ASCENSION_GATE := { "floor": 40, "level": 50, "tier": 3 }
+## Share of spent points a quest class wants in its two stats.
+const QUEST_CLASS_THRESHOLD := 0.55
 
 
 func _init() -> void:
@@ -37,6 +39,7 @@ func _init() -> void:
 	_register_demigods()
 	_register_secret()
 	_register_tier_four()
+	_register_quest_classes()
 	_load_resource_classes()
 
 
@@ -168,6 +171,46 @@ func _register_tier_four() -> void:
 		def.unique_to = parent.unique_to
 		if parent.unique_to != &"":
 			def.stat_bonus_pct = TIER_STAT_BONUS[4] + DEMIGOD_EDGE
+
+
+## Quest classes like the Ashbound Knight (Hayden 2026-11-04), one per story
+## thread: found through SecretPaths, each with its own 4-tier line. Placeholder names.
+func _register_quest_classes() -> void:
+	_quest_line(&"inkblade", "Inkblade", "You drew this hero when you were nine. They're faster than you remember.", [Stats.Type.AGILITY, Stats.Type.LUCK],
+		&"margin_walker", "Margin Walker", "Lives in the space around the words.", "Author of Monsters", "Everything you ever drew answers when you call.", "Author of Towers", "You wrote this floor. You wrote all of them. Didn't you?")
+	_quest_line(&"stairwarden", "Stairwarden", "Marn's trade: hold the door so someone else gets out.", [Stats.Type.HEALTH, Stats.Type.STAMINA],
+		&"longwatch", "Longwatch", "Awake when everyone else needs to sleep.", "Keeper of the Ledger", "Writes down everyone. Forgets no one.", "The One Who Stays", "Somebody has to. They decided a long time ago.")
+	_quest_line(&"unsworn", "Unsworn", "Refused every god who bid. Now they're all curious, and none of them can touch you.", [Stats.Type.STRENGTH, Stats.Type.LUCK],
+		&"heretic_blade", "Heretic Blade", "Cuts what was never meant to bleed.", "Godspurner", "Heaven keeps a list. You're at the top of it.", "Nobody's Champion", "No one lent you this strength. Nobody can take it back.")
+	_quest_line(&"glitchwalker", "Glitchwalker", "You found where the tower doesn't quite meet. You can walk through that.", [Stats.Type.INTELLIGENCE, Stats.Type.AGILITY],
+		&"seam_runner", "Seam Runner", "Takes corners the walls didn't plan on.", "Exploit", "Finds the thing the tower forgot to check.", "Out of Bounds", "Standing somewhere that was never built.")
+
+
+func _quest_line(root: StringName, display: String, desc: String, stats: Array, t2: StringName, t2_name: String,
+		t2_desc: String, t3_name: String, t3_desc: String, t4_name: String, t4_desc: String) -> void:
+	var typed: Array[int] = []
+	typed.assign(stats)
+	var base := ClassDef.create(root, display, desc, typed, QUEST_CLASS_THRESHOLD)
+	base.is_secret = true
+	register(base)
+	var t3 := StringName(String(root) + "_t3")
+	_advanced(t2, t2_name, t2_desc, root, stats, QUEST_CLASS_THRESHOLD)
+	_advanced(t3, t3_name, t3_desc, t2, stats, QUEST_CLASS_THRESHOLD)
+	_advanced(StringName(String(root) + "_t4"), t4_name, t4_desc, t3, stats, QUEST_CLASS_THRESHOLD)
+
+
+## The class in `root`'s line at `tier` (or the highest it has). Late finds join
+## their new line at the tier you've already earned.
+func line_at_tier(root: StringName, tier: int) -> StringName:
+	var id := root
+	var left := tier - get_class_def(root).tier
+	while left > 0:
+		var next := advancements_for(id)
+		if next.is_empty():
+			break
+		id = next[0].id
+		left -= 1
+	return id
 
 
 ## Demigods' own classes (Hayden 2026-10-25): only that demigod can have one

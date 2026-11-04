@@ -31,7 +31,7 @@ static var auto_play := DisplayServer.get_name() != "headless"
 const CHAPTERS := [
 	{ "title": "Tester" },
 	{ "title": "The Bidding" },
-	{ "title": "(Chapter 3)" },
+	{ "title": "What the Tower Sends" },
 	{ "title": "(Chapter 4)" },
 	{ "title": "(Chapter 5)" },
 	{ "title": "(Chapter 6)" },
@@ -115,6 +115,15 @@ const SCENES := {
 	&"ch2_threshold": { "chapter": 2, "floors": [20], "when": "enter", "dialogue": &"ch2_threshold" },
 	&"ch2_end": { "chapter": 2, "floors": [20], "when": "guardian_down", "dialogue": &"ch2_end" },
 	# "The First Prayer" past floor 20: gods only, for now.
+	&"ch3_opening": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"ch3_opening" },
+	&"ch3_warning": { "chapter": 3, "floors": [22, 23], "when": "enter", "dialogue": &"ch3_warning" },
+	&"ch3_small_talk": { "chapter": 3, "floors": [24], "when": "guardian_down", "dialogue": &"ch3_small_talk" },
+	&"ch3_ledger": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"ch3_ledger" },
+	&"ch3_door": { "chapter": 3, "floors": [26, 27], "when": "enter", "dialogue": &"ch3_door" },
+	&"ch3_doubt": { "chapter": 3, "floors": [28], "when": "enter", "dialogue": &"ch3_doubt" },
+	&"ch3_last_page": { "chapter": 3, "floors": [29], "when": "guardian_down", "dialogue": &"ch3_last_page" },
+	&"ch3_brace": { "chapter": 3, "floors": [30], "when": "enter", "dialogue": &"ch3_brace" },
+	&"ch3_end": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"ch3_end" },
 	&"god_ch3": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"god_ch3", "if": { "god": true } },
 	&"god_shrine": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"god_shrine", "if": { "god": true } },
 	&"god_reprisal": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"god_reprisal", "if": { "god": true } },
@@ -1276,6 +1285,306 @@ const DIALOGUES := {
 				"style": "glitch",
 				"text": "[ You will want to see home first. If you can. ]",
 				"effects": [{ "set_flag": &"ch2_complete" }],
+			},
+		},
+	},
+
+	# --- Chapter 3: What the Tower Sends. The System tries to help, and it's lonely. ---
+	&"ch3_opening": {
+		"start": [
+			{ "if": { "flag": &"return_tier2" }, "node": "home" },
+			{ "node": "a" },
+		],
+		"nodes": {
+			"home": {
+				"style": "glitch",
+				"text": "[ Was it good, seeing home? ]",
+				"next": "not_sent",
+			},
+			"a": {
+				"style": "glitch",
+				"text": "[ You haven't slept. ]",
+				"next": "not_sent",
+			},
+			"not_sent": {
+				"style": "system",
+				"text": "[ That message was not sent. ]\n[ Chapter 3: What the Tower Sends ]",
+				"next": "b",
+			},
+			"b_alone": { "text": "You look around, out of habit, for someone to ask whether they saw that. There's nobody. The window is gone, and the corridor hums with something that has too many legs.", "effects": [{ "set_flag": &"ch3_system_spoke" }] },
+			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
+				"speaker": "{friend}",
+				"text": "You've got that look again. Reading the air. Can you read me what it says about the noise up ahead? Because that's a lot of legs.",
+				"effects": [{ "set_flag": &"ch3_system_spoke" }],
+			},
+		},
+	},
+	&"ch3_warning": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"speaker": "Hurt climber",
+				"text": "Help! Please, my partner's down, back through there! I can't lift them on my own, it's only a little way off the path!",
+				"next": "b",
+			},
+			"b": {
+				"style": "glitch",
+				"text": "[ That is not a climber. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+				"choices": [
+					{ "text": "Leave them. Keep walking.", "next": "trust", "effects": [{ "set_flag": &"ch3_trusted_system" }] },
+					{ "text": "Go and help anyway.", "next": "help", "effects": [{ "set_flag": &"ch3_ignored_system" }, { "route_points": { &"hero": 2 } }, { "hurt_party": 0.15 }] },
+				],
+			},
+			"trust": {
+				"text": "You keep walking. Behind you, the voice calls once more, in exactly the same words, with exactly the same catch in its throat. Then again. Then again.",
+				"next": "trust2",
+			},
+			"trust2": {
+				"style": "glitch",
+				"text": "[ Thank you. ]",
+			},
+			"help": {
+				"text": "It isn't a climber. It's a very patient thing with a climber's voice, and it has friends. You get out, but not before they've taken some blood off every one of you.",
+				"next": "help2",
+			},
+			"help2": {
+				"style": "glitch",
+				"text": "[ I did tell you. ]",
+				"next": "help3",
+			},
+			"help3": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+			},
+		},
+	},
+	&"ch3_small_talk": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"style": "glitch",
+				"text": "[ Did you eat today? You fight worse when you don't. ]",
+				"choices": [
+					{ "text": "Who are you?", "next": "who", "effects": [{ "set_flag": &"ch3_asked_system" }] },
+					{ "text": "...Yes. I ate. Thanks.", "next": "kind", "effects": [{ "set_flag": &"ch3_kind_to_system" }] },
+					{ "text": "Stay out of my head.", "next": "away", "effects": [{ "set_flag": &"ch3_cold_to_system" }] },
+				],
+			},
+			"who": {
+				"style": "system",
+				"text": "[ Not permitted. ]",
+				"next": "who2",
+			},
+			"who2": {
+				"style": "glitch",
+				"text": "[ It's been a long time since anyone asked. ]",
+			},
+			"kind": {
+				"text": "The window stays open a little longer than it needs to, showing nothing at all. Then it closes, carefully, like someone leaving a room where you're asleep.",
+			},
+			"away": {
+				"style": "system",
+				"text": "[ Understood. ]",
+				"next": "away2",
+			},
+			"away2": {
+				"text": "No window comes for a long time after that. You find you keep checking.",
+			},
+		},
+	},
+	&"ch3_ledger": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Marn has moved up to this campfire. He's writing in a battered ledger, and he closes it when you sit down, then seems to think better of it and slides it across.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Marn",
+				"text": "Every climber I've met, and a mark each time I've met them for the first time. Go on. Tess is on page nine.",
+				"next": "c",
+			},
+			"c": {
+				"text": "Page nine: TESS, red scarf, second breakfasts. Four marks. There are hundreds of names, some with six marks, some with eleven. You turn back to the first page, because you can't not.",
+				"next": "d",
+			},
+			"d": {
+				"text": "Page one, in the same hand: MARN, old, doesn't talk much. Three marks.",
+				"next": "e",
+			},
+			"e": {
+				"speaker": "Marn",
+				"text": "Found that in my own pack one morning. Don't remember writing the first two. That's why I don't talk much. I never know who I've told.",
+				"choices": [
+					{ "text": "Who's doing this?", "next": "who", "effects": [{ "set_flag": &"ch3_asked_marn" }] },
+					{ "text": "Why show me?", "next": "why", "effects": [{ "set_flag": &"ch3_asked_marn_why" }] },
+				],
+			},
+			"who": {
+				"speaker": "Marn",
+				"text": "Going up to find out, aren't I? Same as last time, I expect. Something below the hive keeps a door. I mean to see what comes through it. You should stay well back from me when I do.",
+				"effects": [{ "set_flag": &"ch3_read_ledger" }],
+			},
+			"why": {
+				"speaker": "Marn",
+				"text": "Because you're the only one who's looked at that page and been afraid for the right reason. There's something below the hive keeping a door. I mean to see what comes through it.",
+				"effects": [{ "set_flag": &"ch3_read_ledger" }],
+			},
+		},
+	},
+	&"ch3_door": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "You hear it before you see it: an old man swearing steadily, and the sound of something heavy being hit over and over. Marn is wedged in a doorway with his back to you, and the whole corridor beyond him is moving.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Marn",
+				"text": "Told you to stay back. Well. Since you're here. There's more of them than I wrote down. Take the book. TAKE it. Now shut that door behind you, and bar it.",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ You can't save him. I've run it. I've run it a lot of times. Please go. ]",
+				"choices": [
+					{ "text": "Bar the door.", "next": "bar", "effects": [{ "set_flag": &"ch3_barred_door" }, { "set_flag": &"ch3_marn_fell" }] },
+					{ "text": "Go in after him.", "next": "fight", "effects": [{ "set_flag": &"ch3_went_in" }, { "set_flag": &"ch3_marn_fell" }, { "hurt_party": 0.25 }, { "route_points": { &"hero": 2 } }] },
+				],
+			},
+			"bar": {
+				"text": "You drop the bar. The swearing goes on for a long time on the other side of the wood. Then it stops, in the middle of a word.",
+				"next": "after",
+			},
+			"fight": {
+				"text": "You go in. It costs all of you, and it doesn't matter. By the time you reach him there's nothing to carry but the book. You fight your way back out and bar the door yourself.",
+				"next": "after",
+			},
+			"after_alone": { "text": "Nobody tells you he'll be at the fire. You'd give a lot to hear someone say it.", "next": "system" },
+			"after": {
+				"alt": [{ "if": { "friend_away": true }, "node": "after_alone" }],
+				"speaker": "{friend}",
+				"text": "...He'll be at the fire. Bit of a headache. Lighter purse. He'll be at the fire, won't he? Why aren't you saying anything?",
+				"next": "system",
+			},
+			"system": {
+				"style": "glitch",
+				"text": "[ I'm sorry. ]",
+				"next": "system2",
+			},
+			"system2": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+			},
+		},
+	},
+	&"ch3_doubt": {
+		"start": "a",
+		"nodes": {
+			"a_alone": {
+				"text": "You sit down with the ledger, on your own, and try to count the climbers you've met who you could swear have only ever died once. It's a short list, and it isn't getting longer.",
+				"next": "c",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"speaker": "{friend}",
+				"text": "Let me see it. The book. ...I'm not in here, am I? You'd tell me. I've been trying to remember if I've told you the water tower story before. I can't tell if I've told you once or a hundred times.",
+				"next": "b",
+			},
+			"b": {
+				"text": "They aren't in the book. You checked. You checked the moment you got it, before you checked anything else. You don't tell them how fast you checked.",
+				"next": "c",
+			},
+			"c": {
+				"text": "What do you do about any of it? You have to decide now, while you can still be sure you're the one deciding.",
+				"choices": [
+					{ "text": "Get everyone out. Whatever it takes.", "next": "hero", "effects": [{ "route_points": { &"hero": 4 } }, { "set_flag": &"ch3_vow_rescue" }] },
+					{ "text": "Find whoever keeps that door, and make them answer.", "next": "vig", "effects": [{ "route_points": { &"vigilante": 4 } }, { "set_flag": &"ch3_vow_answer" }] },
+					{ "text": "Reach the top first. Then nobody gets to do this to me.", "next": "vil", "effects": [{ "route_points": { &"villain": 4 } }, { "set_flag": &"ch3_vow_top" }] },
+				],
+			},
+			"hero": { "text": "You don't know how yet. You write it in the back of the ledger anyway, so that whoever reads this next will know you meant it." },
+			"vig": { "text": "Somebody built this. Somebody's job is to send the next Tess up the stairs with her scarf on. You'd like a word." },
+			"vil": { "text": "If it only happens to people who stay down here, then you know what to do. The thought is very clean, and it frightens you how quickly it arrived." },
+		},
+	},
+	&"ch3_last_page": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The ledger falls open while you're catching your breath, at a page you're sure wasn't there before. Marn's handwriting, and the ink has long since dried. It says {player}.",
+				"next": "c",
+			},
+			"c": {
+				"text": "Under your name: \"Asks good questions. Looks at the System when they think nobody sees.\" And a single mark, dated from before you ever logged in.",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ One. That's good. It's usually more. ]",
+				"effects": [{ "set_flag": &"ch3_found_your_page" }],
+			},
+		},
+	},
+	&"ch3_brace": {
+		"start": "a",
+		"nodes": {
+			"a_alone": { "text": "One more fire above this. You're aware that you're climbing faster than you need to." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"speaker": "{friend}",
+				"text": "There'll be a fire after this one. And he'll be there. I'm just saying it now, so that when he is, neither of us has to be surprised.",
+			},
+		},
+	},
+	&"ch3_end": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The boss falls, and a campfire flickers to life. There's someone sitting at it already, holding out their hands to the warmth, an old man with a battered, empty pack.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Marn",
+				"text": "Well, hello there! Come in, come in, plenty of room. Marn's the name. First time this high? Lovely view, if you ignore all of it. You know, I do love a good chat.",
+				"next": "c",
+			},
+			"c_alone": { "text": "He has never once started a conversation with you. He pats the empty place in his pack where a ledger would go, frowning a little, as if he's forgotten something, and then he smiles.", "next": "d" },
+			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
+				"speaker": "{friend}",
+				"text": "See? Told you. There he is. Told you. ...He looks well, doesn't he? He looks really well. Can we go? Please can we go now?",
+				"next": "d",
+			},
+			"d": {
+				"style": "system",
+				"text": "[ Chapter 3 complete. ]",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ I'm sorry. ]",
+				"next": "f",
+			},
+			"f": {
+				"text": "You wait. Nothing comes to take it back.",
+				"effects": [{ "set_flag": &"ch3_complete" }],
 			},
 		},
 	},

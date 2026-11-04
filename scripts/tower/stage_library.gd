@@ -352,6 +352,18 @@ const ROAMING_BOSSES := [
 	{ "id": &"lantern_wraith", "spawn": "random",
 		"origin_floor": 25, "min_floor": 8, "max_floor": 22,
 		"group": [&"lantern_wraith", &"imp_shaman"] },
+	{ "id": &"gobbling_king", "spawn": "secret", "secret_path": &"notebook", "origin_floor": 31, "min_floor": 8, "max_floor": 9999,
+		"group": [&"gobbling_king", &"goblin_archer"],
+		"intro": "Something enormous is coming, with far too many teeth. You know those teeth. You drew them." },
+	{ "id": &"what_sends_them", "spawn": "secret", "secret_path": &"ledger", "origin_floor": 30, "min_floor": 27, "max_floor": 9999,
+		"group": [&"what_sends_them", &"lantern_wraith"],
+		"intro": "A door you didn't notice stands open on this floor. Something has come through to see who's been reading its ledger." },
+	{ "id": &"gods_bailiff", "spawn": "secret", "secret_path": &"godless", "origin_floor": 60, "min_floor": 33, "max_floor": 9999,
+		"group": [&"gods_bailiff", &"temple_oracle"],
+		"intro": "A very polite figure is on this floor, carrying a very long list. Your name is on it." },
+	{ "id": &"missing_entity", "spawn": "secret", "secret_path": &"seams", "origin_floor": 85, "min_floor": 47, "max_floor": 9999,
+		"group": [&"missing_entity", &"null_sprite"],
+		"intro": "Part of this floor is gone. The gap is walking around." },
 	{ "id": &"ashen_wyrmling", "spawn": "secret", "secret_path": &"ashbound",
 		# No real top floor: finding the last clue late must still bring it (Hayden's
 		# run found 2 of 3 clues and never saw it). max_floor is past any tower height.

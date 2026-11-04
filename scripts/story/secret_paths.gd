@@ -22,6 +22,35 @@ const PATHS := {
 		"final_roamer": &"ashen_wyrmling",
 		"unlock_flag": &"ashbound_unlocked",
 	},
+	# Quest classes for each story thread (Hayden 2026-11-04), spread up the climb.
+	&"notebook": {
+		"class_id": &"inkblade",
+		"clue_flags": [&"clue_note_page", &"clue_note_door", &"clue_note_name"],
+		"clues_to_start": 3,
+		"final_roamer": &"gobbling_king",
+		"unlock_flag": &"notebook_unlocked",
+	},
+	&"ledger": {
+		"class_id": &"stairwarden",
+		"clue_flags": [&"clue_marn_pack", &"clue_marn_fire", &"clue_marn_marks"],
+		"clues_to_start": 3,
+		"final_roamer": &"what_sends_them",
+		"unlock_flag": &"ledger_unlocked",
+	},
+	&"godless": {
+		"class_id": &"unsworn",
+		"clue_flags": [&"clue_god_shrine", &"clue_god_tithe", &"clue_god_idol"],
+		"clues_to_start": 3,
+		"final_roamer": &"gods_bailiff",
+		"unlock_flag": &"godless_unlocked",
+	},
+	&"seams": {
+		"class_id": &"glitchwalker",
+		"clue_flags": [&"clue_seam_wall", &"clue_seam_stair", &"clue_seam_note"],
+		"clues_to_start": 3,
+		"final_roamer": &"missing_entity",
+		"unlock_flag": &"seams_unlocked",
+	},
 }
 
 

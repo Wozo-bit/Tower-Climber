@@ -266,6 +266,10 @@ func _apply_effects(effects: Array) -> void:
 			if c:
 				messages.append("%s joined the party!" % c.character_name if gs.companions.has(c)
 					else "%s joined (on reserve: the party is full)." % c.character_name)
+		if e.has("hurt_party"):   # a share of everyone's current HP; never fatal
+			for m in gs.battle_party():
+				if not m.is_downed():
+					m.set_current_hp(maxi(1, roundi(m.current_hp() * (1.0 - e.hurt_party))))
 		if e.has("heal_party"):
 			gs.full_restore_party()
 			messages.append("Everyone feels rested.")

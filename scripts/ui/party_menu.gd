@@ -383,7 +383,7 @@ func _member_row(member: CharacterData) -> Control:
 		buttons.add_child(gear_btn)
 		if member == GameState.player:
 			for sid in GameState.unlocked_secret_classes():
-				if member.class_id == sid:
+				if member.in_line_of(sid):
 					continue
 				var sdef := ClassRegistry.get_class_def(sid)
 				var sbtn := Button.new()
@@ -502,11 +502,11 @@ func _confirm_secret_class(member: CharacterData, def: ClassDef) -> void:
 	var dlg := ConfirmationDialog.new()
 	var current := member.get_class_def()
 	dlg.title = "Secret class"
-	dlg.dialog_text = "Become an %s?\n\n%s\n\nThis replaces %s and its skills.\nGear locked to your old class goes back in the bag." % [
+	dlg.dialog_text = "Take up the %s line?\n\n%s\n\nThis replaces %s and its skills, and you join the new line at the tier you've earned.\nGear locked to your old class goes back in the bag." % [
 		def.display_name, def.description, current.display_name if current else "your current class"]
 	dlg.confirmed.connect(func():
 		if GameState.take_secret_class(member, def.id):
-			_say("%s is now an %s!" % [member.character_name, def.display_name])
+			_say("%s is now: %s!" % [member.character_name, member.class_title()])
 		_rebuild()
 		dlg.queue_free())
 	dlg.canceled.connect(dlg.queue_free)

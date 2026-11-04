@@ -9,7 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-**Not built yet:** first-run story for floors 21-100 (chapters 3-10), beyond those two scenes
+Chapter 3 (floors 21-30) and four more quest classes too.
+**Not built yet:** first-run story for floors 31-100 (chapters 4-10), beyond those two scenes
 and the first-run returns at floors 40 and 60.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
@@ -154,6 +155,32 @@ Hayden's picks: real alternate versions ("the empty place"); the friend counts a
 - **Prayers still reach you.** A god still hears the friend's prayer on floor 17, from far away, and can answer it. Floor 35 comes as another prayer, or a slate with your name on it that someone will read to them.
 - **The reunion** (`friend_reunion`, when they rejoin). Back too soon to miss anything: a joke. Otherwise: "I kept your spot by the fire", or glad and angry if they left over your route. Then you tell them everything, or you don't. Floor 20 remembers which. So do floors 17 and 35 in god runs. Later reunions: "You keep doing this."
 
+## Chapter 3: "What the Tower Sends" (floors 21-30)
+
+Hayden's picks (2026-11-04): Marn falls; the System is both trying to help and lonely.
+
+| Floor | Beat |
+| --- | --- |
+| 21 | The System out of turn: `[ Was it good, seeing home? ]` (or `[ You haven't slept. ]`), then `[ That message was not sent. ]`. Something above it is correcting it. |
+| 22-23 | A hurt climber begs for help. `[ That is not a climber. ]` Trust it, or help anyway and pay in blood. |
+| 24 | After the miniboss: `[ Did you eat today? ]`. Ask who it is, answer kindly, or tell it to leave you alone (it remembers). |
+| 25 | Marn shows you his ledger: every climber, a mark for each time he's met them "for the first time". Tess has four. On page one, in his own hand: MARN. Three marks. |
+| 26-27 | Marn holds a door against what's coming through. `[ You can't save him. I've run it. ]` Bar the door, or go in. He falls either way, and you keep the book. `[ I'm sorry. ]` `[ That message was not sent. ]` |
+| 28 | The friend asks if they're in the book. They aren't, and you checked too fast. Your vow leans a route: get everyone out (Hero), make someone answer (Vigilante), reach the top first (Villain). |
+| 29 | After the miniboss, a page you hadn't seen: your name, in Marn's hand, with one mark, dated before you logged in. `[ One. That's good. It's usually more. ]` |
+| 30 | After the boss, at the fire: a cheerful, chatty Marn with an empty pack. "First time this high?" `[ Chapter 3 complete. ]` `[ I'm sorry. ]` This time nothing takes it back. |
+
+## Quest classes (Hayden, 2026-11-04)
+
+Four more like the Ashbound Knight: 3 clues, a roaming boss, then a hidden class with its own 4-tier line. One per story thread, spread up the climb. Found late, you join the line at the tier you've already earned. Only the player can take them. Names are placeholders.
+
+| Class line | Thread | Clues | Boss |
+|---|---|---|---|
+| Inkblade (Agility + Luck) | The childhood notebook | Floors 2-30 | The Gobbling King (page 31) |
+| Stairwarden (Health + Stamina) | Marn's ledger, after he falls | Floors 28-55 | What Sends Them |
+| Unsworn (Strength + Luck) | The gods' bidding | Floors 31-60 | The Gods' Bailiff |
+| Glitchwalker (Intelligence + Agility) | The game's seams | Floors 45-85 | Missing Entity |
+
 ## New Game+ (later, Hayden 2026-11-04)
 
 ### "The First Prayer": the god storyline (built 2026-11-04)
@@ -215,14 +242,12 @@ None of this decides what the System is or what the tower's secret is.
 
 The mimic final boss.
 
-## Chapters 3-6 (one-line arcs, to fill in later)
+## Chapters 4-6 (one-line arcs, to fill in later)
 
-1. **Chapter 3 (21-30):** doubt. Someone close falls and doesn't come back.
-   The System talks more like a person.
-2. **Chapter 4 (31-40):** the past. Why you were chosen starts to surface
+1. **Chapter 4 (31-40):** the past. Why you were chosen starts to surface
    (the notebook, who made the game).
-3. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
-4. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
+2. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
+3. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
    (below). Each route's ending, and the tower's secret (to decide).
 
 ## The false summit (floor 60) and the last 40 floors (Hayden, 2026-11-04)

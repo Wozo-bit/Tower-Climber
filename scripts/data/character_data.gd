@@ -551,13 +551,20 @@ func get_qualifying_classes() -> Array[ClassDef]:
 ## The caller (GameState.take_secret_class) checks it's unlocked.
 func can_take_secret_class(def: ClassDef) -> bool:
 	return def != null and def.is_secret and level >= CLASS_UNLOCK_LEVEL \
-		and class_id != def.id and def.qualifies(stats) and def.route_allows()
+		and not in_line_of(def.id) and def.qualifies(stats) and def.route_allows()
+
+
+## Is this character already somewhere in `root`'s class line?
+func in_line_of(root: StringName) -> bool:
+	return has_class() and ClassRegistry.is_in_lineage(class_id, root)
 
 
 func take_secret_class(def: ClassDef) -> bool:
 	if not can_take_secret_class(def):
 		return false
-	class_id = def.id
+	# Found late: you join the new line at the tier you've already earned.
+	var tier := get_class_def().tier if has_class() else 1
+	class_id = ClassRegistry.line_at_tier(def.id, tier)
 	_apply_class_bonus()
 	battle_row = -1   # use the new class's default row
 	class_chosen.emit(def)

@@ -34,6 +34,51 @@ extends RefCounted
 ## Placeholder content below: one quest per source so every system is testable.
 
 const QUESTS := {
+	# --- Quest classes: each shows the clues you still need. ---
+	&"margin_notes": {
+		"title": "Margin Notes", "kind": "side", "giver": "The tower",
+		"desc": "Things you drew as a kid keep turning up on these walls.",
+		"auto_start": { "any_flag": [&"clue_note_page", &"clue_note_door", &"clue_note_name"] },
+		"steps": [
+			{ "text": "Find a torn page (normal floors 2-14)", "goal": { "type": "flag", "flag": &"clue_note_page" } },
+			{ "text": "Find the chalk door (rest floors 5-30)", "goal": { "type": "flag", "flag": &"clue_note_door" } },
+			{ "text": "Read the scrawled warning (normal floors 6-30)", "goal": { "type": "flag", "flag": &"clue_note_name" } },
+			{ "text": "Face what you drew on page 31 (any normal floor past 7)", "goal": { "type": "defeat", "enemy": &"gobbling_king", "count": 1 } },
+		],
+	},
+	&"marns_trade": {
+		"title": "Marn's Trade", "kind": "side", "giver": "The tower",
+		"desc": "Marn wasn't the first to hold that door. He left signs for whoever came next.",
+		"auto_start": { "any_flag": [&"clue_marn_pack", &"clue_marn_fire", &"clue_marn_marks"] },
+		"steps": [
+			{ "text": "Find his old pack (normal floors 28-50)", "goal": { "type": "flag", "flag": &"clue_marn_pack" } },
+			{ "text": "Find the cold campfire (rest floors 30-55)", "goal": { "type": "flag", "flag": &"clue_marn_fire" } },
+			{ "text": "Find the tally marks (normal floors 28-50)", "goal": { "type": "flag", "flag": &"clue_marn_marks" } },
+			{ "text": "Find what sends them (any normal floor past 26)", "goal": { "type": "defeat", "enemy": &"what_sends_them", "count": 1 } },
+		],
+	},
+	&"the_refusal": {
+		"title": "The Refusal", "kind": "side", "giver": "The tower",
+		"desc": "Someone climbed this far without any god's help, and left you directions.",
+		"auto_start": { "any_flag": [&"clue_god_shrine", &"clue_god_tithe", &"clue_god_idol"] },
+		"steps": [
+			{ "text": "Find the defaced shrine (normal floors 31-60)", "goal": { "type": "flag", "flag": &"clue_god_shrine" } },
+			{ "text": "Find the unpaid tithe box (rest floors 35-60)", "goal": { "type": "flag", "flag": &"clue_god_tithe" } },
+			{ "text": "Find the broken idol (normal floors 36-60)", "goal": { "type": "flag", "flag": &"clue_god_idol" } },
+			{ "text": "Refuse the gods' bailiff (any normal floor past 32)", "goal": { "type": "defeat", "enemy": &"gods_bailiff", "count": 1 } },
+		],
+	},
+	&"seams_showing": {
+		"title": "The Seams Are Showing", "kind": "side", "giver": "The tower",
+		"desc": "The tower doesn't quite meet in places. Somebody's been walking through.",
+		"auto_start": { "any_flag": [&"clue_seam_wall", &"clue_seam_stair", &"clue_seam_note"] },
+		"steps": [
+			{ "text": "Find the flickering wall (normal floors 45-80)", "goal": { "type": "flag", "flag": &"clue_seam_wall" } },
+			{ "text": "Find the stair to nowhere (rest floors 50-85)", "goal": { "type": "flag", "flag": &"clue_seam_stair" } },
+			{ "text": "Find the debug note (normal floors 45-85)", "goal": { "type": "flag", "flag": &"clue_seam_note" } },
+			{ "text": "Find what's missing (any normal floor past 46)", "goal": { "type": "defeat", "enemy": &"missing_entity", "count": 1 } },
+		],
+	},
 	# --- The Ashbound secret path: shows the clues you still need. ---
 	&"ashen_trail": {
 		"title": "The Ashen Trail", "kind": "side", "giver": "The tower",
