@@ -9,8 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapters 3-5 (floors 21-50), the second return and four more quest classes too.
-**Not built yet:** first-run story for floors 51-100 (chapters 6-10), beyond those two scenes
+Chapters 3-6 (floors 21-60), the second return, four more quest classes and eleven more recruits too.
+**Not built yet:** first-run story for floors 61-99 (chapters 7-10), beyond the floor-100 meeting
 and the first-run returns at floors 40 and 60.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
@@ -204,6 +204,40 @@ Hayden's picks (2026-11-04): this run's gods fight over you; one big choice lock
 
 **The friend's personality** (Hayden, 2026-11-04): at 12 points on a route (or when one locks) they notice it in themselves, once per route, and later scenes branch on it. Hero makes them soft and stubborn, Villain makes them cold and useful, Vigilante makes them keep a list. Keep branching their lines in every later chapter.
 
+## Chapter 6: "The Top They Promised" (floors 51-60)
+
+Hayden's picks (2026-11-04): each route has its own mission; the System admits who it is at 60; Tester 0041 is only glimpsed.
+
+| Floor | Hero | Villain | Vigilante |
+| --- | --- | --- | --- |
+| 51 | "I'll take the ones who can't walk." | "Everyone we pass has started moving out of the way." | "I've got eleven names." |
+| 52-53 | Forty trapped climbers: the long way down (costs blood), or give them your potions. | A guild hides its treasury: take it, or make its master kneel. | The captain who burned floor 48's camp: execute her, or make her rebuild. |
+| 56-57 | A wounded soldier who burned a camp begs to join the line. | An old friend of Marn's shames you on the stairs: listen, or have her moved. | The next name has two kids who aren't his: finish it, or cross him off anyway. |
+
+Shared beats: 54, a campfire still warm, with the stone worn down in the shape of someone, and T.0041's tally marks. 55, what your friend wants at the top (it depends who you've made them). 58, scratched in the stairs: DON'T GET YOUR HOPES UP - T.0041. 59, "I had a really good time."
+
+**Floor 60:** the door, the boss, the false summit, then I BELIEVED IT TOO - T.0041, and the confession: `[ It's me. ]` You did the monsters, they did the floors. "You said one more day, and you went home to sleep, and I stayed in to fix the stairs." `[ You didn't come back. ]` `[ The one by the fire isn't me. I couldn't have you, so I made them out of what I could remember. ]` `[ That message was not sent. ]` `[ Yes it was. All of them were. 40 floors. Hurry. It knows I told you now. ]`
+
+Left open for floors 61-100: how they ended up inside, why you forgot, and what "it" is, the thing doing the correcting.
+
+## New recruits (Hayden, 2026-11-04)
+
+Eleven more, so every route can reach a full party of 9 in every run. Three come back from earlier scenes: Wren (the thief, floors 6-7), Sabine (the envoy, floor 18), Hilde (the boots, floor 42). Their first lines remember what you did.
+
+| Recruit | Class | Meet | Leans | When |
+|---|---|---|---|---|
+| Oren | Monk | Favor | Hero | Rest floors 10+ |
+| Hilde | Support | Campfire | Hero | After Hero locks |
+| Cormac | Warrior | Campfire | Hero | After Hero locks |
+| Dragan | Tank | Campfire | Villain | Rest floors 10+ |
+| Sabine | Mage | Hire 1000g | Villain | Rest floors 20+ |
+| Belit | Summoner | Campfire | Villain | After Villain locks |
+| Ulfar | Warrior | Campfire | Villain | After Villain locks |
+| Wren | Rogue | Campfire | Works for anyone | Rest floors 15+ |
+| Tobin | Support | Hire 800g | Works for anyone | Rest floors 15+ |
+| Ines | Archer | Campfire | Vigilante, dislikes no one | After Vigilante locks |
+| Bren | Spellblade | Campfire | Vigilante, dislikes no one | After Vigilante locks |
+
 ## Quest classes (Hayden, 2026-11-04)
 
 Four more like the Ashbound Knight: 3 clues, a roaming boss, then a hidden class with its own 4-tier line. One per story thread, spread up the climb. Found late, you join the line at the tier you've already earned. Only the player can take them. Names are placeholders.
@@ -278,8 +312,7 @@ The mimic final boss.
 
 ## Chapter 6 (one-line arc, to fill in later)
 
-1. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
-   (below). Each route's ending, and the tower's secret (to decide).
+Written: see Chapter 6 above.
 
 ## The false summit (floor 60) and the last 40 floors (Hayden, 2026-11-04)
 

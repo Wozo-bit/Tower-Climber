@@ -28,6 +28,7 @@ func _ready() -> void:
 	test_chapter_three()
 	await test_chapter_four()
 	test_chapter_five()
+	test_chapter_six()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -132,7 +133,7 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(51, false) == &"", "no chapter 6 scenes yet")
+	check(StoryLibrary.due(61, false) == &"", "no chapter 7 scenes yet")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -755,7 +756,6 @@ func test_chapter_five() -> void:
 	_fresh()
 	check(StoryLibrary.chapter_name(5) == "Chapter 5: The Bidding War", "its title")
 	check(StoryLibrary.due(41, false) == &"ch5_opening", "floor 41 opens it")
-	check(StoryLibrary.due(51, false) == &"", "no chapter 6 scenes yet")
 	check(StoryLibrary.due(50, false) == &"ch5_threshold", "floor 50: the gods wait")
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch5_threshold"))
 	check(StoryLibrary.due(50, true) == &"ch5_choice", "boss down: the choice")
@@ -865,6 +865,95 @@ func test_chapter_five() -> void:
 	check(not GameState.has_flag(&"friend_mood_villain"), "away at a fire: it waits")
 	GameState.rejoin(GameState.childhood_friend())
 	check(GameState.has_flag(&"friend_mood_villain"), "they catch up when they're back")
+
+
+func _locked(route_id: StringName, floor_n: int) -> void:
+	_fresh(floor_n)
+	GameState.lock_route(route_id)
+	GameState.pending_talks.clear()
+
+
+func test_chapter_six() -> void:
+	print("-- chapter 6 --")
+	var ch6 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 6 and not s.get("if", {}).get("god", false))
+	var covered := {}
+	for s in ch6:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 51-60 (%s)" % [covered.keys()])
+	_fresh()
+	check(StoryLibrary.chapter_name(6) == "Chapter 6: The Top They Promised", "its title")
+	check(StoryLibrary.due(51, false) == &"ch6_opening", "floor 51 opens it")
+	# Each route has its own mission.
+	var r := DialogueRunner.new()
+	var nodes := { &"hero": "hero", &"villain": "villain", &"vigilante": "vigilante" }
+	for route_id in nodes:
+		_locked(route_id, 52)
+		r.start(&"ch6_mission")
+		check(r.node_id == nodes[route_id] and r.choices().size() == 2, "%s's mission" % route_id)
+		r.start(&"ch6_cost")
+		check(r.node_id == nodes[route_id] and r.choices().size() == 2, "%s's price" % route_id)
+		for pick in 2:
+			_locked(route_id, 52)
+			check(_play(&"ch6_mission", pick).finished and _play(&"ch6_cost", pick).finished, "%s plays through (choice %d)" % [route_id, pick])
+	_fresh(52)
+	r.start(&"ch6_mission")
+	check(r.node_id == "none", "a route that never locked still gets a line")
+	_locked(&"hero", 52)
+	var hp := GameState.player.current_hp()
+	_play(&"ch6_mission", 0)
+	check(GameState.has_flag(&"ch6_hero_long") and GameState.player.current_hp() < hp, "the long way down costs blood")
+	_locked(&"villain", 52)
+	var gold := GameState.player.gold
+	_play(&"ch6_mission", 0)
+	check(GameState.player.gold == gold + 600, "the treasury is yours")
+	_locked(&"vigilante", 56)
+	_play(&"ch6_cost", 0)
+	check(GameState.has_flag(&"ch6_vigilante_finished_him"), "the list gets shorter")
+	# The friend's personality.
+	for route_id in nodes:
+		_locked(route_id, 55)
+		r.start(&"ch6_campfire")
+		r.advance()
+		check(r.node_id == "b_%s" % route_id, "at the fire, they sound like your %s (%s)" % [route_id, r.node_id])
+	# Tester 0041: glimpses only.
+	_fresh(54)
+	r.start(&"ch6_warm_ashes")
+	r.advance()
+	check(r.text().contains("warm"), "a fire still warm")
+	_play(&"ch6_warm_ashes")
+	check(GameState.has_flag(&"ch6_saw_0041"), "their mark on the wall")
+	check(not StoryLibrary.DIALOGUES[&"ch6_scratched"].nodes.values().any(func(n): return n.get("speaker", "") == "Tester 0041"), "no face yet")
+	# Floor 60: false summit, then the confession.
+	_fresh(60)
+	check(StoryLibrary.due(60, false) == &"ch6_door", "the door first")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch6_door"))
+	check(StoryLibrary.due(60, true) == &"summit_false", "boss down: the false summit")
+	GameState.set_flag(StoryLibrary.seen_flag(&"summit_false"))
+	check(StoryLibrary.due(60, true) == &"ch6_confession", "then the System says it")
+	for pick in 3:
+		_fresh(60)
+		r.start(&"ch6_confession")
+		r.advance()
+		check(r.text() == "[ It's me. ]", "it admits who it is")
+		check(_play(&"ch6_confession", pick).finished, "it plays through (choice %d)" % pick)
+		check(GameState.has_flag(&"ch6_complete"), "chapter 6 complete")
+	r.start(&"ch6_confession")
+	var said := ""
+	while not r.finished:
+		if r.has_choices():
+			r.choose(r.choices()[1].index)
+		said += r.text()
+		r.advance()
+	check(said.contains("You typed it"), "its name is the one you typed")
+	check(said.contains("The one by the fire isn't me"), "and the friend isn't it")
+	check(said.contains("Yes it was"), "and it won't be corrected")
+	_fresh(60)
+	GameState.ng_plus_cycle = 1
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch6_door"))
+	GameState.set_flag(StoryLibrary.seen_flag(&"summit_false"))
+	check(StoryLibrary.due(60, true) != &"ch6_confession", "New Game+ already knows")
+	GameState.ng_plus_cycle = 0
 
 
 func test_skip_warning() -> void:

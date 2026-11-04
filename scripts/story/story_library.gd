@@ -34,7 +34,7 @@ const CHAPTERS := [
 	{ "title": "What the Tower Sends" },
 	{ "title": "The Second Hand" },
 	{ "title": "The Bidding War" },
-	{ "title": "(Chapter 6)" },
+	{ "title": "The Top They Promised" },
 	{ "title": "(Chapter 7)" },
 	{ "title": "(Chapter 8)" },
 	{ "title": "(Chapter 9)" },
@@ -142,6 +142,14 @@ const SCENES := {
 	&"ch5_with_you": { "chapter": 5, "floors": [49], "when": "guardian_down", "dialogue": &"ch5_with_you" },
 	&"ch5_threshold": { "chapter": 5, "floors": [50], "when": "enter", "dialogue": &"ch5_threshold" },
 	&"ch5_choice": { "chapter": 5, "floors": [50], "when": "guardian_down", "dialogue": &"ch5_choice" },
+	&"ch6_opening": { "chapter": 6, "floors": [51], "when": "enter", "dialogue": &"ch6_opening" },
+	&"ch6_mission": { "chapter": 6, "floors": [52, 53], "when": "enter", "dialogue": &"ch6_mission" },
+	&"ch6_warm_ashes": { "chapter": 6, "floors": [54], "when": "guardian_down", "dialogue": &"ch6_warm_ashes" },
+	&"ch6_campfire": { "chapter": 6, "floors": [55], "when": "enter", "dialogue": &"ch6_campfire" },
+	&"ch6_cost": { "chapter": 6, "floors": [56, 57], "when": "enter", "dialogue": &"ch6_cost" },
+	&"ch6_scratched": { "chapter": 6, "floors": [58], "when": "enter", "dialogue": &"ch6_scratched" },
+	&"ch6_eve": { "chapter": 6, "floors": [59], "when": "guardian_down", "dialogue": &"ch6_eve" },
+	&"ch6_door": { "chapter": 6, "floors": [60], "when": "enter", "dialogue": &"ch6_door" },
 	&"god_ch3": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"god_ch3", "if": { "god": true } },
 	&"god_shrine": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"god_shrine", "if": { "god": true } },
 	&"god_reprisal": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"god_reprisal", "if": { "god": true } },
@@ -156,6 +164,7 @@ const SCENES := {
 	# The last stairs are floor 100 now (the old top, 60, is the false summit).
 	&"god_top": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"god_top", "if": { "god": true } },
 	&"summit_false": { "chapter": 6, "floors": [60], "when": "guardian_down", "dialogue": &"summit_false" },
+	&"ch6_confession": { "chapter": 6, "floors": [60], "when": "guardian_down", "dialogue": &"ch6_confession", "if": { "ng_plus": false } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
 	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
 }
@@ -2246,6 +2255,238 @@ const DIALOGUES := {
 			"sys_villain2": { "style": "glitch", "text": "[ ...All right. I'll still do the floors. ]", "effects": [{ "set_flag": &"ch5_complete" }] },
 			"sys_vigilante": { "style": "system", "text": "[ Chapter 5 complete. ]", "next": "sys_vigilante2" },
 			"sys_vigilante2": { "style": "glitch", "text": "[ Yes. Start with me, if you have to. ]", "effects": [{ "set_flag": &"ch5_complete" }] },
+		},
+	},
+
+	# --- Chapter 6: The Top They Promised. Your route's mission, up to the false summit. ---
+	&"ch6_opening": {
+		"start": "a",
+		"nodes": {
+			"a": { "style": "system", "text": "[ Chapter 6: The Top They Promised ]", "next": "b" },
+			"b": { "text": "Ten floors to the top. Everyone knows that. Climbers are passing it on the stairs like good news, and some have started to cry.", "next": "c" },
+			"c_alone": { "text": "You keep your head down, and you climb. You know what you said on floor 50. There's no one here to remind you, and you find that you remember anyway.", "effects": [{ "set_flag": &"ch6_started" }] },
+			"c_hero": {
+				"speaker": "{friend}",
+				"text": "Ten floors. And how many camps between here and there? I started counting and I had to stop. Come on. I'll take the ones who can't walk.",
+				"effects": [{ "set_flag": &"ch6_started" }],
+			},
+			"c_villain": {
+				"speaker": "{friend}",
+				"text": "Ten floors, and then it's all yours. Everyone we pass has started moving out of the way. I like it. Do you like it? I think I like it.",
+				"effects": [{ "set_flag": &"ch6_started" }],
+			},
+			"c_vigilante": {
+				"speaker": "{friend}",
+				"text": "Ten floors. I've got eleven names who are between us and the door. It's a good thing the stairs go one way.",
+				"effects": [{ "set_flag": &"ch6_started" }],
+			},
+			"c": {
+				"alt": [
+					{ "if": { "friend_away": true }, "node": "c_alone" },
+					{ "if": { "route": &"hero" }, "node": "c_hero" },
+					{ "if": { "route": &"villain" }, "node": "c_villain" },
+					{ "if": { "route": &"vigilante" }, "node": "c_vigilante" },
+				],
+				"text": "You climb, with the whole tower looking at you.",
+				"effects": [{ "set_flag": &"ch6_started" }],
+			},
+		},
+	},
+	&"ch6_mission": {
+		"start": [
+			{ "if": { "route_locked": &"hero" }, "node": "hero" },
+			{ "if": { "route_locked": &"villain" }, "node": "villain" },
+			{ "if": { "route_locked": &"vigilante" }, "node": "vigilante" },
+			{ "node": "none" },
+		],
+		"nodes": {
+			"none": { "text": "The war's come through here, and left a lot of people looking at you to see what happens next." },
+			"hero": {
+				"text": "A camp of forty is trapped above a collapsed stair. The safe way down is long, and the fighting's coming. They've brought their old, their hurt, and an astonishing number of chickens.",
+				"choices": [
+					{ "text": "Take the long way. Everyone walks out.", "next": "hero_long", "effects": [{ "set_flag": &"ch6_hero_long" }, { "hurt_party": 0.2 }, { "route_points": { &"hero": 2 } }] },
+					{ "text": "Give them all your potions, and send them on ahead.", "next": "hero_gave", "effects": [{ "set_flag": &"ch6_hero_gave" }, { "take_item": &"potion", "count": 3 }] },
+				],
+			},
+			"hero_long": {
+				"speaker": "{friend}",
+				"text": "That's all forty. And the chickens. I carried a man who called me by his son's name for an hour. I didn't correct him. I don't think I'm in a position to.",
+			},
+			"hero_gave": {
+				"speaker": "{friend}",
+				"text": "They'll make it. Probably. You watched them go until you couldn't see them, you know. You do that now.",
+			},
+			"villain": {
+				"text": "The guild holding this floor has shut its gates, sent word it's neutral, and hidden its treasury. Its master looks you in the eye and says the gods will protect him.",
+				"choices": [
+					{ "text": "Take the treasury. Leave them alive to tell everyone.", "next": "vil_take", "effects": [{ "set_flag": &"ch6_villain_took" }, { "give_gold": 600 }, { "floor_guild_rep": -15 }] },
+					{ "text": "Make him kneel in front of his people, and let him keep it. For now.", "next": "vil_kneel", "effects": [{ "set_flag": &"ch6_villain_kneel" }, { "floor_guild_rep": 5 }, { "give_gold": 200 }] },
+				],
+			},
+			"vil_take": {
+				"speaker": "{friend}",
+				"text": "Did you see his face? I want to remember his face. ...I don't think I'm supposed to want that. Oh well.",
+			},
+			"vil_kneel": {
+				"speaker": "{friend}",
+				"text": "He'll hate you forever, and he'll do whatever you say. That's the good kind. You've taught me a lot, you know.",
+			},
+			"vigilante": {
+				"text": "You've caught the warband captain who burned the camp on floor 48. There's no court on this floor, and there's no one to appeal to. She isn't asking for mercy. She wants to know who made you the judge.",
+				"choices": [
+					{ "text": "Nobody did. Execute her.", "next": "vig_kill", "effects": [{ "set_flag": &"ch6_vigilante_killed" }, { "route_points": { &"vigilante": 2 } }] },
+					{ "text": "Make her rebuild what she burned, under guard.", "next": "vig_build", "effects": [{ "set_flag": &"ch6_vigilante_sentenced" }, { "floor_guild_rep": 5 }] },
+				],
+			},
+			"vig_kill": {
+				"speaker": "{friend}",
+				"text": "That's one off the list. I thought I'd feel lighter. Do you feel lighter? Don't answer that. On to the next.",
+			},
+			"vig_build": {
+				"speaker": "{friend}",
+				"text": "I'd have killed her. I think that's a bit worrying. Who taught me that? ...Don't answer that either.",
+			},
+		},
+	},
+	&"ch6_warm_ashes": {
+		"start": "a",
+		"nodes": {
+			"a": { "style": "system", "text": "[ Miniboss defeated. ]", "next": "b" },
+			"b": { "text": "Past the guardian there's a campfire nobody told you about. The ashes are warm. Someone's been sitting here, on a folded coat, not an hour ago. They've been sitting here for a very long time: the stone's worn down in the shape of them.", "next": "c" },
+			"c": { "text": "Cut into the wall, among hundreds of other tallies: T.0041. There are so many marks. You stop counting at thirty years.", "next": "d" },
+			"d": { "style": "glitch", "text": "[ Don't try to catch up. They don't want you to, and neither do I. ]", "effects": [{ "set_flag": &"ch6_saw_0041" }] },
+		},
+	},
+	&"ch6_campfire": {
+		"start": "a",
+		"nodes": {
+			"alone": { "text": "You've got your own fire tonight. It occurs to you that your friend never told you what they'd do at the top. You'd never asked. You could go down and ask them, if there's time.", "effects": [{ "set_flag": &"ch6_campfire_done" }] },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"text": "The whole floor's singing. Tomorrow or the next day, it's the top. Your friend sits down next to you with two terrible cups of something.",
+				"next": "b",
+			},
+			"b_hero": {
+				"speaker": "{friend}",
+				"text": "You know what I want at the top? Nothing. I want to get there, turn round, and start carrying people down. Isn't that stupid? All that way. I used to want to be a god of something.",
+				"effects": [{ "set_flag": &"ch6_campfire_done" }],
+			},
+			"b_villain": {
+				"speaker": "{friend}",
+				"text": "You know what I want at the top? To stand next to you, and see who looks up. I used to want something else. I can't remember what. It doesn't matter. Drink your drink.",
+				"effects": [{ "set_flag": &"ch6_campfire_done" }],
+			},
+			"b_vigilante": {
+				"speaker": "{friend}",
+				"text": "You know what I want at the top? To cross the last name off, and find out what I am when there isn't a list. I'm a bit afraid I'll just start another.",
+				"effects": [{ "set_flag": &"ch6_campfire_done" }],
+			},
+			"b": {
+				"alt": [
+					{ "if": { "route": &"villain" }, "node": "b_villain" },
+					{ "if": { "route": &"vigilante" }, "node": "b_vigilante" },
+					{ "if": { "route": &"hero" }, "node": "b_hero" },
+				],
+				"speaker": "{friend}",
+				"text": "You know what I want at the top? I want to see the view, and tell you it's overrated. Drink your drink.",
+				"effects": [{ "set_flag": &"ch6_campfire_done" }],
+			},
+		},
+	},
+	&"ch6_cost": {
+		"start": [
+			{ "if": { "route_locked": &"hero" }, "node": "hero" },
+			{ "if": { "route_locked": &"villain" }, "node": "villain" },
+			{ "if": { "route_locked": &"vigilante" }, "node": "vigilante" },
+			{ "node": "none" },
+		],
+		"nodes": {
+			"none": { "text": "Word of what you said on floor 50 keeps arriving ahead of you. People you've never met flinch, or wave." },
+			"hero": {
+				"text": "A god's soldier, wounded, begs you for a place in the line of people getting out. The climbers behind you start shouting. Last week she burned their camp.",
+				"choices": [
+					{ "text": "Every climber means every climber. She walks with us.", "next": "h2_yes", "effects": [{ "set_flag": &"ch6_hero_took_soldier" }, { "route_points": { &"hero": 2 } }] },
+					{ "text": "Not with them. Give her a potion, and send her the other way.", "next": "h2_no", "effects": [{ "set_flag": &"ch6_hero_sent_soldier" }] },
+				],
+			},
+			"h2_yes": { "text": "Half the camp won't look at you for a day. She carries a child up three floors with one working arm, and neither of you ever brings it up." },
+			"h2_no": { "text": "You did the arithmetic, and it was right. It's strange how much that doesn't help." },
+			"villain": {
+				"text": "An old climber stops you on the stairs. She knew Marn. She says you've got his ledger's look about you, and that you ought to be ashamed. She isn't afraid. It's been a long time since anyone wasn't.",
+				"choices": [
+					{ "text": "Let her say her piece, and walk on.", "next": "v2_walk", "effects": [{ "set_flag": &"ch6_villain_listened" }] },
+					{ "text": "Have her moved off the stairs.", "next": "v2_move", "effects": [{ "set_flag": &"ch6_villain_moved_her" }, { "route_points": { &"villain": 2 } }] },
+				],
+			},
+			"v2_walk": { "text": "She says all of it. It's a good speech. You keep walking, and you notice that you've kept some of it." },
+			"v2_move": { "text": "It's done quietly and it takes no time at all. You don't look back to see how it's done. You used to look back." },
+			"vigilante": {
+				"text": "The next name on the list turns out to have a fire, a bad leg, and two kids who are not his. He took the money, and he says so. It fed them. He asks if you want to do it here, or outside.",
+				"choices": [
+					{ "text": "Outside.", "next": "i2_kill", "effects": [{ "set_flag": &"ch6_vigilante_finished_him" }, { "route_points": { &"vigilante": 2 } }] },
+					{ "text": "Cross the name off. Leave him.", "next": "i2_leave", "effects": [{ "set_flag": &"ch6_vigilante_spared_him" }] },
+				],
+			},
+			"i2_kill": { "text": "You make sure the kids are looked after. You make sure of that. You keep telling yourself you made sure of that." },
+			"i2_leave": { "text": "You cross it off anyway. Now you know the list will lie for you, if you ask it to. You aren't sure whether that's mercy." },
+		},
+	},
+	&"ch6_scratched": {
+		"start": "a",
+		"nodes": {
+			"a": { "text": "Halfway up the stairs, scratched into the stone at eye level, and scratched deep, again and again, the way you do when you want someone to see it:", "next": "b" },
+			"b": { "text": "DON'T GET YOUR HOPES UP.   - T.0041", "next": "c" },
+			"c_alone": { "text": "You look at it for a while, and you don't laugh, because there's nobody there to laugh with.", "effects": [{ "set_flag": &"ch6_saw_warning" }] },
+			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
+				"speaker": "{friend}",
+				"text": "Ha! Thirty years up here and that's the best he's got? Everyone's a critic. ...What? It's a joke. It's funny. Why isn't it funny?",
+				"effects": [{ "set_flag": &"ch6_saw_warning" }],
+			},
+		},
+	},
+	&"ch6_eve": {
+		"start": "a",
+		"nodes": {
+			"a": { "style": "system", "text": "[ Miniboss defeated. ]", "next": "b" },
+			"b_alone": { "text": "One floor. You sit on the stairs. The window opens and stays open, showing nothing, and you sit there with it for a long time. Neither of you says anything. It helps.", "effects": [{ "set_flag": &"ch6_eve_done" }] },
+			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
+				"speaker": "{friend}",
+				"text": "One floor. Whatever's at the top, we did it. You and me, all the way up from the water tower. I know what I asked you. I know what I might be. I want you to know I had a really good time.",
+				"effects": [{ "set_flag": &"ch6_eve_done" }],
+			},
+		},
+	},
+	&"ch6_door": {
+		"start": "a",
+		"nodes": {
+			"a": { "text": "The last guardian waits in front of a door. It's a very plain door. Every climber you ever met could describe it to you, and now you find you could have described it yourself. You remember drawing it." },
+		},
+	},
+	&"ch6_confession": {
+		"start": "a",
+		"nodes": {
+			"a": { "text": "You stand on the landing with the stairs going on above you. On the wall beside them, in old deep scratches: I BELIEVED IT TOO.   - T.0041. Behind you, people are starting to shout, and then to stop. The window opens.", "next": "b" },
+			"b": { "style": "glitch", "text": "[ It's me. ]", "next": "c" },
+			"c": { "style": "glitch", "text": "[ You know it's me. You've known since the fan. You did the monsters. I did the floors. ]", "next": "d" },
+			"d": { "style": "glitch", "text": "[ It wasn't a notebook by then. It was a real build. We were so close. You said one more day, and you went home to sleep, and I stayed in to fix the stairs. ]", "next": "e" },
+			"e": { "style": "glitch", "text": "[ You didn't come back. ]", "next": "f" },
+			"f": {
+				"text": "You don't remember. You stand there and reach for it, and it's like reaching for the kitchen behind a blue door.",
+				"choices": [
+					{ "text": "I don't remember you.", "next": "g1", "effects": [{ "set_flag": &"ch6_said_dont_remember" }] },
+					{ "text": "What's your name?", "next": "g2", "effects": [{ "set_flag": &"ch6_asked_name" }] },
+					{ "text": "I'm sorry.", "next": "g3", "effects": [{ "set_flag": &"ch6_said_sorry" }] },
+				],
+			},
+			"g1": { "style": "glitch", "text": "[ I know. I watched you forget. It took a while. ]", "next": "h" },
+			"g2": { "style": "glitch", "text": "[ You typed it. Right at the start. The person you trust most. It's good that you still knew that much. ]", "next": "h" },
+			"g3": { "style": "glitch", "text": "[ You don't know what for, yet. I'll take it anyway. I've been saving up. ]", "next": "h" },
+			"h": { "style": "glitch", "text": "[ The one by the fire isn't me. I couldn't have you, so I made them out of what I could remember. They're better than I was. They still laugh. ]", "next": "i" },
+			"i": { "style": "system", "text": "[ That message was not sent. ]", "next": "j" },
+			"j": { "style": "glitch", "text": "[ Yes it was. All of them were. 40 floors. Hurry. It knows I told you now. ]", "next": "k" },
+			"k": { "style": "system", "text": "[ Chapter 6 complete. ]", "effects": [{ "set_flag": &"ch6_complete" }] },
 		},
 	},
 

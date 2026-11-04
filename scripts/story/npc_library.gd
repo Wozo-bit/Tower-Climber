@@ -33,6 +33,8 @@ extends RefCounted
 ##                    "captive_of"; beat it to free them). Captives are blessed
 ##                    by a being whose RIVAL sponsors that boss.
 ##       "pitch":     what they say when you meet them (placeholder)
+##       "pitch_if":  (optional) [{ "if": condition, "pitch": text }]: the first
+##                    that passes replaces "pitch" (people who remember you)
 ##       "personal_skill": their own skill, unlocked by finishing their
 ##                    "loyalty" quest (QuestLibrary.recruit_quests builds both)
 ##       "favor" / "loyalty": { "title", "desc", "steps": [{ "text", "goal" }] }
@@ -41,6 +43,160 @@ extends RefCounted
 ## Recruits join at the player's level - 1 (min 1). Placeholders below.
 
 const NPCS := {
+	# --- Added 2026-11-04 (Hayden): every route can reach a full party in every run.
+	# Hilde, Cormac, Belit, Ulfar, Ines and Bren only come after your route locks.
+	&"oren": {
+		"name": "Oren", "kind": "npc", "dialogue": &"recruit_favor", "color": Color(0.8, 0.65, 0.4),
+		"floors": ["rest"], "min_floor": 10, "max_floor": 9999, "near": "campfire",
+		"recruit": {
+			"class_id": &"monk", "meet": "favor", "personal_skill": &"mending_palm",
+			"build": { Stats.Type.STRENGTH: 4, Stats.Type.HEALTH: 3, Stats.Type.AGILITY: 3 },
+			"pitch": "I walk the lower floors, bringing bread to whoever's still breathing. The way's been blocked. Help me clear it, and I'll walk with you instead.",
+			"favor": { "title": "Oren: Bread for the Lower Floors", "desc": "Monsters keep Oren from reaching the camps.",
+				"steps": [{ "text": "Defeat 10 enemies", "goal": { "type": "defeat", "any": true, "count": 10 } }] },
+			"loyalty": { "title": "Oren: The Long Road Down", "desc": "Oren wants to know the camps below are safe.",
+				"steps": [{ "text": "Defeat 40 enemies", "goal": { "type": "defeat", "any": true, "count": 40 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	&"hilde": {
+		"name": "Hilde", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.7, 0.6, 0.5),
+		"floors": ["rest", "boss"], "min_floor": 50, "max_floor": 9999, "near": "campfire",
+		"if": { "route_locked": &"hero" },
+		"recruit": {
+			"class_id": &"support", "meet": "campfire", "personal_skill": &"patch_and_mend",
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 2 },
+			"pitch": "I heard what you told those two gods. Every climber, you said. Well, I've mended every boot on this floor. Somebody ought to walk with you who knows how long a road that is.",
+			"pitch_if": [
+				{ "if": { "flag": &"ch5_stood_neither" }, "pitch": "You drove them off my camp, floor 42. Cost you blood, and I watched you pay it. You said every climber, up there. Fine. My boots are mended. Let's go." },
+			],
+			"loyalty": { "title": "Hilde: One More Pair", "desc": "Hilde means to see the camps get out alive.",
+				"steps": [{ "text": "Defeat 30 enemies", "goal": { "type": "defeat", "any": true, "count": 30 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	&"cormac": {
+		"name": "Cormac", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.55, 0.7, 0.45),
+		"floors": ["rest", "boss"], "min_floor": 50, "max_floor": 9999, "near": "campfire",
+		"if": { "route_locked": &"hero" },
+		"recruit": {
+			"class_id": &"warrior", "meet": "campfire", "personal_skill": &"shield_of_the_stair",
+			"build": { Stats.Type.STRENGTH: 4, Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 2 },
+			"pitch": "I was a god's soldier until a week ago. I laid my mark down at that hall when you said what you said. I'm good at standing between things. Point me at whoever's next.",
+			"loyalty": { "title": "Cormac: Mark Laid Down", "desc": "Cormac's old warband wants him back. He'd like to discuss it.",
+				"steps": [{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"hero"], "dislikes": [&"villain"] },
+	},
+	&"sabine": {
+		"name": "Sabine", "kind": "npc", "dialogue": &"recruit_hire", "color": Color(0.45, 0.3, 0.6),
+		"floors": ["rest"], "min_floor": 20, "max_floor": 9999, "near": "merchant",
+		"recruit": {
+			"class_id": &"mage", "meet": "hire", "personal_skill": &"fine_print", "fee": 1000,
+			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.LUCK: 2, Stats.Type.AGILITY: 2 },
+			"pitch": "A guild envoy gets to read everyone's mail. I know where every god's money is kept. A thousand gold, and I'll stop working for people who are about to lose.",
+			"pitch_if": [
+				{ "if": { "flag": &"ch2_envoy_paid" }, "pitch": "We've done business, Tester. Floor 18. You named a price, and I respected it. A thousand gold, and I'll stop working for people who are about to lose." },
+				{ "if": { "flag": &"ch2_envoy_refused" }, "pitch": "You told my masters to go and bid elsewhere, floor 18. I carried that word for word, and enjoyed it. They've since gone bankrupt. A thousand gold, and I'm yours." },
+			],
+			"loyalty": { "title": "Sabine: Hostile Takeover", "desc": "Sabine has a list of guildmasters she'd like to see removed.",
+				"steps": [{ "text": "Defeat 2 bosses", "goal": { "type": "defeat", "kind": "boss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"dragan": {
+		"name": "Dragan", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.45, 0.25, 0.25),
+		"floors": ["rest"], "min_floor": 10, "max_floor": 9999, "near": "campfire",
+		"recruit": {
+			"class_id": &"tank", "meet": "campfire", "personal_skill": &"hold_them_down",
+			"build": { Stats.Type.HEALTH: 4, Stats.Type.STAMINA: 4, Stats.Type.STRENGTH: 2 },
+			"pitch": "You've got a fair idea of what the strong can do to the weak up here. I've got a very good one. I don't ask why, I just stand where you tell me, and nothing gets past.",
+			"loyalty": { "title": "Dragan: The Toll", "desc": "Dragan used to take a toll on the stairs. He'd like it back.",
+				"steps": [{ "text": "Defeat 40 enemies", "goal": { "type": "defeat", "any": true, "count": 40 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"belit": {
+		"name": "Belit", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.35, 0.2, 0.4),
+		"floors": ["rest", "boss"], "min_floor": 50, "max_floor": 9999, "near": "campfire",
+		"if": { "route_locked": &"villain" },
+		"recruit": {
+			"class_id": &"summoner", "meet": "campfire", "personal_skill": &"court_of_the_dead",
+			"build": { Stats.Type.INTELLIGENCE: 6, Stats.Type.STAMINA: 2, Stats.Type.HEALTH: 2 },
+			"pitch": "I heard you, up there. The tower, and the two of them with it. How delightful. My family served the old queens of the underworld, and I've been looking for a new one. Don't flatter yourself, I said looking.",
+			"loyalty": { "title": "Belit: The Old Court", "desc": "Belit wants a throne for you. Hers is the seat beside it.",
+				"steps": [{ "text": "Defeat 1 bosses", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"ulfar": {
+		"name": "Ulfar", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.6, 0.3, 0.25),
+		"floors": ["rest", "boss"], "min_floor": 50, "max_floor": 9999, "near": "campfire",
+		"if": { "route_locked": &"villain" },
+		"recruit": {
+			"class_id": &"warrior", "meet": "campfire", "personal_skill": &"red_ruin",
+			"build": { Stats.Type.STRENGTH: 6, Stats.Type.HEALTH: 3, Stats.Type.AGILITY: 1 },
+			"pitch": "You told gods to their faces you'd take it all. I've killed for worse reasons. You feed me fights, I won't ask what they're for.",
+			"loyalty": { "title": "Ulfar: A Good Death", "desc": "Ulfar's still looking for something that can kill him.",
+				"steps": [{ "text": "Defeat 50 enemies", "goal": { "type": "defeat", "any": true, "count": 50 } }] },
+		},
+		"values": { "likes": [&"villain"], "dislikes": [&"hero"] },
+	},
+	&"wren": {
+		"name": "Wren", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.5, 0.55, 0.45),
+		"floors": ["rest"], "min_floor": 15, "max_floor": 9999, "near": "campfire",
+		"recruit": {
+			"class_id": &"rogue", "meet": "campfire", "personal_skill": &"light_fingers",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.LUCK: 3, Stats.Type.STRENGTH: 2 },
+			"pitch": "You probably don't remember me. Floor 6 or 7, bleeding on a wall. I've gotten better at not getting caught.",
+			"pitch_if": [
+				{ "if": { "flag": &"ch1_thief_helped" }, "pitch": "You patched me up, floor 6 or 7, when I'd robbed half the camp. Nobody does that. I don't know what to do about it, so I thought I'd follow you around." },
+				{ "if": { "flag": &"ch1_thief_robbed" }, "pitch": "You took my pouch and left me bleeding on floor 6. Best lesson I ever had. I'm better now. I'd rather be standing behind you than in front of you." },
+				{ "if": { "flag": &"ch1_thief_judged" }, "pitch": "You marched me back down a floor to give it all back. I hated you for a month. Then one of them thanked me. I don't know what you did to me, but I've got nowhere else to be." },
+			],
+			"loyalty": { "title": "Wren: Giving It Back", "desc": "Wren's trying to work out who that pouch belonged to.",
+				"steps": [{ "text": "Defeat 30 enemies", "goal": { "type": "defeat", "any": true, "count": 30 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [] },
+	},
+	&"tobin": {
+		"name": "Tobin", "kind": "npc", "dialogue": &"recruit_hire", "color": Color(0.75, 0.85, 0.8),
+		"floors": ["rest"], "min_floor": 15, "max_floor": 9999, "near": "merchant",
+		"recruit": {
+			"class_id": &"support", "meet": "hire", "personal_skill": &"field_medicine", "fee": 800,
+			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 2 },
+			"pitch": "Eight hundred gold, and I keep your people alive. I don't care what you do with them after. I've patched up saints and butchers, and they bleed the same.",
+			"loyalty": { "title": "Tobin: The Bill", "desc": "Tobin has unpaid invoices on every floor. Help him collect.",
+				"steps": [{ "text": "Defeat 2 minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [] },
+	},
+	&"ines": {
+		"name": "Ines", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.5, 0.65, 0.6),
+		"floors": ["rest", "boss"], "min_floor": 50, "max_floor": 9999, "near": "campfire",
+		"if": { "route_locked": &"vigilante" },
+		"recruit": {
+			"class_id": &"archer", "meet": "campfire", "personal_skill": &"named_arrow",
+			"build": { Stats.Type.AGILITY: 5, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 2 },
+			"pitch": "You told them they'd answer for it. I've got a list too, and it's mostly the same names. Every arrow I've got has someone's name on it. I've got a few to spare.",
+			"loyalty": { "title": "Ines: Every Name", "desc": "Ines has one name left she can't find.",
+				"steps": [{ "text": "Defeat 1 bosses", "goal": { "type": "defeat", "kind": "boss", "count": 1 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [] },
+	},
+	&"bren": {
+		"name": "Bren", "kind": "npc", "dialogue": &"recruit_campfire", "color": Color(0.6, 0.45, 0.55),
+		"floors": ["rest", "boss"], "min_floor": 50, "max_floor": 9999, "near": "campfire",
+		"if": { "route_locked": &"vigilante" },
+		"recruit": {
+			"class_id": &"spellblade", "meet": "campfire", "personal_skill": &"sentence_passed",
+			"build": { Stats.Type.STRENGTH: 4, Stats.Type.INTELLIGENCE: 4, Stats.Type.HEALTH: 2 },
+			"pitch": "I was a judge, on floor 12, back when anyone cared. Then the guild bought the court. If you're serious about making them answer, you'll want somebody who knows how the sentences go.",
+			"loyalty": { "title": "Bren: The Court Reopens", "desc": "Bren wants the floor 12 court to sit once more.",
+				"steps": [{ "text": "Defeat 40 enemies", "goal": { "type": "defeat", "any": true, "count": 40 } }] },
+		},
+		"values": { "likes": [&"vigilante"], "dislikes": [] },
+	},
 	&"brakka": {
 		"name": "Brakka", "kind": "npc", "dialogue": &"brakka", "color": Color(0.85, 0.55, 0.3),
 		"floors": ["rest"], "min_floor": 5, "max_floor": 9999, "near": "campfire",
@@ -620,6 +776,15 @@ static func recruits_met_by(meet: String) -> Array:
 		if NPCS[id].get("recruit", {}).get("meet", "") == meet:
 			out.append(id)
 	return out
+
+
+## What this recruit says right now (some remember what you did).
+static func pitch_of(id: StringName) -> String:
+	var r := recruit_info(id)
+	for entry in r.get("pitch_if", []):
+		if DialogueRunner.check(entry.if):
+			return entry.pitch
+	return r.get("pitch", "")
 
 
 static func recruit_info(id: StringName) -> Dictionary:

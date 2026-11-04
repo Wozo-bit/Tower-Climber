@@ -970,6 +970,31 @@ static func _build() -> Dictionary:
 			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3,
 			"learnable": true, "tier": 2}),
 	]
+	# The 2026-11-04 recruits' personal skills.
+	list.append_array([
+		SkillDef.make(&"mending_palm", "Mending Palm", "Oren's open hand: a blow, and you recover 15% of the damage.",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "power": 1.75, "lifesteal": 0.15}),
+		SkillDef.make(&"patch_and_mend", "Patch and Mend", "Hilde gets the whole party back on their feet: heals everyone, plus 15% of max HP.",
+			{"mp_cost": 15, "effect": E.HEAL, "targeting": T.ALLY_ALL, "power": 0.7, "heal_pct_max_hp": 0.15}),
+		SkillDef.make(&"shield_of_the_stair", "Shield of the Stair", "Cormac braces: take 30% less damage and draw the enemy's eye for 3 turns, and recover 10% of max HP.",
+			{"mp_cost": 8, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3, "also_status": &"taunt", "also_turns": 3, "rider_heal_pct": 0.1}),
+		SkillDef.make(&"fine_print", "Fine Print", "Sabine's contract comes due. Ignores 35% of defense, 25% more damage to bosses.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 11, "damage_type": D.MAGIC, "power": 1.85, "def_pierce": 0.35, "boss_bonus": 0.25}),
+		SkillDef.make(&"hold_them_down", "Hold Them Down", "Dragan pins them (builds a lot of stagger).",
+			{"elements": [EL.BLUNT] as Array[int], "mp_cost": 8, "damage_type": D.MELEE, "power": 1.45, "stagger_bonus": 2}),
+		SkillDef.make(&"court_of_the_dead", "Court of the Dead", "Belit's old court, on every enemy. Heals her for 15% of the damage.",
+			{"elements": [EL.DARK] as Array[int], "mp_cost": 19, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.3, "lifesteal": 0.15}),
+		SkillDef.make(&"red_ruin", "Red Ruin", "Ulfar stops being careful. 60% more damage to those near death, +15% crit chance.",
+			{"elements": [EL.SLASH] as Array[int], "mp_cost": 12, "damage_type": D.MELEE, "power": 2.1, "execute_bonus": 0.6, "bonus_crit": 0.15}),
+		SkillDef.make(&"light_fingers", "Light Fingers", "Wren's in and out before they notice, from any row. +35% crit chance.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 9, "damage_type": D.MELEE, "ignores_row": true, "power": 1.75, "bonus_crit": 0.35}),
+		SkillDef.make(&"field_medicine", "Field Medicine", "Tobin's bag: heals one ally a lot, plus 25% of max HP, and restores 10% of max MP.",
+			{"mp_cost": 14, "effect": E.HEAL, "targeting": T.ALLY_SINGLE, "power": 1.2, "heal_pct_max_hp": 0.25, "rider_mp_pct": 0.1}),
+		SkillDef.make(&"named_arrow", "Named Arrow", "Ines knows who this one's for. +25% crit chance, 30% more damage to bosses.",
+			{"elements": [EL.PIERCE] as Array[int], "mp_cost": 11, "damage_type": D.RANGED, "power": 1.95, "bonus_crit": 0.25, "boss_bonus": 0.3}),
+		SkillDef.make(&"sentence_passed", "Sentence Passed", "Bren reads it out, with his stronger of STR or INT. 50% more damage to those near death.",
+			{"elements": [EL.HOLY, EL.SLASH] as Array[int], "mp_cost": 11, "damage_type": D.MELEE, "adaptive": true, "ignores_row": true, "power": 1.9, "execute_bonus": 0.5}),
+	] as Array[SkillDef])
 	# Quest classes' skills.
 	list.append_array([
 		SkillDef.make(&"ink_slash", "Ink Slash", "A quick stroke that blots out armour. +20% crit chance.",

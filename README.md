@@ -41,12 +41,13 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 - `scripts/story/domain_library.gd` holds the domains, `scripts/story/divinity_state.gd` everything you do as a god (placeholder names, text and numbers; DLC can `register_domain`).
 
 ## The story (Hayden 2026-11-04)
-The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invited to test **Tower of Recognition** (placeholder name), and it pulls you in. Chapters 1-5 (floors 1-50) and the first two returns to the real world are built; the text is a first draft.
+The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invited to test **Tower of Recognition** (placeholder name), and it pulls you in. Chapters 1-6 (floors 1-60) and the first two returns to the real world are built; the text is a first draft.
 - **Prologue** (`scenes/prologue.tscn`, `scripts/story/prologue.gd`): your room at night. Walk around and bump things: the PC (the invitation; "Start the test"), the bookshelf (your childhood notebook), the phone and the window. Each one you look at becomes a flag for the run (`prologue_notebook`...), so the tower can call back to it. Esc offers to skip to the client. Settings → "Skip the prologue and home scenes" skips the room for every New Game (it asks first); New Game+ never has it.
 - **The test client** (`scripts/ui/test_client_panel.gd`) is New Game: tester name + difficulty + Ironman, two odd questions, "Name the person you trust most" (the childhood friend), then `[ Tester confirmed. ]` → `[ Synchronising... ]` → a glitched `[ Welcome home. ]` and a white flash. Each answer gives +2 to a stat (shown) and a hidden nudge: "What do you want most?" leans a route, "What are you afraid of losing?" makes a god notice you (+5 interest). Answers are flags (`setup_want_protect`...). Data: `StoryLibrary.SETUP_QUESTIONS`.
 - **Story scenes** (`scripts/story/story_library.gd`): dialogues in the usual format that start on their own, once per run, on set floors: when you arrive (`"enter"`) or after the floor's miniboss/boss (`"guardian_down"`). A scene you skipped past waits until you're back on one of its floors. Chapter 1 has a beat on every floor 1-10 (wake-up, the memory, the System's first slip, the campfire legend, the thief = a route choice, the carving that matches your notebook, a climber who doesn't come back, "So you're the Tester", `[ You remembered faster this time. ]`). New Game+ wakes up differently (`"ng_plus"` start).
 - **System lines:** a node with `"style": "system"` shows as a centred System line; `"glitch"` flickers through scrambled text first (the System slipping). Sound hooks: `system_line`, `system_glitch`.
 - **Chapters:** one per stage; Tab → Quests shows "Chapter 1: Tester" at the top. Chapters 3-6 are placeholders until written.
+- **Chapter 6, "The Top They Promised":** each locked route has its own mission and its own price on floors 52-53 and 56-57. Tester 0041 is only glimpsed. After the false summit, the System admits who it is (`ch6_confession`).
 - **Chapter 5, "The Bidding War":** this run's two gods fight over you, your friend asks "Am I real?" and breaks into another voice for a moment, and floor 50's choice locks your route.
 - **Chapter 4, "The Second Hand":** signs of a second person in the notebook and the tower; old code comments use the initials of the names you typed (`{player_initial}`, `{friend_initial}`). Ends `[ You drew the monsters. ]` `[ I did the floors. ]`. The second return plays after floor 40's boss.
 - **Chapter 3, "What the Tower Sends":** the System starts to break format, trying to help you (and being corrected: `[ That message was not sent. ]`) and asking small lonely questions. Marn shows you his ledger, falls holding a door, and is back at floor 30's fire, cheerful, with no memory. Effect `hurt_party` costs a share of current HP, never fatal.
@@ -232,8 +233,8 @@ The climb is 100 floors (`GameState.FINAL_FLOOR`). Everyone in the tower believe
 - **The Ashbound clues** all come from this system now: the **scorched mural** (40% of normal floors 11–29), the **merchant's story** (floor 10+) and the **glint in the embers** (by the campfire on rest floors and cleared boss floors from floor 10).
 - **Placeholder content only:** the merchant, lore objects and the recruit roster below. Real story content comes later.
 
-### The recruit roster (Hayden 2026-10-25)
-Twelve recruits across the 60 floors. Their names follow each one's origin (the god who blessed them). All their text is placeholder.
+### The recruit roster (Hayden 2026-10-25, 11 more 2026-11-04)
+Twenty-three recruits. A test makes sure every route can reach a full party of 9 in every run, without wanderers, captives or demigods (your friend counts, and never leaves). `"pitch_if"` lets a recruit remember what you did. The first twelve: Their names follow each one's origin (the god who blessed them). All their text is placeholder.
 
 | Recruit | Class | How you meet them | Blessed by | Likes / dislikes |
 |---|---|---|---|---|
@@ -249,6 +250,8 @@ Twelve recruits across the 60 floors. Their names follow each one's origin (the 
 | Old Fenn | Tank | campfire, rest floors 25+ (*wanderer*) | | Vigilante / Villain |
 | Kael | Rogue | **rescue** fight, floors 30–38 (*wanderer*) | | Villain / Hero |
 | Vesna | Mage | **hire** 1500g, rest floors 35+ (*wanderer*) | | Villain / Hero |
+
+The eleven added later: Oren (Monk, favor, rest 10+, Hero), Dragan (Tank, campfire, rest 10+, Villain), Wren (Rogue, campfire, rest 15+, anyone), Tobin (Support, hire 800g, rest 15+, anyone), Sabine (Mage, hire 1000g, rest 20+, Villain), and six who only come once your route locks, from floor 50: Hilde and Cormac (Hero), Belit and Ulfar (Villain), Ines and Bren (Vigilante).
 
 - **Ways to meet them** (`NpcLibrary` "recruit" → `"meet"`):
   - **campfire:** talk and they join.

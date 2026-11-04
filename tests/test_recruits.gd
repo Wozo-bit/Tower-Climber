@@ -14,6 +14,7 @@ func _ready() -> void:
 	Tips.path = "user://test_saves_recruits_tips.json"
 	Settings.path = "user://test_saves_recruits_settings.cfg"
 	test_roster()
+	test_full_parties()
 	test_wanderers()
 	test_campfire_and_loyalty()
 	test_hire()
@@ -52,6 +53,70 @@ func _beat(ids: Array, times: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	for i in times:
 		GameState.quests.on_battle_won(EnemyLibrary.build_group(ids), rng)
+
+
+## Hayden 2026-11-04: each route can reach a full party of 9 companions in every
+## run, not counting wanderers, captives or demigods. Your friend always stays.
+func test_full_parties() -> void:
+	print("A full party on every route")
+	for route_id in [&"hero", &"villain", &"vigilante"]:
+		var reliable := []
+		for id in _recruits():
+			var n := NpcLibrary.get_npc(id)
+			var r := NpcLibrary.recruit_info(id)
+			if n.has("run_chance") or r.get("meet") in ["captive", "legend"]:
+				continue
+			if n.get("values", {}).get("dislikes", []).has(route_id):
+				continue
+			var cond: Dictionary = n.get("if", {})
+			if cond.has("route_locked") and cond.route_locked != route_id:
+				continue
+			reliable.append(id)
+		check(reliable.size() + 1 >= GameState.MAX_PARTY_SIZE - 1, "%s: %d in every run, plus your friend (%s)" % [route_id, reliable.size(), reliable])
+	# Who only comes after your route locks.
+	_after_lock(&"hero", &"hilde")
+	_after_lock(&"hero", &"cormac")
+	_after_lock(&"villain", &"belit")
+	_after_lock(&"villain", &"ulfar")
+	_after_lock(&"vigilante", &"ines")
+	_after_lock(&"vigilante", &"bren")
+	# People who remember what you did.
+	GameState.start_new_game("Rememberer", "Rowan", 1)
+	check(NpcLibrary.pitch_of(&"wren") == NpcLibrary.recruit_info(&"wren").pitch, "Wren's plain pitch")
+	GameState.set_flag(&"ch1_thief_helped")
+	check(NpcLibrary.pitch_of(&"wren").contains("patched me up"), "you helped them")
+	GameState.start_new_game("Rememberer", "Rowan", 1)
+	GameState.set_flag(&"ch1_thief_robbed")
+	check(NpcLibrary.pitch_of(&"wren").contains("took my pouch"), "you robbed them")
+	GameState.set_flag(&"ch2_envoy_paid")
+	check(NpcLibrary.pitch_of(&"sabine").contains("Floor 18"), "the envoy remembers floor 18")
+	GameState.set_flag(&"ch5_stood_neither")
+	check(NpcLibrary.pitch_of(&"hilde").contains("floor 42"), "Hilde remembers floor 42")
+	var run := DialogueRunner.new()
+	run.start(&"recruit_campfire", null, &"", &"", &"wren")
+	check(run.text().contains("took my pouch"), "and they say so")
+	GameState.start_new_game("Rememberer", "Rowan", 1)
+	GameState.lock_route(&"villain")
+	check(GameState.npc_refuses(&"oren") and GameState.npc_refuses(&"daphne"), "hero types won't join a villain")
+	check(not GameState.npc_refuses(&"wren") and not GameState.npc_refuses(&"tobin"), "hired hands work for anyone")
+	GameState.start_new_game("Rememberer", "Rowan", 1)
+	GameState.lock_route(&"hero")
+	check(GameState.npc_refuses(&"dragan") and not GameState.npc_refuses(&"tobin"), "and the other way round")
+
+
+func _after_lock(route_id: StringName, id: StringName) -> void:
+	var n := NpcLibrary.get_npc(id)
+	GameState.start_new_game("Locker", "Rowan", 1)
+	check(not DialogueRunner.check(n.if), "%s waits for the route to lock" % id)
+	GameState.lock_route(route_id)
+	check(DialogueRunner.check(n.if), "%s comes once %s locks" % [id, route_id])
+	check(not n.floors.is_empty() and n.min_floor >= 50, "%s turns up from floor 50" % id)
+	GameState.start_new_game("Locker", "Rowan", 1)
+	for other in [&"hero", &"villain", &"vigilante"]:
+		if other != route_id:
+			GameState.lock_route(other)
+			break
+	check(not DialogueRunner.check(n.if), "%s never comes on another route" % id)
 
 
 func test_roster() -> void:

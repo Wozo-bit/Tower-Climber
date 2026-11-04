@@ -15,7 +15,8 @@ route thresholds (depend on how many choices the story gives) and per-skill
 tuning of tier-2 classes. Re-balance with tools/balance_sim after big changes.
 
 ### Recruits (Hayden 2026-10-25)
-12 recruits (README roster table), met 5 ways: campfire, hire (one-time fee;
+23 recruits (README roster; 11 added 2026-11-04 so every route reaches 9 in every
+run, tested), met 5 ways: campfire, hire (one-time fee;
 Hayden may switch to a wage per floor later), favor quest, rescue fight
 (fights beside you), captive of a boss sponsored by a RIVAL of their god
 (Hayden's idea; only when that stage rolls). Wanderers ("run_chance") in ~half
@@ -345,7 +346,9 @@ THE SECRET (Hayden picked 2026-11-04): you built the game with your real childho
 friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
-Chapter 5 "The Bidding War" BUILT 2026-11-04; floor 50's choice locks the route.
+Chapter 6 "The Top They Promised" BUILT 2026-11-04: route missions; System confesses
+at 60; "it" (what corrects the System), how they got trapped and why you forgot are
+still open. Chapter 5 "The Bidding War" BUILT 2026-11-04; floor 50's choice locks the route.
 RULE (Hayden): story scenes are never locked behind levels or advancement; returns
 home follow floor bosses (StoryLibrary.RETURN_FLOORS).
 Chapter 3 BUILT 2026-11-04 (Marn falls, System helps and is lonely). Quest
@@ -431,7 +434,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2839 checks at last run).
+Every change gets tests in tests/ (26 suites, 2943 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

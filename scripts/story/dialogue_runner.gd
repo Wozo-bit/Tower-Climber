@@ -405,7 +405,7 @@ static func fill(s: String, npc_name: String = "") -> String:
 	if context_recruit != &"" and out.contains("{recruit"):
 		var n := NpcLibrary.get_npc(context_recruit)
 		var r := NpcLibrary.recruit_info(context_recruit)
-		out = out.replace("{recruit_pitch}", r.get("pitch", "")).replace("{recruit_fee}", str(r.get("fee", 0))) \
+		out = out.replace("{recruit_pitch}", NpcLibrary.pitch_of(context_recruit)).replace("{recruit_fee}", str(r.get("fee", 0))) \
 			.replace("{recruit_down}", str(NpcLibrary.hire_down(context_recruit))) \
 			.replace("{recruit_wage}", str(NpcLibrary.hire_wage(context_recruit))) \
 			.replace("{recruit_favor}", r.get("favor", {}).get("title", "")) \

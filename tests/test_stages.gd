@@ -131,6 +131,7 @@ func test_last_floors() -> void:
 	GameState.pending_encounter = []
 	GameState.finish_battle(BattleManager.Outcome.VICTORY)
 	check(not GameState.pending_completion, "floor 60's boss doesn't end the climb")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch6_door"))
 	check(StoryLibrary.due(60, true) == &"summit_false", "it reveals the false summit")
 	GameState.enter_floor(100)
 	GameState.current_layout()
