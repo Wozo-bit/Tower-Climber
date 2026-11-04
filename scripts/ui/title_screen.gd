@@ -220,6 +220,7 @@ func _start_naming(slot: int) -> void:
 		_open_new_game()
 	else:
 		Prologue.pending_slot = slot
+		Prologue.mode = Prologue.MODE_PROLOGUE
 		get_tree().change_scene_to_file(PROLOGUE_SCENE)
 
 

@@ -7,11 +7,22 @@ extends Control
 ## Esc offers to skip straight to the client. The title screen sends you here
 ## with `pending_slot` set; Settings.skip_prologue skips the room entirely.
 ##
-## The same room is meant to come back for the real-world returns at later
-## milestones (class advancements, before the final boss): not built yet.
+## The same room comes back for the real-world returns at later milestones
+## (StoryLibrary.RETURN_*): `mode` picks its dialogues, and the PC logs you back
+## in to the tower instead of opening the client. Each return makes the room a
+## little more wrong (WRONG_TILES).
 
 ## The save slot New Game picked (set by the title screen before coming here).
 static var pending_slot := 1
+const SCENE := "res://scenes/prologue.tscn"
+const MODE_PROLOGUE := &"prologue"
+## MODE_PROLOGUE, or the real-world return being played.
+static var mode: StringName = MODE_PROLOGUE
+## Stone showing through the floorboards, per return.
+const WRONG_TILES := { &"return_tier2": [Vector2i(4, 5)] }
+## Tests turn this off so a return doesn't change scene.
+var auto_leave := true
+signal return_finished
 
 const TILE := 64
 const ROOM := Vector2i(11, 7)   # including the walls
@@ -42,8 +53,9 @@ var _layer: CanvasLayer
 
 
 func _ready() -> void:
-	GameState.reset_run()   # a clean slate: no flags from an earlier run
-	GameState.run_active = false
+	if mode == MODE_PROLOGUE:
+		GameState.reset_run()   # a clean slate: no flags from an earlier run
+		GameState.run_active = false
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	Audio.play_music(["prologue"] + MusicLibrary.title())
 	for id in OBJECTS:
@@ -130,11 +142,15 @@ func try_move(dir: Vector2i) -> bool:
 
 
 func look_at_object(id: StringName) -> void:
-	if _dialogue.open(StringName("prologue_%s" % id)):
-		Audio.play_sfx(["talk_prologue_%s" % id, "talk"])
+	if _dialogue.open(StringName("%s_%s" % [mode, id])):
+		Audio.play_sfx(["talk_%s_%s" % [mode, id], "talk"])
 
 
 func _on_dialogue_finished(runner: DialogueRunner) -> void:
+	if mode != MODE_PROLOGUE:
+		if GameState.has_flag(StringName("%s_login" % mode)):
+			leave_return()
+		return
 	var id := StringName(String(runner.dialogue_id).trim_prefix("prologue_"))
 	var flag := StringName("prologue_%s" % id)
 	if not flags.has(flag):
@@ -143,6 +159,15 @@ func _on_dialogue_finished(runner: DialogueRunner) -> void:
 		GameState.set_flag(&"prologue_start_test", false)
 		start_test()
 	_hint.text = "Use the PC when you're ready." if not flags.is_empty() else _hint.text
+
+
+## Back to the tower from a real-world return. The friend has something to say.
+func leave_return() -> void:
+	GameState.pending_talks.append({ "dialogue": StringName("%s_back" % mode) })
+	mode = MODE_PROLOGUE
+	return_finished.emit()
+	if auto_leave:
+		get_tree().change_scene_to_file(GameState.TOWER_SCENE)
 
 
 ## Opens the test client (the PC's START TEST, or skipping the room).
@@ -165,8 +190,8 @@ func _build_ui() -> void:
 	_hint = Label.new()
 	var move_keys := "/".join(["move_up", "move_left", "move_down", "move_right"].map(
 		func(a): return InputBindings.key_name(a)))
-	_hint.text = "Your room. Late. Look around, or use the PC.   (%s: move · %s: skip)" % [
-		move_keys, InputBindings.key_name("pause")]
+	_hint.text = ("Your room. Late. Look around, or use the PC.   (%s: move · %s: skip)" if mode == MODE_PROLOGUE
+		else "Your room? The PC is still on.   (%s: move · %s: skip)") % [move_keys, InputBindings.key_name("pause")]
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -186,7 +211,10 @@ func _build_ui() -> void:
 	_skip.dialog_text = "Go straight to the test client?\n(You can skip it every time in Settings.)"
 	_skip.ok_button_text = "Skip"
 	_skip.cancel_button_text = "Stay"
-	_skip.confirmed.connect(start_test)
+	_skip.confirmed.connect(leave_return if mode != MODE_PROLOGUE else start_test)
+	if mode != MODE_PROLOGUE:
+		_skip.title = "Skip this?"
+		_skip.dialog_text = "Go straight back to the tower?"
 	ui.add_child(_skip)
 
 
@@ -199,6 +227,8 @@ func _draw() -> void:
 			var r := Rect2(_tile_px(t), Vector2(TILE, TILE))
 			if is_wall(t):
 				draw_rect(r, Color(0.13, 0.13, 0.19))
+			elif t in WRONG_TILES.get(mode, []):
+				draw_rect(r, Color(0.3, 0.3, 0.34))   # stone through the floorboards
 			elif _art["floor"]:
 				draw_texture_rect(_art["floor"], r, false)
 			else:

@@ -213,12 +213,28 @@ func story_now() -> bool:
 	var has_guardian := StageLibrary.is_boss_floor(n) or StageLibrary.is_miniboss_floor(n)
 	var guardian_down := has_guardian and not GameState.stairs_locked()
 	var id := StoryLibrary.due(n, guardian_down)
-	if id == &"" or _dialogue.visible:
+	if _dialogue.visible:
 		return false
+	if id == &"":
+		var home := StoryLibrary.return_due()
+		if home != &"":
+			go_home(home)
+		return home != &""
 	GameState.set_flag(StoryLibrary.seen_flag(id))
 	_talk_cooldown = 0.0
 	talk(StoryLibrary.SCENES[id].dialogue)
 	return _dialogue.visible
+
+
+## The real world comes back: the room, then back here (Prologue). The setting
+## that skips the prologue skips these too.
+func go_home(id: StringName) -> void:
+	GameState.set_flag(id)
+	_autosave()
+	if Settings.skip_prologue:
+		return
+	Prologue.mode = id
+	get_tree().change_scene_to_file(Prologue.SCENE)
 
 
 ## Queues the tips due here and shows them (pauses until they're closed).

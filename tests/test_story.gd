@@ -24,6 +24,7 @@ func _ready() -> void:
 	await test_title()
 	await test_prologue()
 	await test_floor()
+	await test_chapter_two()
 	test_quest_log()
 	test_glitch()
 	SaveSerializer.delete_file(Settings.path)
@@ -117,7 +118,7 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(11, true) == &"", "no chapter 2 scenes yet")
+	check(StoryLibrary.due(21, false) == &"", "no chapter 3 scenes yet")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -357,6 +358,159 @@ func test_floor() -> void:
 		if GameState.enemy_kind(e) == "miniboss":
 			e.alive = false
 	check(floor_scene.story_now() and floor_scene._dialogue.runner.dialogue_id == &"ch1_slip", "miniboss down: the slip")
+	floor_scene.queue_free()
+	await _frames(1)
+
+
+func test_chapter_two() -> void:
+	print("-- chapter 2 --")
+	var ch2 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 2)
+	var covered := {}
+	for s in ch2:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 11-20 (%s)" % [covered.keys()])
+	check(StoryLibrary.chapter_name(2) == "Chapter 2: The Bidding", "its title")
+	_fresh()
+	check(StoryLibrary.due(11, false) == &"ch2_opening", "floor 11 opens it")
+	check(StoryLibrary.due(14, false) == &"", "floor 14 waits for the miniboss")
+	check(StoryLibrary.due(14, true) == &"ch2_loki", "then Loki")
+	check(StoryLibrary.due(20, true) == &"ch2_threshold", "floor 20: before the boss comes first")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch2_threshold"))
+	check(StoryLibrary.due(20, false) == &"", "the ending waits for the boss")
+	check(StoryLibrary.due(20, true) == &"ch2_end", "boss down: chapter 2 ends")
+	# The gods' bids are real interest.
+	_fresh(12)
+	var bonus := func(b: StringName) -> int: return GameState.blessings.beings.get(b, {}).get("bonus", 0)
+	_play(&"ch2_odin", 0)
+	check(bonus.call(&"odin") == 8 and bonus.call(&"loki") == -3, "listening to Odin: he warms, Loki cools")
+	check(GameState.has_flag(&"ch2_heard_odin"), "remembered")
+	_fresh(14)
+	_play(&"ch2_loki", 0)
+	check(bonus.call(&"loki") == 8 and bonus.call(&"odin") == -3, "and the other way round")
+	check(GameState.has_flag(&"ch2_system_warned"), "the System slips")
+	# Blessed variants.
+	_fresh(12)
+	var r := DialogueRunner.new()
+	r.start(&"ch2_odin")
+	check(r.node_id == "a", "unmarked")
+	GameState.player.bless(&"thor", 1)
+	r.start(&"ch2_odin")
+	check(r.node_id == "marked", "marked by someone else")
+	GameState.player.bless(&"odin", 1)
+	r.start(&"ch2_odin")
+	check(r.node_id == "his", "already his")
+	# Tess, the phone, the ending.
+	_fresh(15)
+	r.start(&"ch2_tess")
+	check(r.node_id == "stranger", "never met her")
+	GameState.set_flag(&"ch1_met_tess")
+	r.start(&"ch2_tess")
+	check(r.node_id == "a", "she's back")
+	_play(&"ch2_tess")
+	check(GameState.has_flag(&"ch2_tess_returned"), "Marn tells you")
+	r.start(&"ch2_friday")
+	check(r.node_id == "unknown", "never read the message")
+	GameState.set_flag(&"prologue_phone")
+	r.start(&"ch2_friday")
+	check(r.node_id == "known" and r.text().contains("Friday"), "you read it")
+	var phone: Dictionary = StoryLibrary.DIALOGUES[&"prologue_phone"].nodes.a
+	check(phone.text.contains("You coming out Friday? Everyone's asking."), "the words match the phone exactly")
+	r.start(&"ch2_end")
+	check(r.node_id == "both", "heard neither")
+	GameState.set_flag(&"ch2_heard_odin")
+	r.start(&"ch2_end")
+	check(r.node_id == "odin", "Odin claims you")
+	GameState.set_flag(&"ch2_heard_loki")
+	r.start(&"ch2_end")
+	check(r.node_id == "both", "both bid: neither claims you")
+	_play(&"ch2_end")
+	check(GameState.has_flag(&"ch2_complete"), "chapter 2 complete")
+	# The guild envoy.
+	_fresh(18)
+	var ruler := GameState.guilds.owner_of_floor(18)
+	r.start(&"ch2_envoy")
+	check(not r.text().contains("{"), "names the floor's guild (%s)" % r.text())
+	var rep := GameState.guilds.rep_of(ruler)
+	_play(&"ch2_envoy", 0)
+	check(GameState.route.points_of(&"hero") == 3 and GameState.guilds.rep_of(ruler) > rep, "standing with them: Hero + standing")
+	_fresh(18)
+	var gold := GameState.player.gold
+	_play(&"ch2_envoy", 1)
+	check(GameState.route.points_of(&"villain") == 3 and GameState.player.gold == gold + 200, "selling out: Villain + gold")
+	_fresh(18)
+	rep = GameState.guilds.rep_of(ruler)
+	_play(&"ch2_envoy", 2)
+	check(GameState.route.points_of(&"vigilante") == 3 and GameState.guilds.rep_of(ruler) < rep, "telling them off: Vigilante, standing falls")
+	# The return to the room.
+	_fresh()
+	check(StoryLibrary.return_due() == &"", "no return before advancing")
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	check(StoryLibrary.return_due() == &"", "a tier-1 class isn't enough")
+	GameState.player.class_id = &"pyromancer"
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER2, "the first tier-2 class brings it")
+	var was_active := GameState.run_active
+	GameState.run_active = false
+	check(StoryLibrary.return_due() == &"", "not in the sandbox")
+	GameState.run_active = was_active
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.return_due() == &"", "New Game+ starts past it")
+	GameState.ng_plus_cycle = 0
+	GameState.set_flag(StoryLibrary.RETURN_TIER2)
+	check(StoryLibrary.return_due() == &"", "once")
+	var c := DialogueRunner.new()
+	c.start(&"return_tier2_notebook")
+	check(c.text().contains("Pyromancer"), "the notebook draws your class (%s)" % c.text())
+	# The room in return mode keeps the run.
+	GameState.current_slot = 1
+	var name_before := GameState.player.character_name
+	Prologue.mode = StoryLibrary.RETURN_TIER2
+	var room: Prologue = load(Prologue.SCENE).instantiate()
+	room.auto_leave = false
+	var left := [false]
+	room.return_finished.connect(func(): left[0] = true)
+	add_child(room)
+	await _frames(2)
+	check(GameState.player.character_name == name_before and GameState.has_flag(StoryLibrary.RETURN_TIER2), "the run survives the room")
+	check(not room._client.visible, "no test client this time")
+	room.look_at_object(&"phone")
+	check(room._dialogue.runner.dialogue_id == &"return_tier2_phone", "the phone has new messages")
+	while room._dialogue.visible:
+		room._dialogue.runner.advance()
+		room._dialogue._refresh()
+	check(not left[0], "looking around doesn't leave")
+	room.look_at_object(&"pc")
+	var cs := room._dialogue.runner.choices()
+	check(cs.size() == 3, "the PC: log in, log off, not yet")
+	room._dialogue.runner.choose(cs[1].index)
+	room._dialogue._refresh()
+	check(room._dialogue.runner.style() == "system" and room._dialogue.runner.text().contains("not available"), "you can't log off")
+	check(GameState.has_flag(&"return_tier2_tried_logoff"), "and the game remembers you tried")
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	room._dialogue.runner.choose(room._dialogue.runner.choices()[0].index)
+	room._dialogue._refresh()
+	check(not left[0], "the sync line plays first")
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(left[0], "then you're back")
+	check(Prologue.mode == Prologue.MODE_PROLOGUE, "the room resets")
+	check(GameState.pending_talks.any(func(t): return t.dialogue == &"return_tier2_back"), "and the friend has words")
+	GameState.pending_talks.clear()
+	room.queue_free()
+	await _frames(1)
+	# The setting skips it.
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	GameState.player.class_id = &"pyromancer"
+	var floor_scene: Node = load(GameState.TOWER_SCENE).instantiate()
+	add_child(floor_scene)
+	await _frames(2)
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_wake"))
+	Settings.skip_prologue = true
+	check(floor_scene.story_now(), "the return comes due on the floor")
+	check(GameState.has_flag(StoryLibrary.RETURN_TIER2) and floor_scene.is_inside_tree(), "skipped by the setting")
+	Settings.skip_prologue = false
 	floor_scene.queue_free()
 	await _frames(1)
 

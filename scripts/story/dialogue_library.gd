@@ -526,7 +526,7 @@ const DIALOGUES := {
 	},
 }
 
-const CONDITION_KEYS := ["flag", "any_flag", "remote", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
+const CONDITION_KEYS := ["flag", "any_flag", "remote", "blessed_by", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
@@ -534,7 +534,7 @@ const CONDITION_KEYS := ["flag", "any_flag", "remote", "not_flag", "min_floor", 
 	"patron_pantheon", "can_pay_down", "owes_wage", "can_pay_owed", "demigod_unlocked"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
-	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
+	"route_points", "floor_guild_rep", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
 	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom",
 	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed"]
 

@@ -308,6 +308,9 @@ interest, Hayden: both), StoryLibrary scenes (once per run, "enter" /
 "guardian_down"), Chapter 1 floors 1-10, "system"/"glitch" line styles,
 chapter in Tab -> Quests, Settings "Skip the prologue". Hayden asked for the
 story, so writing story text is OK now; it's a first draft he'll rewrite.
+Chapter 2 "The Bidding" (floors 11-20) + first real-world return BUILT
+2026-11-04 (Hayden's picks: gods bid, friend knows too much, Tess returns
+wrong, return on the first tier-2 class). Tester 0041 = the previous Tester.
 
 Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
 campfire floor travel (never ticks guilds/wages), guild actions from Tab,
@@ -387,7 +390,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2084 checks at last run).
+Every change gets tests in tests/ (26 suites, 2175 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

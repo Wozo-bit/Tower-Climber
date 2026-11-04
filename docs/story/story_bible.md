@@ -6,8 +6,9 @@ Names in [brackets] are placeholders.
 **Built (2026-11-04):** the prologue room, the test client (New Game), the
 setup questions, Chapter 1's scenes on floors 1-10, System/glitch lines and
 the chapter in Tab -> Quests. The scene text lives in
-`scripts/story/story_library.gd`. **Not built yet:** chapters 2-6, the final
-boss (previous Tester / NG+ mimic) and the real-world returns.
+`scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
+**Not built yet:** chapters 3-6, the final boss (previous Tester / NG+ mimic)
+and the later real-world returns.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -117,17 +118,36 @@ The last line hints you've been here before (kept, Hayden 2026-11-03). It
 pays off with the previous Tester and the NG+ mimic, and can still be
 reinterpreted later, so it doesn't lock in the secret.
 
-## Chapters 2-6 (one-line arcs, to fill in later)
+## Chapter 2: "The Bidding" (floors 11-20)
 
-1. **Chapter 2 (11-20):** guilds and politics; the gods start bidding for
-   "the Tester"; [Friend]'s memories get too specific; the class change at
-   floor 20.
-2. **Chapter 3 (21-30):** doubt. Someone close falls and doesn't come back.
+Hayden's picks (2026-11-04): the gods bid for the Tester; the friend knows too
+much; Tess comes back wrong; the room returns on your first advancement.
+
+| Floor | Beat |
+| --- | --- |
+| 11 | `[ Chapter 2: The Bidding ]`. Word has climbed ahead of you. The friend asks what "the Tester" means. |
+| 12-13 | Odin's bid: a raven, an eye, "I pay for what I learn." Listening: Odin +8 interest, Loki -3. A small truth: **there was a Tester before you** (the rumour stage of the previous Tester). |
+| 14 | After the miniboss, Loki's counter-bid: "Because you can leave, darling." The System slips: `[ Do not listen to that one. ]`, then `[ Notice dismissed. ]`. |
+| 15 | The campfire: Tess is back, same scarf, same joke, no memory of you or of dying. The friend: "See? Told you." Marn: "Fourth time I've met that girl... I didn't say it doesn't send something." |
+| 16-17 | The friend says the exact phone message from the prologue, "You coming out Friday? Everyone's asking.", and doesn't know why. Press them, lie, or tell them the truth about your room (they believe too much of it). |
+| 18 | The floor's guild, threatened by both gods, wants you on its side: stand with them (Hero), sell out (Villain), or tell them off (Vigilante). |
+| 19 | After the miniboss, a window not meant for you: `[ Tester 0041: session active. ]` `[ Session length: 11,302 days. ]`, then `[ Display error. Disregard. ]`. Thirty-one years. |
+| 20 | Going in together (changes if you told them about the room). After the boss: whoever you listened to claims you, or both keep bidding. `[ Chapter 2 complete. ]` `[ You will want to see home first. If you can. ]` |
+
+**First return** (the player's first tier-2 class, first runs only): you're back in
+the room. Nine days have passed. The phone has eleven messages, the notebook has a
+new page with your new class in a child's handwriting, your reflection lags, stone
+shows through one floorboard, and the PC won't let you log off. `[ Resynchronising. ]`
+Then the friend: "You were gone for a second there."
+
+## Chapters 3-6 (one-line arcs, to fill in later)
+
+1. **Chapter 3 (21-30):** doubt. Someone close falls and doesn't come back.
    The System talks more like a person.
-3. **Chapter 4 (31-40):** the past. Why you were chosen starts to surface
+2. **Chapter 4 (31-40):** the past. Why you were chosen starts to surface
    (the notebook, who made the game).
-4. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
-5. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
+3. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
+4. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
    (below). Each route's ending, and the tower's secret (to decide).
 
 ## The final boss (floor 60) (Hayden, 2026-11-03)
