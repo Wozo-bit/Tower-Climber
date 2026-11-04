@@ -18,6 +18,7 @@ change, cut or replace anything. Names in [brackets] are placeholders.
 | The friend | Lives in the game, and knows you as a lifelong friend you've never met |
 | Your knowledge | The game knows you too well: details match things only you could know |
 | Dying | "It's just a game... right?" Everyone assumes death resets; later chapters cast doubt |
+| Final boss | Not the tower's creator, but the champion the creator **sponsors**. In New Game+, a **mimic of your previous run's character** |
 
 ## The premise in one paragraph
 
@@ -79,9 +80,10 @@ A small walkable room in the real world, at night. Things to interact with:
 setup screens:
 
 1. "Tester name" (your name), then difficulty and Ironman as now.
-2. A couple of odd questions (flavour only for now; later they could nudge
-   starting stats or values): *"What do you want most?" / "What are you
-   afraid of losing?"*
+2. A couple of odd questions: *"What do you want most?" / "What are you
+   afraid of losing?"* Each answer (Hayden: both) gives a couple of
+   starting stat points **and** a small nudge: a little route lean, or one
+   god notices you first. Remembered for callbacks later.
 3. *"Name the person you trust most."* This is the existing friend-naming
    step; the default is [Rowan].
 4. `[ Tester confirmed. ]` → `[ Synchronising... ]` → (glitch) `[ Welcome home. ]`
@@ -102,9 +104,9 @@ object, using systems that already exist.
 | 8-9 | A carving on the wall matches a drawing from your childhood notebook, down to the misspelled monster name. [Friend] has never noticed it. |
 | 10 | Boss. Before it, a climber you met at the campfire falls in a fight and doesn't respawn. After it: the boss's patron god takes notice ("So you're the Tester."), and the System: `[ Chapter 1 complete. ]` ... `[ You remembered faster this time. ]` |
 
-The last line hints you've been here before. It can be reinterpreted later
-(a loop, a past tester, the creator's notes), so it doesn't lock in the
-secret. Cut it if it promises too much.
+The last line hints you've been here before (kept, Hayden 2026-11-03). It
+pays off with the previous Tester and the NG+ mimic, and can still be
+reinterpreted later, so it doesn't lock in the secret.
 
 ## Chapters 2-6 (one-line arcs, to fill in later)
 
@@ -116,8 +118,33 @@ secret. Cut it if it promises too much.
 3. **Chapter 4 (31-40):** the past. Why you were chosen starts to surface
    (the notebook, who made the game).
 4. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
-5. **Chapter 6 (51-60):** the top. Each route's ending, and the tower's
-   secret (to decide).
+5. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
+   (below). Each route's ending, and the tower's secret (to decide).
+
+## The final boss (floor 60) (Hayden, 2026-11-03)
+
+The creator of the tower never fights you directly. Like every god, it
+**sponsors** someone, and its champion is the last thing between you and
+the top. This fits the systems that already exist: bosses have god patrons,
+and gods sponsor guilds and champions.
+
+- **First run: the previous Tester.** Someone invited before you, who
+  reached the top and was kept there as the creator's champion. Their story
+  mirrors yours, which sets up the mimic. Foreshadowed in earlier chapters
+  as a rumour, then a name, then a face.
+- **New Game+: a mimic of you and your party.** The creator's new champion
+  is a copy of your character as they were when you last conquered the
+  tower (name, class, skills, gear, that run's strength plus NG+ scaling),
+  fighting beside mimics of the companions you had at the end of that run.
+  Your current party against your old one. If you became a god, the mimic
+  carries your god title. It pays off `[ You remembered faster this time. ]`:
+  the tower remembers you too.
+- **How it would work:** the Hall of Climbers already saves the conqueror's
+  whole character (`LegacyRecord.character`: class, stats, skills, gear;
+  also the friend's name and god title). It doesn't save the companions yet:
+  the completion screen would also snapshot the fighting party. The mimics
+  are built from those snapshots and use their real skill lists. A run with
+  no past conqueror gets the previous Tester.
 
 ## How it would work in the game (for later)
 
@@ -134,8 +161,9 @@ secret. Cut it if it promises too much.
 ## Open questions for Hayden
 
 1. The game-within-the-game's name: the same as the real title, or different?
-2. Should the setup questions ("What do you want most?") affect anything
-   (stats, the friend's values, which god notices you first)?
-3. Keep "You remembered faster this time"? Or something softer?
-4. Should the real world come back mid-story (dreams, glitches showing your
+2. Should the real world come back mid-story (dreams, glitches showing your
    room)?
+
+Answered 2026-11-03: setup questions give stats + a nudge; keep "You
+remembered faster this time"; final boss = the previous Tester, NG+ = a
+mimic of you and your old party.
