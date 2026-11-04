@@ -81,6 +81,11 @@ func portrait_id() -> String:
 	return str(_node().get("portrait", ""))
 
 
+## "" (normal), "system" (a System window line) or "glitch" (the System slipping).
+func style() -> String:
+	return str(_node().get("style", ""))
+
+
 func text() -> String:
 	return fill(_node().get("text", ""), _npc_name())
 

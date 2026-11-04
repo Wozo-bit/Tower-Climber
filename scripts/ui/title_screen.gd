@@ -5,6 +5,7 @@ extends Control
 ## conquered the tower in (after a confirmation).
 
 const SANDBOX_SCENE := "res://scenes/progression_sandbox.tscn"
+const PROLOGUE_SCENE := "res://scenes/prologue.tscn"
 const GAME_TITLE := "TOWER CLIMBER"   # placeholder title
 
 var _continue_btn: Button
@@ -21,17 +22,8 @@ var _slot_rows: VBoxContainer
 var _slot_mode := "load"        # "load", "new" or "ngplus"
 var _new_game_slot := 1
 
-# New game panel
-var _new_panel: Control
-var _name_edit: LineEdit
-var _friend_edit: LineEdit
-var _new_step1: VBoxContainer   # name yourself
-var _new_step2: VBoxContainer   # name your childhood friend
-var _friend_prompt: Label
-var _friend_warning: Label
-var _new_warning: Label
-var _new_difficulty: OptionButton
-var _new_ironman: CheckBox
+# New Game: the prologue room, or (prologue skipped) the test client here.
+var _client: TestClientPanel
 
 # New Game+ panel
 var _ng_panel: Control
@@ -219,48 +211,25 @@ func _confirm(title: String, text: String, on_yes: Callable) -> void:
 	dlg.popup_centered()
 
 
+## New Game in `slot`: the prologue room (the real world), or straight to the
+## test client when the prologue is skipped (Settings).
 func _start_naming(slot: int) -> void:
 	_new_game_slot = slot
 	_slot_panel.hide()
-	_open_new_game()
+	if Settings.skip_prologue:
+		_open_new_game()
+	else:
+		Prologue.pending_slot = slot
+		get_tree().change_scene_to_file(PROLOGUE_SCENE)
 
 
-## New Game is two steps, Pokémon-style: name yourself, then your childhood friend.
 func _open_new_game() -> void:
-	_name_edit.text = "Climber"
-	_friend_edit.text = ""
-	_new_warning.text = "Save slot %d" % _new_game_slot
-	_new_step1.show()
-	_new_step2.hide()
-	_new_panel.show()
-	_name_edit.grab_focus()
-	_name_edit.select_all()
+	_client.open()
 
 
-## Step 1 -> step 2.
-func _confirm_player_name(_t: String = "") -> void:
-	var cleaned := CharacterData.clean_name(_name_edit.text)
-	if cleaned.is_empty():
-		_new_warning.text = "Please enter a name."
-		return
-	_name_edit.text = cleaned
-	_friend_prompt.text = "Nice to meet you, %s!\n\nYour childhood friend has insisted on climbing the tower with you.\nWhat's your friend's name?" % cleaned
-	_friend_warning.text = ""
-	_new_step1.hide()
-	_new_step2.show()
-	_friend_edit.grab_focus()
-
-
-## Step 2: start the run. A blank friend name uses the default.
-func _begin_new_game(_t: String = "") -> void:
-	GameState.start_new_game(_name_edit.text, _friend_edit.text, _new_game_slot,
-		_new_difficulty.get_selected_id(), _new_ironman.button_pressed)
+func _begin_new_game(r: Dictionary) -> void:
+	TestClientPanel.begin_run(r, _new_game_slot)
 	get_tree().change_scene_to_file(GameState.TOWER_SCENE)
-
-
-func _use_default_friend_name() -> void:
-	_friend_edit.text = GameState.CHILDHOOD_FRIEND_NAME
-	_begin_new_game()
 
 
 func _open_ng_plus() -> void:
@@ -337,14 +306,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_slot_panel.hide()
 			if _slot_mode == "ngplus":
 				_ng_panel.show()
-		elif _new_panel.visible and _new_step2.visible:
-			_new_step2.hide()
-			_new_step1.show()
-			_name_edit.grab_focus()
-			get_viewport().set_input_as_handled()
-			return
-		elif _new_panel.visible:
-			_new_panel.hide()
+		elif _client.visible:
+			return   # the client handles its own Back
 		elif _ng_panel.visible:
 			_ng_panel.hide()
 		else:
@@ -430,7 +393,10 @@ func _build() -> void:
 	add_child(version)
 
 	_build_slot_panel()
-	_build_new_game_panel()
+	_client = TestClientPanel.new()
+	_client.completed.connect(_begin_new_game)
+	_client.canceled.connect(func(): _open_slots("new"))
+	add_child(_client)
 	_build_ng_plus_panel()
 	_settings = SettingsPanel.new()
 	_settings.closed.connect(_refresh)
@@ -461,79 +427,6 @@ func _build_slot_panel() -> void:
 	row.add_child(back)
 
 
-func _build_new_game_panel() -> void:
-	var box := _overlay_panel(520)
-	_new_panel = box.get_meta("overlay")
-	box.add_child(_heading("New Game"))
-
-	# Step 1: your name
-	_new_step1 = VBoxContainer.new()
-	_new_step1.add_theme_constant_override("separation", 10)
-	box.add_child(_new_step1)
-	var l := Label.new()
-	l.text = "What's your name, climber? (up to %d characters)" % CharacterData.NAME_MAX_LENGTH
-	_new_step1.add_child(l)
-	_name_edit = LineEdit.new()
-	_name_edit.max_length = CharacterData.NAME_MAX_LENGTH
-	_name_edit.text_submitted.connect(_confirm_player_name)
-	_new_step1.add_child(_name_edit)
-	var picks := difficulty_picker(_new_step1)
-	_new_difficulty = picks[0]
-	_new_ironman = picks[1]
-	_new_warning = Label.new()
-	_new_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_new_warning.modulate = Color(1, 0.75, 0.4)
-	_new_step1.add_child(_new_warning)
-	var row1 := HBoxContainer.new()
-	row1.alignment = BoxContainer.ALIGNMENT_END
-	_new_step1.add_child(row1)
-	var back1 := Button.new()
-	back1.text = "Back"
-	back1.pressed.connect(func(): _new_panel.hide(); _open_slots("new"))
-	row1.add_child(back1)
-	var next := Button.new()
-	next.text = "Next"
-	next.pressed.connect(_confirm_player_name)
-	row1.add_child(next)
-
-	# Step 2: your childhood friend's name
-	_new_step2 = VBoxContainer.new()
-	_new_step2.add_theme_constant_override("separation", 10)
-	_new_step2.hide()
-	box.add_child(_new_step2)
-	_friend_prompt = Label.new()
-	_friend_prompt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_new_step2.add_child(_friend_prompt)
-	_friend_edit = LineEdit.new()
-	_friend_edit.max_length = CharacterData.NAME_MAX_LENGTH
-	_friend_edit.placeholder_text = "Leave blank for %s" % GameState.CHILDHOOD_FRIEND_NAME
-	_friend_edit.text_submitted.connect(_begin_new_game)
-	_new_step2.add_child(_friend_edit)
-	_friend_warning = Label.new()
-	_friend_warning.modulate = Color(1, 1, 1, 0.55)
-	_friend_warning.text = ""
-	_new_step2.add_child(_friend_warning)
-	var row2 := HBoxContainer.new()
-	row2.alignment = BoxContainer.ALIGNMENT_END
-	_new_step2.add_child(row2)
-	var back2 := Button.new()
-	back2.text = "Back"
-	back2.pressed.connect(func():
-		_new_step2.hide()
-		_new_step1.show()
-		_name_edit.grab_focus())
-	row2.add_child(back2)
-	var dflt := Button.new()
-	dflt.text = "Use \"%s\"" % GameState.CHILDHOOD_FRIEND_NAME
-	dflt.tooltip_text = "Can't think of one? Use the default name. You can rename them later from the party menu."
-	dflt.pressed.connect(_use_default_friend_name)
-	row2.add_child(dflt)
-	var go := Button.new()
-	go.text = "Begin the climb"
-	go.pressed.connect(_begin_new_game)
-	row2.add_child(go)
-
-
 func _build_ng_plus_panel() -> void:
 	var box := _overlay_panel(820)
 	_ng_panel = box.get_meta("overlay")
@@ -553,7 +446,7 @@ func _build_ng_plus_panel() -> void:
 	_ng_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_ng_detail.custom_minimum_size.y = 150
 	box.add_child(_ng_detail)
-	var picks := difficulty_picker(box)
+	var picks := TestClientPanel.difficulty_picker(box)
 	_ng_difficulty = picks[0]
 	_ng_ironman = picks[1]
 	_ng_warning = Label.new()
@@ -601,38 +494,6 @@ func _overlay_panel(width: float) -> VBoxContainer:
 	margin.add_child(box)
 	box.set_meta("overlay", overlay)
 	return box
-
-
-## Difficulty dropdown (with a description) + the Ironman checkbox.
-## Returns [OptionButton, CheckBox].
-static func difficulty_picker(parent: Control) -> Array:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	parent.add_child(row)
-	var l := Label.new()
-	l.text = "Difficulty"
-	row.add_child(l)
-	var opt := OptionButton.new()
-	for level in Difficulty.all():
-		opt.add_item(Difficulty.name_of(level), level)
-	opt.select(opt.get_item_index(Difficulty.DEFAULT))
-	opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(opt)
-	var desc := Label.new()
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.custom_minimum_size.x = 440
-	desc.add_theme_font_size_override("font_size", 13)
-	desc.modulate = Color(1, 1, 1, 0.65)
-	desc.text = Difficulty.desc_of(Difficulty.DEFAULT) + "\nYou can lower it later, but never raise it."
-	opt.item_selected.connect(func(i):
-		desc.text = Difficulty.desc_of(opt.get_item_id(i)) + "\nYou can lower it later, but never raise it.")
-	parent.add_child(desc)
-	var iron := CheckBox.new()
-	iron.text = "Ironman: anyone still down after a fight is dead; if you die, the save is deleted."
-	iron.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	iron.custom_minimum_size.x = 440
-	parent.add_child(iron)
-	return [opt, iron]
 
 
 func _menu_button(text: String, cb: Callable) -> Button:

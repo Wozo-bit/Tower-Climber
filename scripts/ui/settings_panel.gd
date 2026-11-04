@@ -51,7 +51,12 @@ func _init() -> void:
 		func(i): Settings.ui_scale = Settings.UI_SCALES[i], "Makes menus and text bigger or smaller.")
 	_add_check(box, "V-Sync", "vsync")
 	_add_theme_picker(box)
-	_add_check(box, "Cut-in splashes", "cutins")
+	var story_row := HBoxContainer.new()   # one row, so the panel stays short
+	story_row.add_theme_constant_override("separation", 24)
+	box.add_child(story_row)
+	_add_check(story_row, "Cut-in splashes", "cutins")
+	_add_check(story_row, "Skip the prologue", "skip_prologue")
+	story_row.get_child(1).tooltip_text = "New Game goes straight to character setup, without the opening room."
 	var tips_row := HBoxContainer.new()
 	box.add_child(tips_row)
 	_add_check(tips_row, "Tutorial tips", "tips")

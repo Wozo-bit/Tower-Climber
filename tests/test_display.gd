@@ -202,9 +202,37 @@ func test_shape(win: Vector2i, scale: float, label: String) -> void:
 		opener.call()
 		await _frames(2)
 		_expect_fit(title, "a title panel", label)
-		for panel in [title._slot_panel, title._new_panel, title._settings._controls, title._settings, title._credits]:
+		for panel in [title._slot_panel, title._client, title._settings._controls, title._settings, title._credits]:
 			panel.hide()
 	title.queue_free()
+	await _frames(1)
+
+	# The prologue room and every screen of the test client.
+	var room: Node = load("res://scenes/prologue.tscn").instantiate()
+	add_child(room)
+	await _frames(2)
+	_expect_fit(room, "prologue room", label)
+	var room_px := Vector2(Prologue.ROOM) * Prologue.TILE
+	check(Rect2(room._origin, room_px).size.x <= get_viewport().get_visible_rect().size.x
+		and room._origin.y >= 0, "[%s] the room is on screen" % label)
+	room.look_at_object(&"notebook")
+	await _frames(2)
+	_expect_fit(room, "prologue dialogue", label)
+	room._dialogue.hide()
+	var client: TestClientPanel = room._client
+	client.open()
+	for step in StoryLibrary.SETUP_QUESTIONS.size() + 3:
+		await _frames(2)
+		_expect_fit(room, "test client screen %d" % client.step(), label)
+		if client.step() == 0:
+			client.confirm_name()
+		elif client.step() <= StoryLibrary.SETUP_QUESTIONS.size():
+			var q: Dictionary = StoryLibrary.SETUP_QUESTIONS[client.step() - 1]
+			client.answer(q.id, q.options[0].id)
+		else:
+			client.confirm_friend()
+	client._done = true   # don't start a run
+	room.queue_free()
 	await _frames(1)
 
 	# The Dev Sandbox (not in the released game, but Hayden tests with it).

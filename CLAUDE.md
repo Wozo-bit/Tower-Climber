@@ -7,7 +7,7 @@ before changing gameplay.
 
 ## Current phase
 Building the **Skeleton** (every system working) before the **Meat** (story,
-quests, relationships). Don't write story content unless asked.
+quests, relationships). Story: Chapter 1 built 2026-11-04 (see STORY below); write more only when Hayden asks.
 
 The Skeleton is essentially DONE (selling gear, all 3 guild phases, art/sound
 hooks, guild captains, the balance pass). Deferred until the story exists:
@@ -295,6 +295,20 @@ more routes/endings: keep new route content data-driven and registrable.
 - Build quests/routes as data (like DialogueLibrary), validated by tests;
   placeholder text only, no real story.
 
+STORY (Hayden 2026-11-03/04, plan in docs/story/story_bible.md): game
+inside a game, "Tower of Recognition" (placeholder); grim-but-hopeful; the
+System has a hidden personality; why you were chosen + the tower's secret
+are undecided. Final boss = the creator's champion (the previous Tester);
+NG+ final boss = a mimic of your last conquering character + their party
+(NOT built yet: needs the Hall to snapshot the party). Real world returns
+at milestones (tier-2/3 advancement, before floor 60, Ascending): not built.
+BUILT 2026-11-04: prologue room (scenes/prologue.tscn), New Game = test
+client (TestClientPanel; setup answers = +2 stat + route lean / god +5
+interest, Hayden: both), StoryLibrary scenes (once per run, "enter" /
+"guardian_down"), Chapter 1 floors 1-10, "system"/"glitch" line styles,
+chapter in Tab -> Quests, Settings "Skip the prologue". Hayden asked for the
+story, so writing story text is OK now; it's a first draft he'll rewrite.
+
 Tutorial tips BUILT 2026-10-30 (Hayden's picks): system window that pauses,
 shown the first time you meet each system (~30 tips, all four topics), seen
 list for the whole save file (user://tips.json; tests redirect Tips.path),
@@ -360,7 +374,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (24 suites, 1678 checks at last run).
+Every change gets tests in tests/ (25 suites, 1885 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -371,7 +385,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips, test_display. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips, test_display, test_story. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

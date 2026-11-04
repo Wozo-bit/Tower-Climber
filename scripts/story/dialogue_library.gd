@@ -536,12 +536,13 @@ const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_
 	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed"]
 
 
+## Story scenes (StoryLibrary) play through here too.
 static func get_dialogue(id: StringName) -> Dictionary:
-	return DIALOGUES.get(id, {})
+	return DIALOGUES.get(id, StoryLibrary.get_dialogue(id))
 
 
 static func has_dialogue(id: StringName) -> bool:
-	return DIALOGUES.has(id)
+	return DIALOGUES.has(id) or StoryLibrary.DIALOGUES.has(id)
 
 
 ## Checks every dialogue for typos: missing nodes, unknown condition/effect

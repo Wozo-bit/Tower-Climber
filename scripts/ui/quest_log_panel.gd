@@ -93,6 +93,13 @@ func _rebuild() -> void:
 		_list.remove_child(c)
 		c.queue_free()
 	var ql := GameState.quests
+	# Where you are in the story (one chapter per stage).
+	var chapter := Label.new()
+	chapter.text = StoryLibrary.chapter_name(StoryLibrary.chapter_for_floor(GameState.floor_number))
+	chapter.add_theme_font_size_override("font_size", 18)
+	chapter.add_theme_color_override("font_color", UITheme.color("accent"))
+	chapter.name = "Chapter"
+	_list.add_child(chapter)
 	_section("Active", ql.active.keys(), Color(0.95, 0.85, 0.55))
 	_section("Completed", ql.completed, Color(0.6, 0.9, 0.6))
 	_section("Failed", ql.failed, Color(0.9, 0.5, 0.5))

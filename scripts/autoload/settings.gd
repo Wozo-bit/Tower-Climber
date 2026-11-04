@@ -23,6 +23,8 @@ var ui_theme: StringName = UITheme.DEFAULT
 var cutins := true
 ## Tutorial tips the first time you meet each system (the Tips autoload).
 var tips := true
+## New Game goes straight to the test client, without the real-world room.
+var skip_prologue := false
 ## Index into WINDOW_SIZES (used when not fullscreen).
 var window_size := 0
 var ui_scale := 1.0
@@ -115,6 +117,7 @@ func save_settings() -> void:
 	cfg.set_value("video", "ui_theme", String(ui_theme))
 	cfg.set_value("video", "cutins", cutins)
 	cfg.set_value("game", "tips", tips)
+	cfg.set_value("game", "skip_prologue", skip_prologue)
 	cfg.set_value("video", "window_size", window_size)
 	cfg.set_value("video", "ui_scale", ui_scale)
 	for a in InputBindings.ACTIONS:
@@ -135,6 +138,7 @@ func load_settings() -> void:
 	ui_theme = StringName(theme_id) if UITheme.is_valid(theme_id) else UITheme.DEFAULT
 	cutins = cfg.get_value("video", "cutins", cutins) == true
 	tips = cfg.get_value("game", "tips", tips) == true
+	skip_prologue = cfg.get_value("game", "skip_prologue", skip_prologue) == true
 	var ws = cfg.get_value("video", "window_size", window_size)
 	window_size = clampi(int(ws), 0, WINDOW_SIZES.size() - 1) if (ws is int or ws is float) else 0
 	ui_scale = clean_scale(cfg.get_value("video", "ui_scale", ui_scale))

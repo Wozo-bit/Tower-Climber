@@ -195,12 +195,28 @@ func _process(delta: float) -> void:
 	_tip_check -= delta
 	if _tip_check <= 0.0 and not _menus_open() and _player_t >= 1.0 and GameState.pending_talks.is_empty():
 		_tip_check = TIP_CHECK_EVERY
-		_tips_now("floor")
+		if not (StoryLibrary.auto_play and story_now()):
+			_tips_now("floor")
 
 	if not _menus_open():
 		_update_player(delta)
 		_update_enemies(delta)
 	queue_redraw()
+
+
+## Plays the story scene due on this floor, if any (StoryLibrary). Each plays
+## once per run. Public so tests can drive it. Returns true if one started.
+func story_now() -> bool:
+	var n := GameState.floor_number
+	var has_guardian := StageLibrary.is_boss_floor(n) or StageLibrary.is_miniboss_floor(n)
+	var guardian_down := has_guardian and not GameState.stairs_locked()
+	var id := StoryLibrary.due(n, guardian_down)
+	if id == &"" or _dialogue.visible:
+		return false
+	GameState.set_flag(StoryLibrary.seen_flag(id))
+	_talk_cooldown = 0.0
+	talk(StoryLibrary.SCENES[id].dialogue)
+	return _dialogue.visible
 
 
 ## Queues the tips due here and shows them (pauses until they're closed).

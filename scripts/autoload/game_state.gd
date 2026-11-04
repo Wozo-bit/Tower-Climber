@@ -234,6 +234,29 @@ func start_new_game(character_name: String, friend_name: String = "", slot: int 
 	save_game()
 
 
+## The test client's answers (StoryLibrary.SETUP_QUESTIONS: { question id:
+## answer id }): starting stat points, a route lean or a god's interest, and
+## a flag per answer. `flags` = things already done (the prologue room).
+func apply_setup(answers: Dictionary, flags: Array = []) -> void:
+	for q in StoryLibrary.SETUP_QUESTIONS:
+		var o := StoryLibrary.setup_option(q.id, StringName(answers.get(q.id, &"")))
+		if o.is_empty():
+			continue
+		story_flags[StringName("setup_%s_%s" % [q.id, o.id])] = true
+		for st in o.get("stats", {}):
+			player.stats.base[st] = player.stats.get_base(st) + o.stats[st]
+		for r in o.get("route_points", {}):
+			add_route_points(r, o.route_points[r])
+		for b in o.get("interest", {}):
+			blessings.add_interest(b, o.interest[b])
+	for f in flags:
+		story_flags[StringName(f)] = true
+	player.stats.emit_changed()
+	player.full_restore()
+	if run_active:
+		save_game()
+
+
 ## Picks this run's stage themes (Goblin Warrens or Slime Pits, ...).
 func roll_stage_themes() -> void:
 	var rng := RandomNumberGenerator.new()

@@ -17,6 +17,11 @@ var _speaker: Label
 var _portrait: TextureRect
 var _text: Label
 var _buttons: VBoxContainer
+## The System's lines read centred in the accent colour; "glitch" lines
+## flicker through scrambled text first.
+var _glitch: Tween
+const GLITCH_CHARS := "#%&@$!?/|<>*+=~"
+const GLITCH_TIME := 0.45
 
 
 func _init() -> void:
@@ -93,6 +98,7 @@ func _refresh() -> void:
 	_portrait.visible = _portrait.texture != null
 	# Narration (lore objects) reads a little dimmer.
 	_text.modulate = Color(1, 1, 1, 1) if _speaker.visible else Color(0.85, 0.85, 0.95)
+	_apply_style(runner.style())
 	for c in _buttons.get_children():
 		_buttons.remove_child(c)
 		c.queue_free()
@@ -119,7 +125,45 @@ func _refresh() -> void:
 			_refresh())
 		_buttons.add_child(b)
 		first = b
-	first.grab_focus.call_deferred()
+	var focus_ref: WeakRef = weakref(first)
+	(func():
+		var b: Button = focus_ref.get_ref()
+		if b and b.is_inside_tree():
+			b.grab_focus()).call_deferred()   # the line may move on first
+
+
+func _apply_style(style: String) -> void:
+	if _glitch:
+		_glitch.kill()
+		_glitch = null
+	var system := style != ""
+	_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if system else HORIZONTAL_ALIGNMENT_LEFT
+	_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER if system else VERTICAL_ALIGNMENT_TOP
+	if system:
+		_text.modulate = UITheme.color("accent")
+	if style == "glitch":
+		Audio.play_sfx(["system_glitch", "notice"])
+		var real := _text.text
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		_glitch = create_tween()
+		for i in 6:
+			_glitch.tween_callback(func(): _text.text = scramble(real, rng); _text.modulate = Color(1, 0.35, 0.4))
+			_glitch.tween_interval(GLITCH_TIME / 6.0)
+		_glitch.tween_callback(func(): _text.text = real; _text.modulate = UITheme.color("accent"))
+	elif style == "system":
+		Audio.play_sfx(["system_line", "notice"])
+
+
+## The line with some letters swapped for noise (spaces and brackets kept).
+static func scramble(line: String, rng: RandomNumberGenerator) -> String:
+	var out := ""
+	for ch in line:
+		if ch in " []" or ch == "\n" or rng.randf() < 0.45:
+			out += ch
+		else:
+			out += GLITCH_CHARS[rng.randi() % GLITCH_CHARS.length()]
+	return out
 
 
 func _unhandled_input(event: InputEvent) -> void:

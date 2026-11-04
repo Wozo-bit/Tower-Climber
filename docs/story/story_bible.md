@@ -1,7 +1,16 @@
 # Story bible (DRAFT for Hayden to review)
 
-Nothing here is in the game yet. Everything is a first draft to react to:
-change, cut or replace anything. Names in [brackets] are placeholders.
+Everything is a first draft to react to: change, cut or replace anything.
+Names in [brackets] are placeholders.
+
+**Built (2026-11-04):** the prologue room, the test client (New Game), the
+setup questions, Chapter 1's scenes on floors 1-10, System/glitch lines and
+the chapter in Tab -> Quests. The scene text lives in
+`scripts/story/story_library.gd`. **Not built yet:** chapters 2-6, the final
+boss (previous Tester / NG+ mimic) and the real-world returns.
+Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
+and Marn (the old one); the notebook's cover misspells the name as
+"THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
 
 ## Hayden's decisions (2026-11-03)
 
