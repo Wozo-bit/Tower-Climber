@@ -6,6 +6,7 @@ extends RefCounted
 ## - Single-target attacks go for a taunting unit if one is reachable.
 
 const HEAL_THRESHOLD := 0.5
+const AIM_CHANCE := 0.65
 
 
 static func choose(battle: BattleManager, actor: Combatant) -> BattleAction:
@@ -23,6 +24,13 @@ static func choose(battle: BattleManager, actor: Combatant) -> BattleAction:
 			var hurt := _most_hurt(battle.allies_of(actor))
 			if hurt and float(hurt.hp) / hurt.max_hp < HEAL_THRESHOLD:
 				return BattleAction.use_skill(actor, s, hurt)
+
+	# From floor 11: melee enemies sometimes leap at your back rows.
+	if battle.flank_chance > 0.0 and actor.side == Combatant.Side.ENEMY \
+			and actor.basic_attack.damage_type == SkillDef.DamageType.MELEE and rng.randf() < battle.flank_chance:
+		var prey := battle.flank_target()
+		if prey:
+			return BattleAction.use_skill(actor, SkillLibrary.get_skill(SkillLibrary.ENEMY_LUNGE), prey)
 
 	# 2. Maybe use a skill.
 	var usable: Array[SkillDef] = []
@@ -52,7 +60,29 @@ static func choose(battle: BattleManager, actor: Combatant) -> BattleAction:
 		# Easily distracted: goes after whoever hit it last.
 		if actor.has_trait(&"easily_distracted") and actor.last_attacker and targets.has(actor.last_attacker):
 			return BattleAction.use_skill(actor, skill, actor.last_attacker)
-	return BattleAction.use_skill(actor, skill, targets[rng.randi_range(0, targets.size() - 1)])
+	return BattleAction.use_skill(actor, skill, _pick_target(battle, actor, skill, targets))
+
+
+## Who a single-target attack goes for. Early on, anyone. From floor 11 enemies
+## think: archers aim for the back rows, casters for whoever resists magic least.
+static func _pick_target(battle: BattleManager, actor: Combatant, skill: SkillDef, targets: Array[Combatant]) -> Combatant:
+	var rng := battle.rng
+	var any := targets[rng.randi_range(0, targets.size() - 1)]
+	if battle.flank_chance <= 0.0 or actor.side != Combatant.Side.ENEMY or not skill.targets_enemies():
+		return any
+	if rng.randf() >= AIM_CHANCE:
+		return any
+	if DamageCalc.effective_type(actor, skill) == SkillDef.DamageType.MAGIC:
+		var softest := any
+		for t in targets:
+			if t.stats.magic_defense() < softest.stats.magic_defense():
+				softest = t
+		return softest
+	if skill.damage_type == SkillDef.DamageType.RANGED:
+		var back := targets.filter(func(t): return t.row >= Combatant.Row.REAR)
+		if not back.is_empty():
+			return back[rng.randi_range(0, back.size() - 1)]
+	return any
 
 
 static func _most_hurt(units: Array[Combatant]) -> Combatant:

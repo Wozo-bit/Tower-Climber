@@ -73,6 +73,13 @@ var enemy_skill_mult := 1.0
 var xp_mult := 1.0
 var gold_mult := 1.0
 
+## Pressure on your back rows (Hayden 2026-11-04: a mage in the back was never
+## touched). The chance a melee enemy leaps past the front line on its turn;
+## above 0 also makes enemies aim (BattleAI._pick_target) and gives non-casters
+## some magic defense. GameState sets it by floor. Set BEFORE setup().
+var flank_chance := 0.0
+const ENEMY_MAGIC_GUARD := 0.5   # Intelligence of at least this share of Stamina
+
 ## This floor's twist (FloorMods id). Set BEFORE setup().
 var floor_mod: StringName = &""
 ## Items work in this fight? (Silent Floor)
@@ -139,6 +146,10 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 	for e in enemies:
 		if e.source_enemy.is_boss:
 			can_flee = false
+	if flank_chance > 0.0:
+		for e in enemies:
+			var guard := roundi(e.stats.get_base(Stats.Type.STAMINA) * ENEMY_MAGIC_GUARD)
+			e.stats.base[Stats.Type.INTELLIGENCE] = maxi(e.stats.get_base(Stats.Type.INTELLIGENCE), guard)
 	_apply_floor_mod()
 	_setup_boss_mechanics()
 
@@ -159,6 +170,18 @@ func _apply_floor_mod() -> void:
 		e.hp = e.max_hp
 	xp_mult *= m.get("xp", 1.0)
 	gold_mult *= m.get("gold", 1.0)
+
+
+## Who a lunging enemy leaps at: a taunter first (Taunt and Guard still protect
+## your back rows), else someone behind the front line. null = nobody's there.
+func flank_target() -> Combatant:
+	var back: Array[Combatant] = []
+	for t in living(party):
+		if t.has_status(&"taunt"):
+			return t
+		if is_protected(t):
+			back.append(t)
+	return back[rng.randi_range(0, back.size() - 1)] if not back.is_empty() else null
 
 
 ## The boss's mechanics follow from its id, so a boss always plays the same.

@@ -79,6 +79,8 @@ var merchant_bought: Array = []
 ## (BattleManager.adapt_mult). Not saved: reloading doesn't matter much.
 var floor_skill_uses: Dictionary = {}
 const ADAPT_FROM_FLOOR := 30
+## Floor -> chance a melee enemy leaps at your back rows on its turn.
+const FLANK_BY_FLOOR := { 11: 0.15, 21: 0.25, 41: 0.35 }
 ## Late bosses get mechanics from these floors (BattleManager.boss_tier).
 const BOSS_TIER_FLOORS := { 30: 1, 50: 2 }
 ## What the party has learned about enemies (weaknesses, traits). Per run.
@@ -791,6 +793,8 @@ func configure_battle(battle: BattleManager) -> void:
 	# Gold grows a little slower than XP, so shop prices still matter higher up.
 	battle.gold_mult = Difficulty.value(difficulty, "gold") * pow(rewards, GOLD_REWARD_EXP)
 	battle.floor_mod = current_floor_mod() if pending_battle_info.has("kind") else &""
+	if pending_battle_info.has("kind"):
+		battle.flank_chance = flank_chance_for(floor_number)
 	if floor_number >= ADAPT_FROM_FLOOR and pending_battle_info.has("kind"):
 		battle.adapt_uses = floor_skill_uses
 	var kind: String = pending_battle_info.get("kind", "")
@@ -927,6 +931,14 @@ func enter_floor(n: int) -> void:
 	guilds.on_floor(guild_rng)
 	divinity.on_floor()   # tithes from the guilds you sponsor
 	pay_wages()
+
+
+static func flank_chance_for(n: int) -> float:
+	var chance := 0.0
+	for f in FLANK_BY_FLOOR:
+		if n >= f:
+			chance = maxf(chance, FLANK_BY_FLOOR[f])
+	return chance
 
 
 ## This floor's twist (FloorMods), or &"".

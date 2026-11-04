@@ -157,6 +157,7 @@ const RANK_MP := 0.1
 ## rank: Guard 30% -> 40% -> 50% (Hayden 2026-11-04). The text follows.
 const RANK_PERCENT := 0.1
 const BOSS_UNLEASH := &"boss_unleash"
+const ENEMY_LUNGE := &"enemy_lunge"
 const PERCENT_STATUSES := [&"ward", &"fury", &"evasive"]
 const RANK_NUMERALS := ["", "", " II", " III", " IV", " V"]
 
@@ -903,6 +904,9 @@ static func _build() -> Dictionary:
 			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3,
 			"learnable": true, "tier": 2}),
 	]
+	# Enemies' way past your front line (BattleAI, from floor 11).
+	list.append(SkillDef.make(ENEMY_LUNGE, "Lunge", "Leaps past the front line at someone behind it.",
+		{"effect": E.DAMAGE, "damage_type": D.MELEE, "ignores_row": true, "power": 1.15}))
 	# Late bosses' charged attack (BattleManager boss mechanics).
 	list.append(SkillDef.make(BOSS_UNLEASH, "Unleash", "A charged blast on the whole party.",
 		{"effect": E.DAMAGE, "targeting": T.ENEMY_ALL, "power": 1.6, "adaptive": true}))

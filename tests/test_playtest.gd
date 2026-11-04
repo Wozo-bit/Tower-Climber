@@ -33,6 +33,7 @@ func _ready() -> void:
 	test_floor_mods()
 	test_adaptation()
 	test_boss_phases()
+	test_backline_pressure()
 	await test_party_menu_scroll()
 	SaveSerializer.delete_file(Settings.path)
 	SaveSerializer.delete_file(Tips.path)
@@ -757,6 +758,102 @@ func test_boss_phases() -> void:
 	GameState.configure_battle(cfg)
 	check(cfg.boss_tier == 0, "floor 20 boss: none")
 	GameState.pending_battle_info = {}
+
+
+func _lineup(setup := Callable()) -> BattleManager:
+	GameState.player = GameState.make_premade("Wren", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	GameState.companions.clear()
+	GameState.companions.append(GameState.make_premade("Bram", &"tank", { Stats.Type.HEALTH: 10, Stats.Type.STAMINA: 10 }))
+	var chars: Array[CharacterData] = [GameState.player, GameState.companions[0]]
+	var defs: Array[EnemyDef] = [EnemyLibrary.get_enemy(&"goblin"), EnemyLibrary.get_enemy(&"goblin_archer"), EnemyLibrary.get_enemy(&"imp_shaman")]
+	var b := BattleManager.new()
+	if setup.is_valid():
+		setup.call(b)
+	b.setup(chars, defs, 11)
+	b.party[0].row = Combatant.Row.BACK
+	b.party[1].row = Combatant.Row.FRONT
+	return b
+
+
+func test_backline_pressure() -> void:
+	print("-- pressure on the back rows --")
+	_fresh()
+	check(GameState.flank_chance_for(10) == 0.0, "floors 1-10 teach rows: front line holds")
+	check(GameState.flank_chance_for(11) > 0.0 and GameState.flank_chance_for(45) > GameState.flank_chance_for(11), "it grows as you climb")
+	GameState.floor_number = 25
+	GameState.pending_battle_info = { "kind": "normal" }
+	GameState.pending_encounter = []
+	var cfg := BattleManager.new()
+	GameState.configure_battle(cfg)
+	check(cfg.flank_chance > 0.0, "tower fights get it")
+	GameState.pending_battle_info = {}
+	cfg = BattleManager.new()
+	GameState.configure_battle(cfg)
+	check(cfg.flank_chance == 0.0, "test fights don't")
+	# Early: melee never touches the back row.
+	var calm := _lineup()
+	for i in 200:
+		var a := BattleAI.choose(calm, calm.enemies[0])
+		check(a.target != calm.party[0], "no lunges early") if a.target == calm.party[0] else null
+	# Later: it does, and Lunge really reaches.
+	var b := _lineup(func(x): x.flank_chance = 0.35)
+	var mage: Combatant = b.party[0]
+	var tank: Combatant = b.party[1]
+	check(b.flank_target() == mage, "the one behind the front line")
+	var lunges := 0
+	for i in 400:
+		var a := BattleAI.choose(b, b.enemies[0])
+		if a.skill.id == SkillLibrary.ENEMY_LUNGE:
+			lunges += 1
+	check(lunges > 90 and lunges < 200, "melee lunges about a third of the time (%d/400)" % lunges)
+	check(b.valid_targets(b.enemies[0], _skill(SkillLibrary.ENEMY_LUNGE)).has(mage), "past the front line")
+	check(not b.valid_targets(b.enemies[0], b.enemies[0].basic_attack).has(mage), "a normal hit still can't")
+	# Counterplay.
+	tank.add_status(&"taunt", 2)
+	check(b.flank_target() == tank, "Taunt pulls it back")
+	tank.statuses.clear()
+	mage.guarded_by = tank
+	tank.add_status(&"guarding", 1)
+	b.enemies[0].stats.base[Stats.Type.AGILITY] = 200
+	var res := { "entries": [], "text": "" }
+	var hp := mage.hp
+	var thp := tank.hp
+	b.current = b.enemies[0]
+	b._resolve_skill(BattleAction.use_skill(b.enemies[0], _skill(SkillLibrary.ENEMY_LUNGE), mage), res)
+	check(mage.hp == hp and (tank.hp < thp or res.text.contains("dodges")), "Guard takes the hit (%s)" % res.text)
+	tank.statuses.clear()
+	mage.guarded_by = null
+	# Nobody behind the front: no lunge.
+	mage.row = Combatant.Row.FRONT
+	check(b.flank_target() == null, "nobody to leap at")
+	mage.row = Combatant.Row.BACK
+	# Archers aim for the back rows.
+	var back_hits := 0
+	var archer: Combatant = b.enemies[1]
+	for i in 300:
+		var t := BattleAI._pick_target(b, archer, archer.basic_attack, b.valid_targets(archer, archer.basic_attack))
+		if t == mage:
+			back_hits += 1
+	check(back_hits > 200, "archers hunt the back row (%d/300)" % back_hits)
+	var plain := _lineup()
+	var plain_hits := 0
+	for i in 300:
+		if BattleAI._pick_target(plain, plain.enemies[1], plain.enemies[1].basic_attack, plain.valid_targets(plain.enemies[1], plain.enemies[1].basic_attack)) == plain.party[0]:
+			plain_hits += 1
+	check(plain_hits < 200, "early archers shoot anyone (%d/300)" % plain_hits)
+	# Casters go for whoever resists magic least (a tank here, not the mage).
+	var soft := 0
+	var shaman: Combatant = b.enemies[2]
+	var bolt := _skill(&"firebolt")
+	for i in 300:
+		if BattleAI._pick_target(b, shaman, bolt, b.valid_targets(shaman, bolt)) == tank:
+			soft += 1
+	check(soft > 200, "casters pick the softest target (%d/300)" % soft)
+	# Non-casters' magic defense.
+	var late_orc := _battle([&"orc_brute"], func(x): x.flank_chance = 0.15)
+	var early_orc := _battle([&"orc_brute"])
+	check(late_orc.enemies[0].stats.magic_defense() > early_orc.enemies[0].stats.magic_defense(), "sturdy melee enemies resist magic a little from floor 11")
+	check(_skill(SkillLibrary.ENEMY_LUNGE).learnable == false, "Lunge is the enemies' own")
 
 
 func test_party_menu_scroll() -> void:

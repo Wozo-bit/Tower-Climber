@@ -315,9 +315,11 @@ donations, merchant weapons + books, declining gods (curse by temper, good
 gods may gift the skill), rank % +10 points, +12 HP/+2 MP per level, class
 hints on Stats, no duplicate skills (SkillLibrary.TWISTS, test enforces),
 late game: FloorMods from floor 30, enemies adapt to repeated skills, boss
-mechanics from floor 30/50. Sim 40 runs before -> after: Relaxed 40->40,
-Normal 33->29, Hard 25->17, Hell 4->8 (first two bosses got harder for the
-bot: no extra guardian XP on re-climbs). Backspace must never be a Cancel key (LineEdit
+mechanics from floor 30/50. Back rows get pressure from floor 11 (enemy
+Lunge, archers + casters aim; Hayden: mage should stay a top attacker, so
+no mage damage nerf, only some enemy magic defense). Sim 40 runs before ->
+after: Relaxed 40->40, Normal 33->28, Hard 25->25, Hell 4->5 (noisy; no
+extra guardian XP for the bot on re-climbs). Backspace must never be a Cancel key (LineEdit
 stops editing on ui_cancel). Unwritten text: docs/story/unwritten_text.md.
 
 Tutorial tips BUILT 2026-10-30 (Hayden's picks): system window that pauses,
@@ -385,7 +387,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2068 checks at last run).
+Every change gets tests in tests/ (26 suites, 2084 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

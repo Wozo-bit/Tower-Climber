@@ -32,7 +32,8 @@ const TIPS := {
 	&"rows": { "topic": &"basics", "title": "Rows", "places": ["battle"], "lines": [
 		"Each side has 4 rows: Front, Middle, Rear and Back. Melee can only reach someone if nobody stands in a row in front of them.",
 		"Melee attacks from further back hit softer (100% / 90% / 70% / 50%). Spells and bows don't care.",
-		"Each class has a recommended row (a star in Manage party), but you can put anyone anywhere." ] },
+		"Each class has a recommended row (a star in Manage party), but you can put anyone anywhere.",
+		"Higher up, enemies come for your back rows: some leap over the front line, and archers aim there. Guard and Taunt can stop them." ] },
 	&"weakness": { "topic": &"basics", "title": "Weaknesses", "places": [], "lines": [
 		"A hit on a weakness does 1.5x damage, and enough of them STAGGER an enemy: it loses its next turn.",
 		"Enemies of one family share weaknesses, so what you learn early helps against the boss.",
