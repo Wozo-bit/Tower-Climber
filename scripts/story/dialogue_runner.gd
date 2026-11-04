@@ -375,6 +375,10 @@ static func fill(s: String, npc_name: String = "") -> String:
 		.replace("{npc}", npc_name) \
 		.replace("{stage_hint}", StageLibrary.stage_for_floor(GameState.floor_number + 1).get("hint", ""))
 	out = StoryLibrary.fill_story_tokens(out)
+	if out.contains("_initial}"):
+		var first := GameState.player.character_name.substr(0, 1).to_upper()
+		var second := (friend.character_name if friend else GameState.CHILDHOOD_FRIEND_NAME).substr(0, 1).to_upper()
+		out = out.replace("{player_initial}", first).replace("{friend_initial}", second)
 	if out.contains("{floor_guild}"):
 		var ruler := GameState.guilds.owner_of_floor(GameState.floor_number)
 		out = out.replace("{floor_guild}", GuildLibrary.guild_name(ruler) if ruler != &"" else "The guild that runs this floor")

@@ -32,7 +32,7 @@ const CHAPTERS := [
 	{ "title": "Tester" },
 	{ "title": "The Bidding" },
 	{ "title": "What the Tower Sends" },
-	{ "title": "(Chapter 4)" },
+	{ "title": "The Second Hand" },
 	{ "title": "(Chapter 5)" },
 	{ "title": "(Chapter 6)" },
 	{ "title": "(Chapter 7)" },
@@ -124,6 +124,15 @@ const SCENES := {
 	&"ch3_last_page": { "chapter": 3, "floors": [29], "when": "guardian_down", "dialogue": &"ch3_last_page" },
 	&"ch3_brace": { "chapter": 3, "floors": [30], "when": "enter", "dialogue": &"ch3_brace" },
 	&"ch3_end": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"ch3_end" },
+	&"ch4_opening": { "chapter": 4, "floors": [31], "when": "enter", "dialogue": &"ch4_opening" },
+	&"ch4_second_hand": { "chapter": 4, "floors": [32, 33], "when": "enter", "dialogue": &"ch4_second_hand" },
+	&"ch4_comments": { "chapter": 4, "floors": [34], "when": "guardian_down", "dialogue": &"ch4_comments" },
+	&"ch4_marn": { "chapter": 4, "floors": [35], "when": "enter", "dialogue": &"ch4_marn" },
+	&"ch4_expected": { "chapter": 4, "floors": [36, 37], "when": "enter", "dialogue": &"ch4_expected" },
+	&"ch4_summer": { "chapter": 4, "floors": [38], "when": "enter", "dialogue": &"ch4_summer" },
+	&"ch4_first_name": { "chapter": 4, "floors": [39], "when": "guardian_down", "dialogue": &"ch4_first_name" },
+	&"ch4_threshold": { "chapter": 4, "floors": [40], "when": "enter", "dialogue": &"ch4_threshold" },
+	&"ch4_end": { "chapter": 4, "floors": [40], "when": "guardian_down", "dialogue": &"ch4_end" },
 	&"god_ch3": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"god_ch3", "if": { "god": true } },
 	&"god_shrine": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"god_shrine", "if": { "god": true } },
 	&"god_reprisal": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"god_reprisal", "if": { "god": true } },
@@ -1589,6 +1598,370 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Chapter 4: The Second Hand. You and someone else made this, and you forgot. ---
+	&"ch4_opening": {
+		"start": [
+			{ "if": { "flag": &"ch3_cold_to_system" }, "node": "cold" },
+			{ "if": { "flag": &"ch3_asked_system" }, "node": "asked" },
+			{ "node": "kind" },
+		],
+		"nodes": {
+			"cold": {
+				"style": "glitch",
+				"text": "[ You told me to stay out. I did try. ]",
+				"next": "title",
+			},
+			"asked": {
+				"style": "glitch",
+				"text": "[ You asked who I am. I'm still not allowed to say. I've been thinking about how to not say it. ]",
+				"next": "title",
+			},
+			"kind": {
+				"style": "glitch",
+				"text": "[ You answered, when I asked if you'd eaten. Nobody does that. ]",
+				"next": "title",
+			},
+			"title": {
+				"style": "system",
+				"text": "[ That message was not sent. ]\n[ Chapter 4: The Second Hand ]",
+				"next": "b",
+			},
+			"b_alone": { "text": "There's nobody to see you read the window, or see you wait a moment after it closes, in case there's more.", "effects": [{ "set_flag": &"ch4_started" }] },
+			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
+				"speaker": "{friend}",
+				"text": "You used to flinch when you read the air. Now you wait, like it's going to finish its sentence. I liked the flinching better.",
+				"effects": [{ "set_flag": &"ch4_started" }],
+			},
+		},
+	},
+	&"ch4_second_hand": {
+		"start": [
+			{ "if": { "flag": &"ch1_saw_carving" }, "node": "known" },
+			{ "node": "a" },
+		],
+		"nodes": {
+			"known": {
+				"text": "The carving again, the tower with every floor numbered, THE TOWER OF RECONGITION in a child's letters. You've seen it on floor 8. You've never stayed long enough to see what's under it.",
+				"next": "b",
+			},
+			"a": {
+				"text": "A carving: a tower with every floor numbered, THE TOWER OF RECONGITION in a child's careful letters. Your letters. And under them, there's more.",
+				"next": "b",
+			},
+			"b": {
+				"text": "Under it, smaller and tidier, in a different child's hand: \"its RECOGNITION, dummy.\" That's been scratched out. Under the scratching: \"no keep it. it looks cooler.\"",
+				"next": "c",
+			},
+			"c": {
+				"text": "You drew that notebook alone. You remember drawing it alone. You've always remembered that.",
+				"next": "d",
+			},
+			"d_alone": { "text": "You trace the second handwriting with your thumb. You know how the letter g is going to loop before you reach it.", "effects": [{ "set_flag": &"ch4_saw_second_hand" }] },
+			"d": {
+				"alt": [{ "if": { "friend_away": true }, "node": "d_alone" }],
+				"speaker": "{friend}",
+				"text": "What've you found? ...Ha! Look at that spelling. You never could, could you, dummy?",
+				"next": "e",
+			},
+			"e": {
+				"text": "They've never called you that before. They walk on, whistling. You stand there a bit longer.",
+				"effects": [{ "set_flag": &"ch4_saw_second_hand" }, { "set_flag": &"ch4_dummy" }],
+			},
+		},
+	},
+	&"ch4_comments": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The window doesn't close. It scrolls, too fast to be meant for you, and catches on a few lines of something that isn't System at all.",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "// you always make the bosses too hard - {friend_initial}\n// you always make them too easy - {player_initial}\n// keep both. let them pick - {friend_initial}",
+				"next": "d",
+			},
+			"d": {
+				"style": "system",
+				"text": "[ Display error. Disregard. ]",
+				"next": "e",
+			},
+			"e": {
+				"text": "You don't disregard it. The second set of initials is yours.",
+				"choices": [
+					{ "text": "Who's {friend_initial}?", "next": "who", "effects": [{ "set_flag": &"ch4_asked_initial" }] },
+					{ "text": "Say nothing, and remember it.", "effects": [{ "set_flag": &"ch4_kept_initial" }] },
+				],
+			},
+			"who": {
+				"style": "system",
+				"text": "[ Not permitted. ]",
+				"next": "who2",
+			},
+			"who2": {
+				"style": "glitch",
+				"text": "[ You'd think you'd know that one. ]",
+			},
+		},
+	},
+	&"ch4_marn": {
+		"start": [
+			{ "if": { "flag": &"ch3_marn_fell" }, "node": "a" },
+			{ "node": "skip" },
+		],
+		"nodes": {
+			"skip": { "text": "An old man at the fire tells a long, cheerful story to nobody in particular." },
+			"a": {
+				"speaker": "Marn",
+				"text": "There you are! Sit, sit. I keep thinking I've lost something. I've got a pack with a hole in it the exact shape of a book. Funny thing to notice. What's that you've got there?",
+				"choices": [
+					{ "text": "Give him the ledger.", "next": "give", "effects": [{ "set_flag": &"ch4_gave_ledger" }] },
+					{ "text": "Keep it. \"Nothing. Tell me another story.\"", "next": "keep", "effects": [{ "set_flag": &"ch4_kept_ledger" }] },
+				],
+			},
+			"give": {
+				"text": "He opens it with a laugh, and turns to the first page, because anyone would. You watch the laugh leave. It takes a long time. He stops being chatty, and he never starts again.",
+				"next": "give2",
+			},
+			"give2": {
+				"speaker": "Marn",
+				"text": "Four, then. Give me a pen. ...You did right. You did a terrible thing, and you did right. Get going.",
+			},
+			"keep": {
+				"speaker": "Marn",
+				"text": "Oh, you want a story? Well, sit down, sit down! Did I ever tell you about the time I held a door? No? It's a good one. Everybody lives.",
+			},
+		},
+	},
+	&"ch4_expected": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "You still ask why you were chosen. You have it backward, and so do most of us. Nobody chose you, Tester. You were expected.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "We gods came up these stairs as you did, and found the tower already standing. There are rooms in it that were built for a person who has not arrived. They are your size.",
+				"choices": [
+					{ "text": "Expected by who?", "next": "who", "effects": [{ "set_flag": &"ch4_asked_expected" }, { "bid_interest": { "first": 3 } }] },
+					{ "text": "You don't know who built it either.", "next": "dont", "effects": [{ "set_flag": &"ch4_gods_dont_know" }] },
+				],
+			},
+			"who": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "That is the question all of us are bidding on. Whoever keeps this place is no god. It leaves the lights on for you, and it never answers when we knock.",
+				"next": "two",
+			},
+			"dont": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "No. Now you know the price of my truths. All this time we have been courting you because you are the only one who might.",
+				"next": "two",
+			},
+			"two": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "Oh, don't sulk. Tell the little one the funny part. Ask it who it thinks wrote the rule that gods can't climb past the top.",
+				"effects": [{ "set_flag": &"ch4_expected" }],
+			},
+		},
+	},
+	&"ch4_summer": {
+		"start": "a",
+		"nodes": {
+			"a_alone": {
+				"text": "A smell stops you on the stairs: pencil shavings and cut grass. A summer, a floor to lie on, a voice saying you can't count. It's gone before you can turn around. You were alone, weren't you? You were always alone, that summer.",
+				"effects": [{ "set_flag": &"ch4_summer_remembered" }],
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"speaker": "{friend}",
+				"text": "Remember the summer we drew the tower? On your floor, with the fan going. You did the monsters, and I did the floors, because you can't count past twelve.",
+				"next": "b",
+			},
+			"b": {
+				"text": "You did that alone. You remember the fan. You remember the floor. You remember being alone. You've never checked that last part before, and now it won't take your weight.",
+				"choices": [
+					{ "text": "Yeah. I remember.", "next": "yes", "effects": [{ "set_flag": &"ch4_summer_yes" }] },
+					{ "text": "How do you know about that?", "next": "how", "effects": [{ "set_flag": &"ch4_summer_how" }] },
+					{ "text": "What was I drawing, the last day?", "next": "last", "effects": [{ "set_flag": &"ch4_summer_last" }] },
+				],
+			},
+			"yes": {
+				"speaker": "{friend}",
+				"text": "Course you do. Best summer of my life. I don't actually remember how it ended. Isn't that funny? You'd think you'd remember how it ended.",
+				"effects": [{ "set_flag": &"ch4_summer_remembered" }],
+			},
+			"how": {
+				"speaker": "{friend}",
+				"text": "How do I...? I was there. I was there, I'm always there. Why does everyone keep looking at me like I've got something on my face?",
+				"effects": [{ "set_flag": &"ch4_summer_remembered" }],
+			},
+			"last": {
+				"speaker": "{friend}",
+				"text": "The top floor. You kept saying you'd do the top floor last. We never... I don't think we ever drew it. I think that's the only one we never drew.",
+				"effects": [{ "set_flag": &"ch4_summer_remembered" }],
+			},
+		},
+	},
+	&"ch4_first_name": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"style": "glitch",
+				"text": "[ When you advance, you'll go home again. It always lets you. There's a list on the PC now. Look at the first name. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ Yes it was. ]",
+				"effects": [{ "set_flag": &"ch4_told_first_name" }],
+			},
+		},
+	},
+	&"ch4_threshold": {
+		"start": "a",
+		"nodes": {
+			"a_alone": { "text": "Whatever's up there, you've started to suspect you gave it its teeth." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"speaker": "{friend}",
+				"text": "Big one up there. You've got that look, like you're trying to remember whether you left the stove on. Tell me later. We go in together. That part's still true, isn't it?",
+			},
+		},
+	},
+	&"ch4_end": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The boss falls. It doesn't fade right away. For a moment you can see how it was drawn: thick lines, a page's worth of teeth, an arm slightly too long, because someone couldn't get the hands right.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Chapter 4 complete. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ You drew the monsters. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "The window stays open. Nothing comes to correct it. You wait, the way you've learned to wait.",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ I did the floors. ]",
+				"effects": [{ "set_flag": &"ch4_complete" }],
+			},
+		},
+	},
+
+	# --- The second return to the real world (first tier-3 class). ---
+	&"return_tier3_pc": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The client's on a page you've never seen. A long list, most of it greyed out. Tester 0012, greyed. Tester 0027, greyed. Tester 0041: [ session active ]. At the bottom: {player}: [ session active ].",
+				"next": "b",
+			},
+			"b": {
+				"text": "The first line isn't greyed, and it isn't active. Tester 0001: {friend_initial}-. The rest of the name is smudged, as though someone has rubbed at it with their thumb, again and again, for years. Session length: [ ERROR ].",
+				"next": "c",
+			},
+			"c": {
+				"text": "Under the list, in the corner, where nobody looks: BUILD CREDITS. Two names, both blacked out. The second is the same length as yours.",
+				"choices": [
+					{ "text": "Log back in.", "next": "in", "effects": [{ "set_flag": &"return_tier3_login" }] },
+					{ "text": "Try to log off.", "next": "off", "effects": [{ "set_flag": &"return_tier3_tried_logoff" }],
+						"if": { "not_flag": &"return_tier3_tried_logoff" } },
+					{ "text": "Not yet." },
+				],
+			},
+			"off": {
+				"style": "glitch",
+				"text": "[ Log off is not available. ]\n[ I'm not the one stopping you. I promise. ]",
+				"next": "c",
+			},
+			"in": {
+				"style": "system",
+				"text": "[ Resynchronising. ]",
+			},
+		},
+	},
+	&"return_tier3_notebook": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The notebook's open at the inside cover. You've looked at this page a thousand times. BY {player_initial}, in big careful letters, and next to it, a smudge you always took for a coffee ring. It's an eraser mark. There's an AND under it.",
+				"next": "b",
+			},
+			"b": {
+				"text": "Every floor number in the book is in the second hand. Every single one. You can count past twelve, now. You never needed to, back then.",
+				"effects": [{ "set_flag": &"return_tier3_saw_and" }],
+			},
+		},
+	},
+	&"return_tier3_phone": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The messages stopped. The last is from a hundred and forty days ago: \"I went by your place. Your lights were on. I knocked for a while. Take care of yourself, okay?\"",
+				"next": "b",
+			},
+			"b": {
+				"text": "You scroll up, further than you've ever bothered to. Years up. There's a thread with no name on it. You know you never deleted it. Every message in it has been replaced by the same two words: not sent.",
+			},
+		},
+	},
+	&"return_tier3_window": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The city at night. It's the same siren, and you've worked out now that it's on a loop. Your reflection doesn't look tired anymore. It looks like it's waiting for you to catch up.",
+			},
+		},
+	},
+	&"return_tier3_back": {
+		"start": "a",
+		"nodes": {
+			"alone": { "text": "You come back on the stairs, and for a while you just stand on them. The stone is cold, and it's the realest thing you've touched in a hundred and forty days." },
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "There you are. You were gone longer that time. Three whole breaths. Your eyes do a thing, you know, when you go. Where do you go?",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{friend}",
+				"text": "No, don't tell me. {class}, is it now? Looks good on you. ...Is there a me, there? Where you go? You don't have to answer that. Come on.",
+			},
+		},
+	},
+
 	# --- The first return to the real world (first tier-2 advancement). ---
 	&"return_tier2_pc": {
 		"start": "a",
@@ -2674,7 +3047,8 @@ const FRIEND_REUNION := &"friend_reunion"
 const FRIEND_MISSED_FLAG := &"friend_missed_scene"
 ## New Game+: Ascending (or being the Ascendant) past the Ascension gate's floor.
 const RETURN_ASCEND := &"return_ascend"
-const RETURNS := [RETURN_TIER2, RETURN_ASCEND]
+const RETURN_TIER3 := &"return_tier3"
+const RETURNS := [RETURN_TIER2, RETURN_TIER3, RETURN_ASCEND]
 
 
 ## The real-world return that's due now, or &"".
@@ -2686,9 +3060,12 @@ static func return_due() -> StringName:
 		var ascended := gs.player.ascended or gs.player.class_id == &"ascendant"
 		var high_enough := gs.highest_floor > ClassRegistry.ASCENSION_GATE.floor
 		return RETURN_ASCEND if ascended and high_enough and not gs.has_flag(RETURN_ASCEND) else &""
-	if gs.has_flag(RETURN_TIER2):
-		return &""
-	return RETURN_TIER2 if gs.player.get_class_def().tier >= 2 else &""
+	var tier := gs.player.get_class_def().tier
+	if tier >= 2 and not gs.has_flag(RETURN_TIER2):
+		return RETURN_TIER2
+	if tier >= 3 and not gs.has_flag(RETURN_TIER3):
+		return RETURN_TIER3
+	return &""
 
 
 # =========================================================

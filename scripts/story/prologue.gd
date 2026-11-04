@@ -20,7 +20,8 @@ const MODE_PROLOGUE := &"prologue"
 ## MODE_PROLOGUE, or the real-world return being played.
 static var mode: StringName = MODE_PROLOGUE
 ## Stone showing through the floorboards, per return.
-const WRONG_TILES := { &"return_tier2": [Vector2i(4, 5)] }
+const WRONG_TILES := { &"return_tier2": [Vector2i(4, 5)],
+	&"return_tier3": [Vector2i(4, 5), Vector2i(5, 5), Vector2i(7, 2), Vector2i(2, 4)] }
 ## Tests turn this off so a return doesn't change scene.
 var auto_leave := true
 signal return_finished

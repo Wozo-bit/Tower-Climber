@@ -26,6 +26,7 @@ func _ready() -> void:
 	await test_floor()
 	await test_chapter_two()
 	test_chapter_three()
+	await test_chapter_four()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -130,7 +131,7 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(31, false) == &"", "no chapter 4 scenes yet")
+	check(StoryLibrary.due(41, false) == &"", "no chapter 5 scenes yet")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -626,6 +627,113 @@ func test_chapter_three() -> void:
 	check(GameState.has_flag(&"ch3_complete"), "chapter 3 complete")
 	var end_nodes: Dictionary = StoryLibrary.DIALOGUES[&"ch3_end"].nodes
 	check(end_nodes.e.text == "[ I'm sorry. ]" and not end_nodes.f.text.contains("not sent"), "and this time nothing takes it back")
+
+
+func test_chapter_four() -> void:
+	print("-- chapter 4 --")
+	var ch4 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 4 and not s.get("if", {}).get("god", false))
+	var covered := {}
+	for s in ch4:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 31-40 (%s)" % [covered.keys()])
+	_fresh()
+	check(StoryLibrary.chapter_name(4) == "Chapter 4: The Second Hand", "its title")
+	check(StoryLibrary.due(31, false) == &"ch4_opening", "floor 31 opens it")
+	check(StoryLibrary.due(34, false) == &"", "floor 34 waits for the miniboss")
+	check(StoryLibrary.due(34, true) == &"ch4_comments", "then the old comments")
+	check(StoryLibrary.due(41, false) == &"", "no chapter 5 scenes yet")
+	# It remembers how you treated it.
+	var r := DialogueRunner.new()
+	r.start(&"ch4_opening")
+	check(r.node_id == "kind", "you answered it")
+	GameState.set_flag(&"ch3_asked_system")
+	r.start(&"ch4_opening")
+	check(r.node_id == "asked", "you asked who it is")
+	GameState.set_flag(&"ch3_cold_to_system")
+	r.start(&"ch4_opening")
+	check(r.node_id == "cold", "you told it to leave")
+	# The carving.
+	_fresh(32)
+	r.start(&"ch4_second_hand")
+	check(r.node_id == "a", "first time you've looked")
+	GameState.set_flag(&"ch1_saw_carving")
+	r.start(&"ch4_second_hand")
+	check(r.node_id == "known", "you've seen it on floor 8")
+	_play(&"ch4_second_hand")
+	check(GameState.has_flag(&"ch4_saw_second_hand") and GameState.has_flag(&"ch4_dummy"), "the second hand")
+	var carving: String = StoryLibrary.DIALOGUES[&"ch1_carving"].nodes.b.text
+	check(carving.contains("RECONGITION") and StoryLibrary.DIALOGUES[&"ch4_second_hand"].nodes.a.text.contains("RECONGITION"), "the same misspelling")
+	# The initials follow the names you typed.
+	GameState.start_new_game("Kai", "Juno", 1)
+	GameState.enter_floor(34)
+	r.start(&"ch4_comments")
+	r.advance()
+	r.advance()
+	check(r.text().contains("- J") and r.text().contains("- K"), "both sets of initials (%s)" % r.text())
+	check(r.text() == r.text().replace("{", ""), "filled in")
+	# Marn, with or without the ledger.
+	_fresh(35)
+	r.start(&"ch4_marn")
+	check(r.node_id == "skip", "he never fell: nothing to give back")
+	GameState.set_flag(&"ch3_marn_fell")
+	r.start(&"ch4_marn")
+	check(r.node_id == "a" and r.choices().size() == 2, "the ledger: give or keep")
+	_play(&"ch4_marn", 0)
+	check(GameState.has_flag(&"ch4_gave_ledger"), "you gave it")
+	# The gods don't know either.
+	_fresh(36)
+	var pair := StoryLibrary.bid_pair()
+	r.start(&"ch4_expected")
+	check(r.speaker() == BeingLibrary.get_being(pair.first).name and r.portrait_id() == String(pair.first), "this run's god speaks")
+	_play(&"ch4_expected", 0)
+	check(GameState.blessings.beings.get(pair.first, {}).get("bonus", 0) == 3, "asking pleases them")
+	check(GameState.has_flag(&"ch4_expected"), "you were expected")
+	# The ending isn't taken back.
+	_fresh(40)
+	_play(&"ch4_end")
+	check(GameState.has_flag(&"ch4_complete"), "chapter 4 complete")
+	var end_nodes: Dictionary = StoryLibrary.DIALOGUES[&"ch4_end"].nodes
+	check(end_nodes.e.text == "[ I did the floors. ]" and end_nodes.c.text == "[ You drew the monsters. ]", "the last two lines")
+	# The second return.
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	GameState.player.class_id = &"pyromancer_t3"
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER2, "the first return comes first")
+	GameState.set_flag(StoryLibrary.RETURN_TIER2)
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER3, "then the second")
+	GameState.set_flag(StoryLibrary.RETURN_TIER3)
+	check(StoryLibrary.return_due() == &"", "once each")
+	GameState.player.class_id = &"pyromancer"
+	GameState.story_flags.erase(StoryLibrary.RETURN_TIER3)
+	check(StoryLibrary.return_due() == &"", "tier 2 doesn't bring the second")
+	GameState.player.class_id = &"pyromancer_t3"
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.return_due() != StoryLibrary.RETURN_TIER3, "first runs only")
+	GameState.ng_plus_cycle = 0
+	Prologue.mode = StoryLibrary.RETURN_TIER3
+	var room: Prologue = load(Prologue.SCENE).instantiate()
+	room.auto_leave = false
+	var left := [false]
+	room.return_finished.connect(func(): left[0] = true)
+	add_child(room)
+	await _frames(2)
+	check(room.WRONG_TILES[StoryLibrary.RETURN_TIER3].size() > room.WRONG_TILES[StoryLibrary.RETURN_TIER2].size(), "the room is more wrong")
+	room.look_at_object(&"pc")
+	check(room._dialogue.runner.dialogue_id == &"return_tier3_pc" and room._dialogue.runner.text().contains("0041"), "the list of testers")
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(room._dialogue.runner.text().contains("Tester 0001: R-"), "the first name, smudged (%s)" % room._dialogue.runner.text())
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	room._dialogue.runner.choose(room._dialogue.runner.choices()[0].index)
+	room._dialogue._refresh()
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(left[0] and GameState.pending_talks.any(func(t): return t.dialogue == &"return_tier3_back"), "back, and the friend asks where you go")
+	GameState.pending_talks.clear()
+	room.queue_free()
+	await _frames(1)
 
 
 func test_skip_warning() -> void:

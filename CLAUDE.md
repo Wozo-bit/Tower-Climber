@@ -340,6 +340,10 @@ skills). Final boss Tester 0041; NG+ = mimics of your Hall character + party
 70 (+30%; one capstone per tier-3 class). Story for floors 21-100 is still to
 write: only summit_false and the floor-100 scenes exist.
 
+THE SECRET (Hayden picked 2026-11-04): you built the game with your real childhood
+friend, and forgot; they got trapped or died; the System is what's left of them;
+the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
+"The Second Hand" + the tier-3 return BUILT 2026-11-04.
 Chapter 3 BUILT 2026-11-04 (Marn falls, System helps and is lonely). Quest
 classes BUILT 2026-11-04: Inkblade, Stairwarden, Unsworn, Glitchwalker (SecretPaths;
 names placeholders; found late = join at your tier; player only). Unsworn line:
@@ -423,7 +427,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2684 checks at last run).
+Every change gets tests in tests/ (26 suites, 2757 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

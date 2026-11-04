@@ -9,8 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapter 3 (floors 21-30) and four more quest classes too.
-**Not built yet:** first-run story for floors 31-100 (chapters 4-10), beyond those two scenes
+Chapters 3-4 (floors 21-40), the second return and four more quest classes too.
+**Not built yet:** first-run story for floors 41-100 (chapters 5-10), beyond those two scenes
 and the first-run returns at floors 40 and 60.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
@@ -170,6 +170,23 @@ Hayden's picks (2026-11-04): Marn falls; the System is both trying to help and l
 | 29 | After the miniboss, a page you hadn't seen: your name, in Marn's hand, with one mark, dated before you logged in. `[ One. That's good. It's usually more. ]` |
 | 30 | After the boss, at the fire: a cheerful, chatty Marn with an empty pack. "First time this high?" `[ Chapter 3 complete. ]` `[ I'm sorry. ]` This time nothing takes it back. |
 
+## Chapter 4: "The Second Hand" (floors 31-40)
+
+**The secret, decided (Hayden, 2026-11-04):** you built this with someone, and you forgot. You and your real childhood friend drew the tower together: you did the monsters, they did the floors. Years later you really made the game. Something went wrong, they ended up trapped inside (or died), and you made yourself forget. The tower has been running ever since, trying to bring you back. **The System is what's left of your friend.** The in-game friend is the game's memory of that person. This chapter only reveals part of it.
+
+| Floor | Beat |
+| --- | --- |
+| 31 | The System remembers how you treated it on floor 24. `[ Chapter 4: The Second Hand ]` |
+| 32-33 | Under the carving, a second child's handwriting: "its RECOGNITION, dummy." Scratched out: "no keep it. it looks cooler." Then the friend calls you dummy for the first time. |
+| 34 | After the miniboss, the window catches on old code comments: "you always make the bosses too hard - J / you always make them too easy - K", using the initials of the names you typed. |
+| 35 | Cheerful Marn has a hole in his pack the shape of a book. Give him the ledger (he reads page one, and goes quiet for good) or keep it (he tells you about the time he held a door: "Everybody lives"). |
+| 36-37 | This run's god: "Nobody chose you, Tester. You were expected." The gods found the tower already built, and don't know who keeps it. |
+| 38 | The friend: "Remember the summer we drew the tower? You did the monsters, I did the floors." You remember being alone. You've never checked that before. They can't remember how it ended, and the top floor is the only one you never drew. |
+| 39 | After the miniboss: `[ When you advance, you'll go home again. Look at the first name. ]` `[ That message was not sent. ]` `[ Yes it was. ]` |
+| 40 | The boss fades slowly enough to see how it was drawn. `[ Chapter 4 complete. ]` `[ You drew the monsters. ]` ... `[ I did the floors. ]` |
+
+**Second return** (first tier-3 class, first runs only): 140 days gone, the messages have stopped. The PC lists the Testers: 0012 and 0027 greyed out, 0041 active, and first of all "Tester 0001: J-", the rest rubbed away. Two names blacked out under BUILD CREDITS; the second is the length of yours. The notebook's cover has an erased AND, and every floor number is in the second hand. A years-old thread on your phone reads only "not sent". Log off: `[ I'm not the one stopping you. I promise. ]` Back on the stairs, the friend: "Is there a me, there?"
+
 ## Quest classes (Hayden, 2026-11-04)
 
 Four more like the Ashbound Knight: 3 clues, a roaming boss, then a hidden class with its own 4-tier line. One per story thread, spread up the climb. Found late, you join the line at the tier you've already earned. Only the player can take them. Names are placeholders.
@@ -242,12 +259,10 @@ None of this decides what the System is or what the tower's secret is.
 
 The mimic final boss.
 
-## Chapters 4-6 (one-line arcs, to fill in later)
+## Chapters 5-6 (one-line arcs, to fill in later)
 
-1. **Chapter 4 (31-40):** the past. Why you were chosen starts to surface
-   (the notebook, who made the game).
-2. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
-3. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
+1. **Chapter 5 (41-50):** the gods' war over the tower; routes lock in.
+2. **Chapter 6 (51-60):** the top. The creator's champion waits on floor 60
    (below). Each route's ending, and the tower's secret (to decide).
 
 ## The false summit (floor 60) and the last 40 floors (Hayden, 2026-11-04)
