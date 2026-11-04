@@ -34,10 +34,22 @@ extends RefCounted
 ## Placeholder content below: one quest per source so every system is testable.
 
 const QUESTS := {
+	# --- The Ashbound secret path: shows the clues you still need. ---
+	&"ashen_trail": {
+		"title": "The Ashen Trail", "kind": "side", "giver": "The tower",
+		"desc": "Someone burned here long ago, and something is still looking for whoever follows.",
+		"auto_start": { "any_flag": [&"clue_ash_scorched_mural", &"clue_ash_merchant_story", &"clue_ash_feather_in_embers"] },
+		"steps": [
+			{ "text": "Find the scorched mural (normal floors 11-29)", "goal": { "type": "flag", "flag": &"clue_ash_scorched_mural" } },
+			{ "text": "Ask a merchant for odd stories (floor 10+)", "goal": { "type": "flag", "flag": &"clue_ash_merchant_story" } },
+			{ "text": "Search the embers of a campfire (floors 10-29)", "goal": { "type": "flag", "flag": &"clue_ash_feather_in_embers" } },
+			{ "text": "Defeat what comes looking for you (any normal floor past 11)", "goal": { "type": "defeat", "enemy": &"ashen_wyrmling", "count": 1 } },
+		],
+	},
 	# --- Main questline (starts on its own) ---
 	&"main_climb": {
 		"title": "The Climb", "kind": "main", "giver": "The tower",
-		"desc": "(Placeholder) Reach the top of the tower.",
+		"desc": "Reach the top of the tower.",
 		"auto_start": {},
 		"steps": [
 			{ "text": "Defeat the guardian of floor 10", "goal": { "type": "defeat", "kind": "boss", "count": 1 } },
@@ -52,7 +64,7 @@ const QUESTS := {
 	# --- From an NPC (the merchant), with a deadline and a fail consequence ---
 	&"glowcap_delivery": {
 		"title": "Glowcaps for the Merchant", "kind": "side", "giver": "Merchant",
-		"desc": "(Placeholder) The merchant wants 3 glowcaps. Slimes sometimes carry them.",
+		"desc": "The merchant wants 3 glowcaps. Slimes sometimes carry them.",
 		"steps": [
 			{ "text": "Collect glowcaps", "goal": { "type": "collect", "item": &"glowcap", "count": 3 } },
 			{ "text": "Bring them to the merchant", "goal": { "type": "flag", "flag": &"glowcaps_delivered" } },
@@ -66,7 +78,7 @@ const QUESTS := {
 	# --- From a found item (the torn map lore object) ---
 	&"torn_map": {
 		"title": "The Torn Map", "kind": "side", "giver": "A torn map",
-		"desc": "(Placeholder) A scrap of map marks a hidden cache somewhere higher up.",
+		"desc": "A scrap of map marks a hidden cache somewhere higher up.",
 		"steps": [
 			{ "text": "Climb to floor 6", "goal": { "type": "reach", "floor": 6 } },
 			{ "text": "Find the hidden cache", "goal": { "type": "flag", "flag": &"found_hidden_cache" } },
@@ -74,13 +86,13 @@ const QUESTS := {
 		"rewards": { "gold": 120,
 			"gear": { "base": &"amulet", "name": "Cartographer's Charm", "rarity": 2,
 				"bonuses": { Stats.Type.LUCK: 4, Stats.Type.AGILITY: 2 },
-				"desc": "(Placeholder) It always points somewhere interesting." } },
+				"desc": "It always points somewhere interesting." } },
 	},
 
 	# --- A devil's bargain: the Morrigan's blessing costs this promise ---
 	&"oath_of_vengeance": {
 		"title": "Oath of Vengeance", "kind": "side", "giver": "The Morrigan, Phantom Queen",
-		"desc": "(Placeholder) You swore that the tower's tyrants would pay. The ravens are watching.",
+		"desc": "You swore that the tower's tyrants would pay. The ravens are watching.",
 		"steps": [
 			{ "text": "Defeat the tower's minibosses", "goal": { "type": "defeat", "kind": "miniboss", "count": 2 } },
 		],
@@ -90,7 +102,7 @@ const QUESTS := {
 	# --- Hand-written notice board job ---
 	&"slime_survey": {
 		"title": "Slime Survey", "kind": "side", "giver": "Notice board",
-		"desc": "(Placeholder) A hunter wants slimes thinned out, and pays in notes on how to fight them.",
+		"desc": "A hunter wants slimes thinned out, and pays in notes on how to fight them.",
 		"board": true, "board_if": { "min_floor": 5 },
 		"steps": [
 			{ "text": "Defeat slimes", "goal": { "type": "defeat", "family": &"slime", "count": 8 } },
@@ -159,7 +171,7 @@ static func trials() -> Dictionary:
 			var count := 10 + 5 * def.tier
 			_trial_cache[id] = {
 				"title": "Trial of the %s" % def.display_name, "kind": "side", "giver": "Class trial",
-				"desc": "(Placeholder) Prove you're ready to become a %s." % def.display_name,
+				"desc": "Prove you're ready to become a %s." % def.display_name,
 				"steps": [
 					{ "text": "Defeat enemies", "goal": { "type": "defeat", "any": true, "count": count } },
 					{ "text": "Defeat a miniboss", "goal": { "type": "defeat", "kind": "miniboss", "count": 1 } },

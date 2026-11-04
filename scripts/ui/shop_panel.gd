@@ -196,6 +196,38 @@ func _rebuild() -> void:
 						return
 				_rebuild())
 			b.get_parent().add_child(steal)
+	if guild_id == &"" and shop_id == &"merchant":
+		_rebuild_merchant_extras()
+
+
+## The merchant's weapons and skill books (MerchantStock).
+func _rebuild_merchant_extras() -> void:
+	var f := GameState.floor_number
+	for g in MerchantStock.weapons(f):
+		if GameState.merchant_bought.has(g.get_meta("merchant_key")):
+			continue
+		var price := MerchantStock.gear_price(g)
+		var b := _row(g.summary())
+		b.text = "Buy %dg" % price
+		b.disabled = GameState.player.gold < price
+		b.pressed.connect(func():
+			if GameState.buy_merchant_gear(g):
+				_message.text = "Bought %s." % g.display_name
+				Audio.play_sfx(["buy", "coin"])
+			_rebuild())
+	for id in MerchantStock.books(f, MerchantStock.party_luck()):
+		if GameState.merchant_bought.has("%d:%s" % [f, id]):
+			continue
+		var item := ItemLibrary.get_item(SkillBooks.book_item_id(id))
+		var price := MerchantStock.book_price(id)
+		var b := _row("%s — %s" % [item.display_name, item.description])
+		b.text = "Buy %dg" % price
+		b.disabled = GameState.player.gold < price
+		b.pressed.connect(func():
+			if GameState.buy_merchant_book(id):
+				_message.text = "Bought %s." % item.display_name
+				Audio.play_sfx(["buy", "coin"])
+			_rebuild())
 
 
 func _rebuild_sell() -> void:

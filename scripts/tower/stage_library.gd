@@ -28,7 +28,7 @@ const FLOORS_PER_STAGE := 10
 const THEMES := {
 	&"goblin_warrens": {
 		"name": "Goblin Warrens", "family": &"goblin",
-		"hint": "(Placeholder) Goblins can't keep their eyes off whoever's shouting at them, and their leather won't stop an arrow.",
+		"hint": "Goblins can't keep their eyes off whoever's shouting at them, and their leather won't stop an arrow.",
 		"early_encounters": [[&"slime"], [&"slime", &"slime"], [&"goblin"], [&"slime", &"goblin"]],
 		"encounters": [
 			[&"goblin", &"goblin", &"goblin_archer"],
@@ -44,7 +44,7 @@ const THEMES := {
 	},
 	&"slime_pits": {
 		"name": "Slime Pits", "family": &"slime",
-		"hint": "(Placeholder) Slimes hate an open flame and a dry wind. Blades just slide through them; a hammer does better.",
+		"hint": "Slimes hate an open flame and a dry wind. Blades just slide through them; a hammer does better.",
 		"early_encounters": [[&"slime"], [&"slime", &"slime"], [&"bubble_slime"], [&"slime", &"bubble_slime"]],
 		"encounters": [
 			[&"slime", &"slime", &"bubble_slime"],
@@ -60,7 +60,7 @@ const THEMES := {
 	},
 	&"orc_stronghold": {
 		"name": "Orc Stronghold", "family": &"orc", "power": 1.4,
-		"hint": "(Placeholder) Orc hide shrugs off a hammer, but a spear point or a hard frost gets through. Their shamans hate holy light.",
+		"hint": "Orc hide shrugs off a hammer, but a spear point or a hard frost gets through. Their shamans hate holy light.",
 		"early_encounters": [[&"orc_brute"]],
 		"encounters": [
 			[&"orc_brute", &"goblin_archer", &"imp_shaman"],
@@ -79,7 +79,7 @@ const THEMES := {
 	# Insects/Beasts -> Elemental Rift/Undead -> Demons/Angels/Dragons). ---
 	&"bandit_fortress": {
 		"name": "Bandit Fortress", "family": &"bandit",
-		"hint": "(Placeholder) Bandits wear cheap mail: a bolt of lightning or a good spear finds the gaps. They lose their heads when someone shouts at them.",
+		"hint": "Bandits wear cheap mail: a bolt of lightning or a good spear finds the gaps. They lose their heads when someone shouts at them.",
 		"encounters": [
 			[&"bandit_cutthroat", &"bandit_crossbow", &"bandit_hexer"],
 			[&"bandit_brute", &"bandit_cutthroat", &"bandit_crossbow"],
@@ -94,7 +94,7 @@ const THEMES := {
 	},
 	&"insect_hive": {
 		"name": "Insect Hive", "family": &"insect", "power": 1.1,
-		"hint": "(Placeholder) The hive hates fire and a strong wind. Kill them fast: every one left alive makes the rest bolder.",
+		"hint": "The hive hates fire and a strong wind. Kill them fast: every one left alive makes the rest bolder.",
 		"encounters": [
 			[&"hive_soldier", &"hive_drone", &"acid_spitter"],
 			[&"hive_drone", &"hive_drone", &"hive_nurse"],
@@ -109,7 +109,7 @@ const THEMES := {
 	},
 	&"beast_den": {
 		"name": "Beast Den", "family": &"beast",
-		"hint": "(Placeholder) A spear stops a charge; a club just makes them angry. Wounded beasts fight hardest, so finish them.",
+		"hint": "A spear stops a charge; a club just makes them angry. Wounded beasts fight hardest, so finish them.",
 		"encounters": [
 			[&"dire_wolf", &"dire_wolf", &"razor_hawk"],
 			[&"cave_bear", &"razor_hawk"],
@@ -124,7 +124,7 @@ const THEMES := {
 	},
 	&"elemental_rift": {
 		"name": "Elemental Rift", "family": &"elemental", "power": 1.3,
-		"hint": "(Placeholder) Blades and arrows barely scratch the spirits here, but a hammer cracks them. Fight fire with water, frost with fire, lightning with stone, and never feed one its own element.",
+		"hint": "Blades and arrows barely scratch the spirits here, but a hammer cracks them. Fight fire with water, frost with fire, lightning with stone, and never feed one its own element.",
 		"encounters": [
 			[&"stone_golem", &"ember_sprite", &"frost_wisp"],
 			[&"stone_golem", &"storm_spirit"],
@@ -139,7 +139,7 @@ const THEMES := {
 	},
 	&"undead_crypt": {
 		"name": "Undead Crypt", "family": &"undead", "power": 1.25,
-		"hint": "(Placeholder) The dead get back up once, unless you burn them or bless them. Bones break under a hammer.",
+		"hint": "The dead get back up once, unless you burn them or bless them. Bones break under a hammer.",
 		"encounters": [
 			[&"skeleton_warrior", &"skeleton_archer", &"crypt_wraith"],
 			[&"ghoul", &"ghoul", &"crypt_wraith"],
@@ -154,7 +154,7 @@ const THEMES := {
 	},
 	&"demon_gate": {
 		"name": "Demon Gate", "family": &"demon", "power": 1.1,
-		"hint": "(Placeholder) Holy light and cold iron frighten them; fire only feeds them. They fight dirtiest when they're bleeding.",
+		"hint": "Holy light and cold iron frighten them; fire only feeds them. They fight dirtiest when they're bleeding.",
 		"encounters": [
 			[&"lesser_fiend", &"hellhound", &"succubus"],
 			[&"hellhound", &"hellhound", &"imp_swarm"],
@@ -169,7 +169,7 @@ const THEMES := {
 	},
 	&"celestial_spire": {
 		"name": "Celestial Spire", "family": &"celestial", "power": 1.1,
-		"hint": "(Placeholder) The host of heaven turns aside holy light and lightning. Only darkness stains them.",
+		"hint": "The host of heaven turns aside holy light and lightning. Only darkness stains them.",
 		"encounters": [
 			[&"winged_sentinel", &"radiant_archer", &"choir_acolyte"],
 			[&"virtue", &"winged_sentinel", &"choir_acolyte"],
@@ -184,7 +184,7 @@ const THEMES := {
 	},
 	&"dragon_roost": {
 		"name": "Dragon Roost", "family": &"dragon", "power": 1.2,
-		"hint": "(Placeholder) Dragonscale turns most blows. Ice and a well-aimed spear are what it fears.",
+		"hint": "Dragonscale turns most blows. Ice and a well-aimed spear are what it fears.",
 		"encounters": [
 			[&"drakeling", &"wyvern", &"dragon_cultist"],
 			[&"fire_drake", &"drakeling"],
@@ -288,7 +288,9 @@ const ROAMING_BOSSES := [
 		"origin_floor": 25, "min_floor": 8, "max_floor": 22,
 		"group": [&"lantern_wraith", &"imp_shaman"] },
 	{ "id": &"ashen_wyrmling", "spawn": "secret", "secret_path": &"ashbound",
-		"origin_floor": 40, "min_floor": 12, "max_floor": 29,
+		# No real top floor: finding the last clue late must still bring it (Hayden's
+		# run found 2 of 3 clues and never saw it). max_floor is past any tower height.
+		"origin_floor": 40, "min_floor": 12, "max_floor": 9999,
 		"group": [&"ashen_wyrmling", &"imp_shaman"],
 		"intro": "The air smells of ash... something from far above has come looking for you." },
 ]

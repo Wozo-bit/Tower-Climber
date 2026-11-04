@@ -23,6 +23,8 @@ const WARD_MULT := 0.7
 const GUARD_MULT := 0.7            # a guardian takes 30% less while guarding
 const HASTE_INITIATIVE_MULT := 2.0
 const FURY_MULT := 1.3             # "fury" status: deals 30% more damage
+const EXECUTE_BELOW := 0.35        # skills with execute_bonus: target under this share of HP
+const SHIELD_MULT := 0.25          # a shielded boss takes this much (weakness hits break it)
 
 
 static func attack_power(attacker: Combatant, type: int) -> float:
@@ -92,12 +94,18 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 	if target.has_status(&"defend"):
 		dmg *= DEFEND_MULT
 	if target.has_status(&"ward"):
-		dmg *= WARD_MULT
+		dmg *= WARD_MULT - target.status_bonus_of(&"ward")
 	if target.has_status(&"guarding"):
-		dmg *= GUARD_MULT
+		dmg *= GUARD_MULT - target.status_bonus_of(&"guarding")
 	if attacker.has_status(&"fury"):
-		dmg *= FURY_MULT
+		dmg *= FURY_MULT + attacker.status_bonus_of(&"fury")
 	dmg *= attacker.damage_dealt_mult * target.damage_taken_mult
+	if type == SkillDef.DamageType.MAGIC:
+		dmg *= attacker.magic_dealt_mult
+	if skill.boss_bonus > 0.0 and target.source_enemy and (target.source_enemy.is_boss or target.source_enemy.is_roaming):
+		dmg *= 1.0 + skill.boss_bonus
+	if skill.execute_bonus > 0.0 and target.hp < target.max_hp * EXECUTE_BELOW:
+		dmg *= 1.0 + skill.execute_bonus
 
 	# Traits
 	if attacker.has_trait(&"reckless") and attacker.hp * 2 < attacker.max_hp:
@@ -116,6 +124,8 @@ static func roll_damage(attacker: Combatant, target: Combatant, skill: SkillDef,
 	dmg *= 1.0 + boost
 
 	var aff := Element.resolve(elements, target.affinities)
+	if target.shielded and not aff.weak:
+		dmg *= SHIELD_MULT
 	if target.has_trait(&"dragonscale") and not aff.weak:
 		dmg *= EnemyFamilies.DRAGONSCALE_MULT   # only weaknesses get through the scales cleanly
 	var amount: int

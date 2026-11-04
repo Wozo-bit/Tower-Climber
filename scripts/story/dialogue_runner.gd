@@ -31,6 +31,8 @@ static var context_recruit: StringName = &""
 ## The companion this conversation is with (static copy of `companion`, for
 ## conditions and {wage_owed}).
 static var context_companion: CharacterData
+## True when you're contacting your guild from Tab -> Guilds, not face to face.
+static var remote_talk := false
 
 var _nodes: Dictionary = {}
 
@@ -154,6 +156,8 @@ static func check(cond: Dictionary) -> bool:
 		var ok := true
 		match k:
 			"flag": ok = gs.has_flag(v)
+			"any_flag": ok = v.any(func(f): return gs.has_flag(f))
+			"remote": ok = remote_talk == v
 			"not_flag": ok = not gs.has_flag(v)
 			"min_floor": ok = gs.floor_number >= v
 			"max_floor": ok = gs.floor_number <= v
@@ -267,6 +271,10 @@ func _apply_effects(effects: Array) -> void:
 				messages.append("You can't pay what %s asks." % BeingLibrary.get_being(context_being).name)
 		if e.has("refuse_blessing") and context_being != &"":
 			gs.blessings.refuse(context_being)
+		if e.has("decline_blessing") and context_being != &"":
+			var decline_rng := RandomNumberGenerator.new()
+			decline_rng.randomize()
+			gs.blessings.decline(context_being, decline_rng)
 		if e.has("join_guild") and context_guild != &"":
 			gs.guilds.join(context_guild)
 		if e.has("leave_guild"):
@@ -318,7 +326,7 @@ static func fill(s: String, npc_name: String = "") -> String:
 		out = out.replace("{wage_owed}", str(context_companion.wage_owed))
 	if out.contains("{tower_news}"):
 		var headlines := GameState.guilds.latest_news(3)
-		out = out.replace("{tower_news}", headlines if headlines != "" else "(Placeholder) Quiet lately. Too quiet.")
+		out = out.replace("{tower_news}", headlines if headlines != "" else "Quiet lately. Too quiet.")
 	if context_guild != &"" and out.contains("{guild"):
 		var g := GuildLibrary.get_guild(context_guild)
 		var floors := GameState.guilds.territories_of(context_guild).map(func(t): return GuildLibrary.territory_floors(t))
@@ -344,6 +352,7 @@ static func fill(s: String, npc_name: String = "") -> String:
 		out = out.replace("{being}", BeingLibrary.full_name(context_being)) \
 			.replace("{being_offer}", b.get("offer", "")).replace("{being_warn}", b.get("warn", "")) \
 			.replace("{being_punish}", b.get("punish", "")) \
+			.replace("{being_refusal}", GameState.blessings.last_refusal) \
 			.replace("{being_bargain}", BlessingState.bargain_text(context_being)) \
 			.replace("{being_gifts}", blessing_summary(context_being, 1))
 	return out

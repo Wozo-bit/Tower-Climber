@@ -15,7 +15,7 @@ const DEFAULTS := {
 	"move_up": [KEY_W, KEY_UP], "move_down": [KEY_S, KEY_DOWN],
 	"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 	"party_menu": [KEY_TAB, KEY_I], "pause": [KEY_ESCAPE, KEY_P],
-	"ui_accept": [KEY_ENTER, KEY_SPACE], "ui_cancel": [KEY_ESCAPE, KEY_BACKSPACE],
+	"ui_accept": [KEY_ENTER, KEY_SPACE], "ui_cancel": [KEY_ESCAPE, 0],
 }
 ## Keys only clash inside a group: Esc can pause on a floor AND go back in a menu.
 const GROUPS := [["move_up", "move_down", "move_left", "move_right", "party_menu", "pause"], ["ui_accept", "ui_cancel"]]
@@ -55,7 +55,8 @@ static func clean(raw) -> Dictionary:
 		var taken: Array = used.get(gi, [])
 		var picked := []
 		for k in keys.slice(0, SLOTS):
-			picked.append(int(k) if valid_key(k) and not taken.has(int(k)) and not picked.has(int(k)) else 0)
+			var free: bool = valid_key(k) and not taken.has(int(k)) and not picked.has(int(k))
+			picked.append(int(k) if free and not _typing_clash(a, int(k)) else 0)
 		while picked.size() < SLOTS:
 			picked.append(0)
 		if picked.any(func(k): return k != 0):
@@ -63,6 +64,12 @@ static func clean(raw) -> Dictionary:
 			taken.append_array(picked.filter(func(k): return k != 0))
 			used[gi] = taken
 	return out
+
+
+## Text boxes stop editing on Cancel, so Backspace can never be a Cancel key
+## (it was a default until 2026-11-04: Hayden couldn't delete typed text).
+static func _typing_clash(action: String, key: int) -> bool:
+	return action == "ui_cancel" and key == KEY_BACKSPACE
 
 
 ## Puts the bindings into the InputMap.
@@ -85,6 +92,8 @@ static func apply(bindings: Dictionary) -> void:
 static func bind(bindings: Dictionary, action: String, slot: int, key: int) -> String:
 	if not ACTIONS.has(action) or slot < 0 or slot >= SLOTS or not valid_key(key):
 		return "That key can't be used."
+	if _typing_clash(action, key):
+		return "%s has to keep working in text boxes." % OS.get_keycode_string(key)
 	for other in _group_of(action):
 		if other == action:
 			continue

@@ -73,6 +73,28 @@ var enemy_skill_mult := 1.0
 var xp_mult := 1.0
 var gold_mult := 1.0
 
+## This floor's twist (FloorMods id). Set BEFORE setup().
+var floor_mod: StringName = &""
+## Items work in this fight? (Silent Floor)
+var items_allowed := true
+## Late bosses (Hayden 2026-11-04): 0 = none, 1 = one mechanic, 2 = two.
+## Minibosses at tier 1+ only enrage. Set BEFORE setup().
+var boss_tier := 0
+var boss_is_miniboss := false
+## Who a summoning boss calls (normal enemies of its stage).
+var reinforcements: Array[EnemyDef] = []
+const BOSS_MECHANICS: Array[String] = ["summon", "shield", "charge"]
+const BOSS_PHASE_AT := { 1: [0.5], 2: [0.6, 0.3] }
+const BOSS_ENRAGE_DEALT := 1.15
+const BOSS_SHIELD_ROUNDS := 3
+const BOSS_CHARGE_EVERY := 3
+## Late floors: enemies learn the party's favourite skills. Shared with
+## GameState.floor_skill_uses so it lasts the whole floor. null = off.
+var adapt_uses = null
+const ADAPT_FREE_USES := 5
+const ADAPT_STEP := 0.1
+const ADAPT_FLOOR := 0.5
+
 var _queue: Array[Combatant] = []
 
 
@@ -117,6 +139,110 @@ func setup(party_chars: Array[CharacterData], enemy_defs: Array[EnemyDef], seed_
 	for e in enemies:
 		if e.source_enemy.is_boss:
 			can_flee = false
+	_apply_floor_mod()
+	_setup_boss_mechanics()
+
+
+func _apply_floor_mod() -> void:
+	var m := FloorMods.get_mod(floor_mod)
+	if m.is_empty():
+		return
+	start_lines.append("%s: %s" % [m.name, m.desc])
+	items_allowed = not m.get("no_items", false)
+	for u in party + enemies:
+		u.magic_dealt_mult *= m.get("magic", 1.0)
+		u.damage_dealt_mult *= m.get("dealt", 1.0)
+	for e in enemies:
+		e.damage_dealt_mult *= m.get("enemy_dealt", 1.0)
+		var hp_mult: float = m.get("enemy_hp", 1.0)
+		e.max_hp = maxi(1, roundi(e.max_hp * hp_mult))
+		e.hp = e.max_hp
+	xp_mult *= m.get("xp", 1.0)
+	gold_mult *= m.get("gold", 1.0)
+
+
+## The boss's mechanics follow from its id, so a boss always plays the same.
+func _setup_boss_mechanics() -> void:
+	if boss_tier <= 0:
+		return
+	for e in enemies:
+		if not e.source_enemy.is_boss:
+			continue
+		if boss_is_miniboss:
+			e.mechanics = ["enrage"]
+			continue
+		var start := absi(String(e.source_enemy.id).hash()) % BOSS_MECHANICS.size()
+		for i in mini(boss_tier, BOSS_MECHANICS.size()):
+			e.mechanics.append(BOSS_MECHANICS[(start + i) % BOSS_MECHANICS.size()])
+		break   # only the leader
+
+
+## Bosses crossing an HP mark enrage and start their next mechanic.
+## Returns the line for the log ("" = nothing happened).
+func _check_boss_phases() -> String:
+	var lines: PackedStringArray = []
+	for u in enemies:
+		if u.mechanics.is_empty() or not u.is_alive() or u.phase >= u.mechanics.size():
+			continue
+		var marks: Array = BOSS_PHASE_AT.get(u.mechanics.size(), [0.5])
+		if float(u.hp) / u.max_hp > marks[u.phase]:
+			continue
+		var mech: String = u.mechanics[u.phase]
+		u.phase += 1
+		u.damage_dealt_mult *= BOSS_ENRAGE_DEALT
+		match mech:
+			"enrage":
+				lines.append("%s flies into a rage!" % u.display_name)
+			"summon":
+				lines.append("%s calls for help!" % u.display_name)
+				for def in reinforcements.slice(0, 2):
+					var r := Combatant.from_enemy(def, enemy_scale)
+					r.side = Combatant.Side.ENEMY
+					r.max_hp = maxi(1, roundi(r.max_hp * normal_hp_mult))
+					r.hp = r.max_hp
+					enemies.append(r)
+					unit_joined.emit(r)
+				_dedupe_enemy_names()
+			"shield":
+				u.shielded = true
+				u.shield_rounds = BOSS_SHIELD_ROUNDS
+				lines.append("%s raises a barrier! Only a weakness will break it." % u.display_name)
+			"charge":
+				lines.append("%s begins to draw in power. Watch for the blast!" % u.display_name)
+	return " ".join(lines)
+
+
+## Bosses that charge: gather for a round (the intent shows it), then blast.
+func _tick_boss_mechanics() -> void:
+	for u in enemies:
+		if not u.is_alive():
+			continue
+		if u.shielded:
+			u.shield_rounds -= 1
+			if u.shield_rounds <= 0:
+				u.shielded = false
+		if not (u.phase > 0 and u.mechanics.slice(0, u.phase).has("charge")):
+			continue
+		if u.charge_state == 1:
+			u.charge_state = 2
+		elif round_number % BOSS_CHARGE_EVERY == 0:
+			u.charge_state = 1
+			action_resolved.emit({ "actor": u, "type": BattleAction.Type.DEFEND, "skill": null, "entries": [],
+				"text": "%s is gathering power! Defend or shield the party." % u.display_name })
+		else:
+			u.charge_state = 0
+
+
+## How much of its damage this party member's skill still does on a late floor.
+func adapt_mult(actor: Combatant, skill: SkillDef) -> float:
+	if adapt_uses == null or actor.side != Combatant.Side.PARTY or skill == actor.basic_attack:
+		return 1.0
+	var over: int = adapt_uses.get(_adapt_key(actor, skill), 0) - ADAPT_FREE_USES
+	return maxf(ADAPT_FLOOR, 1.0 - ADAPT_STEP * maxi(0, over))
+
+
+func _adapt_key(actor: Combatant, skill: SkillDef) -> String:
+	return "%s:%s" % [actor.display_name, skill.id]
 
 
 ## Starts round 1 and stops at the first unit's turn.
@@ -284,7 +410,9 @@ func submit(action: BattleAction) -> bool:
 				current.source_character.battle_row = current.row
 			result.text = "%s moves to the %s row." % [current.display_name, current.row_name().to_lower()]
 		BattleAction.Type.ITEM:
-			if not _resolve_item(action, result):
+			if not items_allowed:
+				result.text = "Nothing from the bag works here."
+			elif not _resolve_item(action, result):
 				return false
 		BattleAction.Type.FLEE:
 			if not can_flee:
@@ -395,6 +523,13 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 	if skill.faith_cost > 0:
 		actor.faith_box["faith"] = actor.faith_box.get("faith", 0) - skill.faith_cost
 	var parts: PackedStringArray = []
+	var adapt := adapt_mult(actor, skill) if skill.effect == SkillDef.Effect.DAMAGE else 1.0
+	if adapt < 1.0:
+		parts.append("the enemy has learned this move")
+	if adapt_uses != null and skill.effect == SkillDef.Effect.DAMAGE and actor.side == Combatant.Side.PARTY and skill != actor.basic_attack:
+		adapt_uses[_adapt_key(actor, skill)] = adapt_uses.get(_adapt_key(actor, skill), 0) + 1
+	if skill.id == SkillLibrary.BOSS_UNLEASH:
+		actor.charge_state = 0
 	if actor.has_trait(&"swarming"):
 		actor.swarm_allies = living(allies_of(actor)).filter(func(u): return u != actor and u.has_trait(&"swarming")).size()
 
@@ -425,7 +560,10 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 						parts.append("%s is immune" % t.display_name)
 					else:
 						entry.kind = "damage"
-						var amount: int = roll.amount
+						var amount: int = maxi(1, roundi(roll.amount * adapt))
+						if t.shielded and roll.weak:
+							t.shielded = false
+							parts.append("the barrier shatters")
 						# Undying: shrugs off one killing blow (Holy and Fire put it down for good).
 						if amount >= t.hp and t.has_trait(&"undying") and not t.undying_used \
 								and not roll.elements.any(func(e): return e in [Element.Type.HOLY, Element.Type.FIRE]):
@@ -440,6 +578,13 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 						t.last_attacker = actor
 						# Only enemies stagger (a cursed weakness costs the party damage, not turns).
 						entry.staggered = roll.weak and t.side == Combatant.Side.ENEMY and t.add_stagger()
+						for i in skill.stagger_bonus:
+							if t.side == Combatant.Side.ENEMY and t.add_stagger():
+								entry.staggered = true
+						if skill.lifesteal > 0.0 and entry.amount > 0 and actor.is_alive():
+							var drained := actor.restore_hp(maxi(1, roundi(entry.amount * skill.lifesteal)))
+							if drained > 0:
+								parts.append("%s drains %d HP" % [actor.display_name, drained])
 						if entry.staggered:
 							intents.erase(t)
 						parts.append("%s takes %d%s%s%s%s" % [t.display_name, entry.amount,
@@ -450,6 +595,7 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 				entry.kind = "heal"
 				entry.amount = t.restore_hp(DamageCalc.roll_heal(actor, skill, rng, t))
 				parts.append("%s recovers %d HP" % [t.display_name, entry.amount])
+				_apply_riders(t, skill, parts)
 			SkillDef.Effect.RESTORE_MP:
 				entry.kind = "mp"
 				var gain := mini(roundi(t.max_mp * skill.power), t.max_mp - t.mp)
@@ -459,12 +605,14 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 			SkillDef.Effect.GUARD:
 				entry.kind = "status"
 				t.guarded_by = actor
-				actor.add_status(&"guarding", 1)
+				actor.add_status(&"guarding", 1, skill.status_bonus)
 				parts.append("%s will take hits for %s" % [actor.display_name, t.display_name])
 			SkillDef.Effect.SUMMON:
 				entry.kind = "status"
 				var summoned := _summon(actor, skill.summon_id)
 				parts.append("%s answers the call" % summoned.display_name if summoned else "nothing answers")
+				if skill.also_status != &"":
+					actor.add_status(skill.also_status, skill.also_turns)
 			SkillDef.Effect.STATUS:
 				entry.kind = "status"
 				var turns := skill.status_turns
@@ -472,12 +620,32 @@ func _resolve_skill(action: BattleAction, result: Dictionary) -> bool:
 				if skill.status_id == &"taunt" and living(opponents_of(actor)).any(
 						func(o): return o.has_trait(&"easily_distracted")):
 					turns += 1
-				t.add_status(skill.status_id, turns)
+				t.add_status(skill.status_id, turns, skill.status_bonus)
 				parts.append("%s gains %s" % [t.display_name, String(skill.status_id)])
+				if skill.also_status != &"":
+					t.add_status(skill.also_status, skill.also_turns, skill.status_bonus)
+					parts.append("and %s" % String(skill.also_status))
+				_apply_riders(t, skill, parts)
 		result.entries.append(entry)
 
 	result.text = "%s uses %s: %s." % [actor.display_name, skill.display_name, ", ".join(parts)]
+	var phase_line := _check_boss_phases()
+	if phase_line != "":
+		result.text += " " + phase_line
 	return true
+
+
+## STATUS / HEAL riders: a little HP or MP on top.
+func _apply_riders(t: Combatant, skill: SkillDef, parts: PackedStringArray) -> void:
+	if skill.rider_heal_pct > 0.0:
+		var got := t.restore_hp(maxi(1, roundi(t.max_hp * skill.rider_heal_pct)))
+		if got > 0:
+			parts.append("%s recovers %d HP" % [t.display_name, got])
+	if skill.rider_mp_pct > 0.0:
+		var gain := mini(maxi(1, roundi(t.max_mp * skill.rider_mp_pct)), t.max_mp - t.mp)
+		t.mp += gain
+		if gain > 0:
+			parts.append("%s recovers %d MP" % [t.display_name, gain])
 
 
 ## Calls a summon to `actor`'s side for the rest of the fight. One per
@@ -539,6 +707,11 @@ func _next_turn() -> void:
 
 func _start_round() -> void:
 	round_number += 1
+	var regen: float = FloorMods.get_mod(floor_mod).get("mp_regen", 0.0)
+	if regen > 0.0:
+		for u in living(party):
+			u.mp = mini(u.max_mp, u.mp + roundi(u.max_mp * regen))
+	_tick_boss_mechanics()
 	var rolls := {}
 	var units: Array[Combatant] = living(party)
 	units.append_array(living(enemies))

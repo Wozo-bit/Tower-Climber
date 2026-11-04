@@ -71,6 +71,16 @@ var highest_floor := 1
 # --- Story ---
 ## Story/clue flags: StringName -> true. Dialogue, lore objects and quests set these.
 var story_flags: Dictionary = {}
+## Floors whose miniboss/boss you've beaten: they stay dead when you come back.
+var cleared_guardians: Array = []
+## Merchant weapons and books already bought ("<floor>:w0", "<floor>:<skill id>").
+var merchant_bought: Array = []
+## Late floors: how often each party member used each skill on this floor
+## (BattleManager.adapt_mult). Not saved: reloading doesn't matter much.
+var floor_skill_uses: Dictionary = {}
+const ADAPT_FROM_FLOOR := 30
+## Late bosses get mechanics from these floors (BattleManager.boss_tier).
+const BOSS_TIER_FLOORS := { 30: 1, 50: 2 }
 ## What the party has learned about enemies (weaknesses, traits). Per run.
 var bestiary := Bestiary.new()
 ## Active / completed / failed quests and notice-board bounties. Per run.
@@ -193,6 +203,8 @@ func reset_run() -> void:
 	defeated_roamers = []
 	highest_floor = 1
 	story_flags = {}
+	cleared_guardians = []
+	merchant_bought = []
 	bestiary = Bestiary.new()
 	quests = QuestLog.new()
 	route = RouteState.new()
@@ -379,6 +391,8 @@ func save_game() -> bool:
 		"defeated_roamers": defeated_roamers.map(func(id): return String(id)),
 		"highest_floor": highest_floor,
 		"story_flags": story_flags.keys().map(func(f): return String(f)),
+		"cleared_guardians": cleared_guardians.duplicate(),
+		"merchant_bought": merchant_bought.duplicate(),
 		"ng_plus_cycle": ng_plus_cycle,
 		"difficulty": difficulty,
 		"ironman": ironman, "solo_run": solo_run,
@@ -445,6 +459,18 @@ func load_game(slot: int = -1) -> bool:
 		reserve.push_front(companions.pop_back())
 	while reserve.size() > RESERVE_CAP:
 		waiting.append(reserve.pop_back())
+	# Older saves didn't record it: anything below your highest floor was beaten.
+	if d.has("cleared_guardians"):
+		for f in S._a(d, "cleared_guardians"):
+			if f is float or f is int:
+				cleared_guardians.append(int(f))
+	else:
+		for f in range(1, highest_floor):
+			if StageLibrary.is_boss_floor(f) or StageLibrary.is_miniboss_floor(f):
+				cleared_guardians.append(f)
+	for b in S._a(d, "merchant_bought"):
+		if b is String:
+			merchant_bought.append(b)
 	for id in S._a(d, "defeated_roamers"):
 		if id is String:
 			defeated_roamers.append(StringName(id))
@@ -764,6 +790,20 @@ func configure_battle(battle: BattleManager) -> void:
 	battle.xp_mult = Difficulty.value(difficulty, "xp") * rewards
 	# Gold grows a little slower than XP, so shop prices still matter higher up.
 	battle.gold_mult = Difficulty.value(difficulty, "gold") * pow(rewards, GOLD_REWARD_EXP)
+	battle.floor_mod = current_floor_mod() if pending_battle_info.has("kind") else &""
+	if floor_number >= ADAPT_FROM_FLOOR and pending_battle_info.has("kind"):
+		battle.adapt_uses = floor_skill_uses
+	var kind: String = pending_battle_info.get("kind", "")
+	if kind == "boss" or kind == "miniboss":
+		for f in BOSS_TIER_FLOORS:
+			if floor_number >= f:
+				battle.boss_tier = maxi(battle.boss_tier, BOSS_TIER_FLOORS[f])
+		battle.boss_is_miniboss = kind == "miniboss"
+		for group in StageLibrary.stage_for_floor(floor_number).get("encounters", []):
+			for id in group:
+				var def := EnemyLibrary.get_enemy_or_null(id)
+				if def and not def.is_boss and battle.reinforcements.size() < 2:
+					battle.reinforcements.append(def)
 	battle.inventory = inventory
 	battle.loot_level = floor_number
 	battle.owned_unique_classes = owned_unique_classes()
@@ -863,6 +903,7 @@ static func enemy_scale_for_floor(n: int) -> float:
 
 func enter_floor(n: int) -> void:
 	floor_number = n
+	floor_skill_uses.clear()
 	var room_before := party_size()
 	highest_floor = maxi(highest_floor, n)
 	if party_size() > room_before:
@@ -886,6 +927,48 @@ func enter_floor(n: int) -> void:
 	guilds.on_floor(guild_rng)
 	divinity.on_floor()   # tithes from the guilds you sponsor
 	pay_wages()
+
+
+## This floor's twist (FloorMods), or &"".
+func current_floor_mod() -> StringName:
+	return FloorMods.for_floor(floor_number, floor_seed, is_rest_floor(floor_number))
+
+
+func guardian_beaten(n: int) -> bool:
+	return cleared_guardians.has(n)
+
+
+## Campfire -> Travel: any floor you've reached. Going back isn't climbing:
+## the guilds don't take a turn, no wages come due, no prices drift, and your
+## checkpoint stays where it was.
+func can_travel_to(n: int) -> bool:
+	return n >= 1 and n <= highest_floor and n != floor_number
+
+
+func travel_to_floor(n: int) -> bool:
+	if not can_travel_to(n):
+		return false
+	_revisit_floor(n)
+	return true
+
+
+## The stairs: a floor you've already been on is a revisit, a new one is a climb.
+func climb_to_floor(n: int) -> void:
+	if n <= highest_floor:
+		_revisit_floor(n)
+	else:
+		enter_floor(n)
+
+
+func _revisit_floor(n: int) -> void:
+	floor_number = n
+	floor_skill_uses.clear()
+	floor_seed = randi()
+	floor_ready = false
+	floor_enemies.clear()
+	floor_player_pos = Vector2i(-1, -1)
+	npc_spots.clear()
+	quests.update()
 
 
 ## Builds the layout for the current floor. First visit also rolls the enemies
@@ -913,7 +996,7 @@ func current_layout() -> FloorLayout:
 			group.resize(mini(full_size, maxi(1, max_group)))   # escorts match your party's size too
 			if boss_floor and Difficulty.is_hell(difficulty) and full_size > 1:
 				group.append(StageLibrary.boss_for_floor(n)[-1])   # Hell: stage bosses bring an extra escort
-			floor_enemies.append({ "pos": layout.guardian_spot, "alive": true,
+			floor_enemies.append({ "pos": layout.guardian_spot, "alive": not guardian_beaten(n),
 				"kind": "boss" if boss_floor else "miniboss", "group": group })
 		_maybe_spawn_roamer(layout, rng)
 		_maybe_spawn_guild_fighters(layout, rng)
@@ -1414,14 +1497,45 @@ func leave_over_route(c: CharacterData) -> void:
 ## markup), blessings and curses, the guild that runs this floor (its markup,
 ## your member discount) and supply and demand in this territory.
 func shop_price(item: ItemDef) -> int:
+	return roundi(item.price * trade_mult(GuildState.good_key(item.id)) * difficulty_price_mult())
+
+
+## Everything that moves a trader's price here: your route, curses, the ruling
+## guild, supply and demand for this good.
+func trade_mult(good: String) -> float:
 	var mult := 1.0
 	match route.current():
 		&"hero": mult = HERO_PRICE_MULT
 		&"villain": mult = VILLAIN_PRICE_MULT
 	mult += player.effect_sum("price_mult")   # e.g. the Demon of Greed's curse
 	mult *= guilds.price_mult(floor_number)
-	mult *= guilds.buy_mult(GuildLibrary.territory_of(floor_number), GuildState.good_key(item.id))
-	return roundi(item.price * maxf(0.1, mult) * difficulty_price_mult())
+	mult *= guilds.buy_mult(GuildLibrary.territory_of(floor_number), good)
+	return maxf(0.1, mult)
+
+
+## Buys a weapon from this floor's merchant (MerchantStock).
+func buy_merchant_gear(g: GearItem) -> bool:
+	var key: String = g.get_meta("merchant_key", "")
+	var price := MerchantStock.gear_price(g)
+	if key == "" or merchant_bought.has(key) or player.gold < price:
+		return false
+	player.gold -= price
+	merchant_bought.append(key)
+	guilds.record_buy(GuildLibrary.territory_of(floor_number), GuildState.good_key(&"", g))
+	inventory.add_gear(g)
+	return true
+
+
+## Buys a skill book from this floor's merchant.
+func buy_merchant_book(skill_id: StringName) -> bool:
+	var key := "%d:%s" % [floor_number, skill_id]
+	var price := MerchantStock.book_price(skill_id)
+	if merchant_bought.has(key) or player.gold < price:
+		return false
+	player.gold -= price
+	merchant_bought.append(key)
+	inventory.add(SkillBooks.book_item_id(skill_id))
+	return true
 
 
 ## Hell: consumables cost more.
@@ -1713,6 +1827,8 @@ func finish_battle(outcome: int, fighters: Array = []) -> void:
 				quests.messages.append("%s joins you!" % rescue_guest.character_name)
 			rescue_guest = null
 		if enemy_kind(e) in ["boss", "miniboss"]:
+			if not cleared_guardians.has(floor_number):
+				cleared_guardians.append(floor_number)
 			_free_captives(e.group[0])
 			# You won standing in front of the stairs: step back so you don't walk off by accident.
 			floor_player_pos = current_layout().spot_away_from_stairs(e.pos, SAFE_STEPS_FROM_STAIRS)

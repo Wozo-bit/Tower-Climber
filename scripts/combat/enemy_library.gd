@@ -142,7 +142,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1150, "stats": {S.HEALTH: 18, S.STRENGTH: 21, S.STAMINA: 18, S.INTELLIGENCE: 14, S.AGILITY: 5, S.LUCK: 10},
 			"row": FRONT, "skills": [&"smash", &"splash"] as Array[StringName], "skill_chance": 0.45,
 			"xp_reward": 700, "gold_reward": 300, "color": Color(0.3, 0.55, 1.0), "is_boss": true,
-			"lore": "(Placeholder) Every slime on these floors drains toward it eventually.",
+			"lore": "Every slime on these floors drains toward it eventually.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -189,7 +189,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1150, "stats": {S.HEALTH: 18, S.STRENGTH: 22, S.STAMINA: 17, S.AGILITY: 15, S.LUCK: 14},
 			"row": FRONT, "skills": [&"power_strike", &"war_cry", &"highwaymans_ruin"] as Array[StringName], "skill_chance": 0.45,
 			"xp_reward": 750, "gold_reward": 400, "color": Color(0.8, 0.6, 0.2), "is_boss": true,
-			"lore": "(Placeholder) Everything that goes missing on these floors ends up in his vault. Mammon takes a cut.",
+			"lore": "Everything that goes missing on these floors ends up in his vault. Mammon takes a cut.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -230,7 +230,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1100, "stats": {S.HEALTH: 17, S.INTELLIGENCE: 22, S.STRENGTH: 16, S.STAMINA: 16, S.AGILITY: 13, S.LUCK: 10},
 			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"stone_shot", &"mend", &"chitin_storm"] as Array[StringName],
 			"skill_chance": 0.5, "xp_reward": 750, "gold_reward": 320, "color": Color(0.9, 0.75, 0.15), "is_boss": true,
-			"lore": "(Placeholder) A thousand eggs, a thousand mouths. The Serpent of Chaos loves a hungry thing.",
+			"lore": "A thousand eggs, a thousand mouths. The Serpent of Chaos loves a hungry thing.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -271,7 +271,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1150, "stats": {S.HEALTH: 17, S.STRENGTH: 23, S.STAMINA: 16, S.AGILITY: 18, S.LUCK: 12},
 			"row": FRONT, "skills": [&"power_strike", &"war_cry", &"moonfang_bite"] as Array[StringName], "skill_chance": 0.45,
 			"xp_reward": 750, "gold_reward": 300, "color": Color(0.8, 0.82, 0.9), "is_boss": true,
-			"lore": "(Placeholder) The trickster raised it on stolen moonlight. It has never once been full.",
+			"lore": "The trickster raised it on stolen moonlight. It has never once been full.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -314,7 +314,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1100, "stats": {S.HEALTH: 17, S.INTELLIGENCE: 24, S.STAMINA: 16, S.AGILITY: 12, S.LUCK: 10},
 			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"firebolt", &"frost_bolt", &"spark", &"cataclysm"] as Array[StringName],
 			"skill_chance": 0.55, "xp_reward": 800, "gold_reward": 320, "color": Color(0.8, 0.5, 1.0), "is_boss": true,
-			"lore": "(Placeholder) Fire, frost and storm, bound into one will by the Father of Monsters.",
+			"lore": "Fire, frost and storm, bound into one will by the Father of Monsters.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -354,7 +354,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1050, "stats": {S.HEALTH: 16, S.INTELLIGENCE: 24, S.STAMINA: 15, S.AGILITY: 11, S.LUCK: 10},
 			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"mend", &"grave_tide"] as Array[StringName],
 			"skill_chance": 0.55, "xp_reward": 800, "gold_reward": 320, "color": Color(0.35, 0.25, 0.45), "is_boss": true,
-			"lore": "(Placeholder) The dead on these floors answer to him, and he answers to the Lord of the Underworld.",
+			"lore": "The dead on these floors answer to him, and he answers to the Lord of the Underworld.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -396,7 +396,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1200, "stats": {S.HEALTH: 18, S.STRENGTH: 23, S.INTELLIGENCE: 20, S.STAMINA: 17, S.AGILITY: 13, S.LUCK: 12},
 			"row": FRONT, "skills": [&"smash", &"ash_breath", &"abyssal_brand"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 850, "gold_reward": 350, "color": Color(0.6, 0.05, 0.1), "is_boss": true,
-			"lore": "(Placeholder) It signed its soul away a thousand years ago and has been collecting interest ever since.",
+			"lore": "It signed its soul away a thousand years ago and has been collecting interest ever since.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -438,7 +438,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1150, "stats": {S.HEALTH: 17, S.INTELLIGENCE: 23, S.STRENGTH: 20, S.STAMINA: 17, S.AGILITY: 14, S.LUCK: 12},
 			"row": FRONT, "skills": [&"smite", &"mend", &"judgment_ray"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 850, "gold_reward": 350, "color": Color(1.0, 0.95, 0.55), "is_boss": true,
-			"lore": "(Placeholder) It decides who is worthy of climbing higher. The King of the Gods signed its warrant.",
+			"lore": "It decides who is worthy of climbing higher. The King of the Gods signed its warrant.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -479,7 +479,7 @@ static func _build() -> Dictionary:
 			"max_hp": 1250, "stats": {S.HEALTH: 19, S.STRENGTH: 24, S.INTELLIGENCE: 22, S.STAMINA: 18, S.AGILITY: 12, S.LUCK: 12},
 			"row": FRONT, "skills": [&"smash", &"ash_breath", &"dragonfire"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 900, "gold_reward": 400, "color": Color(0.75, 0.1, 0.1), "is_boss": true,
-			"lore": "(Placeholder) The eldest child of the Mother of Chaos. Its hoard is the tower's crown.",
+			"lore": "The eldest child of the Mother of Chaos. Its hoard is the tower's crown.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2, "loot_luck_bonus": 10, "min_loot_rarity": 1, "unique_chance": 0.08}),
 
@@ -528,7 +528,7 @@ static func _build() -> Dictionary:
 			"max_hp": 900, "stats": {S.HEALTH: 16, S.STRENGTH: 22, S.STAMINA: 18, S.AGILITY: 12, S.LUCK: 10},
 			"row": FRONT, "skills": [&"smash", &"war_cry", &"power_strike"] as Array[StringName], "skill_chance": 0.45,
 			"xp_reward": 500, "gold_reward": 200, "color": Color(0.85, 0.85, 0.95),
-			"lore": "(Placeholder) Every guild's best fighter, sworn to hold its floors.",
+			"lore": "Every guild's best fighter, sworn to hold its floors.",
 			"loot_rolls": 1, "min_loot_rarity": 1}),
 
 		# --- Stage bosses (floor 10, 20, ...) ---

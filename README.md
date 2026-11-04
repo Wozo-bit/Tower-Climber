@@ -49,6 +49,22 @@ The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invi
 - **Chapters:** one per stage; Tab → Quests shows "Chapter 1: Tester" at the top. Chapters 2-6 are placeholders until written.
 - `StoryLibrary.validate()` checks it all (tests/test_story.gd). Scenes don't start by themselves in headless runs (`StoryLibrary.auto_play`), so other test suites stay quiet.
 
+## Playtest changes (Hayden 2026-11-04)
+- **Floor travel:** every campfire offers Travel to any floor you've reached (`TravelPanel`, `GameState.travel_to_floor`). Plain floors refill with enemies; beaten minibosses and bosses stay dead (`cleared_guardians`). Going back never takes a guild-AI turn, charges wages or moves your checkpoint, including walking back up old stairs (`climb_to_floor`).
+- **Guilds from the menu:** Tab → Guilds has "Contact your guild" (the agent's whole conversation, except the members' shop, which needs a trip to their floor) and "Guild jobs..." (bounties from your guild's floors). Your own guild can take **donations** of your gold, and the panel says why war isn't available yet.
+- **Merchants** also sell 3 weapons (up to Rare) and 2 Common skill books, a Rare book 25% of the time, and an Epic book 35% of the time if someone in the party has 40+ Luck (`MerchantStock`). Same stock if you come back; each sells once.
+- **Declining a god** (`BlessingState.decline`): a god who approves of your path (you lean its way, or 25+ interest) may give you its skill anyway, once, chance = 1 - temper. Otherwise, proud beings may curse you for a few floors: chance = temper - 0.2, never under temper 0.3 (Inari, Anubis, Yama), and temper 0.8+ strikes the party's HP too.
+- **Skill ranks** raise percents by 10 points per rank (`RANK_PERCENT`): Guard and Ward 30 → 40 → 50%, crit, ignore-defense, % heals, Focus. The skill text follows.
+- **HP and MP per level:** +12 HP and +2 MP (`HP_PER_LEVEL`, `MP_PER_LEVEL`).
+- **Class hints:** the Stats screen says which stats a character's attacks use and what their next advancements ask for (`CharacterData.build_hint`).
+- **Duplicate skills:** the 32 skills that copied another's numbers each got a twist: `lifesteal`, `boss_bonus`, `execute_bonus`, `stagger_bonus`, `rider_heal_pct`, `rider_mp_pct`, `also_status` (`SkillLibrary.TWISTS`, which also raises the MP cost of the cheapest hard hitters). A test fails if two skills ever match again.
+- **The late game** (`FloorMods`, `BattleManager`):
+  - **Floor twists:** from floor 30, about a third of plain floors have one: Null Field, Mana Well, Silent Floor, Gold Vein, Blood Moon.
+  - **Enemies adapt:** from floor 30, after 5 uses of a skill by one character on one floor, each further use does 10% less, down to half. Basic attacks don't fade; a new floor resets it.
+  - **Boss mechanics:** bosses from floor 30 get one mechanic at 50% HP, from floor 50 two (at 60% and 30%): reinforcements, a barrier only a weakness breaks (or 3 rounds), or a charged blast to brace for. Each also makes them hit 15% harder. Late minibosses just enrage. A boss's mechanics follow from its id.
+- **Ashbound:** "The Ashen Trail" quest starts with your first clue and lists what's left. The Ashen Wyrmling now comes however late you find the last clue (it used to stop after floor 29).
+- **Backspace** works in text boxes again (it was also a Cancel key, which stops editing). **Ironman** campfires no longer say they revive anyone. The Tab menu's items and spells scroll. The "(Placeholder)" tags are gone; `docs/story/unwritten_text.md` lists the temporary text.
+
 ## Tutorial tips (Hayden 2026-10-30)
 - The first time you meet each system, a **system window** explains it in 2-3 lines and pauses the game until you press OK (several in a row show "1 / 3" and Next). About 30 tips in four topics: Basics (the tower, battle, rows, weaknesses, rest floors, defeat, guardians), Growth (stat points, skills, gear, books, classes, the free class change, advancement), The tower (quests, the notice board, merchants, recruits, wages, party growth, the reserve, your path) and Gods and guilds (blessings, curses, guilds, wars, your own guild, demigods, New Game+, divinity).
 - **Seen once, never again**, for the whole save file: `user://tips.json` (validated JSON, like the demigod unlocks), so later runs and New Game+ stay quiet.
@@ -248,7 +264,7 @@ Open it with **Tab → Manage party**.
       - The NG+ Ascendant can pick anything.
       - Skills picked before your class stay with you.
     - **Skill books still teach anyone anything.** They're the rare way to break the mold.
-    - **Rank up:** a pick can instead rank up any skill you know, up to rank **III**. Each rank adds **+15% power** (and heal %) and takes **10% off** the MP cost (`MAX_SKILL_RANK`, `RANK_POWER`, `RANK_MP`). Blessed skills can't be ranked.
+    - **Rank up:** a pick can instead rank up any skill you know, up to rank **III**. Each rank adds **+15% power**, **+10 points** to any percent in the skill (Guard 30 → 40 → 50%) and takes **10% off** the MP cost (`MAX_SKILL_RANK`, `RANK_POWER`, `RANK_PERCENT`, `RANK_MP`). Blessed skills can't be ranked.
   - **Guard** takes single-target hits aimed at an ally (30% less) until your next turn. **Focus** restores 25% MP. **First Aid** heals 15% of max HP plus a little. **Quick Step** makes acting first much more likely next round.
 - **Skill books** teach any shared skill, including Rare, Epic, Legendary and Unique ones, only through books. Use them from **Tab → Items**. They can't be read mid-battle, and a book isn't used up on someone who already knows the skill.
   - **Who drops what:** monsters drop books that fit them, including skills they actually use (an Orc Brute can drop Smash). Each enemy's list is in `scripts/skills/skill_books.gd`.
@@ -526,7 +542,7 @@ Plan your party on floors 1–9 for the boss on floor 10.
 - **Enemy strength** scales with the floor: ×0.42 on floor 1, +0.05 per floor (×0.87 on floor 10, ×1.87 on floor 30). Minibosses and bosses follow the same curve (×0.9; `StageLibrary.GUARDIAN_MULT`). Every enemy's HP is also ×0.8 (`Combatant.ENEMY_HP_MULT`).
 - **Stage themes have a `power` rating** (Orc Stronghold 1.4: orcs are stronger than goblins by their own stats). Floor scaling and rewards are divided by it, so any theme fits any slot and the floor alone sets the difficulty.
 - **Rewards grow with the floor:** battle XP grows with enemy strength (×1 on floor 1, ×4.4 on floor 30), gold a little slower (to the power 0.7), so shop prices still matter higher up. Bounty rewards follow the same curve.
-- **Healing between rest floors:** you start with 5 Potions, ordinary enemies drop one 8% of the time (`LootTable.NORMAL_POTION_DROP`), and every level adds 10 max HP on top of Health (`CharacterData.HP_PER_LEVEL`).
+- **Healing between rest floors:** you start with 5 Potions, ordinary enemies drop one 8% of the time (`LootTable.NORMAL_POTION_DROP`), and every level adds 12 max HP on top of Health (`CharacterData.HP_PER_LEVEL`).
 - **Before a class (levels 1–9)** the basic attack uses your stronger of Strength or Intelligence (`attack_novice`), so a future mage isn't stuck punching.
 
 ## Difficulty and Ironman
@@ -544,6 +560,8 @@ Picked at **New Game** (and again when starting **New Game+**). During a run you
 - Numbers: `scripts/data/difficulty.gd`.
 
 ### What the balance simulator says
+**After the playtest changes** (2026-11-04), 40 runs per difficulty, before -> after: Relaxed 40 -> 40, Normal 33 -> 29, Hard 25 -> 17, Hell 4 -> 8. The bot doesn't use merchants' weapons, travel, Defend for blasts or barriers' weaknesses on purpose, and beaten guardians no longer give it extra XP when it re-climbs after a wipe (its level at the floor-10 boss fell from about 15.6 to 11.4 on Normal), so most of the drop is at the first two bosses. Late fights still cost the bot only 1-2% party HP, so the twists and boss mechanics add variety more than danger. To re-check with real play.
+
 `tools/balance_sim.tscn` plays whole runs with a bot: it fights everything, uses weaknesses, heals, buffs, keeps its summons up, takes a heal skill when the party has none, recruits, equips gear and shops, but never grinds. It also skips roaming bosses and never moves rows, Defends or Guards, so a real player should do somewhat better. The bot is noisy (battles roll their own dice), so compare 20+ runs.
 
 **Balance pass 2** (2026-10-25, after the growing party and the 4 rows; re-run after the party changed to +1 fighter every 10 floors), 20 runs per difficulty over all 60 floors, giving up after 6 wipes on one floor (15 on Hell):

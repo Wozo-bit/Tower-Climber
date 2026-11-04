@@ -36,6 +36,7 @@ func _ready() -> void:
 		var kv := String(a).split("=")
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	GameState.save_dir = "user://sim_saves"
+	GameState.legacy_path = "user://sim_saves_hall.json"
 	GameState.unlocks_path = "user://sim_saves_unlocks.json"
 	Tips.path = "user://sim_saves_tips.json"
 	Settings.path = "user://sim_saves_settings.cfg"

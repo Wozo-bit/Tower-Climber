@@ -34,6 +34,16 @@ var display_name: String
 ## Fight-long multipliers (the Lone Climber's perk, demigod bonds).
 var damage_dealt_mult := 1.0
 var damage_taken_mult := 1.0
+## Everyone's magic this fight (a floor's Null Field).
+var magic_dealt_mult := 1.0
+# --- Late bosses (BattleManager boss mechanics) ---
+var mechanics: Array[String] = []
+var phase := 0
+## Takes little damage until a weakness hit breaks it (or it fades).
+var shielded := false
+var shield_rounds := 0
+## 0 = no, 1 = gathering power this round, 2 = unleashes this round.
+var charge_state := 0
 var side: int = Side.PARTY
 var row: int = Row.FRONT
 var stats: StatBlock
@@ -177,12 +187,25 @@ func is_alive() -> bool:
 	return hp > 0
 
 
+## Ranked skills' extra percent per status (see add_status).
+var status_bonus: Dictionary = {}
+
+
 func has_status(id: StringName) -> bool:
 	return statuses.has(id)
 
 
-func add_status(id: StringName, turns: int) -> void:
+## `bonus`: extra percent effect from a ranked skill (the strongest one holds).
+func add_status(id: StringName, turns: int, bonus := 0.0) -> void:
+	if not statuses.has(id):
+		status_bonus.erase(id)
 	statuses[id] = maxi(statuses.get(id, 0), turns)
+	if bonus > 0.0:
+		status_bonus[id] = maxf(status_bonus.get(id, 0.0), bonus)
+
+
+func status_bonus_of(id: StringName) -> float:
+	return status_bonus.get(id, 0.0)
 
 
 ## Called at the start of this unit's turn.
@@ -196,7 +219,7 @@ func tick_statuses() -> void:
 func dodge_chance() -> float:
 	var d := stats.dodge_chance()
 	if has_status(&"evasive"):
-		d += EVASIVE_DODGE_BONUS
+		d += EVASIVE_DODGE_BONUS + status_bonus_of(&"evasive")
 	return minf(d, 0.8)
 
 

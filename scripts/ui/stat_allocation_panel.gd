@@ -10,6 +10,7 @@ var character: CharacterData
 var _pending: Dictionary = {}   # Stats.Type -> int
 var _rows: Dictionary = {}      # Stats.Type -> { value: Label, minus: Button, plus: Button }
 var _points_label: Label
+var _hint: Label
 var _derived_label: Label
 var _confirm_btn: Button
 var _clear_btn: Button
@@ -31,6 +32,12 @@ func _init() -> void:
 	title.add_theme_font_size_override("font_size", 24)
 	box.add_child(title)
 
+	# What this character's class wants (Hayden 2026-11-04).
+	_hint = Label.new()
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint.add_theme_font_size_override("font_size", 13)
+	_hint.modulate = Color(0.85, 0.9, 1.0)
+	box.add_child(_hint)
 	_points_label = Label.new()
 	box.add_child(_points_label)
 
@@ -132,6 +139,7 @@ func _refresh() -> void:
 	if _remaining() < 0:
 		_clear_pending_silent()
 
+	_hint.text = character.build_hint()
 	var remaining := _remaining()
 	_points_label.text = "Unspent points: %d" % remaining
 	if pending_total() > 0:

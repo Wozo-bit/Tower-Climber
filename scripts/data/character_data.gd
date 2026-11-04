@@ -22,7 +22,10 @@ const SKILL_PICK_EVERY := 3        # levels 3, 6, 9, 12, ...
 # --- XP curve (placeholder) ---
 const XP_BASE := 25
 ## Max HP every level gives on top of Health (see max_hp()).
-const HP_PER_LEVEL := 10
+const HP_PER_LEVEL := 12
+## Everyone gains this much MP a level, so non-casters don't run dry while a
+## mage (3 MP per Intelligence) gains far less in proportion (Hayden 2026-11-04).
+const MP_PER_LEVEL := 2
 const XP_EXPONENT := 1.5
 
 # --- Respec rules ---
@@ -304,6 +307,41 @@ func _is_blessed_skill(id: StringName) -> bool:
 	return false
 
 
+## Plain words on what makes this character stronger: the stats their attacks
+## and skills use, and what their next advancement asks for.
+func build_hint() -> String:
+	if not has_class():
+		return "No class yet: at level %d, the stats you spent points on decide which classes you can pick." % CLASS_UNLOCK_LEVEL
+	var uses := {}
+	for s: SkillDef in [SkillLibrary.basic_attack_for_class(class_id)] + all_skills():
+		match s.effect:
+			SkillDef.Effect.DAMAGE:
+				if s.adaptive:
+					uses[Stats.Type.STRENGTH] = uses.get(Stats.Type.STRENGTH, 0) + 1
+					uses[Stats.Type.INTELLIGENCE] = uses.get(Stats.Type.INTELLIGENCE, 0) + 1
+				elif s.damage_type == SkillDef.DamageType.MAGIC:
+					uses[Stats.Type.INTELLIGENCE] = uses.get(Stats.Type.INTELLIGENCE, 0) + 1
+				elif s.damage_type == SkillDef.DamageType.RANGED:
+					uses[Stats.Type.AGILITY] = uses.get(Stats.Type.AGILITY, 0) + 1
+					uses[Stats.Type.STRENGTH] = uses.get(Stats.Type.STRENGTH, 0) + 1
+				else:
+					uses[Stats.Type.STRENGTH] = uses.get(Stats.Type.STRENGTH, 0) + 1
+			SkillDef.Effect.HEAL:
+				uses[Stats.Type.INTELLIGENCE] = uses.get(Stats.Type.INTELLIGENCE, 0) + 1
+	var ranked_stats := uses.keys()
+	ranked_stats.sort_custom(func(a, b): return uses[a] > uses[b] or (uses[a] == uses[b] and a < b))
+	var names := ranked_stats.slice(0, 2).map(func(st): return Stats.name_of(st))
+	var def := get_class_def()
+	var text := "%s: hits and heals mainly with %s." % [def.display_name, " and ".join(names)] if not names.is_empty() \
+		else "%s: supports more than it hits." % def.display_name
+	var next_up := ClassRegistry.advancements_for(class_id).filter(func(a): return a.route_allows())
+	for a: ClassDef in next_up.slice(0, 2):
+		var want := " + ".join(a.required_stats.map(func(st): return Stats.name_of(st)))
+		text += "\n%s needs %d%% of spent points in %s (now %d%%)." % [a.display_name, roundi(a.threshold * 100), want,
+			roundi(a.qualification_share(stats) * 100)]
+	return text
+
+
 ## Class skills first, then learned shared skills (each at its rank).
 func all_skills() -> Array[SkillDef]:
 	var out: Array[SkillDef] = []
@@ -345,7 +383,7 @@ func max_hp() -> int:
 
 
 func max_mp() -> int:
-	return stats.max_mp()
+	return stats.max_mp() + MP_PER_LEVEL * (level - 1)
 
 
 func current_hp() -> int:

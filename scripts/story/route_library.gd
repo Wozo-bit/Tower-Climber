@@ -35,13 +35,13 @@ const BASE_ROUTES := {
 
 const BASE_ENDINGS := [
 	{ "id": &"neutral", "title": "The Wanderer", "priority": 0, "if": {},
-		"text": "(Placeholder) You reached the top as no one in particular. The tower will remember the climb, if not the climber." },
+		"text": "You reached the top as no one in particular. The tower will remember the climb, if not the climber." },
 	{ "id": &"hero", "title": "The Hero's Ending", "priority": 10, "if": { "route": &"hero" },
-		"text": "(Placeholder) The floors below celebrate. You climbed for them, and they know it." },
+		"text": "The floors below celebrate. You climbed for them, and they know it." },
 	{ "id": &"villain", "title": "The Villain's Ending", "priority": 10, "if": { "route": &"villain" },
-		"text": "(Placeholder) The tower is yours now, and everyone in it." },
+		"text": "The tower is yours now, and everyone in it." },
 	{ "id": &"vigilante", "title": "The Vigilante's Ending", "priority": 10, "if": { "route": &"vigilante" },
-		"text": "(Placeholder) No one asked you to climb. No one will stop you either." },
+		"text": "No one asked you to climb. No one will stop you either." },
 ]
 
 ## Live tables: the base content plus anything DLC registered.

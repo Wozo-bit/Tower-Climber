@@ -80,6 +80,7 @@ var _leave_prompt: ConfirmationDialog
 ## The tile you stepped onto the stairs from (Stay puts you back there).
 var _came_from := Vector2i(-1, -1)
 var _board_panel: NoticeBoardPanel
+var _travel_panel: TravelPanel
 ## Pinned quest's current step (top right).
 var _tracker: Label
 ## Does the board have jobs you haven't taken? (Shows "!" on it.)
@@ -190,7 +191,8 @@ func _process(delta: float) -> void:
 	if not GameState.pending_talks.is_empty() and not _menus_open() and _player_t >= 1.0:
 		var talk_req: Dictionary = GameState.pending_talks.pop_front()
 		_talk_cooldown = 0.0
-		talk(talk_req.dialogue, talk_req.get("companion"), talk_req.get("being", &""))
+		talk(talk_req.dialogue, talk_req.get("companion"), talk_req.get("being", &""), talk_req.get("guild", &""),
+			&"", talk_req.get("remote", false))
 	# Tutorial tips, at a calm moment (the window pauses the game).
 	_tip_check -= delta
 	if _tip_check <= 0.0 and not _menus_open() and _player_t >= 1.0 and GameState.pending_talks.is_empty():
@@ -227,7 +229,7 @@ func _tips_now(place: String) -> void:
 
 func _menus_open() -> bool:
 	return _party_menu.visible or _shop.visible or _pause.visible or _dialogue.visible \
-		or _climb_prompt.visible or _leave_prompt.visible or _board_panel.visible or _completion_open
+		or _climb_prompt.visible or _leave_prompt.visible or _board_panel.visible or _travel_panel.visible or _completion_open
 
 
 ## Saves only during a real run (never in the dev sandbox).
@@ -425,7 +427,7 @@ func _go_upstairs() -> void:
 	_flash.show()
 	tw.tween_property(_flash, "modulate:a", 1.0, 0.3).from(0.0)
 	tw.tween_callback(func():
-		GameState.enter_floor(GameState.floor_number + 1)
+		GameState.climb_to_floor(GameState.floor_number + 1)
 		_busy = false
 		_load_floor()
 		_autosave()
@@ -436,9 +438,10 @@ func _go_upstairs() -> void:
 
 ## Opens a conversation (public so tests/automation can use it).
 func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName = &"", guild: StringName = &"",
-		recruit: StringName = &"") -> void:
+		recruit: StringName = &"", remote := false) -> void:
 	if _talk_cooldown > 0.0 or _dialogue.visible:
 		return
+	DialogueRunner.remote_talk = remote
 	if being != &"":   # a god / demon / devil appears
 		CutIns.play(CutInData.being(being))
 	if _dialogue.open(dialogue_id, with, being, guild, recruit):
@@ -468,7 +471,7 @@ func _guardian_ahead() -> String:
 	var next := GameState.floor_number + 1
 	var group: Array[StringName] = StageLibrary.boss_for_floor(next) if StageLibrary.is_boss_floor(next) \
 		else StageLibrary.miniboss_for_floor(next)
-	if group.is_empty():
+	if group.is_empty() or GameState.guardian_beaten(next):
 		return ""
 	return "the %s (%s)" % [EnemyLibrary.get_enemy(group[0]).display_name,
 		"boss" if StageLibrary.is_boss_floor(next) else "miniboss"]
@@ -501,7 +504,29 @@ func _use_campfire() -> void:
 	Audio.play_sfx("campfire", 0.0)
 	_update_hud()
 	_autosave()
-	_show_toast("The warmth restores everyone. (HP/MP full, downed allies revived)")
+	_show_toast("The warmth restores everyone. (HP/MP full)" if GameState.ironman
+		else "The warmth restores everyone. (HP/MP full, downed allies revived)")
+	if GameState.highest_floor > 1:
+		_travel_panel.open()
+
+
+## Campfire -> Travel. Public so tests can drive it.
+func travel_to(n: int) -> void:
+	if not GameState.can_travel_to(n):
+		return
+	_busy = true
+	Audio.play_sfx("stairs", 0.0)
+	var tw := create_tween()
+	_flash.show()
+	tw.tween_property(_flash, "modulate:a", 1.0, 0.3).from(0.0)
+	tw.tween_callback(func():
+		GameState.travel_to_floor(n)
+		_busy = false
+		_load_floor()
+		_autosave()
+		_show_toast(_floor_intro_text()))
+	tw.tween_property(_flash, "modulate:a", 0.0, 0.3)
+	tw.tween_callback(_flash.hide)
 
 
 ## Final boss beaten: record the character in the Hall of Climbers and end the run.
@@ -641,6 +666,9 @@ func _floor_intro_text() -> String:
 	var boss := GameState.floor_has_alive("boss")
 	if not boss.is_empty():
 		t += " — BOSS: the %s awaits" % EnemyLibrary.get_enemy(boss.group[0]).display_name
+	var mod := FloorMods.get_mod(GameState.current_floor_mod())
+	if not mod.is_empty():
+		t += "\n✦ %s: %s" % [mod.name, mod.desc]
 	var roamer := GameState.floor_has_alive("roaming")
 	if not roamer.is_empty():
 		var info := StageLibrary.roamer_info(roamer.roamer_id)
@@ -922,6 +950,9 @@ func _build_hud() -> void:
 	_leave_prompt.confirmed.connect(_go_upstairs)
 	_leave_prompt.canceled.connect(_stay_on_floor)
 	_hud.add_child(_leave_prompt)
+	_travel_panel = TravelPanel.new()
+	_travel_panel.travel_chosen.connect(travel_to)
+	_hud.add_child(_travel_panel)
 	_dialogue = DialogueBox.new()
 	_dialogue.finished.connect(_on_dialogue_finished)
 	_hud.add_child(_dialogue)
@@ -959,8 +990,11 @@ func _update_hud() -> void:
 	var hunting := GameState.floor_enemies.filter(func(e): return e.alive and e.kind == "guard")
 	if not hunting.is_empty():
 		fl += "     ⚠ %s guards are hunting you" % GuildLibrary.guild_name(hunting[0].get("guild", &""))
+	var mod := FloorMods.get_mod(GameState.current_floor_mod())
+	if not mod.is_empty():
+		fl += "     ✦ %s" % mod.name
 	_floor_label.text = fl
-	_floor_label.tooltip_text = fl
+	_floor_label.tooltip_text = fl + ("\n" + mod.desc if not mod.is_empty() else "")
 
 	_board_has_new = layout != null and layout.board.x >= 0 \
 		and not GameState.quests.board_offers(GameState.floor_number).is_empty()

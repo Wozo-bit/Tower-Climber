@@ -68,7 +68,7 @@ const DIALOGUES := {
 		"nodes": {
 			"refuse": {
 				"speaker": "Merchant",
-				"text": "(Placeholder) I know who you are. I don't sell to your kind. Try the alleys.",
+				"text": "I know who you are. I don't sell to your kind. Try the alleys.",
 			},
 			"hello": {
 				"speaker": "Merchant",
@@ -91,19 +91,19 @@ const DIALOGUES := {
 			},
 			"glowcap_ask": {
 				"speaker": "Merchant",
-				"text": "(Placeholder) Glowcaps! Three of them. Slimes swallow them whole, so check what they leave behind. Before floor 15, mind; they spoil.",
+				"text": "Glowcaps! Three of them. Slimes swallow them whole, so check what they leave behind. Before floor 15, mind; they spoil.",
 				"effects": [{ "start_quest": &"glowcap_delivery" }],
 				"next": "hello",
 			},
 			"glowcap_thanks": {
 				"speaker": "Merchant",
-				"text": "(Placeholder) Perfect, still glowing. Here, for your trouble.",
+				"text": "Perfect, still glowing. Here, for your trouble.",
 				"effects": [{ "take_item": &"glowcap", "count": 3 }, { "set_flag": &"glowcaps_delivered" }],
 				"next": "hello",
 			},
 			"story": {
 				"speaker": "Merchant",
-				"text": "(Placeholder) A knight who walked out of a fire, they say. Burned black, but still walking.",
+				"text": "A knight who walked out of a fire, they say. Burned black, but still walking.",
 				"effects": [{ "set_flag": &"clue_ash_merchant_story" }],
 				"next": "hello",
 			},
@@ -114,7 +114,7 @@ const DIALOGUES := {
 			},
 			"rumors": {
 				"speaker": "Merchant",
-				"text": "(Placeholder) Word travels up and down the stairs...\n\n{tower_news}",
+				"text": "Word travels up and down the stairs...\n\n{tower_news}",
 				"next": "hello",
 			},
 		},
@@ -126,14 +126,16 @@ const DIALOGUES := {
 		"nodes": {
 			"hello": {
 				"speaker": "{guild} agent",
-				"text": "(Placeholder) Welcome to {guild} territory. Your standing with us: {guild_standing}.",
+				"text": "Welcome to {guild} territory. Your standing with us: {guild_standing}.",
 				"choices": [
 					{ "text": "Tell me about your guild.", "next": "about" },
 					{ "text": "I want to join.", "next": "joined", "effects": [{ "join_guild": true }],
 						"if": { "can_join_guild": true } },
 					{ "text": "Can I join?", "next": "refused", "if": { "guild_member": false, "can_join_guild": false } },
 					{ "text": "Show me the members' stock.", "effects": [{ "open_shop": "guild" }],
-						"if": { "guild_member": true } },
+						"if": { "guild_member": true, "remote": false } },
+					{ "text": "(The members' stock is only at their floors: {guild_floors}.)", "next": "hello",
+						"if": { "guild_member": true, "remote": true } },
 					# Phase 3: wars, mercenaries, heists.
 					{ "text": "Need a sword in your war?", "next": "hired", "effects": [{ "hire_on": true }],
 						"if": { "can_hire_on": true } },
@@ -157,23 +159,23 @@ const DIALOGUES := {
 				"text": "{guild_motto}\n\nWe serve {guild_patron}. We run {guild_floors}, and take {guild_tax} of what's earned there. Members pay less, and climb the ranks.",
 				"next": "hello",
 			},
-			"joined": { "speaker": "{guild} agent", "text": "(Placeholder) Welcome, {guild_rank}. Don't embarrass us." , "next": "hello" },
-			"refused": { "speaker": "{guild} agent", "text": "(Placeholder) Not a chance. {guild_refusal}", "next": "hello" },
-			"paid": { "speaker": "{guild} agent", "text": "(Placeholder) Your cut. Spend it wisely.", "next": "hello" },
-			"ransomed": { "speaker": "{guild} agent", "text": "(Placeholder) Pleasure doing business. Your captain's free to go.", "next": "hello" },
-			"no_ransom": { "speaker": "{guild} agent", "text": "(Placeholder) Then they stay with us. Come back with the gold, or come through our champion.", "next": "hello" },
-			"hired": { "speaker": "{guild} agent", "text": "(Placeholder) {guild_war}. Their guards will come for you now. We pay per head.", "next": "hello" },
-			"heist_given": { "speaker": "{guild} agent", "text": "(Placeholder) Our rivals keep a vault. Find one of their agents, and help yourself.", "next": "hello" },
-			"heist_tried": { "speaker": "", "text": "(Placeholder) You slip away while the agent's back is turned..." },
+			"joined": { "speaker": "{guild} agent", "text": "Welcome, {guild_rank}. Don't embarrass us." , "next": "hello" },
+			"refused": { "speaker": "{guild} agent", "text": "Not a chance. {guild_refusal}", "next": "hello" },
+			"paid": { "speaker": "{guild} agent", "text": "Your cut. Spend it wisely.", "next": "hello" },
+			"ransomed": { "speaker": "{guild} agent", "text": "Pleasure doing business. Your captain's free to go.", "next": "hello" },
+			"no_ransom": { "speaker": "{guild} agent", "text": "Then they stay with us. Come back with the gold, or come through our champion.", "next": "hello" },
+			"hired": { "speaker": "{guild} agent", "text": "{guild_war}. Their guards will come for you now. We pay per head.", "next": "hello" },
+			"heist_given": { "speaker": "{guild} agent", "text": "Our rivals keep a vault. Find one of their agents, and help yourself.", "next": "hello" },
+			"heist_tried": { "speaker": "", "text": "You slip away while the agent's back is turned..." },
 			"leave_confirm": {
 				"speaker": "{guild} agent",
-				"text": "(Placeholder) Walk out on us, and we'll remember it. Sure?",
+				"text": "Walk out on us, and we'll remember it. Sure?",
 				"choices": [
 					{ "text": "I'm sure.", "next": "left", "effects": [{ "leave_guild": true }] },
 					{ "text": "No, I'll stay.", "next": "hello" },
 				],
 			},
-			"left": { "speaker": "{guild} agent", "text": "(Placeholder) Then get off our floors." },
+			"left": { "speaker": "{guild} agent", "text": "Then get off our floors." },
 		},
 	},
 
@@ -192,10 +194,11 @@ const DIALOGUES := {
 						"if": { "has_bargain": true, "can_pay_bargain": true } },
 					{ "text": "(You can't pay: {being_bargain})", "if": { "has_bargain": true, "can_pay_bargain": false },
 						"effects": [{ "refuse_blessing": true }] },
-					{ "text": "No.", "effects": [{ "refuse_blessing": true }] },
+					{ "text": "No.", "next": "declined", "effects": [{ "decline_blessing": true }] },
 				],
 			},
-			"accepted": { "speaker": "{being}", "text": "(Placeholder) Then we are bound. Don't make me regret it." },
+			"declined": { "speaker": "{being}", "text": "{being_refusal}" },
+			"accepted": { "speaker": "{being}", "text": "Then we are bound. Don't make me regret it." },
 		},
 	},
 	&"blessing_warning": {
@@ -213,7 +216,7 @@ const DIALOGUES := {
 		"nodes": {
 			"warn": {
 				"speaker": "{npc}",
-				"text": "(Placeholder) {player}... I don't like who you're becoming. Keep going like this and I'm gone.",
+				"text": "{player}... I don't like who you're becoming. Keep going like this and I'm gone.",
 			},
 		},
 	},
@@ -222,7 +225,7 @@ const DIALOGUES := {
 		"nodes": {
 			"leave": {
 				"speaker": "{npc}",
-				"text": "(Placeholder) I warned you. I can't follow you down this path. If you ever turn back, I'll be by a campfire.",
+				"text": "I warned you. I can't follow you down this path. If you ever turn back, I'll be by a campfire.",
 			},
 		},
 	},
@@ -233,7 +236,7 @@ const DIALOGUES := {
 		"nodes": {
 			"plead": {
 				"speaker": "Captured bandit",
-				"text": "(Placeholder) The boss had me chained here. Please, let me go. I'll never rob anyone again.",
+				"text": "The boss had me chained here. Please, let me go. I'll never rob anyone again.",
 				"choices": [
 					{ "text": "Let them go.", "next": "freed",
 						"effects": [{ "route_points": { &"hero": 5 } }, { "set_flag": &"bandit_judged" }] },
@@ -243,9 +246,9 @@ const DIALOGUES := {
 						"effects": [{ "route_points": { &"villain": 5 } }, { "give_gold": 250 }, { "set_flag": &"bandit_judged" }] },
 				],
 			},
-			"freed": { "speaker": "Captured bandit", "text": "(Placeholder) Thank you. I won't forget this." },
-			"turned_in": { "speaker": "Captured bandit", "text": "(Placeholder) ...Figures." },
-			"robbed": { "speaker": "Captured bandit", "text": "(Placeholder) You're worse than the boss." },
+			"freed": { "speaker": "Captured bandit", "text": "Thank you. I won't forget this." },
+			"turned_in": { "speaker": "Captured bandit", "text": "...Figures." },
+			"robbed": { "speaker": "Captured bandit", "text": "You're worse than the boss." },
 		},
 	},
 	&"crossroads_shrine": {
@@ -256,7 +259,7 @@ const DIALOGUES := {
 		"nodes": {
 			"oath": {
 				"speaker": "",
-				"text": "(Placeholder) An old shrine where three paths meet. An oath sworn here can't be taken back.",
+				"text": "An old shrine where three paths meet. An oath sworn here can't be taken back.",
 				"choices": [
 					{ "text": "Swear to protect the tower's people.", "next": "sworn", "effects": [{ "lock_route": &"hero" }] },
 					{ "text": "Swear to take what you want.", "next": "sworn", "effects": [{ "lock_route": &"villain" }] },
@@ -264,8 +267,8 @@ const DIALOGUES := {
 					{ "text": "Not yet." },
 				],
 			},
-			"sworn": { "speaker": "", "text": "(Placeholder) The shrine's light settles on you. There's no going back now." },
-			"settled": { "speaker": "", "text": "(Placeholder) The shrine is quiet. Your path is already chosen." },
+			"sworn": { "speaker": "", "text": "The shrine's light settles on you. There's no going back now." },
+			"settled": { "speaker": "", "text": "The shrine is quiet. Your path is already chosen." },
 		},
 	},
 	&"black_market": {
@@ -273,7 +276,7 @@ const DIALOGUES := {
 		"nodes": {
 			"hello": {
 				"speaker": "Hooded trader",
-				"text": "(Placeholder) Heard you're not fussy about how things get done. Neither am I.",
+				"text": "Heard you're not fussy about how things get done. Neither am I.",
 				"choices": [
 					{ "text": "Show me what you've got.", "effects": [{ "open_shop": "black_market" }] },
 					{ "text": "Not now." },
@@ -288,7 +291,7 @@ const DIALOGUES := {
 		"nodes": {
 			"look": {
 				"speaker": "",
-				"text": "(Placeholder) A torn scrap of map is pinned under a rock. An X marks somewhere a few floors up.",
+				"text": "A torn scrap of map is pinned under a rock. An X marks somewhere a few floors up.",
 				"effects": [{ "start_quest": &"torn_map" }],
 			},
 		},
@@ -298,7 +301,7 @@ const DIALOGUES := {
 		"nodes": {
 			"look": {
 				"speaker": "",
-				"text": "(Placeholder) Behind a loose stone: the cache from the map!",
+				"text": "Behind a loose stone: the cache from the map!",
 				"effects": [{ "set_flag": &"found_hidden_cache" }],
 			},
 		},
@@ -324,18 +327,18 @@ const DIALOGUES := {
 		"nodes": {
 			"first": {
 				"speaker": "Brakka",
-				"text": "(Placeholder) Another climber? I've been stuck on this floor for days.",
+				"text": "Another climber? I've been stuck on this floor for days.",
 				"effects": [{ "set_flag": &"met_brakka" }],
 				"next": "friend",
 			},
 			"friend": {
 				"speaker": "{friend}",
-				"text": "(Placeholder) {player}, we could use someone who can take a hit.",
+				"text": "{player}, we could use someone who can take a hit.",
 				"next": "again",
 			},
 			"again": {
 				"speaker": "Brakka",
-				"text": "(Placeholder) So, want a shield at your back?",
+				"text": "So, want a shield at your back?",
 				"choices": [
 					{ "text": "Join us.", "next": "joined", "effects": [{ "recruit": &"brakka" }] },
 					{ "text": "Not right now." },
@@ -343,7 +346,7 @@ const DIALOGUES := {
 			},
 			"joined": {
 				"speaker": "Brakka",
-				"text": "(Placeholder) Ha! Lead the way.",
+				"text": "Ha! Lead the way.",
 			},
 		},
 	},
@@ -363,8 +366,8 @@ const DIALOGUES := {
 					{ "text": "Not right now." },
 				],
 			},
-			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead the way." },
-			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Not with someone who walks your path." },
+			"joined": { "speaker": "{recruit}", "text": "Lead the way." },
+			"refused": { "speaker": "{recruit}", "text": "Not with someone who walks your path." },
 		},
 	},
 	&"recruit_hire": {
@@ -383,9 +386,9 @@ const DIALOGUES := {
 					{ "text": "Not right now." },
 				],
 			},
-			"hired": { "speaker": "{recruit}", "text": "(Placeholder) Pleasure doing business." },
-			"hired_wage": { "speaker": "{recruit}", "text": "(Placeholder) Pay me every floor and we'll get along fine. Miss twice and I walk." },
-			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Your gold's no good. Not after what I've heard about you." },
+			"hired": { "speaker": "{recruit}", "text": "Pleasure doing business." },
+			"hired_wage": { "speaker": "{recruit}", "text": "Pay me every floor and we'll get along fine. Miss twice and I walk." },
+			"refused": { "speaker": "{recruit}", "text": "Your gold's no good. Not after what I've heard about you." },
 		},
 	},
 	&"recruit_favor": {
@@ -403,19 +406,19 @@ const DIALOGUES := {
 					{ "text": "Not right now." },
 				],
 			},
-			"accepted": { "speaker": "{recruit}", "text": "(Placeholder) Come back when it's done." },
-			"waiting": { "speaker": "{recruit}", "text": "(Placeholder) Still waiting on that favor ({recruit_favor})." },
+			"accepted": { "speaker": "{recruit}", "text": "Come back when it's done." },
+			"waiting": { "speaker": "{recruit}", "text": "Still waiting on that favor ({recruit_favor})." },
 			"ready": {
 				"speaker": "{recruit}",
-				"text": "(Placeholder) You kept your word. I'll keep mine.",
+				"text": "You kept your word. I'll keep mine.",
 				"choices": [
 					{ "text": "Join us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
 					{ "text": "Join us.", "next": "refused", "if": { "refuses_you": true } },
 					{ "text": "Not right now." },
 				],
 			},
-			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead the way." },
-			"refused": { "speaker": "{recruit}", "text": "(Placeholder) ...I've seen what you've become. No." },
+			"joined": { "speaker": "{recruit}", "text": "Lead the way." },
+			"refused": { "speaker": "{recruit}", "text": "...I've seen what you've become. No." },
 		},
 	},
 
@@ -430,7 +433,7 @@ const DIALOGUES := {
 		"nodes": {
 			"omen": {
 				"speaker": "",
-				"text": "(Placeholder) The fire burns gold. A figure of legend steps out of the light.",
+				"text": "The fire burns gold. A figure of legend steps out of the light.",
 				"next": "ask",
 			},
 			"ask": {
@@ -441,29 +444,29 @@ const DIALOGUES := {
 					{ "text": "Not yet." },
 				],
 			},
-			"accepted": { "speaker": "{recruit}", "text": "(Placeholder) Then go. I will be watching from the fires above." },
-			"waiting": { "speaker": "{recruit}", "text": "(Placeholder) Your legend is not finished yet ({recruit_favor})." },
+			"accepted": { "speaker": "{recruit}", "text": "Then go. I will be watching from the fires above." },
+			"waiting": { "speaker": "{recruit}", "text": "Your legend is not finished yet ({recruit_favor})." },
 			"ready": {
 				"speaker": "{recruit}",
-				"text": "(Placeholder) The gods have seen enough. I will climb with you.",
+				"text": "The gods have seen enough. I will climb with you.",
 				"choices": [
 					{ "text": "Climb with us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
 					{ "text": "Climb with us.", "next": "refused", "if": { "refuses_you": true } },
 					{ "text": "Not yet." },
 				],
 			},
-			"joined": { "speaker": "{recruit}", "text": "(Placeholder) Lead, mortal. Try to keep up." },
+			"joined": { "speaker": "{recruit}", "text": "Lead, mortal. Try to keep up." },
 			# Unlocked in an earlier run: they remember, and just join.
 			"returning": {
 				"speaker": "{recruit}",
-				"text": "(Placeholder) We've climbed this tower together before, in another life. I remember. Shall we?",
+				"text": "We've climbed this tower together before, in another life. I remember. Shall we?",
 				"choices": [
 					{ "text": "Climb with us.", "next": "joined", "effects": [{ "recruit_here": true }], "if": { "refuses_you": false } },
 					{ "text": "Climb with us.", "next": "refused", "if": { "refuses_you": true } },
 					{ "text": "Not yet." },
 				],
 			},
-			"refused": { "speaker": "{recruit}", "text": "(Placeholder) Your path has strayed from anything I would follow." },
+			"refused": { "speaker": "{recruit}", "text": "Your path has strayed from anything I would follow." },
 		},
 	},
 
@@ -473,7 +476,7 @@ const DIALOGUES := {
 		"nodes": {
 			"hello": {
 				"speaker": "{npc}",
-				"text": "(Placeholder) {player}! Ready to climb together again?",
+				"text": "{player}! Ready to climb together again?",
 				"choices": [
 					{ "text": "Rejoin us.", "effects": [{ "rejoin": true }], "if": { "owes_wage": false } },
 					{ "text": "Here's what I owe you ({wage_owed} gold). Rejoin us.", "effects": [{ "pay_owed": true }, { "rejoin": true }],
@@ -491,7 +494,7 @@ const DIALOGUES := {
 		"nodes": {
 			"look": {
 				"speaker": "",
-				"text": "(Placeholder) A mural, half burned away. A knight kneels in the flames, a wyrm coiled above.",
+				"text": "A mural, half burned away. A knight kneels in the flames, a wyrm coiled above.",
 				"effects": [{ "set_flag": &"clue_ash_scorched_mural" }],
 			},
 		},
@@ -501,7 +504,7 @@ const DIALOGUES := {
 		"nodes": {
 			"look": {
 				"speaker": "",
-				"text": "(Placeholder) A burnt-out sword in the stone. Scratched beside it: \"Strong of arm and sharp of mind, the ashes will know their own.\"",
+				"text": "A burnt-out sword in the stone. Scratched beside it: \"Strong of arm and sharp of mind, the ashes will know their own.\"",
 				"effects": [{ "set_flag": &"hint_ash_carving" }],
 				"next": "hint",
 			},
@@ -516,14 +519,14 @@ const DIALOGUES := {
 		"nodes": {
 			"look": {
 				"speaker": "",
-				"text": "(Placeholder) Something glints in the embers: a black feather that doesn't burn.",
+				"text": "Something glints in the embers: a black feather that doesn't burn.",
 				"effects": [{ "set_flag": &"clue_ash_feather_in_embers" }],
 			},
 		},
 	},
 }
 
-const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
+const CONDITION_KEYS := ["flag", "any_flag", "remote", "not_flag", "min_floor", "max_floor", "min_level", "gold", "item",
 	"ng_plus", "on_secret_path", "recruited", "quest_new", "quest_active", "quest_done", "quest_failed",
 	"quest_on_step", "route", "not_route", "route_locked", "no_route", "has_bargain", "can_pay_bargain", "blessed",
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
@@ -531,7 +534,7 @@ const CONDITION_KEYS := ["flag", "not_flag", "min_floor", "max_floor", "min_leve
 	"patron_pantheon", "can_pay_down", "owes_wage", "can_pay_owed", "demigod_unlocked"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
-	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "interest",
+	"route_points", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
 	"join_guild", "leave_guild", "collect_pay", "guild_rep", "hire_on", "take_heist", "attempt_heist", "pay_ransom",
 	"recruit_here", "pay_fee", "start_favor", "hire_wage", "pay_owed"]
 

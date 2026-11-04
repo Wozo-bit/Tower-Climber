@@ -14,7 +14,7 @@ const SHOPS := {
 	&"merchant": { "name": "Merchant", "greet": "\"Climbing, are we? You'll want these.\"",
 		"stock": SHOP_STOCK, "prices": {} },
 	# Villain route only. Sells what honest traders won't, at its own prices.
-	&"black_market": { "name": "Black Market", "greet": "\"(Placeholder) No names, no questions. Coin first.\"",
+	&"black_market": { "name": "Black Market", "greet": "\"No names, no questions. Coin first.\"",
 		"stock": [&"advanced_potion", &"ether", &"scouting_lens", &"goddess_tear"],
 		"prices": { &"advanced_potion": 140, &"ether": 120, &"scouting_lens": 160, &"goddess_tear": 900 } },
 }

@@ -8,6 +8,8 @@ signal closed
 
 var _list: VBoxContainer
 var _message: Label
+## Whose board: the floor you're on, or (Tab -> Guilds) one of your guild's floors.
+var _floor := -1
 
 
 func _init() -> void:
@@ -48,7 +50,8 @@ func _init() -> void:
 	box.add_child(close_btn)
 
 
-func open() -> void:
+func open(floor_n := -1) -> void:
+	_floor = floor_n
 	_message.text = ""
 	_rebuild()
 	show()
@@ -69,7 +72,7 @@ func _rebuild() -> void:
 	for c in _list.get_children():
 		_list.remove_child(c)
 		c.queue_free()
-	var offers := GameState.quests.board_offers(GameState.floor_number)
+	var offers := GameState.quests.board_offers(_floor if _floor > 0 else GameState.floor_number)
 	if offers.is_empty():
 		var none := Label.new()
 		none.text = "Nothing new pinned up. Check the next rest floor."

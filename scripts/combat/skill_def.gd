@@ -45,6 +45,24 @@ enum Targeting { ENEMY_SINGLE, ENEMY_ALL, ALLY_SINGLE, ALLY_ALL, SELF }
 ## Status applied by STATUS skills (or as a rider on others).
 @export var status_id: StringName = &""
 @export var status_turns: int = 0
+## Added to the status's percent effect (ranked skills: Ward at rank 3 = +0.2,
+## so 50% less damage instead of 30%). See SkillLibrary.ranked.
+@export var status_bonus: float = 0.0
+## Riders that make skills differ (see SkillLibrary.TWISTS).
+## Heals the user for this share of the damage dealt.
+@export var lifesteal: float = 0.0
+## Extra damage (+0.5 = 50% more) against bosses and roamers.
+@export var boss_bonus: float = 0.0
+## Extra damage against enemies under DamageCalc.EXECUTE_BELOW HP.
+@export var execute_bonus: float = 0.0
+## Every hit also fills the stagger meter this much (weak or not).
+@export var stagger_bonus: int = 0
+## STATUS and HEAL skills also restore this share of max HP / MP to each target.
+@export var rider_heal_pct: float = 0.0
+@export var rider_mp_pct: float = 0.0
+## Also gives this status (to the targets of a STATUS skill; to the user otherwise).
+@export var also_status: StringName = &""
+@export var also_turns: int = 0
 ## SUMMON skills: the EnemyDef id called onto the field.
 @export var summon_id: StringName = &""
 

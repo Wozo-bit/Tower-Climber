@@ -262,14 +262,19 @@ func test_shape(win: Vector2i, scale: float, label: String) -> void:
 		"guilds": func(): menu._guild_panel.open(), "divinity": func(): menu._divinity_panel.open(),
 		"advancement": func(): menu._advance_panel.open(p), "class choice": func(): menu._class_screen.open(p),
 		"guide": func(): menu._guide_panel.open(),
+		"guild jobs": func(): menu._guild_panel.open(); menu._guild_panel._jobs.open(1),
+		"travel": func(): floor_scene._travel_panel.open(),
 	}
 	for what in subs:
 		subs[what].call()
 		await _frames(2)
 		_expect_fit(floor_scene, what, label)
 		for panel in [menu._stats_overlay, menu._gear_panel, menu._skills_panel, menu._manage_panel, menu._bestiary_panel,
-				menu._quest_panel, menu._guild_panel, menu._divinity_panel, menu._advance_panel, menu._class_screen, menu._guide_panel]:
+				menu._quest_panel, menu._guild_panel, menu._divinity_panel, menu._advance_panel, menu._class_screen, menu._guide_panel,
+				floor_scene._travel_panel]:
 			panel.hide()
+		if menu._guild_panel._jobs:
+			menu._guild_panel._jobs.hide()
 	menu.hide()
 	for what in ["shop", "notice board", "pause menu"]:
 		match what:

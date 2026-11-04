@@ -109,7 +109,7 @@ func _register_tier_three() -> void:
 	for from in tier3:
 		var parent := get_class_def(from)
 		var id := StringName(String(from) + "_t3")
-		_advanced(id, tier3[from][0], "(Placeholder) " + tier3[from][1], from, parent.required_stats,
+		_advanced(id, tier3[from][0], "" + tier3[from][1], from, parent.required_stats,
 			parent.threshold, parent.required_route)
 
 
@@ -138,12 +138,12 @@ func _register_demigods() -> void:
 	for d in demigods:
 		var stats: Array[int] = []
 		stats.assign(d[4])
-		var def := ClassDef.create(d[1], d[2], "(Placeholder) " + d[3], stats, 0.4, 2)
+		var def := ClassDef.create(d[1], d[2], "" + d[3], stats, 0.4, 2)
 		def.is_secret = true
 		def.unique_to = d[0]
 		def.stat_bonus_pct = TIER_STAT_BONUS[2] + DEMIGOD_EDGE
 		register(def)
-		_advanced(StringName(String(d[1]) + "_t3"), d[5], "(Placeholder) The legend complete.", d[1], d[4], 0.4)
+		_advanced(StringName(String(d[1]) + "_t3"), d[5], "The legend complete.", d[1], d[4], 0.4)
 		get_class_def(StringName(String(d[1]) + "_t3")).unique_to = d[0]
 		get_class_def(StringName(String(d[1]) + "_t3")).stat_bonus_pct = TIER_STAT_BONUS[3] + DEMIGOD_EDGE
 
@@ -242,9 +242,9 @@ func _register_secret() -> void:
 	ash.is_secret = true
 	register(ash)
 	# Its own line (Hayden 2026-10-25), so taking it isn't a step down. Placeholder names.
-	_advanced(&"cinderbrand", "Cinderbrand Knight", "(Placeholder) The ashes answer the blade.", &"ashbound_knight",
+	_advanced(&"cinderbrand", "Cinderbrand Knight", "The ashes answer the blade.", &"ashbound_knight",
 		[Stats.Type.STRENGTH, Stats.Type.INTELLIGENCE], 0.55)
-	_advanced(&"cinderbrand_t3", "Wyrmflame Knight", "(Placeholder) The wyrm's fire, bound to a knight.", &"cinderbrand",
+	_advanced(&"cinderbrand_t3", "Wyrmflame Knight", "The wyrm's fire, bound to a knight.", &"cinderbrand",
 		[Stats.Type.STRENGTH, Stats.Type.INTELLIGENCE], 0.55)
 
 	# New Game+ only: deliberately stronger than anything in a first run.

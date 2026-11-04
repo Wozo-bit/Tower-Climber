@@ -347,7 +347,7 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 	var rewards := { "gold": roundi(n * BOUNTY_GOLD_PER_KILL * pow(scale, GameState.GOLD_REWARD_EXP)),
 		"xp": roundi(n * BOUNTY_XP_PER_KILL * scale) }
 	var title := "Bounty: %s" % label.capitalize()
-	var desc := "(Placeholder) Someone wants %d %s gone." % [n, label]
+	var desc := "Someone wants %d %s gone." % [n, label]
 	# Some jobs lean a route (the family bounty never does).
 	var flavor := _bounty_flavor(flavor_rolls[mini(index, flavor_rolls.size() - 1)]) if index > 0 else {}
 	if not flavor.is_empty():
@@ -375,11 +375,11 @@ const BOUNTY_GUILD_REP := 5
 const BOUNTY_ROUTE_POINTS := 3
 const BOUNTY_FLAVORS := [
 	{ "chance": 0.2, "route": &"villain", "label": "Shady job", "gold_mult": 1.5,
-		"desc": "(Placeholder) No names, no questions: %d %s, and the pay is good." },
+		"desc": "No names, no questions: %d %s, and the pay is good." },
 	{ "chance": 0.2, "route": &"hero", "label": "Plea for help", "gold_mult": 0.8,
-		"desc": "(Placeholder) Climbers below are scared. Clear out %d %s for them." },
+		"desc": "Climbers below are scared. Clear out %d %s for them." },
 	{ "chance": 0.15, "route": &"vigilante", "label": "Wanted", "gold_mult": 1.2,
-		"desc": "(Placeholder) The guards won't touch them. Deal with %d %s yourself." },
+		"desc": "The guards won't touch them. Deal with %d %s yourself." },
 ]
 
 

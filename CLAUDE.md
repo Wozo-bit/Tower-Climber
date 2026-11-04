@@ -309,6 +309,17 @@ interest, Hayden: both), StoryLibrary scenes (once per run, "enter" /
 chapter in Tab -> Quests, Settings "Skip the prologue". Hayden asked for the
 story, so writing story text is OK now; it's a first draft he'll rewrite.
 
+Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
+campfire floor travel (never ticks guilds/wages), guild actions from Tab,
+donations, merchant weapons + books, declining gods (curse by temper, good
+gods may gift the skill), rank % +10 points, +12 HP/+2 MP per level, class
+hints on Stats, no duplicate skills (SkillLibrary.TWISTS, test enforces),
+late game: FloorMods from floor 30, enemies adapt to repeated skills, boss
+mechanics from floor 30/50. Sim 40 runs before -> after: Relaxed 40->40,
+Normal 33->29, Hard 25->17, Hell 4->8 (first two bosses got harder for the
+bot: no extra guardian XP on re-climbs). Backspace must never be a Cancel key (LineEdit
+stops editing on ui_cancel). Unwritten text: docs/story/unwritten_text.md.
+
 Tutorial tips BUILT 2026-10-30 (Hayden's picks): system window that pauses,
 shown the first time you meet each system (~30 tips, all four topics), seen
 list for the whole save file (user://tips.json; tests redirect Tips.path),
@@ -374,7 +385,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (25 suites, 1885 checks at last run).
+Every change gets tests in tests/ (26 suites, 2068 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -385,7 +396,7 @@ C:\Godot\Godot_v4.7.2-stable_win64_console.exe)
 Suites: test_progression, test_combat, test_tower, test_loot, test_save,
 test_skills, test_dialogue, test_party, test_elements, test_quests,
 test_routes, test_classes, test_blessings, test_guilds, test_guild_ai,
-test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips, test_display, test_story. All must pass before
+test_presentation, test_screens (opens the real screens), test_difficulty, test_stages, test_recruits, test_demigods, test_divinity, test_tips, test_display, test_story, test_playtest. All must pass before
 handing work back.
 The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 

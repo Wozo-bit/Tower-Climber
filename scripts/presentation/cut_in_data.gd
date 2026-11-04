@@ -91,9 +91,9 @@ static func skill(caster: Combatant, s: SkillDef) -> Dictionary:
 static func being(id: StringName) -> Dictionary:
 	var b := BeingLibrary.get_being(id)
 	var kind: String = b.get("kind", "god")
-	var sub: String = { "god": "(Placeholder) A god turns its gaze upon you",
-		"demon": "(Placeholder) A demon takes an interest",
-		"devil": "(Placeholder) A devil has an offer" }.get(kind, "")
+	var sub: String = { "god": "A god turns its gaze upon you",
+		"demon": "A demon takes an interest",
+		"devil": "A devil has an offer" }.get(kind, "")
 	return make("being", BeingLibrary.full_name(id), sub, Assets.first([["cutins", id], ["beings", id]]),
 		BEING_COLORS.get(kind, Color.WHITE), "✧")
 

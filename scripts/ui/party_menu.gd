@@ -127,9 +127,14 @@ func _init() -> void:
 	_members_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_members_box.add_theme_constant_override("separation", 8)
 	members_scroll.add_child(_members_box)
+	# Scrolls: late in the climb the items + healing spells won't all fit.
+	var actions_scroll := ScrollContainer.new()
+	actions_scroll.custom_minimum_size.x = 300
+	actions_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body.add_child(actions_scroll)
 	_actions_box = VBoxContainer.new()
-	_actions_box.custom_minimum_size.x = 280
-	body.add_child(_actions_box)
+	_actions_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions_scroll.add_child(_actions_box)
 
 	_message = Label.new()
 	_message.modulate = Color(0.7, 1, 0.75)
@@ -166,6 +171,7 @@ func _init() -> void:
 	_quest_panel = QuestLogPanel.new()
 	add_child(_quest_panel)
 	_guild_panel = GuildPanel.new()
+	_guild_panel.contact_requested.connect(close)
 	add_child(_guild_panel)
 	_divinity_panel = DivinityPanel.new()
 	_divinity_panel.closed.connect(_rebuild)
@@ -302,7 +308,8 @@ func _rebuild() -> void:
 		cancel.pressed.connect(func(): _pending = {}; _say(""); _rebuild())
 		_actions_box.add_child(cancel)
 
-	_actions_box.add_child(_note("\nDowned allies can't be healed. Revive them\nwith a Goddess Tear or at a campfire."))
+	if not GameState.ironman:
+		_actions_box.add_child(_note("\nDowned allies can't be healed. Revive them\nwith a Goddess Tear or at a campfire."))
 
 
 func _member_row(member: CharacterData) -> Control:

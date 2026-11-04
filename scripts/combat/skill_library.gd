@@ -153,6 +153,11 @@ const OPEN_POOL_CLASSES := [&"ascendant"]
 const MAX_SKILL_RANK := 3
 const RANK_POWER := 0.15
 const RANK_MP := 0.1
+## Percent effects (Guard, Ward, crit, ignore defense, % heals) gain this per
+## rank: Guard 30% -> 40% -> 50% (Hayden 2026-11-04). The text follows.
+const RANK_PERCENT := 0.1
+const BOSS_UNLEASH := &"boss_unleash"
+const PERCENT_STATUSES := [&"ward", &"fury", &"evasive"]
 const RANK_NUMERALS := ["", "", " II", " III", " IV", " V"]
 
 ## Default basic attack per class. Classless characters use attack_novice.
@@ -188,6 +193,62 @@ const CLASS_ROWS := {
 	&"lionheart": 0, &"gorgonbane": 1, &"myrmidon_lord": 0, &"king_of_uruk": 2,
 	&"hound_of_ulster": 1, &"dragonslayer": 0,
 	&"labyrinth_hero": 1, &"amazon_queen": 0, &"songweaver": 3, &"swift_huntress": 2, &"wild_man": 0, &"fianna_captain": 1, &"oni_slayer": 0, &"sky_lancer": 1,
+}
+
+
+## Skills that were exact copies of another one get a twist of their own
+## (Hayden 2026-11-04), and the cheapest hard hitters cost more (MP was never a
+## limit late on). Applied over the list above: id -> properties to change.
+const TWISTS := {
+	# Party "30% less damage" shields.
+	&"aegis": { "rider_heal_pct": 0.1, "description": "Athena's shield: the whole party takes 30% less damage for 2 turns and heals 10% of max HP.", "mp_cost": 15 },
+	&"spell_bulwark": { "rider_mp_pct": 0.1, "description": "The whole party takes 30% less damage for 2 turns and regains 10% of max MP.", "mp_cost": 15 },
+	&"gate_of_uruk": { "status_turns": 3, "mp_cost": 15, "description": "Gilgamesh's walls: the whole party takes 30% less damage for 3 turns." },
+	&"charm_of_hades": { "also_status": &"evasive", "also_turns": 2, "mp_cost": 16, "description": "Even the dead listen: the whole party takes 30% less damage and gets +30% dodge for 2 turns." },
+	&"valkyries_shield": { "also_status": &"haste", "also_turns": 2, "mp_cost": 16, "description": "Sigrun's oath: the whole party takes 30% less damage for 3 turns and acts sooner." },
+	&"ascendant_will": { "also_status": &"fury", "also_turns": 3, "mp_cost": 20, "description": "The whole party takes 30% less damage and deals 30% more for 3 turns." },
+	&"aegis_of_runes": { "rider_mp_pct": 0.1, "mp_cost": 20, "description": "The whole party takes 30% less damage for 4 turns and regains 10% of max MP." },
+	# Self speed.
+	&"swift_footed": { "also_status": &"evasive", "also_turns": 3, "mp_cost": 7, "description": "Much more likely to act first, and +30% dodge, for 3 rounds." },
+	&"outrun": { "rider_mp_pct": 0.1, "mp_cost": 6, "description": "Much more likely to act first for 3 rounds. Regain 10% of max MP." },
+	&"golden_bridle": { "also_status": &"ward", "also_turns": 2, "mp_cost": 8, "description": "Much more likely to act first for 3 rounds, and take 30% less damage for 2." },
+	# Party dodge.
+	&"foresight": { "also_status": &"haste", "also_turns": 2, "mp_cost": 14, "description": "The whole party gets +30% dodge for 2 turns and acts sooner." },
+	&"aegis_reflection": { "also_status": &"ward", "also_turns": 2, "mp_cost": 16, "description": "The whole party gets +30% dodge and takes 30% less damage for 2 turns." },
+	&"birdspeech": { "rider_mp_pct": 0.1, "mp_cost": 14, "description": "Sigurd heeds the birds: the whole party gets +30% dodge for 2 turns and regains 10% of max MP." },
+	&"ariadnes_thread": { "rider_heal_pct": 0.1, "mp_cost": 14, "description": "Theseus knows the way out: the whole party gets +30% dodge for 2 turns and heals 10% of max HP." },
+	# Self shields.
+	&"grim_resolve": { "also_status": &"fury", "also_turns": 3, "mp_cost": 10, "description": "Take 30% less damage and deal 30% more for 3 turns." },
+	&"iron_body": { "rider_heal_pct": 0.1, "mp_cost": 8, "description": "Take 30% less damage for 3 turns and recover 10% of max HP." },
+	&"steppe_hide": { "rider_heal_pct": 0.1, "mp_cost": 8, "description": "Take 30% less damage for 4 turns and recover 10% of max HP." },
+	&"heel_guard": { "also_status": &"evasive", "also_turns": 4, "mp_cost": 9, "description": "Achilles shrugs off harm: 30% less damage and +30% dodge for 4 turns." },
+	&"salmon_leap": { "also_status": &"fury", "also_turns": 3, "mp_cost": 8, "description": "+30% dodge and 30% more damage for 3 turns." },
+	&"labyrinth_step": { "rider_mp_pct": 0.1, "mp_cost": 6, "description": "+30% dodge for 3 turns. Regain 10% of max MP." },
+	# Party fury and speed.
+	&"nemean_roar": { "also_status": &"ward", "also_turns": 2, "mp_cost": 18, "description": "Heracles roars: the whole party deals 30% more damage and takes 30% less for 2 turns." },
+	&"girdle_of_ares": { "also_status": &"haste", "also_turns": 2, "mp_cost": 16, "description": "Her father's war-belt: the whole party deals 30% more damage for 2 turns and acts sooner." },
+	&"winged_sandals": { "also_status": &"evasive", "also_turns": 2, "mp_cost": 13, "description": "Hermes' gift: the whole party acts sooner and gets +30% dodge for 2 rounds." },
+	&"golden_apple": { "rider_heal_pct": 0.1, "mp_cost": 13, "description": "Who could resist? The whole party acts sooner for 2 rounds and heals 10% of max HP." },
+	&"loyal_companions": { "also_status": &"haste", "also_turns": 2, "description": "His faithful dog joins the fight, and he acts sooner for 2 rounds." },
+	&"lyre_song": { "rider_mp_pct": 0.05, "description": "A song that heals the whole party and restores 5% of max MP." },
+	# Damage.
+	&"verdict_of_light": { "execute_bonus": 0.5, "description": "Holy judgment on every enemy. 50% more damage to those near death." },
+	&"divine_mirror": { "stagger_bonus": 1, "description": "Amaterasu's mirror shines on every enemy, wearing down their footing (always builds stagger)." },
+	&"vendetta": { "lifesteal": 0.2, "description": "A raven-guided strike past any guard. Heals you for 20% of the damage." },
+	&"devils_due": { "lifesteal": 0.25, "description": "The devil collects from one enemy. Heals you for 25% of the damage." },
+	&"weighing_of_the_heart": { "execute_bonus": 0.5, "description": "Anubis judges one enemy. 50% more damage to those near death." },
+	&"medusas_gaze": { "stagger_bonus": 1, "description": "Stone creeps over every enemy (always builds stagger)." },
+	&"club_of_heracles": { "def_pierce": 0.3, "mp_cost": 11, "description": "A blow that once killed a lion. Ignores 30% of defense." },
+	&"minotaur_slayer": { "boss_bonus": 0.4, "mp_cost": 12, "description": "The blow that ended the beast of the maze. 40% more damage to bosses." },
+	&"wild_grapple": { "stagger_bonus": 2, "mp_cost": 11, "description": "A grip that wrestled a king to a draw (builds a lot of stagger)." },
+	&"bull_of_heaven": { "boss_bonus": 0.4, "description": "He threw down the Bull of Heaven; every enemy feels it. 40% more damage to bosses." },
+	&"queens_charge": { "execute_bonus": 0.5, "description": "The Amazons ride over every enemy. 50% more damage to those near death." },
+	&"fianna_hunt": { "execute_bonus": 0.5, "description": "The Fianna run down every enemy. 50% more damage to those near death." },
+	# Too cheap for what they hit.
+	&"flurry": { "mp_cost": 5 }, &"heavy_swing": { "mp_cost": 5 }, &"gae_bolg": { "mp_cost": 11 },
+	&"harpe_strike": { "mp_cost": 10 }, &"spear_of_achilles": { "mp_cost": 11 }, &"gram_strike": { "mp_cost": 11 },
+	&"iaido": { "mp_cost": 12 }, &"hundred_fists": { "mp_cost": 11 }, &"amazon_spear": { "mp_cost": 10 },
+	&"boar_arrow": { "mp_cost": 10 }, &"birgha": { "mp_cost": 10 }, &"peach_blade": { "mp_cost": 10 },
 }
 
 
@@ -842,9 +903,15 @@ static func _build() -> Dictionary:
 			{"mp_cost": 6, "effect": E.STATUS, "targeting": T.SELF, "status_id": &"ward", "status_turns": 3,
 			"learnable": true, "tier": 2}),
 	]
+	# Late bosses' charged attack (BattleManager boss mechanics).
+	list.append(SkillDef.make(BOSS_UNLEASH, "Unleash", "A charged blast on the whole party.",
+		{"effect": E.DAMAGE, "targeting": T.ENEMY_ALL, "power": 1.6, "adaptive": true}))
 	var dict := {}
 	for s in list:
 		dict[s.id] = s
+	for id in TWISTS:
+		for key in TWISTS[id]:
+			dict[id].set(key, TWISTS[id][key])
 	return dict
 
 
@@ -890,11 +957,46 @@ static func ranked(s: SkillDef, rank: int) -> SkillDef:
 		return s
 	var r := s.duplicate() as SkillDef
 	var steps := rank - 1
-	r.power = s.power * (1.0 + RANK_POWER * steps)
-	r.heal_pct_max_hp = s.heal_pct_max_hp * (1.0 + RANK_POWER * steps)
+	var grow := RANK_PERCENT * steps
+	r.power = s.power + grow if s.effect == SkillDef.Effect.RESTORE_MP else s.power * (1.0 + RANK_POWER * steps)
 	r.mp_cost = maxi(0, roundi(s.mp_cost * (1.0 - RANK_MP * steps)))
+	if has_percent_effect(s):
+		if s.heal_pct_max_hp > 0.0:
+			r.heal_pct_max_hp = s.heal_pct_max_hp + grow
+		if s.def_pierce > 0.0:
+			r.def_pierce = minf(1.0, s.def_pierce + grow)
+		if s.bonus_crit > 0.0:
+			r.bonus_crit = s.bonus_crit + grow
+		if s.effect == SkillDef.Effect.GUARD or s.status_id in PERCENT_STATUSES:
+			r.status_bonus = grow
+		if s.rider_heal_pct > 0.0:
+			r.rider_heal_pct = s.rider_heal_pct + grow
+		if s.rider_mp_pct > 0.0:
+			r.rider_mp_pct = s.rider_mp_pct + grow
+		if s.lifesteal > 0.0:
+			r.lifesteal = s.lifesteal + grow
+		r.description = _grow_percents(s.description, roundi(grow * 100))
 	r.display_name = s.display_name + RANK_NUMERALS[clampi(rank, 0, RANK_NUMERALS.size() - 1)]
 	return r
+
+
+## Does ranking this skill raise a percent in its effect?
+static func has_percent_effect(s: SkillDef) -> bool:
+	return s.heal_pct_max_hp > 0.0 or s.def_pierce > 0.0 or s.bonus_crit > 0.0 or s.lifesteal > 0.0 \
+		or s.rider_heal_pct > 0.0 or s.rider_mp_pct > 0.0 \
+		or s.effect == SkillDef.Effect.GUARD or s.effect == SkillDef.Effect.RESTORE_MP \
+		or s.status_id in PERCENT_STATUSES
+
+
+## "takes 30% less" -> "takes 40% less" (never past 100%).
+static func _grow_percents(text: String, by: int) -> String:
+	var re := RegEx.create_from_string("(\\d+)%")
+	var out := ""
+	var at := 0
+	for m in re.search_all(text):
+		out += text.substr(at, m.get_start() - at) + "%d%%" % mini(100, int(m.get_string(1)) + by)
+		at = m.get_end()
+	return out + text.substr(at)
 
 
 static func get_skill_or_null(id: StringName) -> SkillDef:

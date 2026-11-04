@@ -26,6 +26,12 @@ const RIVAL_PENALTY := 15
 const MAX_SHRINES := 3
 ## A lone climber (nobody has fought beside you this run) draws the gods' eye.
 const SOLO_INTEREST := 5
+## Declining an offer (see decline).
+const CALM_TEMPER := 0.3
+const STRIKE_TEMPER := 0.8
+const GIFT_INTEREST := 25
+## What the being said when you last declined it (for the dialogue).
+var last_refusal := ""
 
 ## being id -> { "bonus": int, "scorned": bool, "refused_floor": int, "warned": bool }
 var beings: Dictionary = {}
@@ -137,6 +143,58 @@ func refuse(id: StringName) -> void:
 	_state(id)["refused_floor"] = GameState.floor_number
 
 
+## The player says no to an offer they could have taken. What the being does
+## depends on its temper (BeingLibrary.TEMPER) and your values (Hayden 2026-11-04):
+##  - a GOD who approves of your path (you lean its way, or high interest) may
+##    give you its skill anyway, once, no strings;
+##  - a proud being may curse you for a few floors (the hottest strike too);
+##    gentle beings (temper under CALM_TEMPER) never do.
+## Returns "gift", "curse" or "". Its reply is in last_refusal.
+func decline(id: StringName, rng: RandomNumberGenerator) -> String:
+	refuse(id)
+	var b := BeingLibrary.get_being(id)
+	var temper := BeingLibrary.temper_of(id)
+	var outcome := ""
+	if gift_possible(id) and rng.randf() < 1.0 - temper:
+		outcome = "gift"
+		_state(id)["gifted"] = true
+		GameState.player.learned_skills.append(b.get("skill", &""))
+		GameState.player.stats_changed.emit()
+		messages.append("%s gives you %s anyway." % [b.name, SkillLibrary.get_skill(b.skill).display_name])
+		last_refusal = "Your path is a good one, blessed or not. Keep this. No strings."
+	elif rng.randf() < curse_chance(id) and GameState.player.curse_id == &"":
+		outcome = "curse"
+		GameState.player.curse(id, 1, GameState.floor_number + PUNISH_FLOORS)
+		if temper >= STRIKE_TEMPER:
+			for m in GameState.battle_party():
+				if not m.is_downed():
+					m.set_current_hp(maxi(1, roundi(m.current_hp() * (1.0 - PUNISH_HP_PCT))))
+		messages.append("%s curses you for refusing." % b.name)
+		last_refusal = "You dare refuse me? Then carry this up your tower."
+	else:
+		last_refusal = { "demon": "Your loss, little climber. Crawl on.",
+			"devil": "Everyone changes their mind eventually. I can wait." }.get(b.get("kind", "god"),
+			"As you wish. The offer stands for those who earn it.")
+	return outcome
+
+
+## Could this being gift its skill to someone who declined it?
+func gift_possible(id: StringName) -> bool:
+	var b := BeingLibrary.get_being(id)
+	var skill: StringName = b.get("skill", &"")
+	if b.get("kind", "") != "god" or skill == &"" or _state(id).get("gifted", false):
+		return false
+	if GameState.player.learned_skills.has(skill):
+		return false
+	return b.get("values", {}).get("likes", []).has(GameState.route.current()) or interest(id) >= GIFT_INTEREST
+
+
+## How likely this being is to curse you for refusing it.
+static func curse_chance(id: StringName) -> float:
+	var temper := BeingLibrary.temper_of(id)
+	return 0.0 if temper < CALM_TEMPER else clampf(temper - 0.2, 0.0, 1.0)
+
+
 ## Re-checks the player's blessing after anything that changes interest:
 ## level ups (and downs), warnings, punishment, and lingering curses ending.
 func update() -> void:
@@ -196,5 +254,6 @@ static func from_dict(d: Dictionary) -> BlessingState:
 		if id is String and BeingLibrary.beings.has(StringName(id)) and bd[id] is Dictionary:
 			var e: Dictionary = bd[id]
 			st.beings[StringName(id)] = { "bonus": S._i(e, "bonus", 0, -9999, 9999), "scorned": S._b(e, "scorned", false),
-				"refused_floor": S._i(e, "refused_floor", -999, -999, 100000), "warned": S._b(e, "warned", false) }
+				"refused_floor": S._i(e, "refused_floor", -999, -999, 100000), "warned": S._b(e, "warned", false),
+				"gifted": S._b(e, "gifted", false) }
 	return st

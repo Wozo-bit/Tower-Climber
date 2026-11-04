@@ -5,8 +5,11 @@ extends Control
 ## going on, your mercenary contract / heist, and the Tower News.
 
 signal closed
+## "Contact your guild" was pressed: the Tab menu closes so the talk can start.
+signal contact_requested
 
-var _controls: HBoxContainer
+var _controls: HFlowContainer
+var _jobs: NoticeBoardPanel
 var _text: RichTextLabel
 var _message: Label
 
@@ -44,8 +47,7 @@ func _init() -> void:
 	done.text = "Done"
 	done.pressed.connect(close)
 	header.add_child(done)
-	_controls = HBoxContainer.new()
-	_controls.add_theme_constant_override("separation", 6)
+	_controls = HFlowContainer.new()   # wraps: an own guild has a lot of buttons
 	root.add_child(_controls)
 	_message = Label.new()
 	_message.modulate = Color(0.7, 1, 0.75)
@@ -57,6 +59,9 @@ func _init() -> void:
 
 
 func open() -> void:
+	if _jobs == null:
+		_jobs = NoticeBoardPanel.new()
+		add_child(_jobs)
 	_message.text = ""
 	_rebuild()
 	show()
@@ -89,6 +94,9 @@ func _rebuild() -> void:
 	var gs := GameState.guilds
 	var pg := GuildLibrary.PLAYER_GUILD
 	if gs.has_own_guild():
+		_button("Donate 100", func(): _say("Donated %d gold." % gs.donate(100)), GameState.player.gold <= 0,
+			"Put your own gold in the treasury (it pays for upgrades and wars).")
+		_button("Donate all", func(): _say("Donated %d gold." % gs.donate(GameState.player.gold)), GameState.player.gold <= 0)
 		_button("Withdraw 100", func(): _say("Withdrew %d gold." % gs.withdraw(100)), gs.treasury_of(pg) <= 0)
 		_button("Withdraw all", func(): _say("Withdrew %d gold." % gs.withdraw(gs.treasury_of(pg))), gs.treasury_of(pg) <= 0)
 		_button("Tax -", func(): gs.set_player_tax(gs.player_guild.tax - 0.05); _rebuild(), gs.player_guild.tax <= 0.0)
@@ -109,6 +117,11 @@ func _rebuild() -> void:
 		_button("Declare war (%dg)" % GuildAI.WAR_COST, _open_war, war_no != "",
 			war_no if war_no != "" else "Attack another guild's territory. Beat its guards and champion to take it.")
 	else:
+		if gs.member != &"":
+			_button("Contact your guild", _contact, false, "Talk to %s from here: pay, wars, jobs, standing, leaving." % GuildLibrary.guild_name(gs.member))
+			var job_floor := gs.job_floor(gs.member)
+			_button("Guild jobs...", func(): _jobs.open(job_floor), job_floor < 0,
+				"Bounties from your guild's floors." if job_floor >= 0 else "You haven't reached any of your guild's floors.")
 		var refusal := gs.charter_refusal()
 		_button("Found a guild (%dg)" % GuildState.CHARTER_COST, _open_charter, refusal != "",
 			refusal if refusal != "" else "Name your guild and pick a patron. You'll leave your current guild.")
@@ -120,6 +133,8 @@ func _rebuild() -> void:
 			gs.treasury_of(pg), roundi(gs.player_guild.tax * 100),
 			", ".join(gs.territories_of(pg).map(func(i): return GuildLibrary.territory_floors(i))) if not gs.territories_of(pg).is_empty()
 				else "none yet (beat a territory's champion to claim it)"]
+		if gs.player_war_refusal() != "":
+			t += "   War: %s\n" % gs.player_war_refusal()
 	elif gs.member != &"":
 		t += "[b]You're a %s of %s[/b]%s\n" % [GuildLibrary.rank_name(gs.rank), GuildLibrary.guild_name(gs.member),
 			"  ·  your pay is ready" if gs.pay_due() else ""]
@@ -182,6 +197,13 @@ func _rebuild() -> void:
 	for i in range(gs.news.size() - 1, maxi(-1, gs.news.size() - 13), -1):
 		t += "   Floor %d: %s\n" % [gs.news[i].floor, gs.news[i].text]
 	_text.text = t
+
+
+## Talk to your guild's agent from the menu (the floor plays it after the menu closes).
+func _contact() -> void:
+	GameState.pending_talks.append({ "dialogue": &"guild_agent", "guild": GameState.guilds.member, "remote": true })
+	close()
+	contact_requested.emit()
 
 
 func _say(text: String) -> void:

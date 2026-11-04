@@ -11,6 +11,12 @@ const HEAL_THRESHOLD := 0.5
 static func choose(battle: BattleManager, actor: Combatant) -> BattleAction:
 	var rng := battle.rng
 
+	# Late bosses: gathering power, then the blast.
+	if actor.charge_state == 1:
+		return BattleAction.simple(BattleAction.Type.DEFEND, actor)
+	if actor.charge_state == 2:
+		return BattleAction.use_skill(actor, SkillLibrary.get_skill(SkillLibrary.BOSS_UNLEASH))
+
 	# 1. Heal if someone is hurting.
 	for s in actor.skills:
 		if s.effect == SkillDef.Effect.HEAL and actor.can_afford(s):

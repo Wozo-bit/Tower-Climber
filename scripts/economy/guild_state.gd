@@ -813,6 +813,26 @@ func withdraw(amount: int) -> int:
 	return take
 
 
+## Puts your own gold into your guild's treasury. Returns how much went in.
+func donate(amount: int) -> int:
+	if not has_own_guild():
+		return 0
+	var give := clampi(amount, 0, GameState.player.gold)
+	GameState.player.gold -= give
+	treasury[GuildLibrary.PLAYER_GUILD] = treasury_of(GuildLibrary.PLAYER_GUILD) + give
+	return give
+
+
+## A floor of your guild you've reached, for its jobs from Tab -> Guilds
+## (-1 = none yet).
+func job_floor(g: StringName) -> int:
+	for t in territories_of(g):
+		for n in range(1, GameState.highest_floor + 1):
+			if GuildLibrary.territory_of(n) == t:
+				return n
+	return -1
+
+
 ## Territories your guild could go to war over: held by another guild that
 ## isn't your ally and isn't already fighting a war.
 func player_war_targets() -> Array:
@@ -1068,7 +1088,7 @@ func rescue_quest_def(qid: StringName) -> Dictionary:
 		return {}
 	var g := GuildLibrary.guild_name(r.guild)
 	return { "title": "Rescue %s" % r.name, "kind": "side", "giver": "Your guild",
-		"desc": "(Placeholder) %s holds Captain %s. Beat one of their champions (the first floor of their territories), or pay the ransom to one of their agents." % [g, r.name],
+		"desc": "%s holds Captain %s. Beat one of their champions (the first floor of their territories), or pay the ransom to one of their agents." % [g, r.name],
 		"steps": [{ "text": "Free %s from %s" % [r.name, g], "goal": { "type": "flag", "flag": rescue_flag(qid) } }] }
 
 

@@ -17,6 +17,10 @@ const PLACES := ["floor", "menu", "battle", "shop", "board"]
 ## In the order they're listed in the Guide.
 const TIPS := {
 	# --- Basics ---
+	&"late_floors": { "topic": &"basics", "title": "The Upper Floors", "places": ["floor"], "lines": [
+		"From here on, some floors have a twist (it's named at the top of the screen and in the battle log).",
+		"Enemies also learn your favourite moves: after a few uses on one floor, a skill does less. Mix them up.",
+		"Bosses change partway through a fight: reinforcements, barriers only a weakness breaks, and blasts you should brace for." ] },
 	&"climbing": { "topic": &"basics", "title": "The Tower", "places": ["floor"], "lines": [
 		"Move with {key:move_up}{key:move_left}{key:move_down}{key:move_right} or the arrow keys. Walk into people and things to use them.",
 		"Touching an enemy starts a battle. Clear the way and take the stairs to climb.",
@@ -222,6 +226,8 @@ static func due(id: StringName, place: String, layout: FloorLayout = null) -> bo
 		&"demigods":
 			return layout != null and layout.npcs.values().any(
 				func(n): return NpcLibrary.recruit_info(n).get("demigod", false))
+		&"late_floors":
+			return gs.floor_number >= FloorMods.FROM_FLOOR
 		&"new_game_plus":
 			return gs.ng_plus_cycle > 0
 		&"divinity":

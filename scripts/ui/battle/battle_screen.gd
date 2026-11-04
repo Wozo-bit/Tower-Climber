@@ -364,6 +364,11 @@ func _cmd_skills() -> void:
 func _cmd_items() -> void:
 	for c in _skill_box.get_children():
 		c.queue_free()
+	if not battle.items_allowed:
+		var silent := Label.new()
+		silent.text = "Nothing from your bag works on this floor."
+		_skill_box.add_child(silent)
+		return
 	var owned := GameState.inventory.owned().filter(func(i): return not i.is_skill_book() and not i.quest_item)
 	if owned.is_empty():
 		var none := Label.new()
