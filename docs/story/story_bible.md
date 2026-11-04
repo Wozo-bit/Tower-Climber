@@ -146,10 +146,29 @@ and gods sponsor guilds and champions.
   are built from those snapshots and use their real skill lists. A run with
   no past conqueror gets the previous Tester.
 
+## Returns to the real world (Hayden, 2026-11-04)
+
+The real world comes back at the big milestones, as short playable visits
+to your room (the prologue room, reused). Each time, a little more is wrong
+with it, and something from the tower has followed you.
+
+| When | Draft moment |
+| --- | --- |
+| Tier-2 class advancement (floor 20) | You blink awake at your desk, the game client open. It feels like a dream, until the phone shows days have passed. The notebook has a new page you don't remember drawing: your new class. |
+| Tier-3 class advancement (floor 40) | The room is quieter. Messages from friends have stopped. The PC shows a list of testers; most names are greyed out. One is the previous Tester. |
+| Before the final boss (floor 60) | The room is half tower: stone through the floorboards. The window shows the city, and your reflection is the champion. You can still log off... can't you? |
+| Ascending (NG+) | Your room, exactly as on the first night. The invitation email again, but addressed to your old name: *"Welcome back."* |
+
+Each visit ends with the System pulling you back in (`[ Resynchronising. ]`),
+and the friend is waiting: "You were gone for a second there."
+They're optional to explore but short (1-3 minutes), and a setting can skip
+them like the prologue.
+
 ## How it would work in the game (for later)
 
 - A **prologue scene**: a small walkable room, before the New Game naming
   screens. Skipped in New Game+, with a "Skip prologue" option in settings.
+  The same room is reused for the real-world returns (its objects change).
 - **Story scenes**: dialogue that starts on its own when you enter a floor,
   meet a guardian, or beat one (`StoryLibrary`, data like the dialogues,
   validated by tests). A **chapter** marker in the Quests log.
@@ -160,10 +179,10 @@ and gods sponsor guilds and champions.
 
 ## Open questions for Hayden
 
-1. Should the real world come back mid-story (dreams, glitches showing your
-   room)?
+None right now.
 
-Answered: the game inside the game is called **Tower of Recognition**
+Answered: the real world comes back at major milestones (class advancements,
+before the final boss, Ascending); the game inside the game is called **Tower of Recognition**
 (placeholder, 2026-11-04); setup questions give stats + a nudge; keep "You
 remembered faster this time"; final boss = the previous Tester, NG+ = a
 mimic of you and your old party.
