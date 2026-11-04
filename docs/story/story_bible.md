@@ -143,6 +143,16 @@ new page with your new class in a child's handwriting, your reflection lags, sto
 shows through one floorboard, and the PC won't let you log off. `[ Resynchronising. ]`
 Then the friend: "You were gone for a second there."
 
+## If the friend isn't with you (built, Hayden 2026-11-04)
+
+Hayden's picks: real alternate versions ("the empty place"); the friend counts as away only at a campfire (dismissed, or left over your route), since on the bench they still travel with you; a reunion that's remembered; story only, no stat or route cost. Every friend scene has its own version in every kind of run, and a test walks every path to make sure they never speak in person while away. Only the floor 1 wake-up has none, because it plays before you can dismiss anyone.
+
+- **The absence is felt.** Lines stop and narration notes who would have said them. Scenes avoid saying you're alone, since recruits may be with you, and avoid saying you sent the friend away, since they may have left over your route (the floor 2-3 scene is the exception: they can't have left that early).
+- **The words find another mouth.** On floors 16-17, a stranger on the stairs says "You coming out Friday?", goes blank and walks on. It was never about the friend.
+- **The System fills the gap.** Floor 4 `[ {friend}: not in party. ]` `[ Noted. ]`. Floor 19 `[ I don't mind the company. ]`. Floor 20 `[ Go on. I am here. ]`. The returns home: `[ You were gone for a second there. ]`
+- **Prayers still reach you.** A god still hears the friend's prayer on floor 17, from far away, and can answer it. Floor 35 comes as another prayer, or a slate with your name on it that someone will read to them.
+- **The reunion** (`friend_reunion`, when they rejoin). Back too soon to miss anything: a joke. Otherwise: "I kept your spot by the fire", or glad and angry if they left over your route. Then you tell them everything, or you don't. Floor 20 remembers which. So do floors 17 and 35 in god runs. Later reunions: "You keep doing this."
+
 ## New Game+ (later, Hayden 2026-11-04)
 
 ### "The First Prayer": the god storyline (built 2026-11-04)

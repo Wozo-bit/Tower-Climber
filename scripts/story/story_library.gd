@@ -265,7 +265,10 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"alone": { "text": "The stairs are quiet. Your knee aches where you split it, falling off a fence when you were nine. Scratched into the wall at ankle height, in a hand you don't know: a ladder, a water tower, two stick figures.", "next": "alone2" },
+			"alone2": { "text": "You've known {friend} for about an hour, and you sent them away. You don't know why the quiet feels like your fault.", "effects": [{ "set_flag": &"ch1_memory_alone" }] },
 			"again": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",
 				"text": "This climb reminds me of the old water tower behind the mill. Remember? You froze at the top and I had to talk you down.",
 				"next": "again2",
@@ -292,6 +295,7 @@ const DIALOGUES := {
 				"text": "...Huh. I don't know. It's just there, when I think about it. It's always just there. Why would you ask me that?",
 			},
 			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",
 				"text": "This climb reminds me of the old water tower behind the mill. Remember? You froze at the top and I had to talk you down.",
 				"next": "b",
@@ -338,6 +342,9 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"c_alone": { "text": "{friend} would have asked if you'd said something. {friend} isn't here.", "next": "c_alone2" },
+			"c_alone2": { "style": "system", "text": "[ {friend}: not in party. ]", "next": "c_alone3" },
+			"c_alone3": { "style": "glitch", "text": "[ Noted. ]", "effects": [{ "set_flag": &"ch1_slip_alone" }] },
 			"god_a": {
 				"style": "system",
 				"text": "[ Miniboss defeated. ]\n[ Deities do not require grading. ]",
@@ -369,6 +376,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
 				"speaker": "{friend}",
 				"text": "Did you say something?",
 				"choices": [
@@ -389,6 +397,7 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"d_alone": { "speaker": "Tess", "text": "Don't listen to him. You go down, you wake up at the last fire. Bit of a headache, lighter purse. That's the tower. Everyone says. ...Didn't you come in with someone?", "next": "e" },
 			"again_saved": {
 				"text": "The same campfire. The same red scarf. You saved her last time. The tower put her back anyway, and she has never heard of you.",
 				"next": "again2",
@@ -439,6 +448,7 @@ const DIALOGUES := {
 				"next": "d",
 			},
 			"d": {
+				"alt": [{ "if": { "friend_away": true }, "node": "d_alone" }],
 				"speaker": "{friend}",
 				"text": "Don't listen to him. You go down, you wake up at the last fire. Bit of a headache, lighter purse. That's the tower.",
 				"next": "e",
@@ -453,6 +463,9 @@ const DIALOGUES := {
 	&"ch1_thief": {
 		"start": "a",
 		"nodes": {
+			"help_alone": { "text": "They stare at you. \"Why?\" You don't have an answer. {friend} would have had one, and made it sound like an insult." },
+			"rob_alone": { "text": "The pouch is heavier than it looks. Nobody who knows you saw that. You notice you checked." },
+			"judge_alone": { "text": "You march them back down a floor yourself. {friend} would have had a joke about it. You try to think what it would have been." },
 			"a": {
 				"text": "A climber sits slumped against the wall, bleeding through their sleeve, a heavy coin pouch at their belt. More than one name is stitched into it.",
 				"next": "b",
@@ -470,14 +483,17 @@ const DIALOGUES := {
 				],
 			},
 			"help": {
+				"alt": [{ "if": { "friend_away": true }, "node": "help_alone" }],
 				"speaker": "{friend}",
 				"text": "Soft. That's why I like you. Hope it doesn't get you killed.",
 			},
 			"rob": {
+				"alt": [{ "if": { "friend_away": true }, "node": "rob_alone" }],
 				"speaker": "{friend}",
 				"text": "...Huh. Didn't think you had that in you. Guess the tower changes people fast.",
 			},
 			"judge": {
+				"alt": [{ "if": { "friend_away": true }, "node": "judge_alone" }],
 				"speaker": "{friend}",
 				"text": "Marched them back down a floor yourself. Remind me never to owe you money.",
 			},
@@ -490,6 +506,7 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"c_alone": { "text": "You stand there until your legs ache. Nobody asks what you're staring at. {friend} would have.", "effects": [{ "set_flag": &"ch1_saw_carving" }] },
 			"again": {
 				"text": "The carving again: a tower, floor after floor, every one numbered. You look closer this time. Right at the top, scratched by the same hand, there's a very small figure you never noticed.",
 				"next": "b",
@@ -507,6 +524,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
 				"speaker": "{friend}",
 				"text": "What are you staring at? It's just a wall. I've walked past it a hundred times.",
 				"effects": [{ "set_flag": &"ch1_saw_carving" }],
@@ -521,6 +539,10 @@ const DIALOGUES := {
 			{ "node": "stranger" },
 		],
 		"nodes": {
+			"saved_alone": { "text": "You're smiling, you realise, with something enormous waiting above you. {friend} would have told you how that looks.", "effects": [{ "set_flag": &"ch1_tess_turned_back" }] },
+			"b_alone": { "text": "Monsters fade when they fall. She doesn't. You wait for her to vanish and wake at the last campfire, the way everyone says. She doesn't.", "next": "c_alone" },
+			"c_alone": { "text": "Everyone says she'll be at the fire. The one person who'd have said it to your face is at a fire already, a long way from here.", "next": "d_alone" },
+			"d_alone": { "text": "You don't look at her again. The boss is waiting above.", "effects": [{ "set_flag": &"ch1_tess_fell" }] },
 			"saved": {
 				"text": "A red scarf on the stairs. No blood. It's tied to the rail in a big clumsy knot, with a scrap of paper pushed through it: \"FINE. I'll wait below. You had better be right.\"",
 				"next": "saved2",
@@ -530,6 +552,7 @@ const DIALOGUES := {
 				"next": "saved3",
 			},
 			"saved3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "saved_alone" }],
 				"speaker": "{friend}",
 				"text": "Whose is that? ...Why are you smiling? There's something enormous up there.",
 				"effects": [{ "set_flag": &"ch1_tess_turned_back" }],
@@ -551,10 +574,12 @@ const DIALOGUES := {
 				"next": "b",
 			},
 			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
 				"text": "Monsters fade when they fall. She doesn't. You wait for her to vanish and wake at the last campfire, the way {friend} said. She doesn't.",
 				"next": "c",
 			},
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
 				"speaker": "{friend}",
 				"text": "...She'll be at the fire. That's how it works. That's how it always works.",
 				"next": "d",
@@ -573,6 +598,8 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"c_alone": { "text": "You look round before you can stop yourself. {friend} isn't there to ask if they heard it too.", "next": "d" },
+			"friend_alone": { "text": "You look round before you can stop yourself. {friend} isn't there to ask if they heard it too.", "next": "done" },
 			"old": {
 				"text": "The boss falls. In the silence after, something you once knew very well turns its attention toward you.",
 				"next": "old2",
@@ -600,6 +627,7 @@ const DIALOGUES := {
 				"next": "friend",
 			},
 			"friend": {
+				"alt": [{ "if": { "friend_away": true }, "node": "friend_alone" }],
 				"speaker": "{friend}",
 				"text": "Did you hear that? ...Tell me you heard that.",
 				"next": "done",
@@ -619,6 +647,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
 				"speaker": "{friend}",
 				"text": "Did you hear that? ...Tell me you heard that.",
 				"next": "d",
@@ -643,6 +672,7 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"c_alone": { "text": "\"The Tester,\" they call you. {friend} would have made a joke of it, and charged people to meet you. Without that, it only sounds like a job.", "effects": [{ "set_flag": &"ch2_told_unknown" }] },
 			"god_a": {
 				"style": "system",
 				"text": "[ Chapter 2: The Bidding ]{worshippers_line}",
@@ -671,6 +701,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
 				"speaker": "{friend}",
 				"text": "They keep calling you \"the Tester\". Tester of what? Should I be worried, or should I be charging people to meet you?",
 				"choices": [
@@ -698,6 +729,7 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"friend_alone": { "text": "You come back to yourself on the stairs. You were nodding at nothing. {friend} would have had something to say about that." },
 			"re_yes": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.recall_yes}", "next": "re_offer" },
 			"re_no": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.recall_no}", "next": "re_offer" },
 			"re_new": { "text": "{bid1.omen}", "next": "re_offer" },
@@ -731,6 +763,7 @@ const DIALOGUES := {
 			"truth": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.truth}", "next": "friend" },
 			"refuse": { "speaker": "{bid1}", "portrait": "{bid1_id}", "text": "{bid1.refuse}", "next": "friend" },
 			"friend": {
+				"alt": [{ "if": { "friend_away": true }, "node": "friend_alone" }],
 				"speaker": "{friend}",
 				"text": "You went somewhere just now. You were nodding at nothing. Please tell me that's a thing people do.",
 			},
@@ -795,6 +828,8 @@ const DIALOGUES := {
 			{ "node": "stranger" },
 		],
 		"nodes": {
+			"d_alone": { "text": "{friend} told you this is how it works: back at the fire, with a headache and a lighter purse. {friend} isn't here to see it. Tess looks at you the way you look at someone you have never met.", "choices": [{ "text": "Tess, what happened on floor 10?", "next": "ask", "effects": [{ "set_flag": &"ch2_asked_tess" }] }, { "text": "Say nothing. Find Marn.", "next": "marn", "effects": [{ "set_flag": &"ch2_found_marn" }] }] },
+			"marn3_alone": { "speaker": "Marn", "text": "Good thing your friend's not with you. Some things you can only know once.", "effects": [{ "set_flag": &"ch2_tess_returned" }] },
 			"real": {
 				"text": "The campfire on this floor is crowded. Someone grabs your sleeve: no scarf, a fresh burn across one hand, and eyes that haven't slept.",
 				"next": "real2",
@@ -859,6 +894,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "d_alone" }],
 				"speaker": "{friend}",
 				"text": "See? Told you. Back at the fire with a headache and a lighter purse. That's the tower.",
 				"next": "d",
@@ -885,6 +921,7 @@ const DIALOGUES := {
 				"next": "marn3",
 			},
 			"marn3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "marn3_alone" }],
 				"speaker": "Marn",
 				"text": "Don't tell your friend. Some things you can only know once.",
 				"effects": [{ "set_flag": &"ch2_tess_returned" }],
@@ -898,7 +935,12 @@ const DIALOGUES := {
 			{ "node": "unknown" },
 		],
 		"nodes": {
+			"stranger": { "speaker": "A climber on the stairs", "text": "You coming out Friday? Everyone's asking.", "next": "stranger2" },
+			"stranger2": { "text": "You stop walking. The message on your phone, the night you logged in. Those words, in that order, from someone you've never seen. Their face has gone empty, like someone who walked into a room and forgot why.", "next": "stranger3" },
+			"stranger3": { "speaker": "A climber on the stairs", "text": "...Sorry. Did I say something? Do I know you?", "next": "stranger4" },
+			"stranger4": { "text": "They blink and keep walking. You'd wondered about {friend}, and what was wrong with them. It was never about {friend}. The words only needed a mouth.", "effects": [{ "set_flag": &"ch2_friday_stranger" }] },
 			"again": {
+				"alt": [{ "if": { "friend_away": true }, "node": "stranger" }],
 				"speaker": "{friend}",
 				"text": "You coming out Friday? Everyone's asking.",
 				"next": "again2",
@@ -908,6 +950,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"known": {
+				"alt": [{ "if": { "friend_away": true }, "node": "stranger" }],
 				"speaker": "{friend}",
 				"text": "You coming out Friday? Everyone's asking.",
 				"next": "known2",
@@ -917,6 +960,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"unknown": {
+				"alt": [{ "if": { "friend_away": true }, "node": "stranger" }],
 				"speaker": "{friend}",
 				"text": "You coming out Friday? Everyone's asking.",
 				"next": "unknown2",
@@ -996,6 +1040,9 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"e_alone": { "text": "You sit down on the stairs until the numbers stop swimming. {friend} would have told you to.", "next": "e_alone2" },
+			"e_alone2": { "style": "glitch", "text": "[ I don't mind the company. ]", "next": "e_alone3" },
+			"e_alone3": { "style": "system", "text": "[ Disregard. ]", "effects": [{ "set_flag": &"ch2_saw_session" }] },
 			"again": {
 				"style": "system",
 				"text": "[ Miniboss defeated. ]",
@@ -1035,6 +1082,7 @@ const DIALOGUES := {
 				"next": "e",
 			},
 			"e": {
+				"alt": [{ "if": { "friend_away": true }, "node": "e_alone" }],
 				"speaker": "{friend}",
 				"text": "You've gone white. Sit down a minute. Whatever it is, it'll still be trying to kill us after you've caught your breath.",
 				"effects": [{ "set_flag": &"ch2_saw_session" }],
@@ -1048,17 +1096,24 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"alone": { "text": "Whatever's up there, you go in without {friend}. You've gone in without them for floors now. It's the first time you've had to think about it.", "next": "alone2" },
+			"alone2": { "style": "glitch", "text": "[ Go on. I am here. ]", "next": "b" },
+			"behind": { "speaker": "{friend}", "text": "I don't know what happened while I was gone, and you're not going to tell me. Fine. We go in together. I'd just like to be asked, next time.", "next": "b" },
+			"caught_up": { "speaker": "{friend}", "text": "You told me what I missed, and I believed about half of it. We go in together. That's the half I'm sure of.", "next": "b" },
 			"told_god": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",
 				"text": "So I've been praying to someone who still owes me four silver. We go in together. I'd just like it noted that I'd have been a lot less polite if I'd known it was you.",
 				"next": "b",
 			},
 			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }, { "if": { "flag": &"friend_not_told" }, "node": "behind" }, { "if": { "flag": &"friend_caught_up" }, "node": "caught_up" }],
 				"speaker": "{friend}",
 				"text": "Whatever's up there, we go in together. We always have. That's the one part of my life I've never had to think about.",
 				"next": "b",
 			},
 			"told": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }, { "if": { "flag": &"friend_not_told" }, "node": "behind" }, { "if": { "flag": &"friend_caught_up" }, "node": "caught_up" }],
 				"speaker": "{friend}",
 				"text": "I've been thinking about what you said. About the room. If you've got somewhere else to be... no. Later. We go in together. That part I'm sure of.",
 				"next": "b",
@@ -1175,7 +1230,10 @@ const DIALOGUES := {
 	&"return_tier2_back": {
 		"start": "a",
 		"nodes": {
+			"alone": { "text": "You come back on the stairs, mid-step, as if someone blew you out and lit you again. Nobody who'd notice is here to say so.", "next": "alone2" },
+			"alone2": { "style": "glitch", "text": "[ Resynchronised. ]\n[ You were gone for a second there. ]" },
 			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",
 				"text": "Hey. HEY. You were gone for a second there. You just stopped, mid-step, like someone blew you out.",
 				"next": "b",
@@ -1183,6 +1241,59 @@ const DIALOGUES := {
 			"b": {
 				"speaker": "{friend}",
 				"text": "New look suits you, though. {class}, is it? Come on. It's a long way up, and I'm told you've got gods to disappoint.",
+			},
+		},
+	},
+
+	# --- The friend comes back from a campfire (GameState.rejoin). ---
+	&"friend_reunion": {
+		"start": [
+			{ "if": { "not_flag": &"friend_missed_scene" }, "node": "quick" },
+			{ "if": { "flag": &"friend_reunited" }, "node": "again" },
+			{ "if": { "flag": &"route_left_childhood_friend" }, "node": "route" },
+			{ "node": "fire" },
+		],
+		"nodes": {
+			"quick": {
+				"speaker": "{friend}",
+				"text": "That was quick. Did you forget something, or did you just want to see my face?",
+			},
+			"again": {
+				"speaker": "{friend}",
+				"text": "You keep doing this. One day I won't be by the fire. ...I will, though. That's the annoying part.",
+				"effects": [{ "clear_flag": &"friend_missed_scene" }],
+			},
+			"route": {
+				"speaker": "{friend}",
+				"text": "I said I'd be by a campfire if you ever turned back. I didn't think you would. I'm glad I was wrong, and I'm still angry. You'll have to put up with both.",
+				"next": "ask",
+			},
+			"fire": {
+				"speaker": "{friend}",
+				"text": "You came back. I kept your spot by the fire. Didn't know if I should.",
+				"next": "ask",
+			},
+			"ask": {
+				"speaker": "{friend}",
+				"text": "So. Are you going to tell me what happened, or do I just walk behind you again?",
+				"effects": [{ "set_flag": &"friend_reunited" }, { "clear_flag": &"friend_missed_scene" }],
+				"choices": [
+					{ "text": "Tell them everything.", "next": "told", "effects": [{ "set_flag": &"friend_caught_up" }, { "clear_flag": &"friend_not_told" }] },
+					{ "text": "\"Later.\"", "next": "later", "effects": [{ "set_flag": &"friend_not_told" }] },
+					{ "text": "\"You don't need to know.\"", "next": "no", "effects": [{ "set_flag": &"friend_not_told" }] },
+				],
+			},
+			"told": {
+				"speaker": "{friend}",
+				"text": "...That's a lot. Half of it can't be true. The other half, I wish you'd been around to tell me while it was happening. Okay. Okay. Which way's up?",
+			},
+			"later": {
+				"speaker": "{friend}",
+				"text": "Yeah. You always did say later.",
+			},
+			"no": {
+				"speaker": "{friend}",
+				"text": "Right. I'll keep walking behind you, then. I've had the practice.",
 			},
 		},
 	},
@@ -1231,6 +1342,7 @@ const DIALOGUES := {
 			{ "node": "a" },
 		],
 		"nodes": {
+			"god3_far": { "speaker": "{friend}", "far": true, "text": "You've been gone a long time. I'm still at the fire. Come back." },
 			"a": {
 				"text": "Two messages. \"You coming out Friday? Everyone's asking.\" And a reminder that the electric bill is due. It's the first night. It has always been the first night.",
 			},
@@ -1244,6 +1356,7 @@ const DIALOGUES := {
 				"next": "god3",
 			},
 			"god3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "god3_far" }],
 				"speaker": "{friend}",
 				"text": "You were gone for a second there. Come back.",
 			},
@@ -1260,7 +1373,10 @@ const DIALOGUES := {
 	&"return_ascend_back": {
 		"start": "a",
 		"nodes": {
+			"alone": { "text": "You come back on the stairs. You went out like a candle, standing up, and nobody who'd notice is here to say so.", "next": "alone2" },
+			"alone2": { "style": "glitch", "text": "[ Resynchronised. ]\n[ You were gone for a second there. ]" },
 			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",
 				"text": "Hey. HEY. You were gone for a second there. You went out like a candle, standing up.",
 				"next": "b",
@@ -1277,6 +1393,7 @@ const DIALOGUES := {
 	&"god_first_prayer": {
 		"start": "a",
 		"nodes": {
+			"friend_alone": { "text": "You come back to yourself on the stairs. Floor 12. You said it out loud, and {friend} isn't here to ask you what it means." },
 			"a": { "style": "system", "text": "[ Prayer received. ]", "next": "b" },
 			"b": {
 				"speaker": "A voice",
@@ -1302,6 +1419,7 @@ const DIALOGUES := {
 				"next": "friend",
 			},
 			"friend": {
+				"alt": [{ "if": { "friend_away": true }, "node": "friend_alone" }],
 				"speaker": "{friend}",
 				"text": "You went somewhere just now. ...What's on floor 12? You just said floor 12.",
 			},
@@ -1331,6 +1449,7 @@ const DIALOGUES := {
 	&"god_davin": {
 		"start": "a",
 		"nodes": {
+			"saved_alone": { "text": "\"How did you know my name?\" Davin asks, as they carry him away. You don't have an answer he'd want." },
 			"a": {
 				"text": "Floor 12. A name from a window on floor 3: Davin. You could go straight up these stairs. Nobody here is asking you to look. Well. One person was.",
 				"choices": [
@@ -1358,6 +1477,7 @@ const DIALOGUES := {
 				],
 			},
 			"saved": {
+				"alt": [{ "if": { "friend_away": true }, "node": "saved_alone" }],
 				"speaker": "{friend}",
 				"text": "You knew he was there. You walked straight to him, and you knew his name. I'm not asking. I'm just saying I noticed.",
 			},
@@ -1425,17 +1545,29 @@ const DIALOGUES := {
 	&"god_friend_prayer": {
 		"start": "a",
 		"nodes": {
+			"a_far": { "text": "Night. You're a long way from the fire where you last saw {friend}. You hear them anyway, as clearly as if they were six feet away.", "next": "b" },
+			"c_far": { "speaker": "{friend}", "far": true, "text": "I don't really do this. I don't know who I'm talking to. People say there's a new one, so I figure you've not heard it all yet. It's about {player}. We don't travel together any more.", "next": "d_far" },
+			"d_far": { "speaker": "{friend}", "far": true, "text": "I'm not asking you to send them back. I know how that sounds. Just, wherever they've got to. Look after them. Please. That's all. Sorry.", "next": "e_far" },
+			"e_far": { "style": "system", "text": "[ Sender: {friend}. ]\n[ Reply? ]", "choices": [{ "text": "Reply: \"It's me. I heard.\"", "next": "told_far", "effects": [{ "believers": 1 }, { "set_flag": &"god_told_friend" }] }, { "text": "Reply the way a god would: \"I will.\"", "next": "anon_far", "effects": [{ "believers": 1 }, { "set_flag": &"god_answered_friend" }] }, { "text": "Say nothing.", "next": "silent_far", "effects": [{ "set_flag": &"god_silent_friend" }] }] },
+			"told_far": { "text": "The window stays open for a long time. Then one more line comes through.", "next": "told_far2" },
+			"told_far2": { "speaker": "{friend}", "far": true, "text": "...That isn't funny. ...Then you know where I am." },
+			"anon_far": { "text": "You think the words. A long way down, by a fire, you hope, someone's shoulders come down an inch." },
+			"silent_far": { "text": "The window waits, and closes. You lie very still. There's nobody to pretend to be asleep for." },
+			"d_back": { "speaker": "{friend}", "text": "They keep going away. We split up once, and they came back for me, and I still don't know why. When they look at me now it's like they're saying goodbye. Look after them. Please. That's all. Sorry.", "next": "e" },
 			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_far" }],
 				"text": "Night. {friend} has first watch, six feet from you with their back turned. Their lips are moving.",
 				"next": "b",
 			},
 			"b": { "style": "system", "text": "[ Prayer received. ]", "next": "c" },
 			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_far" }],
 				"speaker": "{friend}",
 				"text": "I don't really do this. I don't know who I'm talking to. People say there's a new one, so I figure you've not heard it all yet. It's about {player}.",
 				"next": "d",
 			},
 			"d": {
+				"alt": [{ "if": { "flag": &"friend_reunited" }, "node": "d_back" }],
 				"speaker": "{friend}",
 				"text": "They keep going away. They're right there, and then they're not, and when they come back they look at me like they're saying goodbye. Look after them. Please. That's all. Sorry.",
 				"next": "e",
@@ -1562,7 +1694,15 @@ const DIALOGUES := {
 			{ "node": "caught" },
 		],
 		"nodes": {
+			"ask_far": { "style": "system", "text": "[ Prayer received. ]", "next": "ask_far2" },
+			"ask_far2": { "speaker": "{friend}", "far": true, "text": "Should I still be doing this? You know where I am, and you've not come. It feels rude to keep asking. It also feels rude to stop.", "next": "ask_far3" },
+			"ask_far3": { "text": "They don't stop. You don't go back. Every few floors there's another one, and you read them all.", "effects": [{ "set_flag": &"god_friend_far" }] },
+			"rumor": { "text": "A shrine on this floor has your name on a slate, under your title. Somebody wrote it down. Sooner or later somebody will read it out at a fire, a long way below, to someone who knows that name.", "next": "rumor2" },
+			"rumor2": { "text": "You stand there thinking about that for a while. You don't wipe it off.", "effects": [{ "set_flag": &"god_friend_far" }] },
+			"caught2_back": { "speaker": "{friend}", "text": "I went to one of the shrines. I wanted to light a candle for you. They've got your name there, {player}, under the title. So that's what you weren't telling me. Is it? You never did say.", "next": "caught3" },
+			"caught3": { "text": "They're waiting for an answer.", "choices": [{ "text": "\"Since the top. Since before I met you.\"", "next": "truth", "effects": [{ "set_flag": &"god_friend_truth" }] }, { "text": "\"I was going to tell you.\"", "next": "excuse", "effects": [{ "set_flag": &"god_friend_excuse" }] }, { "text": "\"It doesn't change anything.\"", "next": "same", "effects": [{ "set_flag": &"god_friend_same" }] }] },
 			"ask": {
+				"alt": [{ "if": { "friend_away": true }, "node": "ask_far" }],
 				"speaker": "{friend}",
 				"text": "Can I ask you something stupid? Should I still be praying? To you, I mean. You're right there. It feels rude. It also feels rude to stop.",
 				"choices": [
@@ -1579,10 +1719,12 @@ const DIALOGUES := {
 				"text": "Yeah. Okay. I can do that. I did that for twenty years.",
 			},
 			"caught": {
+				"alt": [{ "if": { "friend_away": true }, "node": "rumor" }],
 				"text": "{friend} is sitting by the fire with something in their hands: a chip of rough stone, with half a word scratched on it.",
 				"next": "caught2",
 			},
 			"caught2": {
+				"alt": [{ "if": { "flag": &"friend_not_told" }, "node": "caught2_back" }],
 				"speaker": "{friend}",
 				"text": "I went to one of the shrines. I wanted to light a candle for you. They've got your name there, {player}, under the title. It took me a while to read it, because I couldn't make it mean anything else.",
 				"choices": [
@@ -1729,8 +1871,11 @@ const DIALOGUES := {
 	&"god_ch6": {
 		"start": "a",
 		"nodes": {
+			"b_alone": { "text": "The air is thin. It's been a long time since anyone joked about the top." },
 			"a": { "style": "system", "text": "[ Chapter 6: The Last Prayer ]{worshippers_line}", "next": "b" },
-			"b": { "text": "The air is thin. {friend} has stopped joking about the top. You didn't notice when." },
+			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
+				"text": "The air is thin. {friend} has stopped joking about the top. You didn't notice when." },
 		},
 	},
 	&"god_last_prayer": {
@@ -1776,11 +1921,15 @@ const DIALOGUES := {
 	&"god_top": {
 		"start": "a",
 		"nodes": {
+			"b_alone": { "text": "You're going away again, and nobody is here to tell you so. The thought comes in the voice of someone by a fire, a long way down: when you're scared, you, up there, with the title and the candles... who do gods pray to?", "next": "c" },
+			"pray5_alone": { "text": "You find you're smiling. A long way below, by a fire, someone looks up and doesn't know why.", "effects": [{ "set_flag": &"god_arc_complete" }] },
+			"no_alone": { "text": "Nobody argues. The one person who would have is a long way below you.", "effects": [{ "set_flag": &"god_arc_complete" }] },
 			"a": {
 				"text": "The last stairs. You've done this before. The air doesn't change. It's only that the noise stops: every prayer you've ever had goes quiet at once, as if the whole tower were holding its breath.",
 				"next": "b",
 			},
 			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
 				"speaker": "{friend}",
 				"text": "You're doing it again. Going away. Tell me something. When you're scared, you, up there, with the title and the candles... who do gods pray to?",
 				"next": "c",
@@ -1800,11 +1949,13 @@ const DIALOGUES := {
 			"pray3": { "style": "system", "text": "[ ... ]", "next": "pray4" },
 			"pray4": { "style": "glitch", "text": "[ I heard that. ]", "next": "pray5" },
 			"pray5": {
+				"alt": [{ "if": { "friend_away": true }, "node": "pray5_alone" }],
 				"speaker": "{friend}",
 				"text": "What? What is it? ...You're smiling. Don't smile, it's terrifying. Come on. Together. We always have.",
 				"effects": [{ "set_flag": &"god_arc_complete" }],
 			},
 			"no": {
+				"alt": [{ "if": { "friend_away": true }, "node": "no_alone" }],
 				"text": "{friend} looks at you for a long moment.",
 				"next": "no2",
 			},
@@ -2096,6 +2247,11 @@ const BID_PAIRS := [
 ## Only the first is built: the first tier-2 advancement. New Game+ characters
 ## start past it, so it's first runs only.
 const RETURN_TIER2 := &"return_tier2"
+## The talk when the friend comes back from a campfire, and the flag that says
+## they missed part of the story while they were gone (set whenever an alternate
+## friend_away node plays; the reunion clears it).
+const FRIEND_REUNION := &"friend_reunion"
+const FRIEND_MISSED_FLAG := &"friend_missed_scene"
 ## New Game+: Ascending (or being the Ascendant) past the Ascension gate's floor.
 const RETURN_ASCEND := &"return_ascend"
 const RETURNS := [RETURN_TIER2, RETURN_ASCEND]

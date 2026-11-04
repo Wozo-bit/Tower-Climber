@@ -141,6 +141,13 @@ func _enter(id: String) -> void:
 		node_id = ""
 		finished = true
 		return
+	# A node can hand over to another one: "alt": [{ "if": condition, "node": id }].
+	for entry: Dictionary in _nodes[id].get("alt", []):
+		if check(entry.if):
+			if entry.if.get("friend_away", false):
+				GameState.set_flag(StoryLibrary.FRIEND_MISSED_FLAG)
+			_enter(entry.node)
+			return
 	_apply_effects(_nodes[id].get("effects", []))
 
 
@@ -166,6 +173,7 @@ static func check(cond: Dictionary) -> bool:
 			"item": ok = gs.inventory.count(v) > 0
 			"ng_plus": ok = (gs.ng_plus_cycle > 0) == v
 			"god": ok = gs.divinity.active == v
+			"friend_away": ok = gs.friend_away() == v
 			"faith": ok = gs.divinity.active and gs.divinity.faith >= v
 			"min_cycle": ok = gs.ng_plus_cycle >= v
 			"past_patron": ok = StoryLibrary.past_patron_voice() == v

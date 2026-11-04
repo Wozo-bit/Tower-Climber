@@ -324,6 +324,12 @@ who refused godhood gets the rewrites only. Past patrons from living religions
 stay silent (past_patron_voice). Ascending return BUILT (RETURN_ASCEND, floor 41+
 when Ascended or the Ascendant). None of it decides what the System or the
 tower's secret is.
+Absent friend BUILT 2026-11-04 (Hayden's picks; story bible): friend at a campfire
+(GameState.friend_away; the bench doesn't count) gets alternate nodes via a node's
+"alt": [{ "if": cond, "node": id }]. New scenes with {friend} speaking MUST add a
+friend_away alt, or mark prayers from afar "far": true (test_friend_away walks every
+path). Reunion on rejoin (StoryLibrary.FRIEND_REUNION; friend_not_told /
+friend_caught_up change later scenes). Story only, no stat or route cost.
 
 Playtest changes BUILT 2026-11-04 (Hayden's picks; README "Playtest changes"):
 campfire floor travel (never ticks guilds/wages), guild actions from Tab,
@@ -403,7 +409,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2480 checks at last run).
+Every change gets tests in tests/ (26 suites, 2529 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

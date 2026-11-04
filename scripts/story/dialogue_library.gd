@@ -35,6 +35,7 @@ extends RefCounted
 ##   "min_cycle": n          New Game+ cycle n or later
 ##   "past_patron": "speaks" / "silent" / "none"   who blessed your last climb (StoryLibrary)
 ##   "floor_guild_yours": bool   this floor's guild is your own or under your contract
+##   "friend_away": bool     the childhood friend is waiting at a campfire (dismissed, or left)
 ##   "on_secret_path": &"id" the player has found enough clues for that path
 ##   "recruited": &"npc_id"  that NPC is in the party / reserve
 ##   "quest_new": &"id"      that quest was never started (so it can be offered)
@@ -537,7 +538,7 @@ const CONDITION_KEYS := ["flag", "any_flag", "remote", "blessed_by", "blessed_by
 	"guild_member", "in_guild", "can_join_guild", "guild_pay_due", "can_hire_on", "can_take_heist", "heist_here",
 	"holds_captive", "can_pay_ransom", "favor_new", "favor_active", "favor_done", "can_pay_fee", "refuses_you",
 	"patron_pantheon", "can_pay_down", "owes_wage", "can_pay_owed", "demigod_unlocked",
-	"god", "faith", "min_cycle", "past_patron", "floor_guild_yours"]
+	"god", "faith", "min_cycle", "past_patron", "floor_guild_yours", "friend_away"]
 const EFFECT_KEYS := ["set_flag", "clear_flag", "give_item", "give_gold", "take_gold", "recruit",
 	"heal_party", "open_shop", "toast", "rejoin", "start_quest", "fail_quest", "take_item",
 	"route_points", "floor_guild_rep", "bid_interest", "lock_route", "accept_blessing", "refuse_blessing", "decline_blessing", "interest",
@@ -589,6 +590,10 @@ static func validate(id: StringName, d: Dictionary) -> PackedStringArray:
 		if not node.get("text", "") is String or node.get("text", "") == "":
 			problems.append("%s: no text" % where)
 		problems.append_array(_validate_effects(where, node.get("effects", [])))
+		for alt in node.get("alt", []):
+			if not nodes.has(alt.get("node", "")) or alt.get("node") == node_id:
+				problems.append("%s: alt goes to bad node '%s'" % [where, alt.get("node")])
+			problems.append_array(_validate_condition(where, alt.get("if", {})))
 		var nxt: String = node.get("next", "")
 		if nxt != "" and not nodes.has(nxt):
 			problems.append("%s: next '%s' doesn't exist" % [where, nxt])

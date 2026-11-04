@@ -328,6 +328,14 @@ func childhood_friend() -> CharacterData:
 	return null
 
 
+## The friend isn't with you: waiting at a campfire (dismissed, or left over your
+## route). On the reserve bench they still travel with you. The story has
+## its own versions of their scenes for this (StoryLibrary).
+func friend_away() -> bool:
+	var friend := childhood_friend()
+	return friend == null or waiting.has(friend)
+
+
 static func _new_legacy_id() -> String:
 	return "%d-%d" % [Time.get_unix_time_from_system(), randi()]
 
@@ -1426,6 +1434,8 @@ func rejoin(c: CharacterData) -> bool:
 		return false
 	waiting.erase(c)
 	_add_member(c)
+	if c.companion_id == &"childhood_friend":   # they've got something to say about it
+		pending_talks.append({ "dialogue": StoryLibrary.FRIEND_REUNION })
 	return true
 
 
