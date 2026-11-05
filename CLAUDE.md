@@ -115,8 +115,8 @@ fewer fights per floor (2/3/4). The melee-only Slime Pits run (rogue+tank)
 is the one combo the bot can't clear on Normal (by Hayden's slime design).
 
 ### Art/sound hooks (built with Hayden 2026-10-24)
-Hayden has no art/music skills: plan is free commercial-safe assets (Kenney
-CC0 for SFX/UI) now, commissioned manhwa portraits + boss art later.
+Hayden has no art/music skills: free commercial-safe assets (Kenney CC0 for SFX/UI)
+and Claude-made or tool-made art; no commissions on this game (no budget).
 - Everything looks up files by name (Assets for art, Audio for music/sfx) and
   keeps its placeholder when missing. Naming guide: assets/README.md.
 - UITheme: system-window look, 6 palettes (System Blue default; Hayden
@@ -348,8 +348,9 @@ friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
 Chapter 10 "Recognition" BUILT 2026-11-05: THE FIRST CLIMB'S STORY IS COMPLETE (first draft). Endings in the bible:
-ask to forget / take it back, then reset, draw (hero), keep (villain), hand the pencil to 0041 (vigilante). New Game+ "The One It Kept" IN PROGRESS: ng_why + floors 21-30 built (ng3_*); floors 31-99 and its
+ask to forget / take it back, then reset, draw (hero), keep (villain), hand the pencil to 0041 (vigilante). New Game+ "The One It Kept" IN PROGRESS: ng_why + floors 21-40 built (ng3_*, ng4_*); floors 41-99 and its
 ending to write, then god chapters 7-9, then testing, then Art & Sounds. CLAUDE MAKES THE ART AND SOUND (Hayden 2026-11-05: not an artist); ASK HIM per character or thing ("what should X look like", "any notable details for X").
+Before generating or adding any asset, show him the exact prompts or files for approval; he says what's okay. No budget for an artist on this game (2026-11-05): keep to the base he needs to list it on the stores, spending as little as possible; the plan is passive income, and maybe a hired artist on a next game.
 Chapter 9 "One More Day" + Day 3 memory (floor 90) BUILT 2026-11-05: pages, "it" in your voice, you pick
 what the System hears (ch9_read_*, ch9_told_*; floor 99 and the ending should use them).
 TESTERS (Hayden 2026-11-05): 0012 + 0027 = you; 0041 = a stranger; floor 99's miniboss = Echo of 0001 (real friend), forced by "it"; the System helps you beat it and keeps talking after.
@@ -450,7 +451,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 3497 checks at last run).
+Every change gets tests in tests/ (26 suites, 3629 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

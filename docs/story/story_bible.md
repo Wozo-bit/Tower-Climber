@@ -407,7 +407,11 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **How it ends** (Hayden 2026-11-05; not built): beat your copy and your old party on floor 100, then end them and shut the backup down, or take their place and let them rest. Someone always holds that door, so later climbs still make sense.
 
-**Built so far (2026-11-05):** `ng_why` and floors 21-30 ("The Door, Again"). Tell Marn on floor 25 and you can hold the door with him on 26-27; he lives, and keeps his ledger. **Still first-run text in New Game+: floors 31-60. Silent: 61-99.**
+**Built so far (2026-11-05):** `ng_why`, floors 21-30 ("The Door, Again") and floors 31-40 ("Second Hand"). Tell Marn on floor 25 and you can hold the door with him on 26-27; he lives, and keeps his ledger.
+
+**Floors 31-40:** 31, the System says what it remembers of what you told it; you can say its name, and the wrong one answers. 32-33, you can carve an answer under "its RECOGNITION, dummy". 34, you can type in the old code comments, and get a reply. 35, a Marn who lived remembers everything and is being sorry to people by name; you can tell him about floor 80 (`ng4_told_marn_tess`, for Chapter 8). Otherwise you face the same ledger choice again. 36-37, tell the first god what it is (`ng4_told_gods`). 38, you say the summer first, and tell your friend how it ended. 39, GO HOME - {player}, fresh, from the copy; you can answer. 40, you say your half of "You drew the monsters" first.
+
+**Still first-run text in New Game+: floors 41-60. Silent: 61-99.**
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |

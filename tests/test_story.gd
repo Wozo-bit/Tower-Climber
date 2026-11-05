@@ -35,6 +35,7 @@ func _ready() -> void:
 	test_continuity()
 	await test_chapter_ten()
 	test_one_it_kept()
+	test_one_it_kept_second_hand()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1622,12 +1623,76 @@ func test_one_it_kept() -> void:
 	r.start(&"ng3_end")
 	check(r.node_id == "lives", "the old Marn at the fire")
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch4_opening"))
-	check(not DialogueRunner.check(StoryLibrary.SCENES[&"ch4_marn"].if), "the cheerful one never comes")
+	check(StoryLibrary.due(35, false) == &"ng4_marn", "floor 35 is the New Game+ scene")
 	check(DialogueRunner.check(NpcLibrary.get_npc(&"marn_pack").if), "the Stairwarden's clues are still there")
 	_kept_run(25)
 	_play(&"ng3_ledger", 0)
 	_play(&"ng3_door", 1)
 	check(GameState.has_flag(&"ch3_marn_fell"), "you can still bar it")
+	GameState.ng_plus_cycle = 0
+
+
+func test_one_it_kept_second_hand() -> void:
+	print("-- the one it kept: floors 31-40 --")
+	_kept_run(31)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(31, false) == &"ng4_opening", "floor 31 in New Game+")
+	check(StoryLibrary.chapter_name(4) == "Chapter 4: Second Hand", "its title")
+	_fresh(31)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(31, false) == &"ch4_opening" and StoryLibrary.chapter_name(4) == "Chapter 4: The Second Hand", "a first run is unchanged")
+	var ids := [&"ng4_opening", &"ng4_second_hand", &"ng4_comments", &"ng4_marn", &"ng4_gods", &"ng4_summer", &"ng4_copy", &"ng4_threshold", &"ng4_end"]
+	var firsts := { &"ng4_opening": 31, &"ng4_second_hand": 32, &"ng4_comments": 34, &"ng4_marn": 35, &"ng4_gods": 36, &"ng4_summer": 38, &"ng4_copy": 39, &"ng4_threshold": 40 }
+	for id in ids:
+		for past in [[], [&"past_friend_woke"], [&"ng3_marn_lives"]]:
+			for pick in 3:
+				_kept_run(35, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	for id in firsts:
+		check(id in StoryLibrary.SCENES and StoryLibrary.SCENES[id].floors[0] == firsts[id], "%s is on floor %d" % [id, firsts[id]])
+	# The System remembers what you told it.
+	var r := DialogueRunner.new()
+	var told := { &"past_told_all": "b_all", &"past_told_part": "b_part", &"past_told_nothing": "b_none", &"past_friend_woke": "b_woke" }
+	for f in told:
+		_kept_run(31, [f])
+		r.start(&"ng4_opening")
+		r.advance()
+		check(r.node_id == told[f], "%s: %s" % [f, r.node_id])
+	# Saying the name: your friend answers to it.
+	_kept_run(31)
+	_play(&"ng4_opening", 0)
+	check(GameState.has_flag(&"ng4_said_name"), "you said it")
+	r.start(&"ng4_opening")
+	while not r.has_choices():
+		r.advance()
+	r.choose(r.choices()[0].index)
+	check(r.node_id == "said" and r.raw_speaker() == "{friend}", "and the wrong one answers")
+	# Marn: alive, or the same choice again.
+	_kept_run(35, [&"ng3_marn_lives"])
+	r.start(&"ng4_marn")
+	check(r.node_id == "lives", "he remembers now")
+	_play(&"ng4_marn", 0)
+	check(GameState.has_flag(&"ng4_told_marn_tess") and not GameState.has_flag(&"ch4_kept_ledger") and not GameState.has_flag(&"ch4_gave_ledger"), "he keeps his own book")
+	_kept_run(35)
+	_play(&"ng4_marn", 0)
+	check(GameState.has_flag(&"ch4_gave_ledger"), "you can give it to him again")
+	_kept_run(35)
+	_play(&"ng4_marn", 1)
+	check(GameState.has_flag(&"ch4_kept_ledger"), "or keep it")
+	# The gods.
+	_kept_run(36)
+	var pair: Dictionary = StoryLibrary.bid_pair()
+	var before := GameState.blessings.interest(pair.first)
+	_play(&"ng4_gods", 0)
+	check(GameState.has_flag(&"ng4_told_gods") and GameState.blessings.interest(pair.first) < before, "tell them what they are, and they don't like it")
+	# The copy writes to you.
+	_kept_run(39)
+	r.start(&"ng4_copy")
+	r.advance()
+	check(r.text().contains("GO HOME"), "it writes to you, in your hand")
+	_kept_run(40)
+	_play(&"ng4_end")
+	check(GameState.has_flag(&"ch4_complete"), "chapter 4 complete")
 	GameState.ng_plus_cycle = 0
 
 
