@@ -30,6 +30,7 @@ func _ready() -> void:
 	test_chapter_five()
 	test_chapter_six()
 	await test_chapter_seven()
+	test_chapter_eight()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -134,7 +135,9 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(71, false) == &"", "no chapter 8 scenes yet")
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(81, false) == &"", "no chapter 9 scenes yet")
+	GameState.story_flags.erase(&"ch7_friend_knows")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -1127,6 +1130,128 @@ func test_chapter_seven() -> void:
 	GameState.pending_talks.clear()
 	room.queue_free()
 	await _frames(1)
+
+
+func test_chapter_eight() -> void:
+	print("-- chapter 8 --")
+	var ch8 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 8 and s.dialogue != &"ch8_catchup")
+	var covered := {}
+	for s in ch8:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE and covered.has(71) and covered.has(80), "a beat on every floor 71-80 (%s)" % [covered.keys()])
+	check(StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 8).all(func(s): return s.if.get("ng_plus") == false), "all of it is for a first run")
+	_fresh()
+	check(StoryLibrary.chapter_name(8) == "Chapter 8: The Tenants", "its title")
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(71, false) == &"ch8_opening", "floor 71 opens it")
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.due(71, false) == &"", "New Game+ doesn't replay it")
+	GameState.ng_plus_cycle = 0
+	# Nobody told them: the next floor with them, you do.
+	_fresh(71)
+	check(StoryLibrary.due(71, false) == &"ch8_catchup", "they don't know yet: you tell them first")
+	_play(&"ch8_catchup")
+	check(GameState.has_flag(&"ch7_friend_knows"), "now they do")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch8_catchup"))
+	check(StoryLibrary.due(71, false) == &"ch8_opening", "then the chapter")
+	_fresh(75)
+	GameState.dismiss(GameState.childhood_friend())
+	check(StoryLibrary.due(75, false) != &"ch8_catchup", "not while they're by a fire")
+	GameState.rejoin(GameState.childhood_friend())
+	GameState.pending_talks.clear()
+	check(StoryLibrary.due(85, false) == &"ch8_catchup", "and it waits for them, even in later chapters")
+	# Every pair has both deals and what they were worth.
+	for pair in StoryLibrary.BID_PAIRS:
+		check(pair.first_lines.has("wake") and pair.first_lines.has("spent"), "%s: can offer to wake them" % pair.first)
+		check(pair.second_lines.has("real") and pair.second_lines.has("spent"), "%s: can offer to make them real" % pair.second)
+	var r := DialogueRunner.new()
+	_fresh(72)
+	r.start(&"ch8_wake")
+	check(r.node_id == "a", "the first god comes")
+	r.advance()
+	check(r.text() == StoryLibrary.bid_pair().first_lines.wake, "and offers to wake them")
+	# Route scenes.
+	var nodes := { &"hero": "hero", &"villain": "villain", &"vigilante": "vigilante" }
+	for route_id in nodes:
+		for pick in 2:
+			_locked(route_id, 74)
+			GameState.inventory.add(&"potion", 3)
+			check(_play(&"ch8_faces", pick).finished, "%s: the Host's faces (choice %d)" % [route_id, pick])
+		_locked(route_id, 75)
+		for pick in 3:
+			check(_play(&"ch8_outlive", pick).finished, "%s: what happens to me (choice %d)" % [route_id, pick])
+		r.start(&"ch8_real")
+		r.advance()
+		r.advance()
+		check(r.node_id == "b_%s" % route_id, "%s: they answer the god their own way (%s)" % [route_id, r.node_id])
+	_fresh(74)
+	r.start(&"ch8_faces")
+	r.advance()
+	r.advance()
+	r.advance()
+	check(r.node_id == "d", "a route that never locked still gets a line")
+	# What happens to me: the System won't let you soften it.
+	_locked(&"hero", 75)
+	r.start(&"ch8_outlive")
+	r.advance()
+	r.advance()
+	r.choose(r.choices()[1].index)
+	check(r.node_id == "soft" and r.text().contains("never put it that politely"), "softening it doesn't work")
+	r.advance()
+	check(r.text() == "[ I don't know. ]", "it doesn't know")
+	# The answer: deals pay up front, refusing costs blood.
+	_fresh(78)
+	var pair: Dictionary = StoryLibrary.bid_pair()
+	var first_before := GameState.blessings.interest(pair.first)
+	r.start(&"ch8_answer")
+	check(r.text().contains("Recomended"), "the corrections spell it your way, and want you home")
+	_play(&"ch8_answer", 0)
+	check(GameState.has_flag(&"ch8_took_wake") and GameState.blessings.interest(pair.first) > first_before, "the first deal")
+	_fresh(78)
+	_play(&"ch8_answer", 1)
+	check(GameState.has_flag(&"ch8_took_real"), "the second deal")
+	_fresh(78)
+	var hp := GameState.player.current_hp()
+	_play(&"ch8_answer", 2)
+	check(GameState.has_flag(&"ch8_refused_both") and GameState.player.current_hp() < hp, "refusing them both costs blood")
+	# The strongbox: a hint only.
+	_fresh(79)
+	_play(&"ch8_strongbox")
+	check(GameState.has_flag(&"ch8_found_day3"), "the page in your handwriting")
+	var said := ""
+	r.start(&"ch8_strongbox")
+	while not r.finished:
+		said += r.text()
+		r.advance()
+	check(said.contains("T.0012") and said.contains("recongise"), "signed by a Tester you've never been, and corrected in your spelling")
+	# Floor 80: Tess.
+	_fresh(80)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(80, false) == &"ch8_anointed", "the champion")
+	r.start(&"ch8_anointed")
+	r.advance()
+	check(r.raw_speaker() == "Tess" and r.text().contains("second breakfasts"), "under the armour: Tess, and the same joke")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch8_anointed"))
+	check(StoryLibrary.due(80, true) == &"ch8_tess_down", "and after")
+	for pick in 2:
+		_fresh(80)
+		check(_play(&"ch8_tess_down", pick).finished, "she goes (choice %d)" % pick)
+		check(GameState.has_flag(&"ch8_tess_gone") and GameState.has_flag(&"ch8_complete"), "chapter 8 complete")
+	_fresh(80)
+	GameState.set_flag(&"ch4_kept_ledger")
+	_play(&"ch8_tess_down")
+	check(GameState.has_flag(&"ch8_tess_signed"), "if you kept the ledger, she signs it")
+	_fresh(80)
+	said = ""
+	r.start(&"ch8_tess_down")
+	while not r.finished:
+		if r.has_choices():
+			r.choose(r.choices()[0].index)
+		said += r.text()
+		r.advance()
+	check(said.contains(StoryLibrary.bid_pair().first_lines.spent) and said.contains(StoryLibrary.bid_pair().second_lines.spent), "both gods admit what the deals were worth")
+	check(said.contains("You're the only one who ever could"), "and the System says who can reach the room")
 
 
 func test_skip_warning() -> void:

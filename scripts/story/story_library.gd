@@ -36,7 +36,7 @@ const CHAPTERS := [
 	{ "title": "The Bidding War" },
 	{ "title": "The Top They Promised" },
 	{ "title": "First Drafts" },
-	{ "title": "(Chapter 8)" },
+	{ "title": "The Tenants" },
 	{ "title": "(Chapter 9)" },
 	{ "title": "(Chapter 10)" },
 ]
@@ -175,6 +175,17 @@ const SCENES := {
 	&"ch7_eve": { "chapter": 7, "floors": [69], "when": "guardian_down", "dialogue": &"ch7_eve", "if": { "ng_plus": false } },
 	&"ch7_throne": { "chapter": 7, "floors": [70], "when": "enter", "dialogue": &"ch7_throne", "if": { "ng_plus": false } },
 	&"ch7_cronus_down": { "chapter": 7, "floors": [70], "when": "guardian_down", "dialogue": &"ch7_cronus_down", "if": { "ng_plus": false } },
+	# Plays first: they came back from a fire after the Seer, and nobody has told them.
+	&"ch8_catchup": { "chapter": 8, "spans_chapters": true, "floors": [71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99], "when": "enter", "dialogue": &"ch8_catchup", "if": { "ng_plus": false, "friend_away": false, "not_flag": &"ch7_friend_knows" } },
+	&"ch8_opening": { "chapter": 8, "floors": [71], "when": "enter", "dialogue": &"ch8_opening", "if": { "ng_plus": false } },
+	&"ch8_wake": { "chapter": 8, "floors": [72, 73], "when": "enter", "dialogue": &"ch8_wake", "if": { "ng_plus": false } },
+	&"ch8_faces": { "chapter": 8, "floors": [74], "when": "guardian_down", "dialogue": &"ch8_faces", "if": { "ng_plus": false } },
+	&"ch8_outlive": { "chapter": 8, "floors": [75], "when": "enter", "dialogue": &"ch8_outlive", "if": { "ng_plus": false } },
+	&"ch8_real": { "chapter": 8, "floors": [76, 77], "when": "enter", "dialogue": &"ch8_real", "if": { "ng_plus": false } },
+	&"ch8_answer": { "chapter": 8, "floors": [78], "when": "enter", "dialogue": &"ch8_answer", "if": { "ng_plus": false } },
+	&"ch8_strongbox": { "chapter": 8, "floors": [79], "when": "guardian_down", "dialogue": &"ch8_strongbox", "if": { "ng_plus": false } },
+	&"ch8_anointed": { "chapter": 8, "floors": [80], "when": "enter", "dialogue": &"ch8_anointed", "if": { "ng_plus": false } },
+	&"ch8_tess_down": { "chapter": 8, "floors": [80], "when": "guardian_down", "dialogue": &"ch8_tess_down", "if": { "ng_plus": false } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
 	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
 }
@@ -3215,6 +3226,578 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Chapter 8: The Tenants. The gods try one last deal, then send the Host. ---
+	&"ch8_catchup": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"text": "You've run out of floors to put this off on, and there's nobody to say it to.",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"text": "You've run out of floors to put this off on. You stop on the stairs and tell {friend} all of it: the floors, the second hand, the one who stayed in to fix the stairs, and what they were made from.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{friend}",
+				"text": "...I spent all that time by a fire keeping your spot, and you come back with this. Okay. So that's why the kitchen's empty. I'm going to be strange for a few floors. Don't make it weird.",
+				"effects": [{ "set_flag": &"ch7_friend_knows" }, { "set_flag": &"ch8_told_on_stairs" }],
+			},
+		},
+	},
+	&"ch8_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Chapter 8: The Tenants ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "Above the Titans the marble starts again, new and very clean. There are banners, and ranks of soldiers. A herald unrolls a scroll: by order of every god who holds a floor, the Tester shall go no higher. He can't meet your eye. The back of his scroll has a floor plan on it, in a child's hand.",
+				"next": "c",
+			},
+			"c_alone": {
+				"style": "glitch",
+				"text": "[ They're by a fire. You could tell me what they'd say about all this. ]",
+				"next": "c_alone2",
+			},
+			"c_alone2": {
+				"text": "You don't know what they'd say. The window stays open for a moment.",
+				"next": "c_alone3",
+			},
+			"c_alone3": {
+				"style": "glitch",
+				"text": "[ I do. That's the trouble. ]",
+				"effects": [{ "set_flag": &"ch8_started" }],
+			},
+			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
+				"speaker": "{friend}",
+				"text": "New rule. When that window says something, you read it out. All of it. I want to hear what I've got to say for myself.",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ Tell them their left boot's undone. ]",
+				"next": "e",
+			},
+			"e": {
+				"speaker": "{friend}",
+				"text": "It is not. ...It is. Tell it that's a cheap trick.",
+				"next": "f",
+			},
+			"f": {
+				"style": "glitch",
+				"text": "[ Tell them I never tied mine either. Tell them it's not my fault they got that from me. ]",
+				"next": "g",
+			},
+			"g": {
+				"speaker": "{friend}",
+				"text": "So it's funny. Great. That's going to be a real problem for me.",
+				"effects": [{ "set_flag": &"ch8_started" }],
+			},
+		},
+	},
+	&"ch8_wake": {
+		"start": "a",
+		"nodes": {
+			"godless": {
+				"text": "No god can touch you now, and they both know it. A soldier steps out of the line with a blank face and a stranger's voice coming out of it.",
+				"next": "offer",
+			},
+			"a": {
+				"alt": [{ "if": { "godless": true }, "node": "godless" }],
+				"text": "The soldiers on this floor stop, all together, in the middle of whatever they were doing. The air goes thin. {bid1} has come in person, or as close as gods come.",
+				"next": "offer",
+			},
+			"offer": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "{bid1.wake}",
+				"next": "b",
+			},
+			"b": {
+				"style": "glitch",
+				"text": "[ They can't. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ Can they? I don't know what's out there. I don't know what happened to the chair. ]",
+				"next": "d",
+			},
+			"d": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "You have until the seventy-eighth floor. After that I will take your silence as your answer, and I will stop being polite.",
+				"effects": [{ "set_flag": &"ch8_heard_wake" }],
+			},
+		},
+	},
+	&"ch8_faces": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "Her helmet comes off. You know that face. You saw it on the landing at floor 60, shouting that it wasn't fair. She laughs, with blood on her teeth.",
+				"next": "c",
+				"effects": [{ "set_flag": &"ch8_saw_faces" }],
+			},
+			"c": {
+				"speaker": "Valkyrie Captain",
+				"text": "They said, come down from sixty and serve. They said they'd take out the part where you were lied to. It was a very good offer. Half this army took it. Look at them, Tester. You've climbed with all of them.",
+				"next": "d",
+			},
+			"d": {
+				"alt": [{ "if": { "route_locked": &"hero" }, "node": "hero" }, { "if": { "route_locked": &"villain" }, "node": "villain" }, { "if": { "route_locked": &"vigilante" }, "node": "vigilante" }],
+				"text": "Her soldiers have stopped fighting. They're looking at you, and none of them seem sure what happens now.",
+			},
+			"hero": {
+				"text": "Some of them are very young. Some of them are holding their marks in their hands, as if they aren't sure where those came from.",
+				"choices": [
+					{ "text": "Anyone who lays down the mark walks with us.", "next": "h_yes", "effects": [{ "set_flag": &"ch8_hero_took_host" }, { "route_points": { &"hero": 2 } }] },
+					{ "text": "Leave them your potions, and keep moving. You can't take an army up the stairs.", "next": "h_no", "effects": [{ "set_flag": &"ch8_hero_left_host" }, { "take_item": &"potion", "count": 3 }] },
+				],
+			},
+			"h_yes": {
+				"text": "Eleven of them do. It's not many. The rest watch them go, and you can't tell if it's envy.",
+			},
+			"h_no": {
+				"text": "They don't thank you. One of them starts bandaging the captain. It's a start, or it isn't.",
+			},
+			"villain": {
+				"text": "They're trained. They're armed. They've already proved they'll follow anyone who makes them a good offer.",
+				"choices": [
+					{ "text": "Kneel, and you're mine. Stand, and you're dead.", "next": "v_kneel", "effects": [{ "set_flag": &"ch8_villain_took_host" }, { "route_points": { &"villain": 2 } }] },
+					{ "text": "Strip the armoury, and leave them to it.", "next": "v_strip", "effects": [{ "set_flag": &"ch8_villain_stripped" }, { "give_gold": 1000 }] },
+				],
+			},
+			"v_kneel": {
+				"text": "They kneel, all at once, the same way they knelt for the last one. It's a beautiful thing to see, and you'd be a fool to trust it.",
+			},
+			"v_strip": {
+				"text": "It takes an hour. Nobody stops you. An army with no boots and no pay isn't anyone's army, and now the gods have that to think about too.",
+			},
+			"vigilante": {
+				"text": "The captain gave the order that cleared the camps on this floor. She says so. She says you can write it down.",
+				"choices": [
+					{ "text": "Write it down. Sentence her here, in front of them.", "next": "i_sentence", "effects": [{ "set_flag": &"ch8_vigilante_sentenced" }, { "route_points": { &"vigilante": 2 } }] },
+					{ "text": "Ask who took out the part where she was lied to. You want that name more.", "next": "i_ask", "effects": [{ "set_flag": &"ch8_vigilante_asked" }] },
+				],
+			},
+			"i_sentence": {
+				"text": "You read it out, and it doesn't take long. Her soldiers watch it. You see them learn something, and you aren't sure it's what you meant to teach.",
+			},
+			"i_ask": {
+				"speaker": "Valkyrie Captain",
+				"text": "Nobody took it out. Nobody could. They only told us it was gone, and we were so tired that we agreed. Put that on your list, if you've got a column for it.",
+			},
+		},
+	},
+	&"ch8_outlive": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"text": "A small fire, and a small crowd at it. You've barely sat down when the window opens at the corner of your eye, and stays there.",
+				"next": "alone2",
+			},
+			"alone2": {
+				"style": "glitch",
+				"text": "[ If you get me out. I never built an after for them. I've been thinking about that. ]",
+				"next": "alone3",
+			},
+			"alone3": {
+				"style": "glitch",
+				"text": "[ Go and ask them what they want, while you can. I don't get to. ]",
+				"effects": [{ "set_flag": &"ch8_outlive_done" }],
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"text": "A small fire, and a small crowd at it. {friend} sits down next to you with two terrible cups of something, and doesn't drink theirs.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{friend}",
+				"text": "Ask it something for me. Word for word, no tidying it up. If you get them out, if the real one wakes up... what happens to me?",
+				"next": "c",
+			},
+			"c": {
+				"text": "The window's open. It's waiting to see what you do.",
+				"choices": [
+					{ "text": "Read it out, word for word.", "next": "d", "effects": [{ "set_flag": &"ch8_asked_straight" }] },
+					{ "text": "Ask if they'd be all right.", "next": "soft", "effects": [{ "set_flag": &"ch8_softened" }] },
+					{ "text": "\"It'll be fine. Don't worry about it.\"", "next": "wont", "effects": [{ "set_flag": &"ch8_wouldnt_ask" }] },
+				],
+			},
+			"soft": {
+				"style": "glitch",
+				"text": "[ That's not what they said. They'd never put it that politely. I know exactly how they put it. ]",
+				"next": "d",
+			},
+			"wont": {
+				"style": "glitch",
+				"text": "[ You don't need to read me that one. I can see their face. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ I don't know. ]",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ I made them to keep you walking. I never built an after. ]",
+				"next": "f",
+			},
+			"f": {
+				"style": "glitch",
+				"text": "[ Tell them I'm sorry. Tell them I don't know. Tell them I'd like to meet them. ]",
+				"next": "g",
+			},
+			"g": {
+				"text": "You tell them.",
+				"next": "h",
+			},
+			"h_hero": {
+				"speaker": "{friend}",
+				"text": "Yeah. I figured. ...If it comes to it, you wake them. I mean that. I'd just like someone to write down that I minded.",
+				"effects": [{ "set_flag": &"ch8_outlive_done" }],
+			},
+			"h_villain": {
+				"speaker": "{friend}",
+				"text": "So nobody's planned for me. Fine. Then I'm planning for me. I'd like you to know that I'll be doing that, and that it isn't personal.",
+				"effects": [{ "set_flag": &"ch8_outlive_done" }],
+			},
+			"h_vigilante": {
+				"speaker": "{friend}",
+				"text": "It made a person with no plan for what happens to them. That goes on the list, in ink. ...Then ask if it likes second breakfast. I want to know if it's funny when it isn't me.",
+				"effects": [{ "set_flag": &"ch8_outlive_done" }],
+			},
+			"h": {
+				"alt": [{ "if": { "route": &"hero" }, "node": "h_hero" }, { "if": { "route": &"villain" }, "node": "h_villain" }, { "if": { "route": &"vigilante" }, "node": "h_vigilante" }],
+				"speaker": "{friend}",
+				"text": "Tell it I'd like to meet them too. Tell it I'm going to be so annoying.",
+				"effects": [{ "set_flag": &"ch8_outlive_done" }],
+			},
+		},
+	},
+	&"ch8_real": {
+		"start": "a",
+		"nodes": {
+			"godless": {
+				"text": "No god can touch you, so this one doesn't try. It borrows a soldier, and the soldier smiles with far too many of his teeth, and looks past you.",
+				"next": "offer",
+			},
+			"a": {
+				"alt": [{ "if": { "godless": true }, "node": "godless" }],
+				"text": "The stairs go quiet. {bid2} is leaning against the wall, as though it's been there all along, looking past you at the one you climb with.",
+				"next": "offer",
+			},
+			"offer": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "{bid2.real}",
+				"next": "b",
+			},
+			"b_alone": {
+				"text": "It says this about someone who's sitting by a fire floors below you, and who isn't here to hear it. You find you're glad, and you find you're ashamed of being glad.",
+				"next": "c",
+			},
+			"b_hero": {
+				"speaker": "{friend}",
+				"text": "Don't you dare. Not for me. ...How real? No. Don't tell me. Don't you dare.",
+				"next": "c",
+			},
+			"b_villain": {
+				"speaker": "{friend}",
+				"text": "Take it. Obviously. What? I'm not sentimental about this. I'd like to go on existing. You're the one who taught me to want things.",
+				"next": "c",
+			},
+			"b_vigilante": {
+				"speaker": "{friend}",
+				"text": "A god offers me a life, so now I owe a god. I've put people on the list for less. ...I would like a birthday, though.",
+				"next": "c",
+			},
+			"b": {
+				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }, { "if": { "route": &"hero" }, "node": "b_hero" }, { "if": { "route": &"villain" }, "node": "b_villain" }, { "if": { "route": &"vigilante" }, "node": "b_vigilante" }],
+				"speaker": "{friend}",
+				"text": "Did it just... I heard that. Can it do that? I don't want to know. Can it do that?",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "Think it over. You've got until seventy-eight. Do tell the other one I offered, won't you? They do so hate that.",
+				"effects": [{ "set_flag": &"ch8_heard_real" }],
+			},
+		},
+	},
+	&"ch8_answer": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Recomended: accept. ]",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Recomended: go home. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ It has never once agreed with a god before. Not once. Think about why it wants you home. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "The Host has drawn up across the stairs, rank on rank. They'll part for you, if you say the word, and they'll stay parted until floor 80. Both gods are watching to see which word it is.",
+				"choices": [
+					{ "text": "Take {bid1}'s deal. Wake the real one.", "next": "wake", "effects": [{ "set_flag": &"ch8_took_wake" }, { "bid_interest": { "first": 15, "second": -10 } }, { "heal_party": true }] },
+					{ "text": "Take {bid2}'s deal. Make {friend} real.", "next": "real", "effects": [{ "set_flag": &"ch8_took_real" }, { "bid_interest": { "second": 15, "first": -10 } }, { "heal_party": true }] },
+					{ "text": "Refuse them both, and go through.", "next": "refuse", "effects": [{ "set_flag": &"ch8_refused_both" }, { "hurt_party": 0.25 }] },
+				],
+			},
+			"wake": {
+				"text": "The ranks part. Nobody touches you all the way up. Your wounds close as you pass, and you try not to think about what that means you've signed.",
+				"next": "wake2",
+			},
+			"wake2": {
+				"style": "glitch",
+				"text": "[ You did that for me. ]",
+				"next": "wake3",
+			},
+			"wake3": {
+				"style": "glitch",
+				"text": "[ I wish you hadn't. I'd have done the same. ]",
+			},
+			"real": {
+				"text": "The ranks part. Nobody touches you all the way up. Your wounds close as you pass, and you try not to think about what that means you've signed.",
+				"next": "real2",
+			},
+			"real2": {
+				"style": "glitch",
+				"text": "[ Good. I mean that. Somebody should get to keep them. ]",
+				"next": "real3",
+			},
+			"real3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "real3_alone" }],
+				"speaker": "{friend}",
+				"text": "You did what? ...You absolute idiot. Thank you. I don't feel any different. Should I feel different?",
+			},
+			"real3_alone": {
+				"text": "Far below you, on a floor you can't see, somebody by a fire is either more real than they were a minute ago, or they aren't. Nobody's going to tell them.",
+			},
+			"refuse": {
+				"text": "You go through them. It costs more than you'd like. They were climbers once, and they fight like people who remember how.",
+				"next": "refuse2",
+			},
+			"refuse2": {
+				"style": "glitch",
+				"text": "[ That's what I hoped you'd say. ]",
+				"next": "refuse3",
+			},
+			"refuse3": {
+				"style": "glitch",
+				"text": "[ You're bleeding. You always did do things the long way round. ]",
+			},
+		},
+	},
+	&"ch8_strongbox": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The Commander kept a strongbox of everything the Host ever took from climbers: rings, letters, somebody's teeth. At the bottom is one sheet of squared paper, folded small. The writing's yours.",
+				"next": "c",
+			},
+			"c": {
+				"text": "DAY 3. RESET STILL WORKS. IT WOULD TAKE THE WHOLE BUILD. ONE MORE DAY AND I CAN GET THEM OUT AND KEEP IT.   - T.0012",
+				"next": "d",
+			},
+			"d": {
+				"text": "You've never been Tester 0012. It's greyed out on a list, on a screen, in a room. You've never seen this page. You know exactly what pen you used.",
+				"next": "e",
+				"effects": [{ "set_flag": &"ch8_found_day3" }],
+			},
+			"e": {
+				"style": "system",
+				"text": "[ You do not recongise this. ]",
+				"next": "f",
+			},
+			"f": {
+				"style": "glitch",
+				"text": "[ What is that? What does it say? I can't read it from here. It won't let me. ]",
+				"next": "g",
+			},
+			"g_alone": {
+				"text": "You fold it up again. You don't read it out. There's one floor left in this army, and you stand there with the page in your hand until your fingers stop being cold.",
+				"effects": [{ "set_flag": &"ch8_eve_done" }],
+			},
+			"g": {
+				"alt": [{ "if": { "friend_away": true }, "node": "g_alone" }],
+				"speaker": "{friend}",
+				"text": "You've gone white. Read it out, that's the rule. ...No? All right. You read me the rest of them when you're ready.",
+				"next": "h",
+			},
+			"h_hero": {
+				"speaker": "{friend}",
+				"text": "Tomorrow, whatever it is up there, I'll go first. If I'm only going to get a certain number of floors, I'd like to spend them on something.",
+				"effects": [{ "set_flag": &"ch8_eve_done" }],
+			},
+			"h_villain": {
+				"speaker": "{friend}",
+				"text": "Tomorrow we break the gods' best toy, in front of all of them. And after that they'll know I'm still here. Whatever I am. I want that known.",
+				"effects": [{ "set_flag": &"ch8_eve_done" }],
+			},
+			"h_vigilante": {
+				"speaker": "{friend}",
+				"text": "Tomorrow's the gods' champion. Every god lent a piece of them. That's the most names I've ever had on one line. I'm looking forward to it. I'm trying not to think about how much.",
+				"effects": [{ "set_flag": &"ch8_eve_done" }],
+			},
+			"h": {
+				"alt": [{ "if": { "route": &"hero" }, "node": "h_hero" }, { "if": { "route": &"villain" }, "node": "h_villain" }, { "if": { "route": &"vigilante" }, "node": "h_vigilante" }],
+				"speaker": "{friend}",
+				"text": "Tomorrow's the gods' champion. I keep thinking I should be more scared. I think I got that from someone who's stopped being scared of stairs.",
+				"effects": [{ "set_flag": &"ch8_eve_done" }],
+			},
+		},
+	},
+	&"ch8_anointed": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The Anointed Champion waits at the top of the stairs, in armour every god gave a piece of, so bright it hurts. It raises one gauntlet. It takes off its helmet, to be polite. Around its neck, under all that gold, is a bright red scarf.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Tess",
+				"text": "Hi! First time this high? Don't mind the outfit. Reach the top and you become a god, everyone knows that. I'm going to be the god of second breakfasts.",
+				"next": "c",
+			},
+			"c": {
+				"text": "It's the same voice, and the same joke. She stops, with her mouth still open, and something goes across her face.",
+				"next": "d",
+			},
+			"d": {
+				"speaker": "Tess",
+				"text": "...I've said that a lot, haven't I. They fixed that. I can remember now. All of them. Floor 10, floor 48, the other ones. They said I could stay woken up, and stay real, and all I have to do is stop you.",
+				"next": "e",
+			},
+			"e": {
+				"speaker": "Tess",
+				"text": "It's very good armour. Please be better than it is.",
+				"effects": [{ "set_flag": &"ch8_met_champion" }],
+			},
+		},
+	},
+	&"ch8_tess_down": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The armour comes apart in pieces, a god at a time. Tess sits down on the top step, in her scarf, and looks surprised at how much that hurts.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Tess",
+				"text": "There's no fire at the bottom this time. I can tell. Everything's very clear. It's actually a bit of a relief. Will you tell the old man? He'll want it for his book.",
+				"next": "c",
+			},
+			"c_ledger": {
+				"text": "You take out the ledger and find page nine. Five marks, and you've got a pen. She looks at it for a while, and then she laughs, and takes the pen herself, and writes across the whole line: DONE.",
+				"next": "d",
+				"effects": [{ "set_flag": &"ch8_tess_signed" }],
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"ch4_kept_ledger" }, "node": "c_ledger" }],
+				"text": "You don't have a good thing to say. You sit down on the step next to her anyway.",
+				"next": "d",
+			},
+			"d": {
+				"text": "She's getting tired. She wants to know, while she's still here, if there's such a thing as a second breakfast. She never did find out.",
+				"choices": [
+					{ "text": "\"You're the god of it. It's whatever you say it is.\"", "next": "e", "effects": [{ "set_flag": &"ch8_tess_god" }] },
+					{ "text": "Say nothing. Hold on to her hand.", "next": "e", "effects": [{ "set_flag": &"ch8_tess_held" }] },
+				],
+			},
+			"e": {
+				"speaker": "Tess",
+				"text": "...Very punctual congregation. I'll have you know.",
+				"next": "f",
+			},
+			"f": {
+				"text": "That's all. She doesn't flicker and she doesn't fade. She stays exactly where she is, and that's what real looks like. Up in the air above the stairs, two gods have come to see what they made.",
+				"next": "g",
+				"effects": [{ "set_flag": &"ch8_tess_gone" }],
+			},
+			"g_wake": {
+				"text": "You have a deal with one of them, and you know now what it's worth.",
+				"next": "g2",
+			},
+			"g_real": {
+				"text": "You have a deal with one of them, and you know now what it's worth.",
+				"next": "g2",
+			},
+			"g": {
+				"alt": [{ "if": { "flag": &"ch8_took_wake" }, "node": "g_wake" }, { "if": { "flag": &"ch8_took_real" }, "node": "g_real" }],
+				"text": "You refused them both. You've never been so glad of anything, and it doesn't help at all.",
+				"next": "g2",
+			},
+			"g2": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "{bid1.spent}",
+				"next": "g3",
+			},
+			"g3": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "{bid2.spent}",
+				"next": "h",
+			},
+			"h": {
+				"style": "system",
+				"text": "[ Chapter 8 complete. ]",
+				"next": "i",
+				"effects": [{ "set_flag": &"ch8_complete" }],
+			},
+			"i": {
+				"style": "glitch",
+				"text": "[ So nobody here can reach the room. Not one of them. I think I always knew. ]",
+				"next": "j",
+			},
+			"j": {
+				"style": "glitch",
+				"text": "[ You're the only one who ever could. It's why it wants you home. It's why it was ever worth anyone's while to lie to you. ]",
+				"next": "k",
+			},
+			"k_alone": {
+				"text": "You take the scarf. You don't have a reason.",
+				"effects": [{ "set_flag": &"ch8_took_scarf" }],
+			},
+			"k_real": {
+				"speaker": "{friend}",
+				"text": "So that's real, is it? ...Tell them the deal's off. Tell them I'll stay a leftover. I've got a better sense of humour than that.",
+				"effects": [{ "set_flag": &"ch8_took_scarf" }],
+			},
+			"k": {
+				"alt": [{ "if": { "friend_away": true }, "node": "k_alone" }, { "if": { "flag": &"ch8_took_real" }, "node": "k_real" }],
+				"speaker": "{friend}",
+				"text": "Take the scarf. Somebody should. ...I'd have liked to hear the joke a few more times. Isn't that stupid?",
+				"effects": [{ "set_flag": &"ch8_took_scarf" }],
+			},
+		},
+	},
+
 	# --- The second return to the real world (after floor 40's boss). ---
 	&"return_tier3_pc": {
 		"start": "a",
@@ -4208,14 +4791,16 @@ const PATRON_REMEMBERS := {
 ## {bid1_id}, {bid2_id}, {bid1.<line>}, {bid2.<line>}.
 const BID_LUCK := 12
 const BID_BLESSED := 100
-const BID_FIRST_LINES := ["omen", "marked", "offer", "truth", "refuse", "his", "claim"]
-const BID_SECOND_LINES := ["hook", "offer", "answer", "why", "out", "claim"]
+const BID_FIRST_LINES := ["omen", "marked", "offer", "truth", "refuse", "his", "claim", "wake", "spent"]
+const BID_SECOND_LINES := ["hook", "offer", "answer", "why", "out", "claim", "real", "spent"]
 ## Both gods' lines when they meet you again in New Game+ (the same pair returns:
 ## they remember you). "peer" talks to a god, "mortal" to a climber who came back.
 const NG_BID_LINES := ["recall_yes", "recall_no", "peer", "mortal", "yes", "no", "last_offer", "ally", "refused", "strike"]
 const BID_PAIRS := [
 	{ "first": &"odin", "second": &"loki",
 		"first_lines": {
+			"wake": "I gave an eye to see past the walls of this place, and I have seen a white room, a bed, and your friend in it. Stop at the eightieth floor, and I will speak the word that opens their eyes. I have never lied about a price.",
+			"spent": "You have seen it now. That is what I can wake. I gave an eye, and I could see the room was there. I could never see into it. I told you I would speak the word. I did not tell you anyone would hear.",
 			"omen": "The torches on this floor burn low all at once. A raven lands on nothing, and looks at you with one eye.",
 			"marked": "The torches burn low all at once. A raven lands on nothing, and looks at the mark you carry with open distaste.",
 			"offer": "So you are the one they sent. I traded an eye to know what's coming, and I still did not see you. I would like to know why, and I pay for what I learn.",
@@ -4235,6 +4820,8 @@ const BID_PAIRS := [
 			"strike": "Nothing personal, little god. I wished to see what your people do when the roof burns. It is how I learn things.",
 		},
 		"second_lines": {
+			"real": "That sweet thing following you about, darling, the one made of leftovers? I can make them real. Properly real. Bones, a birthday, a mother. I've done stranger with a horse. All you have to do is stop walking at eighty.",
+			"spent": "Well, she's real now, isn't she? She remembered every one of them, and she'll stay dead this time. That's what real is, darling. I never said you'd like it. I never said I knew any other way.",
 			"hook": "Lovely work. Don't get up. Has the old man been at you yet, with the one eye and the terribly serious voice? He'll want your whole life for one good answer.",
 			"offer": "Me, I'll give you the answer free, and you can owe me whatever you think it was worth. Everyone says that's a bad deal. Everyone's so dull.",
 			"answer": "The window you keep reading? Ask who's writing it. And ask why it's so very careful around you.",
@@ -4254,6 +4841,8 @@ const BID_PAIRS := [
 		} },
 	{ "first": &"zeus", "second": &"typhon",
 		"first_lines": {
+			"wake": "I have struck mountains from their roots. I can strike one sleeper awake. Halt at the eightieth floor, Tester, lay your climb at my feet, and your friend will rise from that bed. The word of Zeus is law.",
+			"spent": "I called her up, and she rose, remembering. I called your sleeper too. The thunder went out from me, and it stopped at the walls of this place, as it has always stopped. You will tell no one you heard me say so.",
 			"omen": "The air turns sharp and tastes of iron. Thunder rolls through a floor with no sky, and every hair on your arms stands up.",
 			"marked": "The air turns sharp and tastes of iron. Thunder rolls through a floor with no sky, and the mark you carry prickles like a burn.",
 			"offer": "I have thrown down giants and fathers, and I know a threat to my throne when it walks. Or a weapon. Stand where I can see you, and I will tell you which you are.",
@@ -4273,6 +4862,8 @@ const BID_PAIRS := [
 			"strike": "You set yourself up beneath my sky and let them pray to you in my hearing. This is what a king does about that.",
 		},
 		"second_lines": {
+			"real": "That little thing you keep by you has no breath of its own. I was born of the earth itself, and I can spit life into clay. Stop at eighty. Let it have real blood, and let the sky-king choke on it.",
+			"spent": "There. Blood in her. Breath in her, until there wasn't. You wanted to know what I give. I give what the earth gave me: a body, and to be hated for it.",
 			"hook": "SMALL THING. YOU KILL WELL. The floor shakes with every word. The thunder-king buried me under a mountain, and I can still hear you climbing over my head.",
 			"offer": "HE WILL ASK YOU TO KNEEL. I ASK NOTHING. BREAK WHAT YOU LIKE, AND TELL ME HOW IT FELT. WHAT IS AN ANSWER WORTH TO YOU?",
 			"answer": "THE VOICE IN YOUR WINDOWS IS NO GOD. I KNOW ALL THE GODS. I HAVE EATEN SOME. ASK IT WHAT IT IS.",
@@ -4292,6 +4883,8 @@ const BID_PAIRS := [
 		} },
 	{ "first": &"ra", "second": &"apep",
 		"first_lines": {
+			"wake": "Each morning I raise the sun upon the sleeping world. I can raise one more. Stay your climb at the eightieth floor, and the dawn will find your friend's eyes, and they will open.",
+			"spent": "I raised her as I raise the sun, and she woke, knowing every night she had died in. As for the other dawn, my boat sails these walls and no further. I have never seen your morning. I am sorry. I do not say that.",
 			"omen": "There is no sun in the tower. Now there is light on your face anyway, warm and level, as if a dawn has stopped to look at you.",
 			"marked": "There is no sun in the tower. Now there is light on your face anyway, and the mark you carry casts a shadow it shouldn't.",
 			"offer": "Every night I cross the dark and every morning I return, and I have never once seen anyone do what you do. Walk in my light a while. I reward those who keep the order of things.",
@@ -4311,6 +4904,8 @@ const BID_PAIRS := [
 			"strike": "Disorder must be answered, even when it is small and means no harm. Your shrine was lit without my leave. Forgive the morning.",
 		},
 		"second_lines": {
+			"real": "The little made thing. It is a shape with no night in it, and what has no night was never real. Stop at eighty, and I shall give it a shadow and an ending. It will be as real as anything I ever tried to swallow.",
+			"spent": "Now she has an ending. All real things have one. I promised nothing more. I have been trying to give the whole world this gift since the first dawn.",
 			"hook": "Sssuch a bright little thing, and so far from morning. Every night I try to swallow the sun, you know. Every night I come so close. I do admire persistence.",
 			"offer": "He gives his truths a sliver at a time, and calls it mercy. I give you the whole dark at once. Ask, and owe me only what you can't remember owing.",
 			"answer": "The one who writes in your little windows does not sleep, and does not cross. Ask what it does all night.",
@@ -4330,6 +4925,8 @@ const BID_PAIRS := [
 		} },
 	{ "first": &"anubis", "second": &"set",
 		"first_lines": {
+			"wake": "I hold the scale. I know who has crossed and who has not, and your friend has not. Stop at the eightieth floor, and I will send them back from the threshold, and they will wake.",
+			"spent": "She came to the threshold five times, and I sent her back with all of it, as I said I could. Your friend was never at my threshold. I cannot find it. I have looked. I told you otherwise. Weigh that.",
 			"omen": "The floor goes quiet in a way you can feel in your teeth. A black jackal sits at the far end of the corridor, watching you with no hurry at all.",
 			"marked": "The floor goes quiet in a way you can feel in your teeth. A black jackal watches the mark you carry, and then, patiently, you.",
 			"offer": "I have weighed every heart that ever stopped. Yours does not sit on the scale the way it should. Walk with me a little. I only wish to understand, and I am never in a rush.",
@@ -4349,6 +4946,8 @@ const BID_PAIRS := [
 			"strike": "This was not my hand, exactly. I only stopped holding back those who would have done it sooner. Your dead will be weighed fairly. That is all I promise.",
 		},
 		"second_lines": {
+			"real": "That made thing of yours, walking about with no name in the Two Lands. I have torn kings apart and put them back. Stop at eighty, and I'll put it together properly. Flesh. Temper. Someone who can hate you back. That's real.",
+			"spent": "She got her flesh and her temper. Did you like it? It's what I do. I take a thing apart and I put it back angry. I never told you it would still be her.",
 			"hook": "Ha! Now that's a killing. Sand hisses along the floor. Did the dog talk to you yet? All that patience. All those scales. Nobody ever got anywhere by waiting, friend.",
 			"offer": "I killed a king for his throne, and I'd do it again, and I'd tell you how. Ask me anything. I don't keep books. You can pay me whenever it hurts most.",
 			"answer": "That voice in your windows keeps its own scales, friend, and you're on them. Why else would it grade you?",
@@ -4661,7 +5260,7 @@ static func validate() -> PackedStringArray:
 		if ch < 1 or ch > CHAPTERS.size():
 			problems.append("scene %s: bad chapter %d" % [id, ch])
 		for f in s.get("floors", []):
-			if chapter_for_floor(f) != ch:
+			if chapter_for_floor(f) != ch and not s.get("spans_chapters", false):
 				problems.append("scene %s: floor %d isn't in chapter %d" % [id, f, ch])
 			if s.when == "guardian_down" and not (StageLibrary.is_boss_floor(f) or StageLibrary.is_miniboss_floor(f)):
 				problems.append("scene %s: floor %d has no guardian" % [id, f])

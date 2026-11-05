@@ -339,13 +339,18 @@ friend_caught_up change later scenes). Story only, no stat or route cost.
 (glitched: weaknesses change per fight), Echoes 91-100 (echoing: copy your
 skills). Final boss Tester 0041; NG+ = mimics of your Hall character + party
 (GameState.boss_group / register_mimics; LegacyRecord.party). Tier 4 at floor
-70 (+30%; one capstone per tier-3 class). Story for floors 71-99 is still to
+70 (+30%; one capstone per tier-3 class). Story for floors 81-99 is still to
 write.
 
 THE SECRET (Hayden picked 2026-11-04): you built the game with your real childhood
 friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
+Chapter 8 "The Tenants" BUILT 2026-11-05 (Hayden's picks): each god offers a deal (wake the real one /
+make the fire friend real), Anointed Champion = Tess (really gone), friend talks through you + wants
+to outlive it. WHY YOU FORGOT (decided, reveal in Chapter 9): a reset would have wiped the build, you
+held off, it stopped working; you kept going back in, it was killing you, so you locked yourself out
+and cut the memory; "it" protects you. Hayden's plan: finish the story, test it, THEN Art & Sounds.
 Chapter 7 "First Drafts" + third return (floor 70) BUILT 2026-11-05 (Hayden's picks): Titans = your
 first drafts; "it" = the part of you that forgot (HINTS ONLY so far: it has your misspelling; don't
 reveal until later chapters); real friend alive in a coma, missing flyer -> letters -> undated
@@ -438,7 +443,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 3112 checks at last run).
+Every change gets tests in tests/ (26 suites, 3199 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

@@ -9,8 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapters 3-7 (floors 21-70), the second and third returns, four more quest classes and eleven more recruits too.
-**Not built yet:** first-run story for floors 71-99 (chapters 8-10), beyond the floor-100 meeting.
+Chapters 3-8 (floors 21-80), the second and third returns, four more quest classes and eleven more recruits too.
+**Not built yet:** first-run story for floors 81-99 (chapters 9-10), beyond the floor-100 meeting.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -237,7 +237,26 @@ Hayden's picks (2026-11-05): the Titans are your first drafts, the monsters you 
 
 **Third return** (after floor 70's boss, first runs only): 412 days gone. The objects open in order. The window: MISSING, a photo of someone covering their mouth, and a detective's card with your handwriting on the back. The bookshelf: years of unopened hospital letters behind the notebook. The phone: her voicemail, "We're going to let them go. Not yet. I can't pick a day", and on the bed, a memorial card with nothing after the dash. The PC: BUILT BY {friend} AND {player}, and an admin lock whose blacked-out name is as long as yours. Back on the stairs, the System asks what happened to it, because it never knew. Tell it they're alive, tell it about the card (if you found it), or say nothing. It always says "Thirty floors."
 
-Open for later: if the friend is by a fire on floors 66-67 and comes back afterwards, nobody has told them yet (`ch7_friend_knows` unset). Chapter 8 should deal with it. New Game+ has no scenes on these floors.
+New Game+ has no scenes on these floors.
+
+## Chapter 8: "The Tenants" (floors 71-80)
+
+Hayden's picks (2026-11-05): each god makes one offer (the first swears it can wake your real friend, the second swears it can make the friend by the fire real; both want you to stop at floor 80). The Anointed Champion is Tess. The friend talks to the System through you, and starts asking what happens to them afterwards.
+
+| Floor | Beat |
+| --- | --- |
+| 71 | `[ Chapter 8: The Tenants ]`. A herald reads the order to go no higher, with a child's floor plan on the back of his scroll. New rule: read the windows out. `[ Tell them their left boot's undone. ]` |
+| 72-73 | The first god's deal (`{bid1.wake}`, a line per god). `[ Can they? I don't know what's out there. ]` |
+| 74 | The Valkyrie Captain has a face you know: the Host is the climbers who turned back at 60. Hero: take in those who lay down the mark, or leave potions. Villain: make them kneel, or strip the armoury. Vigilante: sentence her, or ask who took out the part where she was lied to (nobody; they only said so). |
+| 75 | "If the real one wakes up... what happens to me?" Read it straight, soften it (`[ They'd never put it that politely. ]`) or refuse. `[ I never built an after. ]` |
+| 76-77 | The second god's deal (`{bid2.real}`), and the friend hears it. Their answer depends on your route. |
+| 78 | `[ Recomended: accept. ]` `[ Recomended: go home. ]` The correction window agrees with a god, in your spelling. Take either deal (the Host parts, full heal, +15 / -10 interest), or refuse both (costs blood). |
+| 79 | In the Commander's strongbox, in your handwriting: DAY 3. RESET STILL WORKS. IT WOULD TAKE THE WHOLE BUILD. ONE MORE DAY AND I CAN GET THEM OUT AND KEEP IT. - T.0012 |
+| 80 | The Champion takes off its helmet: red scarf, same joke. "They fixed that. I can remember now. All of them." After the boss she doesn't flicker: she stays. If you kept the ledger, she writes DONE across her line. Both gods admit what the deals were worth (`{bid1.spent}`, `{bid2.spent}`): nobody in the tower can reach the room. `[ You're the only one who ever could. It's why it wants you home. ]` |
+
+**Why you forgot (decided, Hayden 2026-11-05; reveal in Chapter 9):** a hybrid. At first you could have pulled them out with a reset, but it would have wiped the build you'd spent years on, so you held off for one more day. Then the reset stopped working. You went back in after them, again and again, and it was killing you, so you locked yourself out and cut the memory. "It" is what's left of that decision: careful, tidy, and trying to keep you safe, which is why it keeps sending you home. It thinks the System is what's hurting you.
+
+**Drafted, for Hayden to confirm:** Testers 0012 and 0027 were you, logging in again under new numbers. Only the T.0012 page hints at it so far. Tester 0041 is still open. **Tess is really gone now** (`ch8_tess_gone`): nobody has written whether anything comes back to a fire. The deals are never formally ended; the friend calls theirs off if you took it. `ch8_catchup` tells a friend who rejoins after floors 66-67, on any floor from 71 to 99.
 
 ## New recruits (Hayden, 2026-11-04)
 
@@ -343,7 +362,7 @@ Everyone in the tower knows the top is floor 60. You beat its boss, open the doo
 - **Floors 81-90, The Unfinished:** the game shows its seams. Unnamed enemies, placeholder knights, weaknesses that change every fight, and the First Draft of the tower.
 - **Floors 91-100, Echoes:** past Testers, using your own skills, and Testers 0012 and 0027. Tester 0041 at the top.
 
-These beats are an outline for floors 71-99. Floors 61-70, the false summit and the floor-100 meeting have scenes.
+These beats are an outline for floors 81-99. Floors 61-80, the false summit and the floor-100 meeting have scenes.
 
 ## The final boss (floor 100) (Hayden, 2026-11-03; moved from floor 60 on 2026-11-04)
 
