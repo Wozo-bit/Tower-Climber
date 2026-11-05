@@ -24,7 +24,7 @@ func _init() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(640, 0)
+	panel.custom_minimum_size = Vector2(720, 0)
 	UIStyle.apply(panel)
 	center.add_child(panel)
 	var margin := MarginContainer.new()
@@ -38,9 +38,14 @@ func _init() -> void:
 	title.text = "Notice Board"
 	title.add_theme_font_size_override("font_size", 24)
 	box.add_child(title)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size.y = 340   # long boards scroll, so the panel always fits
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(scroll)
 	_list = VBoxContainer.new()
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", 8)
-	box.add_child(_list)
+	scroll.add_child(_list)
 	_message = Label.new()
 	_message.modulate = Color(0.7, 1, 0.75)
 	box.add_child(_message)
@@ -82,7 +87,7 @@ func _rebuild() -> void:
 		var q: Dictionary = offer.def
 		var row := HBoxContainer.new()
 		var l := Label.new()
-		l.text = "%s\n%s\nReward: %s" % [q.title, q.get("desc", ""), reward_text(q.get("rewards", {}))]
+		l.text = "%s\n%s\nReward: %s" % [q.title, q.get("desc", ""), reward_text_for(q)]
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(l)
@@ -97,6 +102,13 @@ func _rebuild() -> void:
 
 
 ## "200 gold, 150 XP" (what a quest pays, without handing it out).
+## The rewards, plus the XP every quest gives.
+static func reward_text_for(q: Dictionary) -> String:
+	var xp := "%d%% of a level" % roundi(QuestLog.quest_xp_share(q) * 100.0)
+	var r := reward_text(q.get("rewards", {}))
+	return xp if r == "" or r == "None" or r == "none" else "%s, %s" % [r, xp]
+
+
 static func reward_text(r: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	if r.get("gold", 0) > 0:

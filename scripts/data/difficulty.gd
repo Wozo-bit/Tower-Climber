@@ -23,6 +23,7 @@ const DEFAULT := Level.NORMAL
 ## ai:       multiplier on how often enemies use their skills
 ## xp/gold:  multipliers on battle rewards
 ## wipe_gold: share of your gold lost when the party is wiped out
+## (Quest XP has its own, wider gap: QUEST_XP.)
 const DATA := {
 	Level.RELAXED: { "name": "Relaxed", "enemy": 0.75, "ai": 0.75, "xp": 1.25, "gold": 1.25, "wipe_gold": 0.0,
 		"desc": "For the story, or just a good time. Weaker enemies, bigger rewards, no gold lost when you fall." },
@@ -53,6 +54,10 @@ static func name_of(level: int) -> String:
 
 static func desc_of(level: int) -> String:
 	return DATA.get(level, DATA[DEFAULT]).desc
+
+
+## Multiplier on quest XP (Hayden 2026-11-05: harder means less).
+const QUEST_XP := { Level.RELAXED: 1.25, Level.NORMAL: 1.0, Level.HARD: 0.8, Level.HELL: 0.6 }
 
 
 static func value(level: int, key: String) -> float:

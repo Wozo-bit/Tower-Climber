@@ -16,6 +16,8 @@ const SLOT_NAMES := { Slot.WEAPON: "Weapon", Slot.ARMOR: "Armour", Slot.ACCESSOR
 @export var item_level: int = 1             # floor it dropped on
 ## Rewards from questlines are earned again each run, so they don't carry into New Game+.
 @export var quest_reward: bool = false
+## A god's own weapon (LootTable.RELICS): only for whoever holds that blessing.
+@export var relic_of: StringName = &""
 @export_multiline var description: String
 ## Elemental weapons (Element.Type, -1 = none): adds that element to basic attacks.
 @export var element: int = -1
@@ -32,16 +34,20 @@ func weapon_kind() -> int:
 
 ## New Game+ keeps only hard-to-get gear: Uniques that aren't questline rewards.
 func carries_into_ng_plus() -> bool:
-	return rarity == Rarity.Tier.UNIQUE and not quest_reward
+	return rarity == Rarity.Tier.UNIQUE and not quest_reward and relic_of == &""
 
 
 ## Class-locked gear also fits every class advanced from that class
 ## (a Pyromancer can still use the Mage's Starfall Staff).
 func can_equip(c: CharacterData) -> bool:
+	if relic_of != &"":
+		return c.blessing_id == relic_of
 	return class_lock == &"" or (c.class_id != &"" and ClassRegistry.is_in_lineage(c.class_id, class_lock))
 
 
 func lock_text() -> String:
+	if relic_of != &"":
+		return "%s's blessing only" % BeingLibrary.get_being(relic_of).get("name", "?")
 	if class_lock == &"":
 		return ""
 	var def := ClassRegistry.get_class_def(class_lock)

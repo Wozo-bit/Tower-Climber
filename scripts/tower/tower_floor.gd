@@ -86,6 +86,7 @@ var _tracker: Label
 ## Does the board have jobs you haven't taken? (Shows "!" on it.)
 var _board_has_new := false
 var _completion_open := false
+var _menus_were_open := false
 
 
 func _ready() -> void:
@@ -181,6 +182,11 @@ func _process(delta: float) -> void:
 	if _busy:
 		return
 	_invulnerable = maxf(0.0, _invulnerable - delta)
+	# Menus can change who's standing around (dismissing, posting captains...).
+	var menus_now := _menus_open()
+	if _menus_were_open and not menus_now:
+		GameState.place_npcs(layout)
+	_menus_were_open = menus_now
 	if not _dialogue.visible:
 		_talk_cooldown = maxf(0.0, _talk_cooldown - delta)
 
@@ -325,6 +331,9 @@ func try_move(dir: Vector2i) -> bool:
 			talk(&"guild_agent", null, &"", guild)
 		else:
 			var npc_id: StringName = layout.npcs[target]
+			if NpcLibrary.get_npc(npc_id).is_empty():
+				GameState.place_npcs(layout)   # they've left since the floor was laid out
+				return false
 			talk(NpcLibrary.get_npc(npc_id).dialogue, null, &"", &"", npc_id if NpcLibrary.is_recruitable(npc_id) else &"")
 		return false
 	if target == layout.stairs and GameState.stairs_locked():
@@ -332,6 +341,12 @@ func try_move(dir: Vector2i) -> bool:
 			("boss" if layout.is_boss_floor else "miniboss"))
 		return false
 	if layout.is_blocked(target):
+		return false
+	# An enemy walking onto your tile, from the tile you're walking to: you'd swap
+	# places without touching. That's a fight.
+	var crossing := _enemy_crossing_into(target)
+	if crossing >= 0:
+		_start_battle(crossing)
 		return false
 	_came_from = player_tile
 	_player_from = _tile_px(player_tile)
@@ -383,11 +398,27 @@ func _update_enemies(delta: float) -> void:
 		var step := _enemy_choose_step(i)
 		if step != Vector2i.ZERO:
 			var target: Vector2i = v.tile + step
+			# You're mid-step onto its tile, from the one it's about to take.
+			if _player_t < 1.0 and player_tile == v.tile and target == _came_from and _invulnerable <= 0.0:
+				_start_battle(i)
+				return
+			v["prev"] = v.tile
 			v.from = _tile_px(v.tile)
 			v.tile = target
 			v.to = _tile_px(target)
 			v.t = 0.0
 			data.pos = target
+
+
+## The enemy mid-step from `target` onto the tile you're standing on, or -1.
+func _enemy_crossing_into(target: Vector2i) -> int:
+	if _invulnerable > 0.0:
+		return -1
+	for i in _enemy_view.size():
+		var v: Dictionary = _enemy_view[i]
+		if GameState.floor_enemies[i].alive and v.t < 1.0 and v.tile == player_tile and v.get("prev", v.tile) == target:
+			return i
+	return -1
 
 
 func _enemy_choose_step(i: int) -> Vector2i:
@@ -794,6 +825,8 @@ func _draw() -> void:
 		if agent != &"":   # a guild agent: green if you're a member, grey otherwise
 			npc = { "name": GuildLibrary.guild_name(agent).trim_prefix("The "), "kind": "npc",
 				"color": Color(0.4, 0.8, 0.5) if GameState.guilds.member == agent else Color(0.65, 0.65, 0.7) }
+		if npc.is_empty():
+			continue   # they've just left (e.g. a waiting companion made captain)
 		var center := _tile_px(p) + Vector2(TILE, TILE) / 2
 		var col: Color = npc.get("color", Color.GRAY)
 		var token := Assets.first([["tokens", being], ["beings", being]]) if being != &"" \

@@ -97,11 +97,63 @@ static func budget_for(rarity: int, item_level: int) -> float:
 const UNIQUE_LUCK_SCALING := 0.02
 
 
+## Chance a drop is armour / a weapon; the rest are accessories.
+const SLOT_ARMOUR := 0.4
+const SLOT_WEAPON := 0.35
+
+## Gods whose blessed power is a famous object: being -> the item. Its name is
+## the blessed skill's. Hayden 2026-11-05: weapon plus skill, player only, taken
+## back when the blessing ends. Rarity follows the blessing's level.
+const RELICS := {
+	&"odin": { "skill": &"gungnir", "base": &"dagger", "element": -1, "desc": "The spear that never misses. Odin wants it back.",
+		"weights": { Stats.Type.STRENGTH: 4, Stats.Type.AGILITY: 3, Stats.Type.LUCK: 1 } },
+	&"thor": { "skill": &"mjolnir", "base": &"mace", "element": Element.Type.LIGHTNING, "desc": "It's heavier than it looks, and it looks heavy.",
+		"weights": { Stats.Type.STRENGTH: 5, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 1 } },
+	&"zeus": { "skill": &"thunderbolt", "base": &"scepter", "element": Element.Type.LIGHTNING, "desc": "A piece of the storm, on loan.",
+		"weights": { Stats.Type.INTELLIGENCE: 5, Stats.Type.STRENGTH: 2, Stats.Type.LUCK: 1 } },
+	&"athena": { "skill": &"aegis", "base": &"plate", "element": -1, "desc": "Nothing gets through it without Athena's say-so.",
+		"weights": { Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 3, Stats.Type.INTELLIGENCE: 2 } },
+	&"hades": { "skill": &"bident", "base": &"dagger", "element": Element.Type.DARK, "desc": "Two points, for the two ways down.",
+		"weights": { Stats.Type.STRENGTH: 3, Stats.Type.INTELLIGENCE: 3, Stats.Type.LUCK: 2 } },
+	&"ra": { "skill": &"sun_disk", "base": &"amulet", "element": -1, "desc": "It's warm. It's always warm.",
+		"weights": { Stats.Type.INTELLIGENCE: 3, Stats.Type.HEALTH: 2, Stats.Type.LUCK: 1 } },
+	&"guan_yu": { "skill": &"crescent_blade", "base": &"sword", "element": -1, "desc": "A blade that has never once broken its word.",
+		"weights": { Stats.Type.STRENGTH: 5, Stats.Type.HEALTH: 2, Stats.Type.STAMINA: 1 } },
+	&"sun_wukong": { "skill": &"ruyi_staff", "base": &"mace", "element": -1, "desc": "It's whatever size you need. It's very pleased with itself.",
+		"weights": { Stats.Type.AGILITY: 4, Stats.Type.STRENGTH: 3, Stats.Type.LUCK: 1 } },
+	&"amaterasu": { "skill": &"divine_mirror", "base": &"amulet", "element": -1, "desc": "It shows you as you are. It's kind about it.",
+		"weights": { Stats.Type.INTELLIGENCE: 3, Stats.Type.STAMINA: 3, Stats.Type.LUCK: 1 } },
+	&"susanoo": { "skill": &"kusanagi", "base": &"sword", "element": Element.Type.WIND, "desc": "It cuts grass, and storms, and arguments.",
+		"weights": { Stats.Type.STRENGTH: 4, Stats.Type.AGILITY: 3, Stats.Type.HEALTH: 1 } },
+	&"shuten_doji": { "skill": &"oni_club", "base": &"mace", "element": -1, "desc": "It smells of sake and old mistakes.",
+		"weights": { Stats.Type.STRENGTH: 6, Stats.Type.HEALTH: 2 } },
+}
+const RELIC_TIERS := [Rarity.Tier.RARE, Rarity.Tier.EPIC, Rarity.Tier.LEGENDARY]
+
+
+static func make_relic(being: StringName, blessing_level: int, item_level: int) -> GearItem:
+	var r: Dictionary = RELICS[being]
+	var g := GearItem.new()
+	g.base_id = r.base
+	g.slot = BASES[r.base].slot
+	g.rarity = RELIC_TIERS[clampi(blessing_level - 1, 0, RELIC_TIERS.size() - 1)]
+	g.item_level = item_level
+	g.display_name = SkillLibrary.get_skill(r.skill).display_name
+	g.description = r.desc
+	g.relic_of = being
+	g.element = r.element if g.slot == W else -1
+	g.bonuses = _split_budget(budget_for(g.rarity, item_level), r.weights)
+	return g
+
+
 ## One normal drop (never Unique). `min_rarity` floors the result.
 static func roll_drop(luck: int, item_level: int, rng: RandomNumberGenerator,
 		min_rarity: int = Rarity.Tier.COMMON) -> GearItem:
 	var rarity := maxi(Rarity.roll(luck, rng), min_rarity)
-	var base_ids := BASES.keys()
+	# Pick the slot first, or weapons win just by having the most kinds.
+	var roll := rng.randf()
+	var slot := A if roll < SLOT_ARMOUR else (W if roll < SLOT_ARMOUR + SLOT_WEAPON else X)
+	var base_ids := BASES.keys().filter(func(b): return BASES[b].slot == slot)
 	base_ids.sort_custom(func(a, b): return String(a) < String(b))   # by name (StringNames sort by address)
 	return make_gear(base_ids[rng.randi_range(0, base_ids.size() - 1)], rarity, item_level, rng)
 

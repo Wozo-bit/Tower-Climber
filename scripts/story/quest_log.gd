@@ -13,7 +13,12 @@ const BOUNTIES_PER_BOARD := 3
 ## Bounty rewards per enemy asked for, at floor 1. They grow with the floor
 ## like battle rewards (about a fight and a half's worth for a typical job).
 const BOUNTY_GOLD_PER_KILL := 12
-const BOUNTY_XP_PER_KILL := 30
+## Every quest gives XP, as a share of the level each person is on, so you don't
+## need to fight everything on every floor (Hayden 2026-11-05). See Difficulty.QUEST_XP.
+const QUEST_XP_BOARD := 1.0 / 3.0
+const QUEST_XP_STORY := 0.5
+## The reserve learns about half as much, as it does from fights.
+const QUEST_XP_RESERVE := 0.5
 
 ## id -> { "step": int, "progress": int }   (progress = defeat count on that step)
 var active: Dictionary = {}
@@ -172,6 +177,8 @@ func _complete(id: StringName) -> void:
 	if pinned == id:
 		_repin()
 	var got := give_rewards(q.get("rewards", {}))
+	var xp_got := give_quest_xp(q)
+	got = xp_got if got == "" else "%s, %s" % [got, xp_got]
 	messages.append("Quest complete: %s%s" % [q.title, (" — " + got) if got != "" else ""])
 	if q.has("on_complete_flag"):
 		GameState.set_flag(q.on_complete_flag)
@@ -187,6 +194,23 @@ func _repin() -> void:
 func pin(id: StringName) -> void:
 	if is_active(id):
 		pinned = id
+
+
+## This quest's XP, as a share of a level.
+static func quest_xp_share(q: Dictionary) -> float:
+	var share := QUEST_XP_BOARD if q.get("kind", "") == "bounty" else QUEST_XP_STORY
+	return share * Difficulty.QUEST_XP.get(GameState.difficulty, 1.0)
+
+
+## Gives everyone XP for a finished quest. Returns "XP for everyone (a third of a level)".
+func give_quest_xp(q: Dictionary) -> String:
+	var gs := GameState
+	var share := quest_xp_share(q)
+	for m in gs.battle_party():
+		m.add_xp(roundi(CharacterData.xp_to_next(m.level) * share))
+	for m in gs.reserve:
+		m.add_xp(roundi(CharacterData.xp_to_next(m.level) * share * QUEST_XP_RESERVE))
+	return "%d%% of a level" % roundi(share * 100.0)
 
 
 ## Hands out a quest's rewards. Returns a short "200 gold, 2 Advanced Potion" text.
@@ -344,8 +368,7 @@ static func make_bounty(floor_n: int, index: int, run_key: String) -> Dictionary
 	var id := StringName("bounty_%d_%d" % [floor_n, index])
 	# Paid like battle rewards: they grow with the floor (GameState.reward_scale_for_floor).
 	var scale := GameState.reward_scale_for_floor(floor_n + 1)
-	var rewards := { "gold": roundi(n * BOUNTY_GOLD_PER_KILL * pow(scale, GameState.GOLD_REWARD_EXP)),
-		"xp": roundi(n * BOUNTY_XP_PER_KILL * scale) }
+	var rewards := { "gold": roundi(n * BOUNTY_GOLD_PER_KILL * pow(scale, GameState.GOLD_REWARD_EXP)) }
 	var title := "Bounty: %s" % label.capitalize()
 	var desc := "Someone wants %d %s gone." % [n, label]
 	# Some jobs lean a route (the family bounty never does).

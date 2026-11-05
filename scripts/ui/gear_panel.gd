@@ -40,6 +40,13 @@ func _init() -> void:
 	_title.add_theme_font_size_override("font_size", 24)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_title)
+	var strip_btn := Button.new()
+	strip_btn.text = "Unequip all"
+	strip_btn.tooltip_text = "Put everything this person is wearing in the bag."
+	strip_btn.pressed.connect(func():
+		GameState.unequip_all(member)
+		_rebuild())
+	header.add_child(strip_btn)
 	var close_btn := Button.new()
 	close_btn.text = "Done"
 	close_btn.pressed.connect(close)

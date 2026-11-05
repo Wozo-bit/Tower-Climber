@@ -161,5 +161,5 @@ func _show(id: StringName) -> void:
 		t += " %s %s\n" % [mark, line]
 	if q.has("expires_after_floor") and ql.is_active(id):
 		t += "\n[color=#ff9966]Must be finished by floor %d.[/color]\n" % q.expires_after_floor
-	t += "\n[b]Reward[/b]: %s" % NoticeBoardPanel.reward_text(q.get("rewards", {}))
+	t += "\n[b]Reward[/b]: %s" % NoticeBoardPanel.reward_text_for(q)
 	_detail.text = t

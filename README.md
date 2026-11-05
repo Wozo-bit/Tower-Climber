@@ -40,6 +40,15 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
   - **Other gods react by values:** like-minded gods warm to you once per run; rivals (opposite values, plus patrons you spurned) feud with your guilds, a jealous rival curses you for 5 floors whenever your divinity grows, and bosses sponsored by a rival have 15% more HP.
 - `scripts/story/domain_library.gd` holds the domains, `scripts/story/divinity_state.gd` everything you do as a god (placeholder names, text and numbers; DLC can `register_domain`).
 
+## Second playtest (Hayden 2026-11-05)
+- **Enemies can't pass through you:** swapping tiles with a moving enemy starts the fight (`TowerFloor._enemy_crossing_into`).
+- **Campfires** heal everyone you have, including the bench and anyone past this floor's party cap.
+- **Gear:** benched companions have a Gear button (Tab). The gear screen has Unequip all; Tab has Auto-equip all and Unequip everyone. Auto-equip pools the bag and everyone's gear, gives the active party the best match for their class and build, then the bench. Captains keep theirs.
+- **God items:** `LootTable.RELICS`: 11 gods whose blessed power is an object also give it as gear when they bless you. Only you can equip it, it can't be sold, it grows with the blessing (Rare, Epic, Legendary), and it goes when the blessing does.
+- **Declining:** every being has its own lines (`BlessingState.DECLINE_LINES`). A skill gift is now rare: `GIFT_CHANCE` 15% x (1 - temper), at most `MAX_GIFTS` 2 per run.
+- **Quest XP:** every quest gives XP on top of its rewards: a third of a level for notice-board jobs, half for story and recruit quests. The reserve gets half. `Difficulty.QUEST_XP`: Relaxed x1.25, Normal x1, Hard x0.8, Hell x0.6.
+- **Drops:** a drop picks its slot first: armour 40%, weapon 35%, accessory 25%.
+
 ## The story (Hayden 2026-11-04)
 The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invited to test **Tower of Recognition**, a game with the same name as this one, and it pulls you in. All ten chapters (floors 1-100) and the returns to the real world are built; the text is a first draft.
 - **Prologue** (`scenes/prologue.tscn`, `scripts/story/prologue.gd`): your room at night. Walk around and bump things: the PC (the invitation; "Start the test"), the bookshelf (your childhood notebook), the phone and the window. Each one you look at becomes a flag for the run (`prologue_notebook`...), so the tower can call back to it. Esc offers to skip to the client. Settings → "Skip the prologue and home scenes" skips the room for every New Game (it asks first); New Game+ never has it.

@@ -84,6 +84,23 @@ func _init() -> void:
 	manage_btn.tooltip_text = "Order, rows, the reserve and dismissing companions."
 	manage_btn.pressed.connect(open_manage)
 	header_buttons.add_child(manage_btn)
+	var auto_btn := Button.new()
+	auto_btn.text = "Auto-equip all"
+	auto_btn.tooltip_text = "Hands out everyone's gear and the bag: the active party first, then the reserve, by class and build. Captains keep theirs."
+	auto_btn.pressed.connect(func():
+		_say("Handed out %d pieces of gear." % GameState.auto_equip_all())
+		_rebuild())
+	header_buttons.add_child(auto_btn)
+	var strip_btn := Button.new()
+	strip_btn.text = "Unequip everyone"
+	strip_btn.tooltip_text = "Puts the party's and the reserve's gear in the bag."
+	strip_btn.pressed.connect(func():
+		var n := 0
+		for m in GameState.battle_party() + GameState.companions + GameState.reserve:
+			n += GameState.unequip_all(m)
+		_say("%d pieces went in the bag." % n)
+		_rebuild())
+	header_buttons.add_child(strip_btn)
 	var bestiary_btn := Button.new()
 	bestiary_btn.text = "Bestiary"
 	bestiary_btn.tooltip_text = "Enemies you've fought and what you've learned about them."
@@ -253,8 +270,16 @@ func _rebuild() -> void:
 	if not GameState.reserve.is_empty():
 		_members_box.add_child(_heading("Reserve"))
 		for member in GameState.reserve:
-			_members_box.add_child(_note("%s   Lv %d   %s   (swap in from Manage party)" % [
-				member.character_name, member.level, member.class_title()]))
+			var row := HBoxContainer.new()
+			var note := _note("%s   Lv %d   %s   (swap in from Manage party)" % [
+				member.character_name, member.level, member.class_title()])
+			note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(note)
+			var gear_btn := Button.new()
+			gear_btn.text = "Gear"
+			gear_btn.pressed.connect(func(): _gear_panel.open(member))
+			row.add_child(gear_btn)
+			_members_box.add_child(row)
 
 	# --- Items ---
 	_actions_box.add_child(_heading("Items"))

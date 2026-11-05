@@ -225,6 +225,10 @@ func unequip(slot: int) -> GearItem:
 	return prev
 
 
+func refresh_gear() -> void:
+	_refresh_gear_bonus()
+
+
 func _refresh_gear_bonus() -> void:
 	var was_alive := not is_downed()
 	var total := {}

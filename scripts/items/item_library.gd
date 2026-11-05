@@ -2,7 +2,8 @@ class_name ItemLibrary
 extends RefCounted
 ## All consumables. Prices/amounts are placeholders.
 
-static var _items: Dictionary = _build()
+## Built on first use: the skill list has to be ready (it supplies the books).
+static var _items: Dictionary = {}
 
 ## What the rest-floor merchant sells.
 ## Goddess Tears are deliberately pricey here; bosses drop them for free.
@@ -48,4 +49,6 @@ static func _build() -> Dictionary:
 
 
 static func get_item(id: StringName) -> ItemDef:
+	if _items.is_empty():
+		_items = _build()
 	return _items.get(id)

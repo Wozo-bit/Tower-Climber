@@ -25,6 +25,7 @@ func _ready() -> void:
 	await test_travel_screen()
 	test_merchant()
 	test_decline()
+	test_second_playtest()
 	test_guild_actions()
 	test_class_hints()
 	test_ashen_trail()
@@ -324,6 +325,154 @@ func _rng(s: int) -> RandomNumberGenerator:
 	var r := RandomNumberGenerator.new()
 	r.seed = s
 	return r
+
+
+## Hayden's list, 2026-11-05.
+func test_second_playtest() -> void:
+	print("-- second playtest --")
+	# The campfire heals everyone, bench included.
+	_fresh(5)
+	var benched := GameState.make_premade("Benched", &"mage", { Stats.Type.INTELLIGENCE: 12 })
+	GameState.reserve.append(benched)
+	benched.set_current_hp(1)
+	GameState.player.set_current_hp(1)
+	GameState.full_restore_party()
+	check(benched.current_hp() == benched.max_hp() and GameState.player.current_hp() == GameState.player.max_hp(), "the fire reaches the bench")
+	# Posting a waiting companion as captain: the floor copes.
+	_fresh(5)
+	var floor_scene = load(GameState.TOWER_SCENE).instantiate()
+	add_child(floor_scene)
+	await get_tree().process_frame
+	floor_scene.layout.npcs[Vector2i(3, 3)] = &"waiting_nobody"
+	floor_scene.queue_redraw()
+	await get_tree().process_frame
+	check(floor_scene.is_inside_tree(), "someone who's gone doesn't crash the floor")
+	floor_scene.layout.npcs.erase(Vector2i(3, 3))
+	# Crossing paths is a fight.
+	floor_scene._enemy_view.clear()
+	GameState.floor_enemies.clear()
+	GameState.floor_enemies.append({ "alive": true, "pos": Vector2i(2, 2), "group": [&"slime"] })
+	floor_scene.player_tile = Vector2i(2, 2)
+	floor_scene._enemy_view.append({ "tile": Vector2i(2, 2), "prev": Vector2i(1, 2), "t": 0.5, "stun": 0.0, "think": 1.0, "from": Vector2.ZERO, "to": Vector2.ZERO })
+	check(floor_scene._enemy_crossing_into(Vector2i(1, 2)) == 0, "walking through an oncoming enemy starts a fight")
+	check(floor_scene._enemy_crossing_into(Vector2i(3, 2)) == -1, "walking away from it doesn't")
+	floor_scene._enemy_view[0].t = 1.0
+	check(floor_scene._enemy_crossing_into(Vector2i(1, 2)) == -1, "only while it's moving")
+	floor_scene._enemy_view.clear()
+	GameState.floor_enemies.clear()
+	floor_scene.queue_free()
+	await get_tree().process_frame
+	# Gear: unequip all, auto-equip by build, active first.
+	_fresh(5)
+	var mage := GameState.make_premade("Mage", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	var tank := GameState.make_premade("Tank", &"tank", { Stats.Type.HEALTH: 10, Stats.Type.STAMINA: 10 })
+	GameState.companions.clear()
+	GameState.companions.append(mage)
+	GameState.reserve.append(tank)
+	GameState.player = GameState.make_premade("Lead", &"tank", { Stats.Type.HEALTH: 10, Stats.Type.STAMINA: 10 })
+	var robe := GearItem.new()
+	robe.base_id = &"robe"
+	robe.slot = GearItem.Slot.ARMOR
+	robe.bonuses = { Stats.Type.INTELLIGENCE: 10 }
+	var plate := GearItem.new()
+	plate.base_id = &"plate"
+	plate.slot = GearItem.Slot.ARMOR
+	plate.bonuses = { Stats.Type.HEALTH: 5, Stats.Type.STAMINA: 5 }
+	GameState.inventory.gear.clear()
+	GameState.inventory.add_gear(robe)
+	GameState.inventory.add_gear(plate)
+	check(GameState.auto_equip_all() == 2, "both pieces handed out")
+	check(mage.get_equipped(GearItem.Slot.ARMOR) == robe, "the mage gets the robe")
+	check(GameState.player.get_equipped(GearItem.Slot.ARMOR) == plate, "the tank in the party gets the plate")
+	check(tank.get_equipped(GearItem.Slot.ARMOR) == null, "the bench waits its turn")
+	check(GameState.unequip_all(mage) == 1 and GameState.inventory.gear.has(robe), "unequip all goes to the bag")
+	var tank_plate := GearItem.new()
+	tank_plate.base_id = &"plate"
+	tank_plate.slot = GearItem.Slot.ARMOR
+	tank_plate.bonuses = { Stats.Type.HEALTH: 2 }
+	GameState.inventory.add_gear(tank_plate)
+	GameState.auto_equip_all()
+	check(tank.get_equipped(GearItem.Slot.ARMOR) != null, "and the bench gets what's left")
+	# God items.
+	_fresh(5)
+	GameState.player.bless(&"hades", 1)
+	GameState.sync_relic()
+	var relics := GameState.inventory.gear.filter(func(g): return g.relic_of == &"hades")
+	check(relics.size() == 1 and relics[0].display_name == SkillLibrary.get_skill(&"bident").display_name, "Hades gives the bident")
+	var bident: GearItem = relics[0]
+	check(bident.can_equip(GameState.player) and not bident.can_equip(GameState.make_premade("X", &"mage", {})), "only for you")
+	check(not bident.carries_into_ng_plus(), "and not into New Game+")
+	var budget := bident.total_bonus()
+	GameState.player.bless(&"hades", 3)
+	GameState.sync_relic()
+	check(bident.rarity == Rarity.Tier.LEGENDARY and bident.total_bonus() > budget and GameState.inventory.gear.filter(func(g): return g.relic_of != &"").size() == 1, "it grows with the blessing, and there's only one")
+	check(GameState.equip_from_bag(GameState.player, bident), "you can wear it")
+	var dict := SaveSerializer.gear_to_dict(bident)
+	check(SaveSerializer.gear_from_dict(dict).relic_of == &"hades", "it saves")
+	GameState.player.unbless()
+	GameState.sync_relic()
+	check(GameState.player.get_equipped(GearItem.Slot.WEAPON) == null and GameState.inventory.gear.is_empty(), "the god takes it back")
+	_fresh(5)
+	GameState.player.bless(&"mammon", 1)
+	GameState.sync_relic()
+	check(GameState.inventory.gear.is_empty(), "not every god has one")
+	for being in LootTable.RELICS:
+		var relic := LootTable.make_relic(being, 2, 20)
+		check(relic.display_name != "" and relic.total_bonus() > 0, "%s: %s" % [being, relic.display_name])
+		check(not BeingLibrary.get_being(being).is_empty(), "%s is a real being" % being)
+	# Refusals: every being has its own words, and gifts are rare.
+	var seen := {}
+	for id in BlessingState.DECLINE_LINES:
+		check(not BeingLibrary.get_being(id).is_empty(), "%s exists" % id)
+		seen[BlessingState.DECLINE_LINES[id].no] = true
+	check(seen.size() == BlessingState.DECLINE_LINES.size(), "nobody says the same thing")
+	check(BeingLibrary.beings.keys().filter(func(k): return not String(k).begins_with("ascended_") and not BlessingState.DECLINE_LINES.has(k)).is_empty(), "the whole roster is covered")
+	var gifts := 0
+	for i in 400:
+		_fresh(12)
+		GameState.blessings.add_interest(&"athena", BlessingState.GIFT_INTEREST)
+		if GameState.blessings.decline(&"athena", _rng(i)) == "gift":
+			gifts += 1
+	check(gifts > 0 and gifts < 60, "gifts are rare (%d/400)" % gifts)
+	_fresh(12)
+	GameState.blessings.beings[&"thor"] = { "gifted": true }
+	GameState.blessings.beings[&"ra"] = { "gifted": true }
+	GameState.blessings.add_interest(&"athena", BlessingState.GIFT_INTEREST)
+	var over := 0
+	for i in 200:
+		if GameState.blessings.decline(&"athena", _rng(i)) == "gift":
+			over += 1
+	check(over == 0, "and capped per run")
+	# Quests give XP, less on harder difficulties.
+	_fresh(5)
+	var board := { "kind": "bounty" }
+	var story := { "kind": "side" }
+	GameState.difficulty = Difficulty.Level.NORMAL
+	check(is_equal_approx(QuestLog.quest_xp_share(board), 1.0 / 3.0) and is_equal_approx(QuestLog.quest_xp_share(story), 0.5), "a third of a level, or half")
+	GameState.difficulty = Difficulty.Level.HELL
+	check(QuestLog.quest_xp_share(board) < 0.25, "less in Hell")
+	GameState.difficulty = Difficulty.Level.NORMAL
+	var xp0: int = GameState.player.xp
+	var lvl0: int = GameState.player.level
+	GameState.quests.give_quest_xp(story)
+	check(GameState.player.xp > xp0 or GameState.player.level > lvl0, "everyone gets it")
+	# Every book a merchant stocks is a real item.
+	var missing := []
+	for f in range(5, 101, 5):
+		for book in MerchantStock.books(f, 99):
+			if ItemLibrary.get_item(SkillBooks.book_item_id(book)) == null:
+				missing.append(book)
+	check(missing.is_empty(), "merchants only stock real books %s" % [missing])
+	var unbooked := SkillLibrary.learnable_skills().filter(func(s): return ItemLibrary.get_item(SkillBooks.book_item_id(s.id)) == null).map(func(s): return String(s.id))
+	check(unbooked.is_empty(), "every learnable skill has a book %s" % [unbooked])
+	# Armour shows up as often as anything.
+	var rng := _rng(7)
+	var counts := {}
+	for i in 2000:
+		var g := LootTable.roll_drop(5, 5, rng)
+		counts[g.slot] = counts.get(g.slot, 0) + 1
+	check(counts[GearItem.Slot.ARMOR] > counts[GearItem.Slot.WEAPON] and counts[GearItem.Slot.ARMOR] > 700, "armour drops (%s)" % [counts])
+	check(counts[GearItem.Slot.ACCESSORY] > 300, "and accessories")
 
 
 func test_decline() -> void:

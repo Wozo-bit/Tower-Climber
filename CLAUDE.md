@@ -386,6 +386,9 @@ after: Relaxed 40->40, Normal 33->28, Hard 25->25, Hell 4->5 (noisy; no
 extra guardian XP for the bot on re-climbs). Backspace must never be a Cancel key (LineEdit
 stops editing on ui_cancel). Unwritten text: docs/story/unwritten_text.md.
 
+Second playtest BUILT 2026-11-05 (Hayden): enemies crossing your path start a fight; campfire heals the whole roster incl. bench; bench gear, Unequip all, Auto-equip all (active first, by class + build); god relics (LootTable.RELICS: weapon plus skill, player only, taken back with the blessing, grow with level); every being has its own refusal lines; gifts rare (15% x (1-temper), max 2 per run); every quest gives XP (board 1/3 of a level, story 1/2; Difficulty.QUEST_XP); drops pick a slot first (armour 40%, weapon 35%, accessory 25%).
+ItemLibrary is built lazily (on first get_item): SkillLibrary must be ready first.
+
 Tutorial tips BUILT 2026-10-30 (Hayden's picks): system window that pauses,
 shown the first time you meet each system (~30 tips, all four topics), seen
 list for the whole save file (user://tips.json; tests redirect Tips.path),
@@ -451,7 +454,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 4772 checks at last run).
+Every change gets tests in tests/ (26 suites, 4850 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

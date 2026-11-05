@@ -890,7 +890,9 @@ func party_all_downed() -> bool:
 
 
 func full_restore_party() -> void:
-	for c in battle_party():
+	# Everyone: past the party cap on this floor, and the bench too.
+	player.full_restore()
+	for c in companions + reserve:
 		c.full_restore()
 
 
@@ -2052,6 +2054,119 @@ func unequip_to_bag(member: CharacterData, slot: int) -> bool:
 		return false
 	inventory.add_gear(prev)
 	return true
+
+
+## Takes everything off `member` and puts it in the bag. Returns how many.
+func unequip_all(member: CharacterData) -> int:
+	var n := 0
+	for slot in GearItem.Slot.values():
+		if unequip_to_bag(member, slot):
+			n += 1
+	return n
+
+
+## How much `member` wants each stat: what their class is built on, then what
+## they've put points into.
+func gear_weights(member: CharacterData) -> Dictionary:
+	var out := {}
+	var def := member.get_class_def()
+	var top := 1
+	for s in Stats.all():
+		top = maxi(top, member.stats.get_base(s) + member.stats.get_allocated(s))
+	for s in Stats.all():
+		var w := 0.5 if s == Stats.Type.HEALTH or s == Stats.Type.STAMINA else 0.25
+		w += 1.5 * float(member.stats.get_base(s) + member.stats.get_allocated(s)) / top
+		if def and def.required_stats.has(s):
+			w += 2.0
+		out[s] = w
+	return out
+
+
+## How good `item` is for `member` (higher is better).
+func gear_score(member: CharacterData, item: GearItem) -> float:
+	var weights := gear_weights(member)
+	var score := 0.0
+	for s in item.bonuses:
+		score += float(item.bonuses[s]) * weights.get(s, 0.25)
+	if item.class_lock != &"":
+		score *= 1.5   # made for them, and nobody else can use it
+	if item.relic_of != &"":
+		score *= 1.5   # the god's own gift
+	return score
+
+
+## Everyone's gear and the bag go into one pile, then the active party takes
+## the best fits for their builds, then everyone else. Captains keep theirs.
+## Returns how many pieces were handed out.
+func auto_equip_all() -> int:
+	var active := battle_party()
+	var rest: Array[CharacterData] = []
+	for c in companions + reserve:
+		if not active.has(c):
+			rest.append(c)
+	for m in active + rest:
+		unequip_all(m)
+	return _hand_out_gear(active) + _hand_out_gear(rest)
+
+
+## Best (person, piece) match first, so a mage gets the robe and a tank the plate.
+func _hand_out_gear(group: Array[CharacterData]) -> int:
+	var open := []
+	for m in group:
+		for slot in GearItem.Slot.values():
+			open.append({ "member": m, "slot": slot })
+	var given := 0
+	while true:
+		var best := {}
+		var best_score := 0.0
+		for o in open:
+			for item: GearItem in inventory.gear:
+				if item.slot == o.slot and item.can_equip(o.member):
+					var score := gear_score(o.member, item)
+					if score > best_score:
+						best_score = score
+						best = { "open": o, "item": item }
+		if best.is_empty():
+			return given
+		equip_from_bag(best.open.member, best.item)
+		open.erase(best.open)
+		given += 1
+	return given
+
+
+## A god's own weapon goes with its blessing (Hayden 2026-11-05): you get it when
+## blessed, it grows with the blessing, and the god takes it back if that ends.
+func sync_relic() -> void:
+	if player == null:
+		return
+	var want: StringName = player.blessing_id if LootTable.RELICS.has(player.blessing_id) else &""
+	var held: GearItem = null
+	for slot in GearItem.Slot.values():
+		var worn := player.get_equipped(slot)
+		if worn and worn.relic_of != &"":
+			if worn.relic_of == want:
+				held = worn
+			else:
+				player.unequip(slot)
+				blessings.messages.append("%s is gone." % worn.display_name)
+	for g: GearItem in inventory.gear.duplicate():
+		if g.relic_of != &"":
+			if g.relic_of == want:
+				held = g
+			else:
+				inventory.remove_gear(g)
+				blessings.messages.append("%s is gone." % g.display_name)
+	if want == &"":
+		return
+	var fresh := LootTable.make_relic(want, player.blessing_level, maxi(1, floor_number))
+	if held == null:
+		inventory.add_gear(fresh)
+		blessings.messages.append("%s gives you %s. It's in your bag." % [BeingLibrary.get_being(want).name, fresh.display_name])
+	else:
+		held.rarity = fresh.rarity
+		held.item_level = fresh.item_level
+		held.bonuses = fresh.bonuses
+		player.refresh_gear()
 
 
 ## Classes whose Unique weapon is already in the bag or equipped by someone.

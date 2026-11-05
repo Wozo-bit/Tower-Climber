@@ -234,7 +234,7 @@ func _rebuild_sell() -> void:
 	var any := false
 	for g: GearItem in GameState.inventory.gear.duplicate():
 		var price := GameState.sell_price_gear(g)
-		if price <= 0:
+		if price <= 0 or g.relic_of != &"":   # a god's gift isn't yours to sell
 			continue
 		any = true
 		var b := _row(g.summary())

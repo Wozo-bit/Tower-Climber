@@ -30,6 +30,45 @@ const SOLO_INTEREST := 5
 const CALM_TEMPER := 0.3
 const STRIKE_TEMPER := 0.8
 const GIFT_INTEREST := 25
+## Even when a god approves, a gift is rare: this, reduced by its temper...
+const GIFT_CHANCE := 0.15
+## ...and only this many per run (Hayden 2026-11-05: it felt like every god).
+const MAX_GIFTS := 2
+## What each being says when you turn it down. "no" = no hard feelings.
+const DECLINE_LINES := {
+	&"odin": { "no": "Refuse, then. I gave an eye for less than you've just thrown away.", "curse": "You refuse the one who hung nine nights on a tree? Carry this up with you, and learn what a price is.", "gift": "You owe me nothing for this. That's what should worry you." },
+	&"thor": { "no": "Ha! Suit yourself. Come and find me when something needs hitting.", "curse": "No? NO? I've flattened mountains for less. Here. Feel that.", "gift": "You've got a good arm and a bad attitude. Take this anyway." },
+	&"loki": { "no": "Oh, you're no fun. I'll ask again when you're desperate. It's so much better then.", "curse": "Ooh, that's a shame. I've already told everyone you said yes. Enjoy the itching.", "gift": "" },
+	&"hel": { "no": "Everyone comes down to me eventually. I can afford to be polite.", "curse": "Half of me is sorry. See if you can guess which half did this.", "gift": "" },
+	&"zeus": { "no": "You have the nerve to say no to me. Very well. Remember the sky has a long memory.", "curse": "I have struck down kings for less. Consider this a warning, and a mild one.", "gift": "I don't often say this. You'll do. Keep it, and stay out of my way." },
+	&"athena": { "no": "A considered answer. I'd have respected nothing less. Think on it.", "curse": "You chose badly, and you chose without thinking. That I will correct.", "gift": "You reason well, for someone who won't listen. Take this. Use it wisely." },
+	&"hades": { "no": "No matter. My door's the one door that's always open.", "curse": "You think that's your choice to make, down here? Think again, for a few floors.", "gift": "You've earned this. Not many do. Don't tell my brothers." },
+	&"typhon": { "no": "Crawl on, then, little thing. The mountain's still on my back either way.", "curse": "SMALL. You are so SMALL, to say no to me.", "gift": "" },
+	&"ra": { "no": "As you wish. The sun will rise on you regardless. It isn't personal.", "curse": "You turn your face from the light? Then see how you like the glare.", "gift": "Walk in the light, then, in your own way. Take this with you." },
+	&"anubis": { "no": "I'll weigh that too, in its time. No hurry. There's never any hurry.", "curse": "I am not angry. The scale simply tips. You'll feel it for a while.", "gift": "Your heart's lighter than you think. Take this, and go carefully." },
+	&"set": { "no": "Fine. There's a storm coming either way. Stand where you like.", "curse": "Nobody tells me no twice. You don't even get to tell me no once.", "gift": "" },
+	&"apep": { "no": "The dark doesn't ask twice. It only waits.", "curse": "You'll have nothing left, soon enough. Let me help you start.", "gift": "" },
+	&"guan_yu": { "no": "A person's word is theirs to give or keep. I respect that. Go well.", "curse": "You have given a poor answer, and you'll answer for it, honestly. Go on.", "gift": "You keep your word. That's rare. Take this, and go on keeping it." },
+	&"sun_wukong": { "no": "Ha! Nobody tells me what to do either. Go on, then! Race you up.", "curse": "Oh, you want to play? I've been waiting five hundred years for someone to play with!", "gift": "I like you. Here, I stole this. I mean, I earned it. Take it, quick." },
+	&"yama": { "no": "It's all written down. Your answer too. Go on with your climb.", "curse": "That goes in the account, and the account always comes due.", "gift": "Your account's better than you know. Take this, and keep it that way." },
+	&"baigujing": { "no": "You'll change your mind. Or something wearing you will.", "curse": "That was unkind. I've got such a lot of faces, and I'll remember you with all of them.", "gift": "" },
+	&"amaterasu": { "no": "Then I'll go on shining on you all the same. Go gently.", "curse": "You've hidden from the light. It'll be a little colder for you, until you come back out.", "gift": "You didn't need me for this, and I'd like you to have it anyway." },
+	&"susanoo": { "no": "Hmph. Good. I never listened to anyone either, and look how that went.", "curse": "You've got a nerve! So have I. Let's see who's still standing after the storm.", "gift": "You've got a temper worth having. Take this. Try not to break anything I like." },
+	&"inari": { "no": "Of course. There's always enough, and the door's always open. Eat something.", "curse": "", "gift": "There's always enough. Here, take some with you. No, really. Take it." },
+	&"shuten_doji": { "no": "More for me, then! Come back when you're thirsty.", "curse": "You won't drink with me? Oh, that's a very rude thing to do to an oni.", "gift": "" },
+	&"tamamo": { "no": "So sensible. I do so like it when they think they've been sensible.", "curse": "Oh, sweet thing. I've ruined emperors for less. You'll hardly feel it at first.", "gift": "" },
+	&"ishtar": { "no": "Fine. Go on, then. Love and war both come round again. I'll be there.", "curse": "You don't refuse me. Ask the bull of heaven. Ask anyone at all.", "gift": "You've got a fire in you. I like that. Take this, and burn something." },
+	&"tiamat": { "no": "I was the sea before there was anything to say no. Say what you like.", "curse": "I gave birth to the first monsters. Here's a small one, to keep you company.", "gift": "" },
+	&"morrigan": { "no": "I've already seen how this goes. You still have to walk it.", "curse": "I washed your armour in the river last night, climber. You'll want to watch your step.", "gift": "" },
+	&"mammon": { "no": "Your loss, literally. I'll put it in the ledger, with the interest.", "curse": "Nobody walks away from a deal for free. That'll be a few floors of your luck.", "gift": "" },
+	&"mephistopheles": { "no": "Of course. Take all the time you need. Everyone does. I keep the file open.", "curse": "You've misread the small print. You can't refuse without signing here. And here.", "gift": "" },
+}
+## For gods without their own lines (past players, DLC).
+const DECLINE_FALLBACK := {
+	"god": ["As you wish. The offer stands for those who earn it.", "So be it. I've been refused by better, and I've blessed worse.", "Go on, then. I hope you find what you're looking for."],
+	"demon": ["Your loss, little climber. Crawl on.", "You'll want me, further up. They all do.", "Fine. Stay small."],
+	"devil": ["Everyone changes their mind eventually. I can wait.", "No hard feelings. No feelings at all, in fact.", "I'll hold on to the paperwork."],
+}
 ## What the being said when you last declined it (for the dialogue).
 var last_refusal := ""
 
@@ -132,6 +171,7 @@ func accept(id: StringName) -> bool:
 	GameState.player.bless(id, maxi(1, level_for_interest(interest(id))))
 	_state(id)["warned"] = false
 	messages.append("You are blessed by %s." % BeingLibrary.full_name(id))
+	GameState.sync_relic()
 	var p: CharacterData = GameState.player
 	if not jealous.is_empty() and p.curse_id == &"":
 		var rival: StringName = jealous[0]
@@ -157,13 +197,13 @@ func decline(id: StringName, rng: RandomNumberGenerator) -> String:
 	var b := BeingLibrary.get_being(id)
 	var temper := BeingLibrary.temper_of(id)
 	var outcome := ""
-	if gift_possible(id) and rng.randf() < 1.0 - temper:
+	if gift_possible(id) and gifts_given() < MAX_GIFTS and rng.randf() < GIFT_CHANCE * (1.0 - temper):
 		outcome = "gift"
 		_state(id)["gifted"] = true
 		GameState.player.learned_skills.append(b.get("skill", &""))
 		GameState.player.stats_changed.emit()
 		messages.append("%s gives you %s anyway." % [b.name, SkillLibrary.get_skill(b.skill).display_name])
-		last_refusal = "Your path is a good one, blessed or not. Keep this. No strings."
+		last_refusal = _decline_line(id, "gift", rng, "Your path is a good one, blessed or not. Keep this. No strings.")
 	elif rng.randf() < curse_chance(id) and GameState.player.curse_id == &"":
 		outcome = "curse"
 		GameState.player.curse(id, 1, GameState.floor_number + PUNISH_FLOORS)
@@ -172,12 +212,25 @@ func decline(id: StringName, rng: RandomNumberGenerator) -> String:
 				if not m.is_downed():
 					m.set_current_hp(maxi(1, roundi(m.current_hp() * (1.0 - PUNISH_HP_PCT))))
 		messages.append("%s curses you for refusing." % b.name)
-		last_refusal = "You dare refuse me? Then carry this up your tower."
+		last_refusal = _decline_line(id, "curse", rng, "You dare refuse me? Then carry this up your tower.")
 	else:
-		last_refusal = { "demon": "Your loss, little climber. Crawl on.",
-			"devil": "Everyone changes their mind eventually. I can wait." }.get(b.get("kind", "god"),
-			"As you wish. The offer stands for those who earn it.")
+		var pool: Array = DECLINE_FALLBACK.get(b.get("kind", "god"), DECLINE_FALLBACK.god)
+		last_refusal = _decline_line(id, "no", rng, pool[rng.randi_range(0, pool.size() - 1)])
 	return outcome
+
+
+func _decline_line(id: StringName, key: String, _rng: RandomNumberGenerator, fallback: String) -> String:
+	var line: String = DECLINE_LINES.get(id, {}).get(key, "")
+	return line if line != "" else fallback
+
+
+## How many gods have gifted you a skill this run.
+func gifts_given() -> int:
+	var n := 0
+	for id in beings:
+		if beings[id].get("gifted", false):
+			n += 1
+	return n
 
 
 ## Could this being gift its skill to someone who declined it?
@@ -201,6 +254,7 @@ static func curse_chance(id: StringName) -> float:
 ## level ups (and downs), warnings, punishment, and lingering curses ending.
 func update() -> void:
 	var p: CharacterData = GameState.player
+	GameState.sync_relic()   # blessing lost or levelled: the god's weapon follows
 	if p.curse_until_floor > 0 and GameState.floor_number > p.curse_until_floor:
 		p.lift_curse()
 		messages.append("The curse on you lifts.")
@@ -232,6 +286,7 @@ func punish(id: StringName) -> void:
 	var p: CharacterData = GameState.player
 	var level := p.blessing_level
 	p.unbless()
+	GameState.sync_relic()
 	p.curse(id, level, GameState.floor_number + PUNISH_FLOORS)
 	_state(id)["scorned"] = true
 	for m in GameState.battle_party():
