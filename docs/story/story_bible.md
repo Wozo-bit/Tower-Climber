@@ -10,7 +10,7 @@ the chapter in Tab -> Quests. The scene text lives in
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
 Chapters 3-10 (floors 21-100), the second and third returns, the Day 3 memory, four more quest classes and eleven more recruits too. **The first climb's story is written, start to finish.**
-**Not built yet:** the god chapters on floors 61-99.
+**All the story is written (first draft).**
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -425,7 +425,21 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **Floors 91-100, "The One It Kept":** 91, Echoes stood in rows by height. 92-93, a 27th bedroll with your name on it, never slept in. 94, 0027 asks her name, and you can finally say it. 96-97, Tester 0041, freed, on the stairs with a folded coat: your note or food reached them. Own it, send them to Marn, or sit with them. 98, you draw the stairs together. 99, Tester 0001 again. 100, your copy and your old party.
 
-**The One It Kept is written, floors 1-100 (first draft).** Gods get it plus "The First Prayer", which has no scenes on 61-99 yet.
+**The One It Kept is written, floors 1-100 (first draft).** Gods get it plus "The First Prayer".
+
+**"The First Prayer", floors 61-99 (built 2026-11-05):**
+
+| Floor | Chapter | Beat |
+| --- | --- | --- |
+| 61 | 7 "The Ones Before" | The prayers stop at the summit. Nobody here has ever heard of you. |
+| 65 | 7 | A Titan prays: "Is it morning?" Answer as a god (+1 believer: `[ It's very large. ]`) or as yourself: "Oh, Maker. What have you gone and done to yourself?" |
+| 67 | 7 | Davin (only if you saved him) has climbed all this way on a bad leg to look a god in the eye. "It was me." "You're short." Or send him home. |
+| 71 | 8 "Deserters" | The praying now comes from behind the banners. |
+| 75 | 8 | A soldier who signed: "Do you take someone who signed?" "It isn't true. Come anyway" (costs faith) or "It's true" (their story, uncorrected). +5 believers. |
+| 79 | 8 | This run's first god prays to YOU, in the same box as a bad knee. `[ I'm going to stop laughing in a minute. ]` |
+| 81 | 9 "Blank Prayers" | The queue's very neat. |
+| 85 | 9 | `[ Prayers waiting: 0. ]` "It" has been answering your prayers, kindly, in your handwriting. Take them back (they're furious, and it's the best thing you've ever heard) or leave it (+60 faith; `[ Thank you. I'll take care of them. ]`). |
+| 89 | 9 | The System joins the queue: `[ I'm frightened. Look after them. That's all. Sorry. ]`, the words you'll say on floor 100. If your real friend woke: "Dear God. Your soup has developed a skin." |
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |

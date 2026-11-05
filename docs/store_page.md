@@ -150,7 +150,7 @@ Everyone here knows the legend: whoever reaches the top becomes a god. A window 
 
 **What isn't ready yet.** Finish these before the page goes live:
 
-- **The story.** Floors 71-99 have no first-run story yet, and the New Game+ god storyline has nothing between floor 60 and the final floor. The text promises a story-driven climb and "a new story" in New Game+.
+- **Testing.** All the story is written, but nobody has played most of it yet.
 - **Art and music.** The text deliberately doesn't mention them, because the game still uses placeholders. Stores also need screenshots and a capsule image, and those should wait for final art.
 
 **AI disclosure.** You'll need to answer this on both stores, because story text and this page were drafted with AI:

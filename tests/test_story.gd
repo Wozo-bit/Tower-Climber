@@ -42,6 +42,7 @@ func _ready() -> void:
 	test_one_it_kept_tenants()
 	await test_one_it_kept_going_down()
 	test_one_it_kept_ending()
+	test_god_late_chapters()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -2141,6 +2142,73 @@ func test_one_it_kept_ending() -> void:
 	GameState.dismiss(GameState.childhood_friend())
 	GameState.set_flag(&"past_friend_woke")
 	check(_kept_top(["You can stop", "Press it"]).finished and not GameState.has_flag(&"ng10_friends_met"), "friend by a fire: they can't meet")
+	GameState.ng_plus_cycle = 0
+
+
+func _god_run(floor_n: int, past: Array = []) -> void:
+	_kept_run(floor_n, past)
+	GameState.divinity.active = true
+	GameState.divinity.domain = &"mercy"
+	GameState.divinity.title = "Deity of Mercy"
+	GameState.divinity.faith = 100
+
+
+func test_god_late_chapters() -> void:
+	print("-- the first prayer: floors 61-99 --")
+	for n in [7, 8, 9]:
+		check(not StoryLibrary.GOD_CHAPTERS[n - 1].title.contains("("), "god chapter %d has a title" % n)
+	_god_run(61)
+	check(StoryLibrary.chapter_name(7) == "Chapter 7: The Ones Before", "chapter 7's title")
+	check(StoryLibrary.chapter_name(9) == "Chapter 9: Blank Prayers", "chapter 9's title")
+	check(StoryLibrary.due(61, false) == &"god_ch7", "a god hears the chapter first")
+	GameState.set_flag(StoryLibrary.seen_flag(&"god_ch7"))
+	check(StoryLibrary.due(61, false) == &"ng7_opening", "then The One It Kept")
+	_kept_run(61)
+	check(StoryLibrary.due(61, false) == &"ng7_opening", "a mortal never hears it")
+	for id in [&"god_ch7", &"god_titan_prayer", &"god_davin_climbs", &"god_ch8", &"god_deserter", &"god_gods_pray", &"god_ch9", &"god_blank", &"god_tester_prayer"]:
+		for past in [[], [&"past_friend_woke"]]:
+			for pick in 3:
+				_god_run(70, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	# Believers and faith.
+	_god_run(65)
+	var b0: int = GameState.divinity.believers
+	_play(&"god_titan_prayer", 0)
+	check(GameState.divinity.believers == b0 + 1, "a very large believer")
+	_god_run(75)
+	b0 = GameState.divinity.believers
+	var f0: int = GameState.divinity.faith
+	_play(&"god_deserter", 0)
+	check(GameState.divinity.believers == b0 + 5 and GameState.divinity.faith < f0, "the deserters come, and it costs you")
+	_god_run(85)
+	var r := DialogueRunner.new()
+	r.start(&"god_blank")
+	check(r.text() == "[ Prayers waiting: 0. ]", "it's been answering your mail")
+	f0 = GameState.divinity.faith
+	_play(&"god_blank", 1)
+	check(GameState.has_flag(&"god_left_queue") and GameState.divinity.faith > f0, "leave it, and the faith comes in")
+	_god_run(85)
+	b0 = GameState.divinity.believers
+	_play(&"god_blank", 0)
+	check(GameState.has_flag(&"god_took_queue_back") and GameState.divinity.believers == b0 + 3, "or take them back")
+	# Davin only if you saved him.
+	_god_run(67)
+	GameState.set_flag(StoryLibrary.seen_flag(&"god_titan_prayer"))
+	check(not DialogueRunner.check(StoryLibrary.SCENES[&"god_davin_climbs"].if), "Davin needs saving first")
+	GameState.set_flag(&"god_davin_saved")
+	check(DialogueRunner.check(StoryLibrary.SCENES[&"god_davin_climbs"].if), "then he climbs to find you")
+	# The System joins the queue, and a friend at the next desk prays too.
+	_god_run(89)
+	r.start(&"god_tester_prayer")
+	r.advance()
+	r.advance()
+	check(r.text().contains("I'm frightened. Look after them"), "its prayer is the one you'll say on floor 100")
+	_god_run(89, [&"past_friend_woke"])
+	r.start(&"god_tester_prayer")
+	r.advance()
+	r.advance()
+	check(r.text().contains("skin"), "or there's soup")
+	GameState.divinity.active = false
 	GameState.ng_plus_cycle = 0
 
 

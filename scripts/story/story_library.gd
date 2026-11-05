@@ -61,9 +61,9 @@ const GOD_CHAPTERS := [
 	{ "title": "Heresy" },
 	{ "title": "The Queue" },
 	{ "title": "The Last Prayer" },
-	{ "title": "(God chapter 7)" },
-	{ "title": "(God chapter 8)" },
-	{ "title": "(God chapter 9)" },
+	{ "title": "The Ones Before" },
+	{ "title": "Deserters" },
+	{ "title": "Blank Prayers" },
 	{ "title": "Who Gods Pray To" },
 ]
 
@@ -255,18 +255,22 @@ const SCENES := {
 	&"ch10_first_login": { "chapter": 10, "floors": [99], "when": "enter", "dialogue": &"ch10_first_login", "if": { "ng_plus": false } },
 	&"ch10_first_login_down": { "chapter": 10, "floors": [99], "when": "guardian_down", "dialogue": &"ch10_first_login_down", "if": { "ng_plus": false } },
 	&"ch10_top": { "chapter": 10, "floors": [100], "when": "guardian_down", "dialogue": &"ch10_top", "if": { "ng_plus": false } },
+	&"god_ch7": { "chapter": 7, "floors": [61], "when": "enter", "dialogue": &"god_ch7", "if": { "god": true } },
 	&"ng7_opening": { "chapter": 7, "floors": [61], "when": "enter", "dialogue": &"ng7_opening", "if": { "ng_plus": true } },
 	&"ng7_chains": { "chapter": 7, "floors": [62], "when": "enter", "dialogue": &"ng7_chains", "if": { "ng_plus": true } },
 	&"ng7_arm": { "chapter": 7, "floors": [63], "when": "enter", "dialogue": &"ng7_arm", "if": { "ng_plus": true } },
 	&"ng7_hands": { "chapter": 7, "floors": [64], "when": "guardian_down", "dialogue": &"ng7_hands", "if": { "ng_plus": true } },
 	&"ng7_question": { "chapter": 7, "floors": [65], "when": "enter", "dialogue": &"ng7_question", "if": { "ng_plus": true } },
 	&"ng7_copy": { "chapter": 7, "floors": [66, 67], "when": "enter", "dialogue": &"ng7_copy", "if": { "ng_plus": true } },
+	&"god_titan_prayer": { "chapter": 7, "floors": [65], "when": "enter", "dialogue": &"god_titan_prayer", "if": { "god": true } },
+	&"god_davin_climbs": { "chapter": 7, "floors": [67], "when": "enter", "dialogue": &"god_davin_climbs", "if": { "god": true, "flag": &"god_davin_saved" } },
 	&"ng7_spelling": { "chapter": 7, "floors": [68], "when": "enter", "dialogue": &"ng7_spelling", "if": { "ng_plus": true } },
 	&"ng7_eve": { "chapter": 7, "floors": [69], "when": "guardian_down", "dialogue": &"ng7_eve", "if": { "ng_plus": true } },
 	&"ng7_throne": { "chapter": 7, "floors": [70], "when": "enter", "dialogue": &"ng7_throne", "if": { "ng_plus": true } },
 	&"ng7_cronus_down": { "chapter": 7, "floors": [70], "when": "guardian_down", "dialogue": &"ng7_cronus_down", "if": { "ng_plus": true } },
 	# Plays first: they came back from a fire, and nobody has told them.
 	&"ng8_catchup": { "chapter": 8, "spans_chapters": true, "floors": [71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99], "when": "enter", "dialogue": &"ng8_catchup", "if": { "ng_plus": true, "friend_away": false, "not_flag": &"ng7_friend_knows" } },
+	&"god_ch8": { "chapter": 8, "floors": [71], "when": "enter", "dialogue": &"god_ch8", "if": { "god": true } },
 	&"ng8_opening": { "chapter": 8, "floors": [71], "when": "enter", "dialogue": &"ng8_opening", "if": { "ng_plus": true } },
 	&"ng8_first": { "chapter": 8, "floors": [72, 73], "when": "enter", "dialogue": &"ng8_first", "if": { "ng_plus": true } },
 	&"ng8_faces": { "chapter": 8, "floors": [74], "when": "guardian_down", "dialogue": &"ng8_faces", "if": { "ng_plus": true } },
@@ -274,8 +278,11 @@ const SCENES := {
 	&"ng8_second": { "chapter": 8, "floors": [76, 77], "when": "enter", "dialogue": &"ng8_second", "if": { "ng_plus": true } },
 	&"ng8_answer": { "chapter": 8, "floors": [78], "when": "enter", "dialogue": &"ng8_answer", "if": { "ng_plus": true } },
 	&"ng8_strongbox": { "chapter": 8, "floors": [79], "when": "guardian_down", "dialogue": &"ng8_strongbox", "if": { "ng_plus": true } },
+	&"god_deserter": { "chapter": 8, "floors": [75], "when": "enter", "dialogue": &"god_deserter", "if": { "god": true } },
+	&"god_gods_pray": { "chapter": 8, "floors": [79], "when": "guardian_down", "dialogue": &"god_gods_pray", "if": { "god": true } },
 	&"ng8_anointed": { "chapter": 8, "floors": [80], "when": "enter", "dialogue": &"ng8_anointed", "if": { "ng_plus": true } },
 	&"ng8_tess_down": { "chapter": 8, "floors": [80], "when": "guardian_down", "dialogue": &"ng8_tess_down", "if": { "ng_plus": true } },
+	&"god_ch9": { "chapter": 9, "floors": [81], "when": "enter", "dialogue": &"god_ch9", "if": { "god": true } },
 	&"ng9_opening": { "chapter": 9, "floors": [81], "when": "enter", "dialogue": &"ng9_opening", "if": { "ng_plus": true } },
 	&"ng9_files": { "chapter": 9, "floors": [82, 83], "when": "enter", "dialogue": &"ng9_files", "if": { "ng_plus": true } },
 	&"ng9_stairs": { "chapter": 9, "floors": [84], "when": "guardian_down", "dialogue": &"ng9_stairs", "if": { "ng_plus": true } },
@@ -283,6 +290,8 @@ const SCENES := {
 	&"ng9_talk": { "chapter": 9, "floors": [86, 87], "when": "enter", "dialogue": &"ng9_talk", "if": { "ng_plus": true } },
 	&"ng9_door": { "chapter": 9, "floors": [88], "when": "enter", "dialogue": &"ng9_door", "if": { "ng_plus": true } },
 	&"ng9_last_page": { "chapter": 9, "floors": [89], "when": "guardian_down", "dialogue": &"ng9_last_page", "if": { "ng_plus": true } },
+	&"god_blank": { "chapter": 9, "floors": [85], "when": "enter", "dialogue": &"god_blank", "if": { "god": true } },
+	&"god_tester_prayer": { "chapter": 9, "floors": [89], "when": "guardian_down", "dialogue": &"god_tester_prayer", "if": { "god": true } },
 	&"ng9_first_draft": { "chapter": 9, "floors": [90], "when": "enter", "dialogue": &"ng9_first_draft", "if": { "ng_plus": true } },
 	&"ng9_draft_down": { "chapter": 9, "floors": [90], "when": "guardian_down", "dialogue": &"ng9_draft_down", "if": { "ng_plus": true } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
@@ -8909,6 +8918,273 @@ const DIALOGUES := {
 				"speaker": "{friend}",
 				"text": "Look at them all look up. ...You've gone quiet. You've seen this before, haven't you? And you came all the way back for it. Shove over, then. I said I wanted a seat. I didn't say I wanted to know what it was for.",
 				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+		},
+	},
+
+	# --- "The First Prayer", floors 61-99 (gods). ---
+	&"god_ch7": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Chapter 7: The Ones Before ]{worshippers_line}",
+				"next": "b",
+			},
+			"b": {
+				"text": "The noise stops at the summit. You hadn't known how loud it was. Past the door there's a grain in the stone, and no prayers at all. Nobody on these floors has ever heard of you. They've never needed to. They were here first.",
+			},
+		},
+	},
+	&"god_titan_prayer": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Prayer received. ]\n[ Sender: unknown. ]",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "A voice you feel in your teeth",
+				"text": "They say there's a new one, and that it answers. Nobody down here's ever had anyone to ask. I've been asking the ceiling. Is it morning?",
+				"next": "c",
+			},
+			"c": {
+				"text": "It's the size of a house, and it's got no idea who it's talking to. You drew it. You've got a title now, and candles. It would be very easy to give it an answer, as a god.",
+				"choices": [
+					{ "text": "Answer as a god: \"It is morning.\"", "next": "god", "effects": [{ "set_flag": &"god_titan_god" }, { "believers": 1 }, { "faith": 20 }] },
+					{ "text": "Answer as yourself: \"It's me. I drew you. I'm sorry.\"", "next": "maker", "effects": [{ "set_flag": &"god_titan_maker" }] },
+					{ "text": "Say nothing.", "next": "none", "effects": [{ "set_flag": &"god_titan_silent" }] },
+				],
+			},
+			"god": {
+				"speaker": "A voice you feel in your teeth",
+				"text": "...Thank you. Thank you. I did wonder. I'll tell the others. Nobody's ever told us anything before.",
+				"next": "god2",
+			},
+			"god2": {
+				"style": "system",
+				"text": "[ Worshippers: +1. ]\n[ It's very large. ]",
+			},
+			"maker": {
+				"speaker": "A voice you feel in your teeth",
+				"text": "Maker? You? But they say that you're one of those. The shining ones, with the ceiling. ...Oh, Maker. Oh, what have you gone and done to yourself?",
+				"next": "maker2",
+			},
+			"maker2": {
+				"text": "You've got no answer to that. You've looked. It doesn't ask you anything else, and it goes on waiting, but you can feel it being sorry for you, all the way up the stairs.",
+			},
+			"none": {
+				"text": "It asks again. It's got plenty of time. You've gotten very good at this. You can walk for a whole floor with someone asking you that.",
+			},
+		},
+	},
+	&"god_davin_climbs": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "A man with a bad leg and a worse temper is sitting on the stairs, far higher than anyone ought to be with a leg like that. He's got a candle stuck on a rock. It's your title on the slate. He looks you up and down, and doesn't get up.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Davin",
+				"text": "You're the first one I've seen this high who isn't lost. My sister prayed for me, once, on floor 12. Somebody came. She says it was enough. She's gone down to sit by a fire. I don't think it's enough. I want to look it in the eye. I came up to find it. Have you seen a god?",
+				"next": "c",
+			},
+			"c": {
+				"text": "He's come sixty floors on that leg. You spent a potion on him, a long way down, and you never knew his face.",
+				"choices": [
+					{ "text": "\"It was me.\"", "next": "told", "effects": [{ "set_flag": &"god_davin_told" }, { "believers": 3 }] },
+					{ "text": "\"No. Go home, Davin.\"", "next": "no", "effects": [{ "set_flag": &"god_davin_denied" }] },
+				],
+			},
+			"told": {
+				"speaker": "Davin",
+				"text": "...You. You're short. I thought you'd be... Well. It's cost me a good deal to get up here, so I'll say it. Thank you. You owe my sister a letter. I'm going to go and tell them you're short. They'll like that.",
+			},
+			"no": {
+				"speaker": "Davin",
+				"text": "I know my own name's not that famous. ...Right. Right. You've got a look on you. I'll keep climbing, then. It's got to be up here somewhere, and I've got a lot to say to it.",
+			},
+		},
+	},
+	&"god_ch8": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Chapter 8: Deserters ]{worshippers_line}",
+				"next": "b",
+			},
+			"b": {
+				"text": "The noise comes back, past the Titans, but it's a different noise. It's very quiet, and it comes from behind the banners. It isn't anyone's army that's praying. It's whoever's standing at the back.",
+			},
+		},
+	},
+	&"god_deserter": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Prayer received. ]\n[ Sender: Host, third rank. ]",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "A soldier",
+				"text": "I've got a pen in my hand, and I signed with it. They took out the part where I was lied to, or they said they did. I'm not supposed to be talking to you. They say about you: {god.creed} Is that true? Do you take someone who signed?",
+				"next": "c",
+			},
+			"c": {
+				"text": "There are a lot of them. You can hear them behind this one, not quite saying anything, all waiting to see how it goes.",
+				"choices": [
+					{ "text": "\"It isn't true. Come anyway.\"", "next": "come", "effects": [{ "set_flag": &"god_deserters_taken" }, { "believers": 5 }, { "faith": -20 }] },
+					{ "text": "\"It's true. Lay it down, and walk.\"", "next": "true", "effects": [{ "set_flag": &"god_deserters_lied" }, { "believers": 5 }] },
+					{ "text": "Say nothing. The Host doesn't get to pray.", "next": "none", "effects": [{ "set_flag": &"god_deserters_refused" }] },
+				],
+			},
+			"come": {
+				"text": "It costs you something to reach that far. Behind the banners, a pen drops. Then another. You didn't know that you could hear that from here. The ones who come aren't sure about you at all, and they've got a lot of questions, and you find you like them better.",
+			},
+			"true": {
+				"text": "A pen drops. Then another. They come up the stairs with their marks in their hands, and they tell everyone they meet what kind of god you are. You've heard it. It's a very good story. You've stopped correcting it.",
+			},
+			"none": {
+				"text": "It waits a good while. Then it stops. Later, on a stair, someone in very clean armour tries quite hard to kill you, and you think that you may know the voice. You don't ask.",
+			},
+		},
+	},
+	&"god_gods_pray": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Prayer received. ]\n[ Sender: {bid1}. ]",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{bid1}",
+				"portrait": "{bid1_id}",
+				"text": "I have never done this. I have had it done to me for a very long time, and I find that I do not know where to put my hands. I understand it begins: I am frightened. The stairs are not mine. They never were. I would like someone to look after my dead.",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ I'm going to stop laughing in a minute. I am. This is the best thing that's ever happened. Answer it, go on. You're a god. It's your job. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "It's very old, and it's right there in your window, in the same box as a bad knee on floor 9. You've got the same two buttons.",
+				"choices": [
+					{ "text": "Reply: \"I hear you.\"", "next": "yes", "effects": [{ "set_flag": &"god_answered_gods" }, { "faith": 40 }] },
+					{ "text": "Say nothing.", "next": "no", "effects": [{ "set_flag": &"god_ignored_gods" }] },
+				],
+			},
+			"yes": {
+				"text": "There's no reply. It's not the kind of thing you reply to. You'd know. You think about that for a while. On the next floor you find that the Host's torches have all been turned down a little, and nobody will say on whose orders.",
+			},
+			"no": {
+				"text": "You close the window. You've closed it on people with less. You've got the feeling it knew you would, and that it wanted, for once, to have asked.",
+			},
+		},
+	},
+	&"god_ch9": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Chapter 9: Blank Prayers ]{worshippers_line}",
+				"next": "b",
+			},
+			"b": {
+				"text": "It's gone very quiet in the queue. You look. The number's the same as it was. It's only that something has been going through it, in order, and it's very neat.",
+			},
+		},
+	},
+	&"god_blank": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Prayers waiting: 0. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "It's never said that. You scroll back. They've all been answered, every one of them, floor 9, floor 31, the bad knee and somebody's son. They've been answered in your handwriting, under your title. There, there, it says. You've done enough. Go home. Rest now. It's very kind.",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ It's been answering your mail. It must have started a while ago. They're not climbing anymore. They've stopped asking for anything. They're all so grateful. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "The faith's still coming in. It's coming in better than it ever did. All you'd have to do is nothing. It's what you've been wanting to do since floor 45, and somebody's finally got round to it for you.",
+				"choices": [
+					{ "text": "Take them back. Answer them yourself, however badly.", "next": "take", "effects": [{ "set_flag": &"god_took_queue_back" }, { "believers": 3 }, { "faith": -30 }] },
+					{ "text": "Leave it. They're happier.", "next": "leave", "effects": [{ "set_flag": &"god_left_queue" }, { "faith": 60 }] },
+				],
+			},
+			"take": {
+				"text": "It takes the rest of the floor, and you only get through a few of them. Floor 2: a dog. No, you tell them. You're sorry. You don't know where it went. The number starts climbing again almost at once. They're furious. It's the best thing you've ever heard.",
+				"next": "take2",
+			},
+			"take2": {
+				"style": "system",
+				"text": "[ That wasn't necessary. They were resting. ]",
+			},
+			"leave": {
+				"text": "You close the window. It's such a quiet tower. You walk the rest of the floor with all those people thanking you, under your name, for nothing, for ever. You sleep very well.",
+				"next": "leave2",
+			},
+			"leave2": {
+				"style": "system",
+				"text": "[ Thank you. I'll take care of them. ]",
+			},
+		},
+	},
+	&"god_tester_prayer": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Prayer received. ]\n[ Sender: Tester 0001. ]",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ Dear God. It's me. I'm three feet away. You've been in there for eleven hours. Your soup has developed a skin. Please look after this idiot, I'm frightened, and they won't get up. Amen. Also you owe me four silver. ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ I don't know who I'm talking to. That's a joke. It's you. You've got a title now, and you've got a queue, and I thought I'd get in it. I'm frightened. Look after them. That's all. Sorry. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "Thirty years of windows, and it's never once used that box. It knows you can see the read receipt. It's waiting anyway, just like everyone else.",
+				"choices": [
+					{ "text": "Reply: \"I hear you.\"", "next": "yes", "effects": [{ "set_flag": &"god_answered_tester" }] },
+					{ "text": "Reply: \"Which them?\"", "next": "which", "effects": [{ "set_flag": &"god_asked_tester" }] },
+				],
+			},
+			"yes": {
+				"style": "glitch",
+				"text": "[ Yeah. That's what they all say. ]",
+				"next": "yes2",
+			},
+			"yes2": {
+				"style": "glitch",
+				"text": "[ It's nice, though. I see why they do it. ]",
+			},
+			"which": {
+				"style": "glitch",
+				"text": "[ The one by the fire. The one in the chair. I don't know. All of you. You're a god. Work it out. ]",
 			},
 		},
 	},
