@@ -9,9 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapters 3-6 (floors 21-60), the second return, four more quest classes and eleven more recruits too.
-**Not built yet:** first-run story for floors 61-99 (chapters 7-10), beyond the floor-100 meeting
-and the first-run returns at floors 40 and 60.
+Chapters 3-7 (floors 21-70), the second and third returns, four more quest classes and eleven more recruits too.
+**Not built yet:** first-run story for floors 71-99 (chapters 8-10), beyond the floor-100 meeting.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -220,6 +219,26 @@ Shared beats: 54, a campfire still warm, with the stone worn down in the shape o
 
 Left open for floors 61-100: how they ended up inside, why you forgot, and what "it" is, the thing doing the correcting.
 
+## Chapter 7: "First Drafts" (floors 61-70)
+
+Hayden's picks (2026-11-05): the Titans are your first drafts, the monsters you drew before the gods moved in and built a ceiling on top of them. They call you Maker. "It", the thing correcting the System, is **the part of you that forgot**: you didn't lose the memory, you cut it out, and your wish not to know is still running in the build. **Only hints so far: the full answer is for later chapters.** You can tell your friend on floor 61; if you don't, a Titan does on 66-67. At home after floor 70, you find all three: missing, then hospital letters, then a memorial card with no date. So your real friend is alive, in a coma, and running out of time.
+
+| Floor | Beat |
+| --- | --- |
+| 61 | `[ Chapter 7: First Drafts ]`. The stone has a grain, like paper. The friend sees your face: tell them all of it, say "Later", or say "Stairs". |
+| 62 | An Earthborn chained under the gods' floor, by both of this run's gods. It asks if it's morning. Hero: break the chain (costs blood) or leave it. Villain: free it as your own, or cut off the gold seals. Vigilante: list both gods, or ask who put the chains there (you did, in the margin). T.0041: THEY'RE NICE IF YOU LET THEM BE. DON'T. |
+| 63 | A cyclops with one arm unfinished: "You said you would do the other arm after dinner." Draw it, deny it, or walk on. |
+| 64 | After the miniboss: a Hecatoncheir with 31 hands and a scribble. You remember by yourself for the first time: a hand covering a mouth. `[ Do it again. Please. ]` |
+| 65 | The System can get one answer out. How it got here (`I can't see out. You could look.`), what "it" is (`I know its handwriting`), or are you all right (`Leave that one alone. That one's mine.`). |
+| 66-67 | An eyeless Seer: "You laugh with your mouth open. They always covered theirs." It tells the friend if you didn't. Their reaction depends on your route and on whether you lied. |
+| 68 | The correction window speaks to you for the first time: `[ You do not recongise this floor. ]` `[ Go home. ]` Your spelling. `[ Don't think about whose spelling that is. ]` |
+| 69 | The Elder Cyclops, the friend's drawing: you left the door open, and the gods walked in. "They said you'd be back by morning." |
+| 70 | Cronus on a crayon throne, six points on his crown. Afterwards: "Ask who wants you home so badly. Ask who else holds a pencil like that." |
+
+**Third return** (after floor 70's boss, first runs only): 412 days gone. The objects open in order. The window: MISSING, a photo of someone covering their mouth, and a detective's card with your handwriting on the back. The bookshelf: years of unopened hospital letters behind the notebook. The phone: her voicemail, "We're going to let them go. Not yet. I can't pick a day", and on the bed, a memorial card with nothing after the dash. The PC: BUILT BY {friend} AND {player}, and an admin lock whose blacked-out name is as long as yours. Back on the stairs, the System asks what happened to it, because it never knew. Tell it they're alive, tell it about the card (if you found it), or say nothing. It always says "Thirty floors."
+
+Open for later: if the friend is by a fire on floors 66-67 and comes back afterwards, nobody has told them yet (`ch7_friend_knows` unset). Chapter 8 should deal with it. New Game+ has no scenes on these floors.
+
 ## New recruits (Hayden, 2026-11-04)
 
 Eleven more, so every route can reach a full party of 9 in every run. Three come back from earlier scenes: Wren (the thief, floors 6-7), Sabine (the envoy, floor 18), Hilde (the boots, floor 42). Their first lines remember what you did.
@@ -320,11 +339,11 @@ Everyone in the tower knows the top is floor 60. You beat its boss, open the doo
 
 - **Floors 61-70, Titanfall:** what the gods overthrew: giants, cyclopes, Cronus. Why did the old powers end up under the top?
 - **Floors 71-80, The Gods' Host:** the gods' own soldiers (never the gods themselves), trying to stop you reaching what's above them. The gods who bid for you in Chapter 2 show what that was worth.
-- **Tier 4 at floor 70:** the second big real-world return could play here (not built).
+- **Floor 70:** the third return plays here (built, see Chapter 7).
 - **Floors 81-90, The Unfinished:** the game shows its seams. Unnamed enemies, placeholder knights, weaknesses that change every fight, and the First Draft of the tower.
 - **Floors 91-100, Echoes:** past Testers, using your own skills, and Testers 0012 and 0027. Tester 0041 at the top.
 
-These beats are an outline. Only the false summit and the floor-100 meeting have scenes so far.
+These beats are an outline for floors 71-99. Floors 61-70, the false summit and the floor-100 meeting have scenes.
 
 ## The final boss (floor 100) (Hayden, 2026-11-03; moved from floor 60 on 2026-11-04)
 

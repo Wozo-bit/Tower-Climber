@@ -339,13 +339,17 @@ friend_caught_up change later scenes). Story only, no stat or route cost.
 (glitched: weaknesses change per fight), Echoes 91-100 (echoing: copy your
 skills). Final boss Tester 0041; NG+ = mimics of your Hall character + party
 (GameState.boss_group / register_mimics; LegacyRecord.party). Tier 4 at floor
-70 (+30%; one capstone per tier-3 class). Story for floors 21-100 is still to
-write: only summit_false and the floor-100 scenes exist.
+70 (+30%; one capstone per tier-3 class). Story for floors 71-99 is still to
+write.
 
 THE SECRET (Hayden picked 2026-11-04): you built the game with your real childhood
 friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
+Chapter 7 "First Drafts" + third return (floor 70) BUILT 2026-11-05 (Hayden's picks): Titans = your
+first drafts; "it" = the part of you that forgot (HINTS ONLY so far: it has your misspelling; don't
+reveal until later chapters); real friend alive in a coma, missing flyer -> letters -> undated
+memorial card (in order); friend learns from you (floor 61) or a Titan (66-67).
 Chapter 6 "The Top They Promised" BUILT 2026-11-04: route missions; System confesses
 at 60; "it" (what corrects the System), how they got trapped and why you forgot are
 still open. Chapter 5 "The Bidding War" BUILT 2026-11-04; floor 50's choice locks the route.
@@ -434,7 +438,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 2943 checks at last run).
+Every change gets tests in tests/ (26 suites, 3112 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

@@ -29,6 +29,7 @@ func _ready() -> void:
 	await test_chapter_four()
 	test_chapter_five()
 	test_chapter_six()
+	await test_chapter_seven()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -133,7 +134,7 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	check(StoryLibrary.due(61, false) == &"", "no chapter 7 scenes yet")
+	check(StoryLibrary.due(71, false) == &"", "no chapter 8 scenes yet")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -954,6 +955,178 @@ func test_chapter_six() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"summit_false"))
 	check(StoryLibrary.due(60, true) != &"ch6_confession", "New Game+ already knows")
 	GameState.ng_plus_cycle = 0
+
+
+func test_chapter_seven() -> void:
+	print("-- chapter 7 --")
+	var ch7 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 7)
+	var covered := {}
+	for s in ch7:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 61-70 (%s)" % [covered.keys()])
+	check(ch7.all(func(s): return s.if.get("ng_plus") == false), "all of it is for a first run")
+	_fresh()
+	check(StoryLibrary.chapter_name(7) == "Chapter 7: First Drafts", "its title")
+	check(StoryLibrary.due(61, false) == &"ch7_opening", "floor 61 opens it")
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.due(61, false) == &"", "New Game+ doesn't replay it")
+	GameState.ng_plus_cycle = 0
+	# Telling your friend, on every route.
+	for route_id in [&"hero", &"villain", &"vigilante"]:
+		for pick in 3:
+			_locked(route_id, 61)
+			check(_play(&"ch7_opening", pick).finished, "%s: floor 61 plays (choice %d)" % [route_id, pick])
+			check(GameState.has_flag(&"ch7_friend_knows") == (pick == 0), "%s: only telling them means they know" % route_id)
+			for answer in 3:
+				check(_play(&"ch7_copy", answer).finished, "%s: the Seer plays (%d/%d)" % [route_id, pick, answer])
+			check(GameState.has_flag(&"ch7_friend_knows"), "%s: by then they always know" % route_id)
+			check(GameState.has_flag(&"ch7_titan_told") == (pick != 0), "%s: the Titan says it only if you didn't" % route_id)
+			check(GameState.childhood_friend() != null and not GameState.friend_away(), "%s: and they stay" % route_id)
+		for pick in 2:
+			_locked(route_id, 62)
+			check(_play(&"ch7_chains", pick).finished, "%s: the chains play (choice %d)" % [route_id, pick])
+	var r := DialogueRunner.new()
+	_locked(&"hero", 61)
+	_play(&"ch7_opening", 2)
+	check(GameState.has_flag(&"ch7_lied_friend"), "you lied")
+	r.start(&"ch7_copy")
+	r.advance()
+	r.advance()
+	check(r.raw_speaker() == "{friend}" and r.text().contains("Copy of who"), "they don't know yet")
+	r.advance()
+	r.advance()
+	r.choose(r.choices()[0].index)
+	check(r.node_id == "u_lie", "they remember the lie")
+	r.advance()
+	check(r.node_id == "u_hero", "then who you've made them")
+	# Told them: they stand up to it.
+	_locked(&"villain", 61)
+	_play(&"ch7_opening", 0)
+	r.start(&"ch7_copy")
+	r.advance()
+	r.advance()
+	check(r.node_id == "kt" and r.text().contains("told me"), "told: they already know")
+	# Away: the Seer tells you instead, and they never speak.
+	_locked(&"hero", 61)
+	GameState.dismiss(GameState.childhood_friend())
+	_play(&"ch7_opening")
+	check(GameState.has_flag(&"ch7_friend_was_away") and not GameState.has_flag(&"ch7_friend_knows"), "away on floor 61")
+	_play(&"ch7_copy")
+	check(GameState.has_flag(&"ch7_seer_spoke") and not GameState.has_flag(&"ch7_friend_knows"), "the Seer speaks to you")
+	# Back by the Seer: they hear it from it.
+	GameState.rejoin(GameState.childhood_friend())
+	GameState.pending_talks.clear()
+	r.start(&"ch7_copy")
+	r.advance()
+	r.advance()
+	r.advance()
+	r.advance()
+	r.choose(r.choices()[0].index)
+	check(r.node_id == "u_away", "back from the fire: they hear it from a Titan")
+	# The chains.
+	_locked(&"villain", 62)
+	var gold := GameState.player.gold
+	_play(&"ch7_chains", 1)
+	check(GameState.player.gold == gold + 800, "the seals are gold")
+	_locked(&"hero", 62)
+	var hp := GameState.player.current_hp()
+	_play(&"ch7_chains", 0)
+	check(GameState.has_flag(&"ch7_hero_freed") and GameState.player.current_hp() < hp, "breaking the chain costs blood")
+	_fresh(62)
+	check(_play(&"ch7_chains").finished, "a route that never locked still gets a line")
+	r.start(&"ch7_chains")
+	check(r.text().contains("T.0041"), "Tester 0041 has been here")
+	# The question and the hints.
+	for pick in 3:
+		_fresh(65)
+		check(_play(&"ch7_question", pick).finished, "one question (choice %d)" % pick)
+	_fresh(68)
+	r.start(&"ch7_spelling")
+	check(r.text().contains("recongise"), "the correction has your spelling")
+	_play(&"ch7_spelling")
+	check(GameState.has_flag(&"ch7_saw_spelling"), "you noticed")
+	var said := ""
+	r.start(&"ch7_spelling")
+	while not r.finished:
+		said += r.text()
+		r.advance()
+	check(said.contains("whose spelling"), "and the System stops you short of the answer")
+	_fresh(70)
+	check(StoryLibrary.due(70, false) == &"ch7_throne", "Cronus on his throne")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch7_throne"))
+	check(StoryLibrary.due(70, true) == &"ch7_cronus_down", "and after")
+	_play(&"ch7_cronus_down")
+	check(GameState.has_flag(&"ch7_complete"), "chapter 7 complete")
+	# The third return, floor 70, first runs only.
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	GameState.set_flag(StoryLibrary.RETURN_TIER2)
+	GameState.set_flag(StoryLibrary.RETURN_TIER3)
+	GameState.cleared_guardians.append(20)
+	GameState.cleared_guardians.append(40)
+	check(StoryLibrary.return_due() == &"", "not before floor 70's boss")
+	GameState.cleared_guardians.append(70)
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_TIER4, "floor 70's boss brings it")
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.return_due() != StoryLibrary.RETURN_TIER4, "first runs only")
+	GameState.ng_plus_cycle = 0
+	# In order: flyer, letters, card.
+	r.start(&"return_tier4_notebook")
+	check(r.node_id == "not_yet", "the letters wait for the flyer")
+	r.start(&"return_tier4_phone")
+	check(r.node_id == "not_yet", "the voicemail waits too")
+	_play(&"return_tier4_window")
+	check(GameState.has_flag(&"return_tier4_saw_flyer"), "the flyer")
+	r.start(&"return_tier4_phone")
+	check(r.node_id == "not_yet", "the voicemail waits for the letters")
+	_play(&"return_tier4_notebook")
+	check(GameState.has_flag(&"return_tier4_saw_letters"), "the letters")
+	check(not GameState.has_flag(&"return_tier4_saw_card"), "not the card yet")
+	r.start(&"return_tier4_back")
+	r.advance()
+	r.advance()
+	check(r.node_id == "s", "the System asks what you found")
+	r.advance()
+	check(r.choices().size() == 2, "you can't mention a card you haven't seen")
+	_play(&"return_tier4_phone")
+	check(GameState.has_flag(&"return_tier4_saw_card"), "the card")
+	r.start(&"return_tier4_phone")
+	var card := ""
+	while not r.finished:
+		card += r.text()
+		r.advance()
+	check(card.contains("After the dash, nothing"), "the date is blank")
+	for pick in 3:
+		check(_play(&"return_tier4_back", pick).finished, "back on the stairs (choice %d)" % pick)
+	check(GameState.has_flag(&"return_tier4_told_nothing"), "you can keep it from them")
+	GameState.story_flags.erase(&"return_tier4_saw_letters")
+	r.start(&"return_tier4_back")
+	r.advance()
+	r.advance()
+	check(r.node_id == "s_none", "if you never looked, it knows")
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	Prologue.mode = StoryLibrary.RETURN_TIER4
+	var room: Prologue = load(Prologue.SCENE).instantiate()
+	room.auto_leave = false
+	var left := [false]
+	room.return_finished.connect(func(): left[0] = true)
+	add_child(room)
+	await _frames(2)
+	check(room.WRONG_TILES[StoryLibrary.RETURN_TIER4].size() > room.WRONG_TILES[StoryLibrary.RETURN_TIER3].size(), "the room is more wrong again")
+	room.look_at_object(&"pc")
+	check(room._dialogue.runner.dialogue_id == &"return_tier4_pc" and room._dialogue.runner.text().contains("BUILT BY"), "the credits, not blacked out now")
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	room._dialogue.runner.choose(room._dialogue.runner.choices()[0].index)
+	room._dialogue._refresh()
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(left[0] and GameState.pending_talks.any(func(t): return t.dialogue == &"return_tier4_back"), "back, to the stairs")
+	GameState.pending_talks.clear()
+	room.queue_free()
+	await _frames(1)
 
 
 func test_skip_warning() -> void:
