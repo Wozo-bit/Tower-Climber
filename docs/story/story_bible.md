@@ -302,13 +302,12 @@ Hayden's picks (2026-11-05): your route shapes one last choice; your real friend
 | Choice | Who gets it | What happens | Friend by the fire |
 | --- | --- | --- | --- |
 | Press the reset | Everyone | The tower and everyone on it end. They wake. | Hero: goes with them, "Give them my laugh". Villain: refuses, ends as themselves. Vigilante: you judge. No route, or at a fire: goes. |
-| Draw the last floor ("The Last Floor") | Hero, or no route | You do the people, they do the lines. A way out for everyone. They wake. | Stays to carry people down. A year later you both log in, and they're at the fire with two cups. |
+| Draw the last floor ("The Last Floor") | Hero, no route, or a Vigilante who showed mercy at least once (never Villain) | You do the people, they do the lines. A way out for everyone. They wake. | Stays to carry people down. A year later you both log in, and they're at the fire with two cups. |
 | Keep it ("One More Day") | Villain | You sit in the chair. They never wake, and she fills in the date. | Takes the seat beside you. |
 | Hand the pencil to 0041 ("The Sentence") | Vigilante | "You press it yourself. And then you go and see that old woman." Same as reset. | As reset: you judge. |
 
 Going home with them shows in the last image: they laugh, their hand starts up to cover their mouth, and it stops. Otherwise it covers their mouth as it always did.
 
-**Open question for New Game+:** every ending but one ends the tower or changes it. "The One It Kept" has to explain the restored build (first draft: `it` kept a backup).
 
 ## New recruits (Hayden, 2026-11-04)
 
@@ -396,13 +395,19 @@ None of this decides what the System is or what the tower's secret is.
 
 **Ascending return (NG+).** When you Ascend, or as the Ascendant from floor 41: your room, exactly as on the first night. The email again: *"Welcome back, {player}."* If you're a god, the phone holds a prayer.
 
-### "The One It Kept" (DRAFT plan, Hayden 2026-11-05; not built)
+### "The One It Kept" (Hayden 2026-11-05; being built)
 
 Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21-99 are rewritten, with things you can change. It plays in every New Game+. Gods get "The First Prayer" on top of it.
 
 **The idea.** Beating Tester 0041 left the door unguarded, so "it" kept a copy of you to hold it. When you log back in, it has restored the last clean build: your friend, Tess and Marn are all back and don't know you. Only four things remember: the System, the gods, the Titans (older than the build's restore point), and the copy at the top. Everyone who remembers treats you as the one who left.
 
-**Why you go back** depends on your ending (`past_ending_*`): Hero, the climbers are still in there. Villain, someone's sitting in your chair. Vigilante, there's one name left on the list, and it's yours. Wanderer, you never could stay away.
+**Why you go back** is one per ending (Hayden 2026-11-05; `ng_why`, built): **Reset or The Sentence:** a year on, the client opens by itself. "It" kept a backup. **The Last Floor:** the way out is rubbed away, and everyone's back to climbing. **One More Day:** someone with your face sits in your chair and says you can go. **Welcome Home:** a second email, and it all comes back on the stone.
+
+**If your real friend woke** (`past_friend_woke`), they type the windows live from the next desk: no more sorrow, a lot of teasing, and the corrections annoy them. If they didn't, it's the System, sadder and still trying.
+
+**How it ends** (Hayden 2026-11-05; not built): beat your copy and your old party on floor 100, then end them and shut the backup down, or take their place and let them rest. Someone always holds that door, so later climbs still make sense.
+
+**Built so far (2026-11-05):** `ng_why` and floors 21-30 ("The Door, Again"). Tell Marn on floor 25 and you can hold the door with him on 26-27; he lives, and keeps his ledger. **Still first-run text in New Game+: floors 31-60. Silent: 61-99.**
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |
@@ -416,7 +421,6 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 | 81-90 | "Going Down" | You know what "it" is, so you can talk to it. In the Day 3 memory, this time it lets you take the stairs to the rack room. Nothing changes. You finally see them. |
 | 91-100 | "The One It Kept" | 0041 is free, on a fire on these floors, and you can answer to them. The copy holds the door with your old party: end it or relieve it. |
 
-**Needs Chapter 10 first:** the first-run ending decides what the copy is, what "your friend woke" means here, and how this one ends.
 
 ### Still to build
 

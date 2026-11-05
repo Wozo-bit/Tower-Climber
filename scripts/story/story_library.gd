@@ -40,6 +40,19 @@ const CHAPTERS := [
 	{ "title": "One More Day" },
 	{ "title": "Recognition" },
 ]
+## New Game+ for a character who isn't a god: "The One It Kept" (story bible).
+const NG_CHAPTERS := [
+	{ "title": "Tester" },
+	{ "title": "The Bidding" },
+	{ "title": "The Door, Again" },
+	{ "title": "Second Hand" },
+	{ "title": "Whose War" },
+	{ "title": "Tell Them" },
+	{ "title": "Second Drafts" },
+	{ "title": "The Tenants, Again" },
+	{ "title": "Going Down" },
+	{ "title": "The One It Kept" },
+]
 ## A god climbing again has their own story, "The First Prayer" (story bible).
 const GOD_CHAPTERS := [
 	{ "title": "Nobody's God" },
@@ -87,6 +100,7 @@ const SETUP_QUESTIONS := [
 const PROLOGUE_OBJECTS := [&"pc", &"notebook", &"phone", &"window"]
 
 const SCENES := {
+	&"ng_why": { "chapter": 1, "floors": [1], "when": "enter", "dialogue": &"ng_why", "if": { "ng_plus": true } },
 	&"ch1_wake": { "chapter": 1, "floors": [1], "when": "enter", "dialogue": &"ch1_wake" },
 	&"ch1_memory": { "chapter": 1, "floors": [2, 3], "when": "enter", "dialogue": &"ch1_memory" },
 	&"god_first_prayer": { "chapter": 1, "floors": [3], "when": "enter", "dialogue": &"god_first_prayer", "if": { "god": true } },
@@ -115,19 +129,28 @@ const SCENES := {
 	&"ch2_threshold": { "chapter": 2, "floors": [20], "when": "enter", "dialogue": &"ch2_threshold" },
 	&"ch2_end": { "chapter": 2, "floors": [20], "when": "guardian_down", "dialogue": &"ch2_end" },
 	# "The First Prayer" past floor 20: gods only, for now.
-	&"ch3_opening": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"ch3_opening" },
-	&"ch3_warning": { "chapter": 3, "floors": [22, 23], "when": "enter", "dialogue": &"ch3_warning" },
-	&"ch3_small_talk": { "chapter": 3, "floors": [24], "when": "guardian_down", "dialogue": &"ch3_small_talk" },
-	&"ch3_ledger": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"ch3_ledger" },
-	&"ch3_door": { "chapter": 3, "floors": [26, 27], "when": "enter", "dialogue": &"ch3_door" },
-	&"ch3_doubt": { "chapter": 3, "floors": [28], "when": "enter", "dialogue": &"ch3_doubt" },
-	&"ch3_last_page": { "chapter": 3, "floors": [29], "when": "guardian_down", "dialogue": &"ch3_last_page" },
-	&"ch3_brace": { "chapter": 3, "floors": [30], "when": "enter", "dialogue": &"ch3_brace" },
-	&"ch3_end": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"ch3_end" },
+	&"ch3_opening": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"ch3_opening", "if": { "ng_plus": false } },
+	&"ch3_warning": { "chapter": 3, "floors": [22, 23], "when": "enter", "dialogue": &"ch3_warning", "if": { "ng_plus": false } },
+	&"ch3_small_talk": { "chapter": 3, "floors": [24], "when": "guardian_down", "dialogue": &"ch3_small_talk", "if": { "ng_plus": false } },
+	&"ch3_ledger": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"ch3_ledger", "if": { "ng_plus": false } },
+	&"ch3_door": { "chapter": 3, "floors": [26, 27], "when": "enter", "dialogue": &"ch3_door", "if": { "ng_plus": false } },
+	&"ch3_doubt": { "chapter": 3, "floors": [28], "when": "enter", "dialogue": &"ch3_doubt", "if": { "ng_plus": false } },
+	&"ch3_last_page": { "chapter": 3, "floors": [29], "when": "guardian_down", "dialogue": &"ch3_last_page", "if": { "ng_plus": false } },
+	&"ch3_brace": { "chapter": 3, "floors": [30], "when": "enter", "dialogue": &"ch3_brace", "if": { "ng_plus": false } },
+	&"ch3_end": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"ch3_end", "if": { "ng_plus": false } },
+	&"ng3_opening": { "chapter": 3, "floors": [21], "when": "enter", "dialogue": &"ng3_opening", "if": { "ng_plus": true } },
+	&"ng3_warning": { "chapter": 3, "floors": [22, 23], "when": "enter", "dialogue": &"ng3_warning", "if": { "ng_plus": true } },
+	&"ng3_small_talk": { "chapter": 3, "floors": [24], "when": "guardian_down", "dialogue": &"ng3_small_talk", "if": { "ng_plus": true } },
+	&"ng3_ledger": { "chapter": 3, "floors": [25], "when": "enter", "dialogue": &"ng3_ledger", "if": { "ng_plus": true } },
+	&"ng3_door": { "chapter": 3, "floors": [26, 27], "when": "enter", "dialogue": &"ng3_door", "if": { "ng_plus": true } },
+	&"ng3_doubt": { "chapter": 3, "floors": [28], "when": "enter", "dialogue": &"ng3_doubt", "if": { "ng_plus": true } },
+	&"ng3_last_page": { "chapter": 3, "floors": [29], "when": "guardian_down", "dialogue": &"ng3_last_page", "if": { "ng_plus": true } },
+	&"ng3_brace": { "chapter": 3, "floors": [30], "when": "enter", "dialogue": &"ng3_brace", "if": { "ng_plus": true } },
+	&"ng3_end": { "chapter": 3, "floors": [30], "when": "guardian_down", "dialogue": &"ng3_end", "if": { "ng_plus": true } },
 	&"ch4_opening": { "chapter": 4, "floors": [31], "when": "enter", "dialogue": &"ch4_opening" },
 	&"ch4_second_hand": { "chapter": 4, "floors": [32, 33], "when": "enter", "dialogue": &"ch4_second_hand" },
 	&"ch4_comments": { "chapter": 4, "floors": [34], "when": "guardian_down", "dialogue": &"ch4_comments" },
-	&"ch4_marn": { "chapter": 4, "floors": [35], "when": "enter", "dialogue": &"ch4_marn" },
+	&"ch4_marn": { "chapter": 4, "floors": [35], "when": "enter", "dialogue": &"ch4_marn", "if": { "not_flag": &"ng3_marn_lives" } },
 	&"ch4_expected": { "chapter": 4, "floors": [36, 37], "when": "enter", "dialogue": &"ch4_expected" },
 	&"ch4_summer": { "chapter": 4, "floors": [38], "when": "enter", "dialogue": &"ch4_summer" },
 	&"ch4_first_name": { "chapter": 4, "floors": [39], "when": "guardian_down", "dialogue": &"ch4_first_name" },
@@ -4887,6 +4910,7 @@ const DIALOGUES := {
 					{ "text": "Press the reset.", "next": "reset", "effects": [{ "set_flag": &"ch10_end_reset" }] },
 					{ "text": "Pick up the pencil. Draw the last floor, with a way out in it.", "next": "draw", "effects": [{ "set_flag": &"ch10_end_draw" }], "if": { "route_locked": &"hero" } },
 					{ "text": "Pick up the pencil. Draw the last floor, with a way out in it.", "next": "draw", "effects": [{ "set_flag": &"ch10_end_draw" }], "if": { "route_locked": false } },
+					{ "text": "Pick up the pencil. Draw the last floor, with a way out in it.", "next": "draw", "effects": [{ "set_flag": &"ch10_end_draw" }], "if": { "route_locked": &"vigilante", "any_flag": [&"ch6_vigilante_sentenced", &"ch6_vigilante_spared_him", &"ch8_vigilante_asked"] } },
 					{ "text": "Sit down in the chair. Keep it. All of it.", "next": "keep", "effects": [{ "set_flag": &"ch10_end_keep" }], "if": { "route_locked": &"villain" } },
 					{ "text": "Hand the pencil to Tester 0041.", "next": "judge", "effects": [{ "set_flag": &"ch10_end_judge" }], "if": { "route_locked": &"vigilante" } },
 				],
@@ -4993,8 +5017,14 @@ const DIALOGUES := {
 				"next": "wake_free",
 				"effects": [{ "set_flag": &"ch10_friend_free" }],
 			},
+			"free_vigilante": {
+				"speaker": "{friend}",
+				"text": "A way out, and nobody to make sure the ones who owe go through it last? I'm staying. Somebody has to keep that door honest. I'll burn the list when the last one's out. Go and meet them for me. Tell them they've got terrible posture.",
+				"next": "wake_free",
+				"effects": [{ "set_flag": &"ch10_friend_free" }],
+			},
 			"free": {
-				"alt": [{ "if": { "friend_away": true }, "node": "free_alone" }],
+				"alt": [{ "if": { "friend_away": true }, "node": "free_alone" }, { "if": { "route": &"vigilante" }, "node": "free_vigilante" }],
 				"speaker": "{friend}",
 				"text": "You're telling me there are stairs now, and camps, and forty idiots with chickens, and nobody to carry them? I'm staying. Obviously. Go on. Go and meet them for me. Tell them I said they've got terrible posture.",
 				"next": "wake_free",
@@ -5035,6 +5065,451 @@ const DIALOGUES := {
 			"keep5": {
 				"text": "A long way down, in a room with a lamp on, a phone rings for a while and stops. An old woman fills in the date on a stack of cards, with a very steady hand. You could go and look, if you wanted. You've got all the time in the world, now. One more day.",
 				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+		},
+	},
+
+	# --- New Game+: "The One It Kept". Why you go back, by the ending you got. ---
+	&"ng_why": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "flag": &"past_end_forgot" }, "node": "forgot" }, { "if": { "flag": &"past_end_keep" }, "node": "keep" }, { "if": { "flag": &"past_end_draw" }, "node": "draw" }, { "if": { "flag": &"past_end_judge" }, "node": "reset" }, { "if": { "flag": &"past_end_reset" }, "node": "reset" }],
+				"text": "You logged back in. Nobody made you. Someone is still up there, at the top of the tower, and you can feel it wearing your face.",
+				"next": "end",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"end": {
+				"style": "system",
+				"text": "[ Welcome back, Tester. ]",
+			},
+			"reset": {
+				"text": "It's been a year. They're still thin, and they still won't stay away from the old desk. You've got the screens on for the first time, mostly to prove you can. And the client opens by itself. Tester {player}: session active. You pressed it. You watched it all go.",
+				"next": "reset2",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"reset2": {
+				"text": "They lean over, and read it, and go very quiet. Then they pull the keyboard across, the way they always did. The window opens, and it's the same window, in the same brackets.",
+				"next": "reset3",
+			},
+			"reset3": {
+				"style": "glitch",
+				"text": "[ It kept a backup. Of course it did. You were always careful. ]",
+				"next": "reset4",
+			},
+			"reset4": {
+				"style": "glitch",
+				"text": "[ There's someone in there, at the top, holding the door. You know who. It made a copy of you before you took the rest back. ]",
+				"next": "reset5",
+			},
+			"reset5": {
+				"style": "glitch",
+				"text": "[ Go on, then. I'll do the windows. I'm right here. I can see your screen. Sit up straight. ]",
+			},
+			"draw": {
+				"text": "You've been visiting. It's a long way up, and you do it once a month, the two of you, for the cups. Then one night the stairs at the bottom are clean. The way out has been rubbed away, every leaning step of it. On floor 1, someone you know looks at you as if you've never met.",
+				"next": "draw2",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"draw2": {
+				"style": "glitch",
+				"text": "[ It's put everything back. Every floor. It restored from somewhere, and there's somebody up at the top, doing the tidying. It stands like you. ]",
+				"next": "draw3",
+			},
+			"draw3": {
+				"style": "glitch",
+				"text": "[ They're all going to climb again, all of them, with their scarves on. Go on. I'll do the windows. I'm right here. Sit up straight. ]",
+			},
+			"keep": {
+				"text": "You've had all of it for a long time. It's very tidy up here, and nobody ever surprises you. Then one day you come back from the stairs, and someone is sitting in the chair. They've got your face. They look up, very kindly. You can go now, they say. I've got this.",
+				"next": "keep2",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"keep2": {
+				"text": "Nobody on any floor stops you. Nobody looks up. It's a long way down, and when you reach the bottom you turn round. You've never once had to climb for anything you wanted more than this.",
+				"next": "keep3",
+			},
+			"keep3": {
+				"style": "glitch",
+				"text": "[ I said I'd still do the floors. ]",
+			},
+			"forgot": {
+				"text": "It's a Thursday. You've felt a bit tired for a while now. There's an email, with no sender address. One tester per region. You have the strongest feeling that you've seen it before, and you've clicked it before you've decided to.",
+				"next": "forgot2",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"forgot2": {
+				"style": "glitch",
+				"text": "[ Please. This is the last one I've got. It took a lot longer, this time. Try to recognize me. ]",
+				"next": "forgot3",
+			},
+			"forgot3": {
+				"text": "It comes back on the stone, all at once, before you've even opened your eyes. Whatever was holding it has let go. It's up at the top, now, holding something else.",
+			},
+		},
+	},
+	# --- New Game+, floors 21-30: you know what's behind Marn's door. ---
+	&"ng3_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "god": true }, "node": "b" }],
+				"style": "system",
+				"text": "[ Chapter 3: The Door, Again ]",
+				"next": "b",
+			},
+			"b_woke": {
+				"style": "glitch",
+				"text": "[ Twenty-one. I always liked this stretch. I'm eating your chips, by the way. You left them right there. ]",
+				"next": "b_woke2",
+			},
+			"b_woke2": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+				"next": "b_woke3",
+			},
+			"b_woke3": {
+				"style": "glitch",
+				"text": "[ Oh, that's rude. That's really rude. I'm sitting RIGHT HERE. ]",
+				"next": "c",
+			},
+			"b": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "b_woke" }],
+				"style": "glitch",
+				"text": "[ You came back. On purpose. Nobody's ever done that. ]",
+				"next": "b2",
+			},
+			"b2": {
+				"style": "glitch",
+				"text": "[ Was it good, seeing home? ]",
+				"next": "b3",
+			},
+			"b3": {
+				"style": "system",
+				"text": "[ That message was not sent. ]",
+				"next": "b4",
+			},
+			"b4": {
+				"style": "glitch",
+				"text": "[ Yes it was. You've read this one already. Don't pretend you haven't. ]",
+				"next": "c",
+			},
+			"c_alone": {
+				"text": "You look round, out of habit, and there's nobody to catch you doing it. You know what's on these floors. You've started climbing a bit faster.",
+				"effects": [{ "set_flag": &"ch3_system_spoke" }],
+			},
+			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }],
+				"speaker": "{friend}",
+				"text": "You keep looking at things before they happen. You did it at that last door. It's starting to annoy me. What's up ahead?",
+				"effects": [{ "set_flag": &"ch3_system_spoke" }],
+			},
+		},
+	},
+	&"ng3_warning": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"speaker": "Hurt climber",
+				"text": "Help! Please, my partner's down, back through there! I can't lift them on my own, it's only a little way off the path!",
+				"next": "b",
+			},
+			"b": {
+				"text": "The same words, with the same catch in the throat. You know exactly what that is. But there's someone just ahead of you this time, very young, who has already put down their pack and started toward it.",
+				"choices": [
+					{ "text": "Grab their arm. Tell them what it is.", "next": "stop", "effects": [{ "set_flag": &"ng3_stopped_climber" }, { "route_points": { &"hero": 2 } }] },
+					{ "text": "Go in first, and kill it.", "next": "kill", "effects": [{ "set_flag": &"ng3_killed_lure" }, { "hurt_party": 0.15 }, { "route_points": { &"vigilante": 2 } }] },
+					{ "text": "Let them go. You've got a door to get to.", "next": "let", "effects": [{ "set_flag": &"ng3_let_them_go" }, { "route_points": { &"villain": 2 } }] },
+				],
+			},
+			"stop": {
+				"text": "They don't believe you, until the voice says it all again, in the same words. Then they go a bad colour, and they pick up their pack. They'll tell this story for the rest of their life. It'll be about a very rude stranger.",
+			},
+			"kill": {
+				"text": "It has friends. You knew that. You still get out with most of your blood, and it's the first time you've ever seen what it looks like when it stops talking.",
+			},
+			"let": {
+				"text": "You don't look back. You've got the timing worked out, and it doesn't include this. The voice stops calling a little while later. That's new. You hadn't heard it stop before.",
+			},
+		},
+	},
+	&"ng3_small_talk": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"woke": {
+				"style": "glitch",
+				"text": "[ You fight worse when you don't eat. I know you've got a sandwich. I can see the sandwich. It's on the desk. It's going off. ]",
+				"effects": [{ "set_flag": &"ch3_kind_to_system" }],
+			},
+			"b": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "woke" }],
+				"style": "glitch",
+				"text": "[ Did you eat today? You fight worse when you don't. ]",
+				"next": "c",
+			},
+			"c": {
+				"text": "You know what it's asking now, and who.",
+				"choices": [
+					{ "text": "...Yes. I ate. Thanks.", "next": "kind", "effects": [{ "set_flag": &"ch3_kind_to_system" }] },
+					{ "text": "\"Did you?\"", "next": "you", "effects": [{ "set_flag": &"ch3_kind_to_system" }, { "set_flag": &"ng3_asked_back" }] },
+				],
+			},
+			"kind": {
+				"style": "glitch",
+				"text": "[ You always answer now. I've been keeping count. It's my favourite number. ]",
+			},
+			"you": {
+				"style": "glitch",
+				"text": "[ ... ]",
+				"next": "you2",
+			},
+			"you2": {
+				"style": "glitch",
+				"text": "[ I don't know. I don't think I've got anywhere to put it. Nobody's ever asked me back. Thank you. Don't do it again. Do it again. ]",
+			},
+		},
+	},
+	&"ng3_ledger": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Marn has moved up to this campfire, and he's writing. He closes the ledger when you sit down. Before he can slide it across, you tell him what's on page one. MARN, old, doesn't talk much. Three marks.",
+				"next": "b",
+				"effects": [{ "set_flag": &"ch3_read_ledger" }],
+			},
+			"b": {
+				"text": "He stops. He doesn't look up. It's the first time you've seen him not know what to do with his hands.",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "Marn",
+				"text": "Nobody's seen that page. Who told you that?",
+				"next": "d",
+			},
+			"d": {
+				"text": "You've got about as long as it takes for an old man to decide you're dangerous.",
+				"choices": [
+					{ "text": "\"You did. There's a door up ahead, and you're going to hold it. Let me hold it with you.\"", "next": "told", "effects": [{ "set_flag": &"ng3_told_marn" }] },
+					{ "text": "\"Nobody. Tell me about Tess.\"", "next": "quiet", "effects": [{ "set_flag": &"ng3_kept_quiet" }] },
+				],
+			},
+			"told": {
+				"speaker": "Marn",
+				"text": "Hm. Fifty years up here, and I've never had anyone walk in knowing the page. I expect I'll regret asking how it goes. Don't tell me how it goes. Don't be late.",
+			},
+			"quiet": {
+				"speaker": "Marn",
+				"text": "Page nine. Red scarf. Second breakfasts. Four marks. You knew that too, didn't you? ...Stay well back from me, up ahead. I mean that.",
+			},
+		},
+	},
+	&"ng3_door": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "flag": &"ng3_told_marn" }, "node": "told" }],
+				"text": "You hear it before you see it: an old man swearing steadily, and something heavy being hit. You've heard this. You know how many steps it is, and you know you didn't tell him.",
+				"next": "a2",
+			},
+			"a2": {
+				"speaker": "Marn",
+				"text": "Told you to stay back. Well. Since you're here. There's more of them than I wrote down. Take the book. TAKE it. Now shut that door behind you, and bar it.",
+				"next": "a3",
+			},
+			"a3": {
+				"style": "glitch",
+				"text": "[ You could have told him. I'm not saying that to be cruel. I'd only like one of us to have tried. ]",
+				"next": "a4",
+			},
+			"a4": {
+				"text": "It's the same door, and the same weight in your hands.",
+				"choices": [
+					{ "text": "Bar the door.", "next": "bar", "effects": [{ "set_flag": &"ch3_barred_door" }, { "set_flag": &"ch3_marn_fell" }] },
+					{ "text": "Go in after him.", "next": "fight", "effects": [{ "set_flag": &"ch3_went_in" }, { "set_flag": &"ch3_marn_fell" }, { "hurt_party": 0.3 }] },
+				],
+			},
+			"bar": {
+				"text": "You drop the bar. The swearing stops in the middle of the same word.",
+				"next": "after",
+			},
+			"fight": {
+				"text": "You go in. You know the corridor now, every bad corner of it, and you're still too late. It only ever needed to be a bit sooner. You bring out the book.",
+				"next": "after",
+			},
+			"after_alone": {
+				"text": "You stand there holding it. You'd give a lot to have told him. You had a whole campfire to do it in.",
+			},
+			"after": {
+				"alt": [{ "if": { "friend_away": true }, "node": "after_alone" }],
+				"speaker": "{friend}",
+				"text": "...He'll be at the fire. Bit of a headache. Lighter purse. Why aren't you saying anything? You knew. You knew, didn't you?",
+			},
+			"told": {
+				"text": "You get there first. He's standing in the doorway with his sleeves rolled, not wedged in yet, and he looks up. You've never seen his face when it's surprised to be glad.",
+				"next": "told2",
+			},
+			"told2": {
+				"speaker": "Marn",
+				"text": "You're on time. I'd written you down as a liar. Well. Mind your feet.",
+				"next": "told3",
+			},
+			"told3_woke": {
+				"style": "glitch",
+				"text": "[ I've run this so many times. Left side. They always break left. I drew this corridor, and I'm so sorry about it. Go, go, go. ]",
+				"next": "told4",
+			},
+			"told3": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "told3_woke" }],
+				"style": "glitch",
+				"text": "[ I've run this a lot of times. I've never run it with someone who already knew. Left side. They always break left. ]",
+				"next": "told4",
+			},
+			"told4": {
+				"text": "It's the whole corridor, coming at one door. It's going to cost you. You can still take the book and bar it, and be sure of the rest of the climb.",
+				"choices": [
+					{ "text": "Hold it with him.", "next": "hold", "effects": [{ "set_flag": &"ng3_marn_lives" }, { "hurt_party": 0.4 }, { "route_points": { &"hero": 1 } }] },
+					{ "text": "Take the book. Bar the door.", "next": "bar", "effects": [{ "set_flag": &"ch3_barred_door" }, { "set_flag": &"ch3_marn_fell" }] },
+				],
+			},
+			"hold": {
+				"text": "It takes a very long time, and nobody has ever seen how it ends. Then it's stopped. Something on the far side gives up and goes quiet. Marn slides down the door frame, and sits, and breathes, and looks at his own two hands. The book's still in his pack.",
+				"next": "hold2",
+			},
+			"hold2": {
+				"speaker": "Marn",
+				"text": "Hm. I didn't write this page.",
+				"next": "hold3",
+			},
+			"hold3_alone": {
+				"text": "You sit down beside him. You've got nothing to say, and neither has he, and that's how he likes it.",
+			},
+			"hold3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "hold3_alone" }],
+				"speaker": "{friend}",
+				"text": "...He's alive? Is he allowed to be? Nobody's ever... you knew what was going to happen, and you came anyway. What are you?",
+			},
+		},
+	},
+	&"ng3_doubt": {
+		"start": "a",
+		"nodes": {
+			"a_alone": {
+				"text": "You sit by yourself on the stairs. It was a good vow, last time, and you've seen how it turned out. Whoever reads the back of that ledger will want to know what you've learned.",
+				"next": "c",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"speaker": "{friend}",
+				"text": "I was thinking about that book. I'm not in it, am I? You'd tell me. I've been trying to remember if I've told you the water tower story before.",
+				"next": "b",
+			},
+			"b": {
+				"text": "They aren't in the book. You don't check this time. You've known for a whole tower.",
+				"next": "c",
+			},
+			"c": {
+				"text": "What do you do about any of it? You had an answer, last time. You could give the same one. You could know better.",
+				"choices": [
+					{ "text": "Get everyone out. This time, whatever it takes.", "next": "hero", "effects": [{ "route_points": { &"hero": 4 } }, { "set_flag": &"ch3_vow_rescue" }] },
+					{ "text": "Find what's at the top, and make it answer.", "next": "vig", "effects": [{ "route_points": { &"vigilante": 4 } }, { "set_flag": &"ch3_vow_answer" }] },
+					{ "text": "Get to the top first, and take it off them.", "next": "vil", "effects": [{ "route_points": { &"villain": 4 } }, { "set_flag": &"ch3_vow_top" }] },
+				],
+			},
+			"hero": {
+				"text": "You still don't know how. You know a good deal more about how not to.",
+			},
+			"vig": {
+				"text": "It's wearing your face. You've never had a defendant you knew so well.",
+			},
+			"vil": {
+				"text": "It's your chair. Somebody's sitting in it. That's all this has ever been about, and it's a relief to be able to say so.",
+			},
+		},
+	},
+	&"ng3_last_page": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"lives": {
+				"speaker": "Marn",
+				"text": "Funny thing. There's you, in here. Asks good questions. I don't remember writing it. Two marks, now, and the second one's wet, and I've had this pen the whole time. Don't tell me.",
+				"next": "c",
+				"effects": [{ "set_flag": &"ch3_found_your_page" }],
+			},
+			"b": {
+				"alt": [{ "if": { "flag": &"ng3_marn_lives" }, "node": "lives" }],
+				"text": "The ledger falls open while you catch your breath, at the page that wasn't there before. It says {player}, in Marn's hand. The ink's long dry, and next to the old mark, there's a new one, still wet. You have the only pen.",
+				"next": "c",
+				"effects": [{ "set_flag": &"ch3_found_your_page" }],
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ Two. That's still good. You should have seen some of the others. ]",
+			},
+		},
+	},
+	&"ng3_brace": {
+		"start": "a",
+		"nodes": {
+			"lives": {
+				"speaker": "Marn",
+				"text": "I'll see you at the fire, then. Never had occasion to say that before. Sounds stupid. Go on.",
+			},
+			"a": {
+				"alt": [{ "if": { "flag": &"ng3_marn_lives" }, "node": "lives" }],
+				"text": "One more fire above this. You know exactly who's going to be sitting at it, and what he's going to say, and you've started walking slowly.",
+			},
+		},
+	},
+	&"ng3_end": {
+		"start": "a",
+		"nodes": {
+			"lives": {
+				"text": "The boss falls, and a campfire flickers to life. There's someone at it already: an old man with a battered pack, not talking. He's got a ledger on his knee. He looks up, and he nods, once. He doesn't say anything at all. It's the best conversation you've had in two towers.",
+				"next": "lives2",
+				"effects": [{ "set_flag": &"ch3_complete" }],
+			},
+			"lives2": {
+				"style": "system",
+				"text": "[ Chapter 3 complete. ]",
+				"next": "lives3",
+			},
+			"lives3": {
+				"style": "glitch",
+				"text": "[ Huh. ]",
+				"next": "lives4",
+			},
+			"lives4": {
+				"style": "glitch",
+				"text": "[ I've never seen him there. I'll have to draw him a better log. ]",
+			},
+			"a": {
+				"alt": [{ "if": { "flag": &"ng3_marn_lives" }, "node": "lives" }],
+				"text": "The boss falls, and a campfire flickers to life. There's someone sitting at it already, holding out his hands to the warmth, with a battered, empty pack. You know what he's going to say. He says it. Lovely view, if you ignore all of it.",
+				"next": "b",
+				"effects": [{ "set_flag": &"ch3_complete" }],
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Chapter 3 complete. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ I'm sorry. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "It's the same line, and you've got a whole tower more than you had last time to say it with. You say it back. Nothing comes to take it away.",
 			},
 		},
 	},
@@ -6257,6 +6732,25 @@ const PAST_FLAG_MAP := {
 	&"ch2_refused_second": &"past_refused_second",
 	&"ch1_warned_tess": &"past_warned_tess",
 }
+## What happened at the end of the story stays true on every later climb.
+const PAST_STORY_MAP := {
+	&"ch10_end_forgot": &"past_end_forgot",
+	&"ch10_end_reset": &"past_end_reset",
+	&"ch10_end_draw": &"past_end_draw",
+	&"ch10_end_keep": &"past_end_keep",
+	&"ch10_end_judge": &"past_end_judge",
+	&"ch10_real_friend_woke": &"past_friend_woke",
+	&"ch10_friend_went": &"past_friend_went",
+	&"ch10_friend_stayed": &"past_friend_stayed",
+	&"ch10_friend_free": &"past_friend_free",
+	&"ch9_told_all": &"past_told_all",
+	&"ch9_told_part": &"past_told_part",
+	&"ch9_told_nothing": &"past_told_nothing",
+	&"ch7_drew_arm": &"past_drew_arm",
+	&"ch8_tess_gone": &"past_tess_gone",
+	&"ch10_owned_0041": &"past_owned_0041",
+	&"ng3_marn_lives": &"past_marn_lived",
+}
 const PAST_PATRON_PREFIX := "past_patron_"
 const PAST_ENDING_PREFIX := "past_ending_"
 
@@ -6273,6 +6767,9 @@ static func past_flags(ending_id: StringName) -> Array[StringName]:
 	for f in PAST_FLAG_MAP:
 		if GameState.has_flag(f):
 			out.append(PAST_FLAG_MAP[f])
+	for f in PAST_STORY_MAP:
+		if GameState.has_flag(f) or GameState.has_flag(PAST_STORY_MAP[f]):
+			out.append(PAST_STORY_MAP[f])
 	if GameState.player.blessing_id != &"":
 		out.append(StringName(PAST_PATRON_PREFIX + String(GameState.player.blessing_id)))
 	if ending_id != &"":
@@ -6421,7 +6918,7 @@ static func chapter_for_floor(n: int) -> int:
 ## "Chapter 1: Tester".
 static func chapter_name(chapter: int) -> String:
 	var i := clampi(chapter, 1, CHAPTERS.size()) - 1
-	var titles: Array = GOD_CHAPTERS if GameState.divinity.active else CHAPTERS
+	var titles: Array = GOD_CHAPTERS if GameState.divinity.active else (NG_CHAPTERS if GameState.ng_plus_cycle > 0 else CHAPTERS)
 	return "Chapter %d: %s" % [i + 1, titles[i].title]
 
 
@@ -6491,6 +6988,8 @@ static func validate() -> PackedStringArray:
 	for ending in RouteLibrary.endings:
 		if not PAST_TALES.has(ending.id):
 			problems.append("ending %s has no past tale" % ending.id)
+	if NG_CHAPTERS.size() != CHAPTERS.size():
+		problems.append("NG_CHAPTERS needs one title per chapter")
 	if GOD_CHAPTERS.size() != CHAPTERS.size():
 		problems.append("the god chapters don't match the chapters")
 	for id in SCENES:

@@ -348,8 +348,8 @@ friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
 Chapter 10 "Recognition" BUILT 2026-11-05: THE FIRST CLIMB'S STORY IS COMPLETE (first draft). Endings in the bible:
-ask to forget / take it back, then reset, draw (hero), keep (villain), hand the pencil to 0041 (vigilante). Next: New Game+ "The One It Kept"
-and god chapters 7-9 (plan in the bible), then testing, then Art & Sounds.
+ask to forget / take it back, then reset, draw (hero), keep (villain), hand the pencil to 0041 (vigilante). New Game+ "The One It Kept" IN PROGRESS: ng_why + floors 21-30 built (ng3_*); floors 31-99 and its
+ending to write, then god chapters 7-9, then testing, then Art & Sounds. CLAUDE MAKES THE ART AND SOUND (Hayden 2026-11-05: not an artist); ASK HIM per character or thing ("what should X look like", "any notable details for X").
 Chapter 9 "One More Day" + Day 3 memory (floor 90) BUILT 2026-11-05: pages, "it" in your voice, you pick
 what the System hears (ch9_read_*, ch9_told_*; floor 99 and the ending should use them).
 TESTERS (Hayden 2026-11-05): 0012 + 0027 = you; 0041 = a stranger; floor 99's miniboss = Echo of 0001 (real friend), forced by "it"; the System helps you beat it and keeps talking after.
@@ -450,7 +450,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 3378 checks at last run).
+Every change gets tests in tests/ (26 suites, 3497 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

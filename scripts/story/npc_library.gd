@@ -681,19 +681,19 @@ const NPCS := {
 	&"marn_pack": {
 		"name": "Marn's old pack", "kind": "object", "dialogue": &"marn_pack",
 		"color": Color(0.5, 0.4, 0.3),
-		"floors": ["combat"], "min_floor": 28, "max_floor": 50, "chance": 0.4, "if": { "flag": &"ch3_marn_fell" },
+		"floors": ["combat"], "min_floor": 28, "max_floor": 50, "chance": 0.4, "if": { "any_flag": [&"ch3_marn_fell", &"ng3_marn_lives"] },
 		"gone_flag": &"clue_marn_pack",
 	},
 	&"marn_fire": {
 		"name": "Cold campfire", "kind": "object", "dialogue": &"marn_fire",
 		"color": Color(0.3, 0.3, 0.35),
-		"floors": ["rest"], "min_floor": 30, "max_floor": 55, "near": "campfire", "if": { "flag": &"ch3_marn_fell" },
+		"floors": ["rest"], "min_floor": 30, "max_floor": 55, "near": "campfire", "if": { "any_flag": [&"ch3_marn_fell", &"ng3_marn_lives"] },
 		"gone_flag": &"clue_marn_fire",
 	},
 	&"marn_marks": {
 		"name": "Tally marks", "kind": "object", "dialogue": &"marn_marks",
 		"color": Color(0.55, 0.5, 0.45),
-		"floors": ["combat"], "min_floor": 28, "max_floor": 50, "chance": 0.35, "if": { "flag": &"ch3_marn_fell" },
+		"floors": ["combat"], "min_floor": 28, "max_floor": 50, "chance": 0.35, "if": { "any_flag": [&"ch3_marn_fell", &"ng3_marn_lives"] },
 		"gone_flag": &"clue_marn_marks",
 	},
 	&"defaced_shrine": {

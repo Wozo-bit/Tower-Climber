@@ -34,6 +34,7 @@ func _ready() -> void:
 	await test_chapter_nine()
 	test_continuity()
 	await test_chapter_ten()
+	test_one_it_kept()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1512,6 +1513,21 @@ func test_chapter_ten() -> void:
 	_top(&"vigilante")
 	_finish_top(["Say nothing", "Give it back", "Hand the pencil", "Go with them"])
 	check(GameState.has_flag(&"ch10_real_friend_woke") and RouteLibrary.pick_ending().title == "The Sentence", "the stranger passes sentence")
+	_top(&"vigilante")
+	GameState.set_flag(&"ch6_vigilante_spared_him")
+	r.start(&"ch10_top")
+	var vg := 0
+	while r.node_id != "pick" and vg < 40:
+		vg += 1
+		if r.has_choices():
+			r.choose(r.choices()[r.choices().size() - 1].index)
+		else:
+			r.advance()
+	check(r.choices().any(func(c): return String(c.text).contains("Pick up the pencil")), "a Vigilante who showed mercy can draw the last floor")
+	_top(&"vigilante")
+	GameState.set_flag(&"ch6_vigilante_sentenced")
+	_finish_top(["Say nothing", "Give it back", "Pick up the pencil"])
+	check(GameState.has_flag(&"ch10_friend_free") and GameState.has_flag(&"ch10_real_friend_woke"), "and it plays through")
 	_top(&"hero")
 	_finish_top(["Say nothing", "Give it back", "Pick up the pencil"])
 	check(GameState.has_flag(&"ch10_friend_free") and GameState.has_flag(&"ch10_real_friend_woke") and RouteLibrary.pick_ending().title == "The Last Floor", "the last floor: everyone out, and your friend stays by the fire")
@@ -1540,6 +1556,79 @@ func test_chapter_ten() -> void:
 	check(not GameState.run_active, "the last line ends it, and goes to the ending screen")
 	floor_scene.queue_free()
 	await _frames(1)
+
+
+func _kept_run(floor_n: int, past: Array = []) -> void:
+	_fresh(floor_n)
+	GameState.ng_plus_cycle = 1
+	for f in past:
+		GameState.set_flag(f)
+
+
+func test_one_it_kept() -> void:
+	print("-- the one it kept --")
+	# What a clear leaves for the next climb.
+	_top(&"hero")
+	_finish_top(["Say nothing", "Give it back", "Press the reset"])
+	var past := StoryLibrary.past_flags(&"hero")
+	check(past.has(&"past_end_reset") and past.has(&"past_friend_woke") and past.has(&"past_friend_went"), "the ending is remembered (%s)" % [past])
+	check(past.all(func(f): return StoryLibrary.is_past_flag(String(f))), "and survives the Hall's check")
+	_kept_run(1, [&"past_end_reset", &"past_friend_woke"])
+	check(&"past_friend_woke" in StoryLibrary.past_flags(&"hero"), "a later clear keeps it")
+	# Why you go back: one reason per ending.
+	var r := DialogueRunner.new()
+	var why := { &"past_end_reset": "reset", &"past_end_judge": "reset", &"past_end_draw": "draw", &"past_end_keep": "keep", &"past_end_forgot": "forgot" }
+	for f in why:
+		_kept_run(1, [f])
+		check(StoryLibrary.due(1, false) == &"ng_why", "%s: New Game+ opens with why" % f)
+		r.start(&"ng_why")
+		check(r.node_id == why[f], "%s: its own reason (%s)" % [f, r.node_id])
+		check(_play(&"ng_why").finished and GameState.has_flag(&"ng_why_told") or f == &"past_end_forgot", "%s plays through" % f)
+	_kept_run(1)
+	r.start(&"ng_why")
+	check(r.node_id == "a", "an old Hall record with no ending still gets a reason")
+	_fresh()
+	check(StoryLibrary.due(1, false) == &"ch1_wake", "a first run wakes as usual")
+	# Floors 21-30 are rewritten.
+	_kept_run(21)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(21, false) == &"ng3_opening", "floor 21 in New Game+")
+	check(StoryLibrary.chapter_name(3) == "Chapter 3: The Door, Again", "its title")
+	_fresh(21)
+	check(StoryLibrary.due(21, false) == &"ch3_opening" and StoryLibrary.chapter_name(3) == "Chapter 3: What the Tower Sends", "a first run is unchanged")
+	_kept_run(21, [&"past_friend_woke"])
+	r.start(&"ng3_opening")
+	r.advance()
+	check(r.node_id == "b_woke" and r.text().contains("chips"), "they're at the next desk, eating your chips")
+	for id in [&"ng3_opening", &"ng3_warning", &"ng3_small_talk", &"ng3_ledger", &"ng3_door", &"ng3_doubt", &"ng3_last_page", &"ng3_brace", &"ng3_end"]:
+		for woke in [false, true]:
+			for pick in 3:
+				_kept_run(25, [&"past_friend_woke"] if woke else [])
+				check(_play(id, pick).finished, "%s plays (woke %s, choice %d)" % [id, woke, pick])
+	# Marn: telling him is what makes saving him possible.
+	_kept_run(25)
+	_play(&"ng3_ledger", 1)
+	r.start(&"ng3_door")
+	check(r.node_id == "a", "you didn't tell him: the same door")
+	_play(&"ng3_door", 0)
+	check(GameState.has_flag(&"ch3_marn_fell") and not GameState.has_flag(&"ng3_marn_lives"), "and he falls")
+	_kept_run(25)
+	_play(&"ng3_ledger", 0)
+	check(GameState.has_flag(&"ng3_told_marn"), "you told him")
+	var hp := GameState.player.current_hp()
+	_play(&"ng3_door", 0)
+	check(GameState.has_flag(&"ng3_marn_lives") and not GameState.has_flag(&"ch3_marn_fell"), "you hold it with him, and he lives")
+	check(GameState.player.current_hp() < hp, "at a cost")
+	r.start(&"ng3_end")
+	check(r.node_id == "lives", "the old Marn at the fire")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ch4_opening"))
+	check(not DialogueRunner.check(StoryLibrary.SCENES[&"ch4_marn"].if), "the cheerful one never comes")
+	check(DialogueRunner.check(NpcLibrary.get_npc(&"marn_pack").if), "the Stairwarden's clues are still there")
+	_kept_run(25)
+	_play(&"ng3_ledger", 0)
+	_play(&"ng3_door", 1)
+	check(GameState.has_flag(&"ch3_marn_fell"), "you can still bar it")
+	GameState.ng_plus_cycle = 0
 
 
 func test_skip_warning() -> void:
@@ -2106,7 +2195,7 @@ func test_god_chapters() -> void:
 	_fresh()
 	check(StoryLibrary.chapter_name(1) == "Chapter 1: Tester", "a first run: Tester")
 	_ng(&"")
-	check(StoryLibrary.chapter_name(3) == "Chapter 3: What the Tower Sends", "a mortal's New Game+: the normal chapters")
+	check(StoryLibrary.chapter_name(3) == "Chapter 3: The Door, Again", "a mortal's New Game+: The One It Kept")
 	_ng()
 	check(StoryLibrary.chapter_name(1) == "Chapter 1: Nobody's God", "a god: their own")
 	check(StoryLibrary.chapter_name(6) == "Chapter 6: The Last Prayer", "to the end")
