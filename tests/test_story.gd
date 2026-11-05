@@ -39,6 +39,7 @@ func _ready() -> void:
 	test_one_it_kept_war()
 	test_one_it_kept_tell_them()
 	test_one_it_kept_drafts()
+	test_one_it_kept_tenants()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1139,19 +1140,19 @@ func test_chapter_seven() -> void:
 
 func test_chapter_eight() -> void:
 	print("-- chapter 8 --")
-	var ch8 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 8 and s.dialogue != &"ch8_catchup")
+	var ch8 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 8 and String(s.dialogue).begins_with("ch8") and s.dialogue != &"ch8_catchup")
 	var covered := {}
 	for s in ch8:
 		for f in s.floors:
 			covered[f] = true
 	check(covered.size() == StageLibrary.FLOORS_PER_STAGE and covered.has(71) and covered.has(80), "a beat on every floor 71-80 (%s)" % [covered.keys()])
-	check(StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 8).all(func(s): return s.if.get("ng_plus") == false), "all of it is for a first run")
+	check(StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 8 and String(s.dialogue).begins_with("ch8")).all(func(s): return s.if.get("ng_plus") == false), "all of it is for a first run")
 	_fresh()
 	check(StoryLibrary.chapter_name(8) == "Chapter 8: The Tenants", "its title")
 	GameState.set_flag(&"ch7_friend_knows")
 	check(StoryLibrary.due(71, false) == &"ch8_opening", "floor 71 opens it")
 	GameState.ng_plus_cycle = 1
-	check(StoryLibrary.due(71, false) == &"", "New Game+ doesn't replay it")
+	check(StoryLibrary.due(71, false) != &"ch8_opening", "New Game+ doesn't replay it")
 	GameState.ng_plus_cycle = 0
 	# Nobody told them: the next floor with them, you do.
 	_fresh(71)
@@ -1892,6 +1893,77 @@ func test_one_it_kept_drafts() -> void:
 	_kept_run(70)
 	_play(&"ng7_cronus_down")
 	check(GameState.has_flag(&"ch7_complete"), "chapter 7 complete")
+	GameState.ng_plus_cycle = 0
+
+
+func test_one_it_kept_tenants() -> void:
+	print("-- the one it kept: floors 71-80 --")
+	_kept_run(71, [&"ng7_friend_knows"])
+	check(StoryLibrary.due(71, false) == &"ng8_opening", "floor 71 in New Game+")
+	check(StoryLibrary.chapter_name(8) == "Chapter 8: The Tenants, Again", "its title")
+	_kept_run(71)
+	check(StoryLibrary.due(71, false) == &"ng8_catchup", "nobody told them: you do it first")
+	_play(&"ng8_catchup")
+	check(GameState.has_flag(&"ng7_friend_knows"), "now they know")
+	_kept_run(71)
+	GameState.dismiss(GameState.childhood_friend())
+	check(StoryLibrary.due(71, false) != &"ng8_catchup", "not while they're by a fire")
+	GameState.rejoin(GameState.childhood_friend())
+	GameState.pending_talks.clear()
+	check(StoryLibrary.due(85, false) == &"ng8_catchup", "and it waits for them")
+	for id in [&"ng8_opening", &"ng8_first", &"ng8_outlive", &"ng8_second", &"ng8_answer", &"ng8_strongbox", &"ng8_anointed", &"ng8_tess_down"]:
+		for past in [[], [&"past_friend_woke"], [&"ng5_saved_tess"], [&"ng5_warned_tess", &"ng4_told_marn_tess"], [&"ch4_kept_ledger"]]:
+			for pick in 3:
+				_kept_run(75, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	var r := DialogueRunner.new()
+	for route_id in [&"hero", &"villain", &"vigilante"]:
+		for pick in 2:
+			_kept_locked(route_id, 74)
+			GameState.inventory.add(&"potion", 3)
+			check(_play(&"ng8_faces", pick).finished, "%s: the Host (choice %d)" % [route_id, pick])
+	_kept_run(74, [&"ng6_told_climbers"])
+	r.start(&"ng8_faces")
+	r.advance()
+	check(r.node_id == "told_b", "you told them: there are gaps in the line")
+	# The System answers with what really happened, last climb.
+	var answers := { &"past_friend_went": "c_went", &"past_friend_free": "c_free", &"past_friend_stayed": "c_stayed", &"past_end_keep": "c_kept" }
+	for f in answers:
+		_kept_run(75, [f])
+		r.start(&"ng8_outlive")
+		r.advance()
+		r.advance()
+		check(r.node_id == answers[f], "%s: %s" % [f, r.node_id])
+	# The gods ask you, this time.
+	_kept_run(78)
+	r.start(&"ng8_answer")
+	check(r.text().contains("Recommended"), "the correction is spelled right now")
+	var flags := [&"ng8_gave_lease", &"ng8_gods_knelt", &"ng8_evicted"]
+	for pick in 3:
+		_kept_run(78)
+		_play(&"ng8_answer", pick)
+		check(GameState.has_flag(flags[pick]), "floor 78: %s" % flags[pick])
+	# Floor 79: it got there first.
+	check(_all_text(&"ng8_strongbox").contains("EAT SOMETHING"), "your copy took the page")
+	# Floor 80: saving her on 48 keeps her out of the armour.
+	_kept_run(80, [&"ng5_saved_tess"])
+	r.start(&"ng8_anointed")
+	check(r.node_id == "saved", "you saved her: the armour's empty")
+	_play(&"ng8_tess_down")
+	check(GameState.has_flag(&"ng8_tess_lives") and not GameState.has_flag(&"ch8_tess_gone"), "and she walks away")
+	check(GameState.has_flag(&"ch8_complete"), "chapter 8 complete")
+	_kept_run(80)
+	r.start(&"ng8_anointed")
+	r.advance()
+	check(r.raw_speaker() == "Tess" and r.text().contains("second breakfasts"), "you didn't: it's her again")
+	_play(&"ng8_tess_down")
+	check(GameState.has_flag(&"ch8_tess_gone") and not GameState.has_flag(&"ng8_tess_lives"), "and she stays where she is")
+	_kept_run(80, [&"ng4_told_marn_tess"])
+	_play(&"ng8_tess_down")
+	check(GameState.has_flag(&"ng8_marn_stayed"), "if you told Marn, he came up to be with her")
+	_kept_run(80, [&"ch4_kept_ledger"])
+	_play(&"ng8_tess_down")
+	check(GameState.has_flag(&"ch8_tess_signed"), "or she signs your ledger")
 	GameState.ng_plus_cycle = 0
 
 
