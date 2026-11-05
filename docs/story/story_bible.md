@@ -411,7 +411,9 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **Floors 31-40:** 31, the System says what it remembers of what you told it; you can say its name, and the wrong one answers. 32-33, you can carve an answer under "its RECOGNITION, dummy". 34, you can type in the old code comments, and get a reply. 35, a Marn who lived remembers everything and is being sorry to people by name; you can tell him about floor 80 (`ng4_told_marn_tess`, for Chapter 8). Otherwise you face the same ledger choice again. 36-37, tell the first god what it is (`ng4_told_gods`). 38, you say the summer first, and tell your friend how it ended. 39, GO HOME - {player}, fresh, from the copy; you can answer. 40, you say your half of "You drew the monsters" first.
 
-**Still first-run text in New Game+: floors 41-60. Silent: 61-99.**
+**Floors 41-50, "Whose War":** 41, soldiers are singing about tenants, if you told the god. 42-43, you get to the camp early and can move everyone out before the fight (`ng5_moved_camp`; also counts as driving them off, for Hilde). 44, you say "stop correcting them" along with the System. 45, "Am I real?" again, with your better answer: all of it, "You're the part of them that still laughs", or "I came back on purpose". 46-47, you can answer the voice: "I came back twenty-six times." `...you did?` If your real friend woke, they swear that voice wasn't them (`[ I've got a very bad feeling about how much of me I got back. ]`: a thread for later). 48, you get there early: carry Tess off the field (`ng5_saved_tess`, costs blood), warn her (`ng5_warned_tess`), or leave her. You can stay with the priest. 50, the same choice, and your route locks again. The System suggests telling the climbers that 60 isn't the top.
+
+**Still first-run text in New Game+: floors 51-60. Silent: 61-99.**
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |

@@ -36,6 +36,7 @@ func _ready() -> void:
 	await test_chapter_ten()
 	test_one_it_kept()
 	test_one_it_kept_second_hand()
+	test_one_it_kept_war()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1693,6 +1694,68 @@ func test_one_it_kept_second_hand() -> void:
 	_kept_run(40)
 	_play(&"ng4_end")
 	check(GameState.has_flag(&"ch4_complete"), "chapter 4 complete")
+	GameState.ng_plus_cycle = 0
+
+
+func test_one_it_kept_war() -> void:
+	print("-- the one it kept: floors 41-50 --")
+	_kept_run(41)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(41, false) == &"ng5_opening", "floor 41 in New Game+")
+	check(StoryLibrary.chapter_name(5) == "Chapter 5: Whose War", "its title")
+	_fresh(41)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(41, false) == &"ch5_opening" and StoryLibrary.chapter_name(5) == "Chapter 5: The Bidding War", "a first run is unchanged")
+	for id in [&"ng5_opening", &"ng5_camp", &"ng5_stop_correcting", &"ng5_am_i_real", &"ng5_break", &"ng5_field", &"ng5_with_you", &"ng5_threshold", &"ng5_choice"]:
+		for past in [[], [&"past_friend_woke"]]:
+			for pick in 3:
+				_kept_run(45, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	# Moving the camp: the same result as driving them off, with no blood.
+	_kept_run(42)
+	var hp := GameState.player.current_hp()
+	_play(&"ng5_camp", 0)
+	check(GameState.has_flag(&"ng5_moved_camp") and GameState.has_flag(&"ch5_stood_neither") and GameState.player.current_hp() == hp, "you know when they come, so nobody bleeds")
+	check(NpcLibrary.pitch_of(&"hilde").contains("floor 42"), "Hilde remembers")
+	# What you tell them on 45 reaches 49.
+	var r := DialogueRunner.new()
+	_kept_run(45)
+	_play(&"ng5_am_i_real", 0)
+	check(GameState.has_flag(&"ch5_friend_truth"), "you told them")
+	r.start(&"ng5_with_you")
+	r.advance()
+	check(r.node_id == "told", "and floor 49 knows")
+	_kept_run(45)
+	_play(&"ng5_am_i_real", 2)
+	r.start(&"ng5_with_you")
+	r.advance()
+	check(r.node_id == "why", "or that you came back on purpose")
+	# The voice answers you.
+	_kept_run(46)
+	_play(&"ng5_break", 0)
+	check(GameState.has_flag(&"ng5_answered_voice"), "you answered it")
+	# Tess on floor 48.
+	_kept_run(48)
+	hp = GameState.player.current_hp()
+	_play(&"ng5_field", 0)
+	check(GameState.has_flag(&"ng5_saved_tess") and GameState.player.current_hp() < hp, "you can get her off the field, and it costs you")
+	_kept_run(48)
+	_play(&"ng5_field", 2)
+	check(GameState.has_flag(&"ng5_left_tess") and not GameState.has_flag(&"ng5_saved_tess"), "or leave her")
+	# Floor 50: pick again, and it locks.
+	var routes := { 0: &"hero", 1: &"villain", 2: &"vigilante" }
+	for pick in routes:
+		_kept_run(50)
+		_play(&"ng5_choice", pick)
+		check(GameState.route.locked == routes[pick] and GameState.has_flag(&"ch5_complete"), "floor 50 locks %s" % routes[pick])
+	_kept_run(50)
+	GameState.lock_route(&"villain")
+	GameState.pending_talks.clear()
+	r.start(&"ng5_choice")
+	while not r.has_choices():
+		r.advance()
+	check(r.choices().size() == 1 and String(r.choices()[0].text).contains("You already know"), "already locked: only that")
+	check(_play(&"ng5_choice", 0).finished, "and it still ends")
 	GameState.ng_plus_cycle = 0
 
 
