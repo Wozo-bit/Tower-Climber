@@ -642,12 +642,26 @@ static func _build() -> Dictionary:
 			"row": BACK, "basic_attack": &"attack_magic", "skills": [&"shadow_bolt", &"doom_wave"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 680, "gold_reward": 210, "color": Color(0.7, 0.55, 0.95),
 			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
+		EnemyDef.make(&"tester_0001", "Tester 0001", {
+			"family": &"echo", "affinities": {EL.WIND: AF.WEAK},
+			"max_hp": 980, "stats": {S.HEALTH: 18, S.STRENGTH: 20, S.INTELLIGENCE: 30, S.STAMINA: 20, S.AGILITY: 20, S.LUCK: 10},
+			"row": MIDDLE, "basic_attack": &"attack_magic", "skills": [&"earthshatter", &"doom_wave"] as Array[StringName], "skill_chance": 0.5,
+			"xp_reward": 760, "gold_reward": 240, "color": Color(0.9, 0.9, 0.8),
+			"is_boss": true, "is_miniboss": true, "loot_rolls": 1,
+			"lore": "The first login. Kept very carefully.",
+			"battle_lines": [
+				"[ Wind. It's weak to wind. I never could draw wind. ]",
+				"[ It's going to bring the ground up. It always does that when it's losing. I drew that floor myself. ]",
+				"[ That's not my temper. That's just how you drew it. ]",
+				"[ You fight worse when you don't eat. Did you eat today? ]",
+				"[ Keep going. Don't look at its face. I don't. ]",
+			]}),
 		EnemyDef.make(&"tester_0041", "Tester 0041", {
 			"family": &"echo",
 			"max_hp": 2000, "stats": {S.HEALTH: 26, S.STRENGTH: 30, S.INTELLIGENCE: 30, S.STAMINA: 24, S.AGILITY: 22, S.LUCK: 16},
 			"row": FRONT, "skills": [&"judgment_ray", &"doom_wave", &"power_strike"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 2600, "gold_reward": 1000, "color": Color(0.95, 0.95, 1.0), "is_boss": true,
-			"lore": "Session length: 11,302 days and counting. Reached the top before you. Was kept.",
+			"lore": "Session length: 11,302 days and counting. Answered an email. Was kept.",
 			"drops": [{"item": &"goddess_tear", "chance": 1.0, "count": 1}, {"item": &"scouting_lens", "chance": 0.35, "count": 1}],
 			"loot_rolls": 2}),
 

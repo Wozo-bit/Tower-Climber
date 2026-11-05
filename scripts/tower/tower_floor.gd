@@ -94,7 +94,8 @@ func _ready() -> void:
 	_load_floor()
 	_handle_battle_return()
 	if GameState.pending_completion:
-		_show_completion()
+		if not _play_last_scene():
+			_show_completion()
 	else:
 		_autosave()
 
@@ -204,6 +205,17 @@ func _process(delta: float) -> void:
 		_update_player(delta)
 		_update_enemies(delta)
 	queue_redraw()
+
+
+## What happens after the final boss, before the ending screen (first runs).
+func _play_last_scene() -> bool:
+	var id := StoryLibrary.due(GameState.floor_number, true)
+	if id == &"" or not StoryLibrary.auto_play:
+		return false
+	GameState.set_flag(StoryLibrary.seen_flag(id))
+	_talk_cooldown = 0.0
+	talk(StoryLibrary.SCENES[id].dialogue)
+	return _dialogue.visible
 
 
 ## Plays the story scene due on this floor, if any (StoryLibrary). Each plays
@@ -465,6 +477,10 @@ func talk(dialogue_id: StringName, with: CharacterData = null, being: StringName
 
 
 func _on_dialogue_finished(runner: DialogueRunner) -> void:
+	if GameState.has_flag(&"ch10_ended") and GameState.run_active:
+		GameState.pending_completion = true   # even if the game was closed and reloaded on the way
+		_show_completion()
+		return
 	_talk_cooldown = TALK_COOLDOWN
 	GameState.place_npcs(layout)   # read clues vanish, recruits leave with you
 	_update_hud()

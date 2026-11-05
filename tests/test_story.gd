@@ -33,6 +33,7 @@ func _ready() -> void:
 	test_chapter_eight()
 	await test_chapter_nine()
 	test_continuity()
+	await test_chapter_ten()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -137,9 +138,6 @@ func test_due() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"ch1_fallen"))
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
-	GameState.set_flag(&"ch7_friend_knows")
-	check(StoryLibrary.due(91, false) == &"", "no chapter 10 scenes yet")
-	GameState.story_flags.erase(&"ch7_friend_knows")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
 
@@ -1407,6 +1405,141 @@ func test_continuity() -> void:
 			if text.contains(w.to_lower()):
 				bad.append("%s: %s" % [id, w])
 	check(bad.is_empty(), "Canadian spelling %s" % [bad])
+
+
+func _top(route_id: StringName) -> void:
+	_fresh(100)
+	GameState.set_flag(&"ch7_friend_knows")
+	if route_id != &"":
+		GameState.lock_route(route_id)
+		GameState.pending_talks.clear()
+
+
+## Plays ch10_top taking these choices in order (by the choice's text), then the last.
+func _finish_top(picks: Array) -> DialogueRunner:
+	var r := DialogueRunner.new()
+	r.start(&"ch10_top")
+	var guard := 0
+	var i := 0
+	while not r.finished and guard < 60:
+		guard += 1
+		if r.has_choices():
+			var cs := r.choices()
+			var chosen = cs[cs.size() - 1]
+			if i < picks.size():
+				for c in cs:
+					if String(c.text).contains(picks[i]):
+						chosen = c
+			i += 1
+			r.choose(chosen.index)
+		else:
+			r.advance()
+	return r
+
+
+func test_chapter_ten() -> void:
+	print("-- chapter 10 --")
+	var ch10 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 10 and not s.get("if", {}).get("god", false))
+	var covered := {}
+	for s in ch10:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE, "a beat on every floor 91-100 (%s)" % [covered.keys()])
+	_fresh()
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.chapter_name(10) == "Chapter 10: Recognition", "its title")
+	check(StoryLibrary.due(91, false) == &"ch10_opening", "floor 91 opens it")
+	# Who you fight.
+	check(StageLibrary.miniboss_for_floor(94)[0] == &"tester_0012" and StageLibrary.miniboss_for_floor(94)[1] == &"tester_0027", "floor 94: both of you")
+	check(StageLibrary.miniboss_for_floor(99)[0] == &"tester_0001", "floor 99: Tester 0001")
+	var first_login := EnemyLibrary.get_enemy(&"tester_0001")
+	check(first_login.is_miniboss and first_login.affinities.get(Element.Type.WIND) == Element.Affinity.WEAK, "and the System's hint is true")
+	check(first_login.battle_lines[0].contains("Wind") and first_login.battle_lines.size() >= 3, "it talks you through the fight")
+	# The System admits the invitation.
+	var said := ""
+	var r := DialogueRunner.new()
+	r.start(&"ch10_invitation")
+	while not r.finished:
+		said += r.text()
+		r.advance()
+	check(said.contains("That was me") and said.contains("recognize me"), "it sent the email, to be recognized")
+	# The System keeps talking after floor 99.
+	_fresh(99)
+	_play(&"ch10_first_login_down")
+	check(GameState.has_flag(&"ch10_eve_done") and _all_text(&"ch10_first_login_down").contains("I'm still here"), "it's still there afterward")
+	for pick in 2:
+		_fresh(94)
+		check(_play(&"ch10_twelve_down", pick).finished, "what you tell yourself (%d)" % pick)
+	# 0041 is a stranger.
+	check(_all_text(&"final_tester").contains("answered an email") and not _all_text(&"final_tester").contains("You remembered faster"), "0041 has nothing to remember")
+	# The final choice depends on your route.
+	var offered := {
+		&"hero": ["Press the reset", "Pick up the pencil"],
+		&"villain": ["Press the reset", "Sit down in the chair"],
+		&"vigilante": ["Press the reset", "Hand the pencil"],
+		&"": ["Press the reset", "Pick up the pencil"],
+	}
+	for route_id in offered:
+		_top(route_id)
+		r.start(&"ch10_top")
+		var guard := 0
+		while r.node_id != "pick" and guard < 40:
+			guard += 1
+			if r.has_choices():
+				r.choose(r.choices()[r.choices().size() - 1].index)
+			else:
+				r.advance()
+		check(r.node_id == "pick", "%s: you reach the choice" % route_id)
+		var texts: Array = r.choices().map(func(c): return String(c.text))
+		check(texts.size() == 2 and offered[route_id].all(func(want): return texts.any(func(t): return t.contains(want))), "%s: its options %s" % [route_id, texts])
+	# Forgetting.
+	_top(&"hero")
+	check(_finish_top(["Help", "Ask it"]).finished and GameState.has_flag(&"ch10_ended"), "you can ask it to let you go")
+	check(GameState.has_flag(&"ch10_end_forgot") and not GameState.has_flag(&"ch10_real_friend_woke"), "and they don't wake")
+	check(RouteLibrary.pick_ending().title == "Welcome Home" and RouteLibrary.pick_ending().id == &"hero", "that ending, with its domains kept")
+	# Taking it back, then each ending.
+	_top(&"hero")
+	_finish_top(["Say nothing", "Give it back", "Press the reset"])
+	check(GameState.has_flag(&"ch10_took_it_back") and GameState.has_flag(&"ch10_real_friend_woke"), "reset: they wake")
+	check(GameState.has_flag(&"ch10_friend_went") and RouteLibrary.pick_ending().title == "The Laugh", "hero: your friend goes with them")
+	_top(&"villain")
+	_finish_top(["Say nothing", "Give it back", "Press the reset"])
+	check(GameState.has_flag(&"ch10_friend_stayed") and RouteLibrary.pick_ending().title == "The Reset", "villain: your friend refuses to go")
+	for answer in ["Go with them", "End as yourself"]:
+		_top(&"vigilante")
+		_finish_top(["Say nothing", "Give it back", "Press the reset", answer])
+		check(GameState.has_flag(&"ch10_friend_went") == (answer == "Go with them"), "vigilante: you judge (%s)" % answer)
+	_top(&"vigilante")
+	_finish_top(["Say nothing", "Give it back", "Hand the pencil", "Go with them"])
+	check(GameState.has_flag(&"ch10_real_friend_woke") and RouteLibrary.pick_ending().title == "The Sentence", "the stranger passes sentence")
+	_top(&"hero")
+	_finish_top(["Say nothing", "Give it back", "Pick up the pencil"])
+	check(GameState.has_flag(&"ch10_friend_free") and GameState.has_flag(&"ch10_real_friend_woke") and RouteLibrary.pick_ending().title == "The Last Floor", "the last floor: everyone out, and your friend stays by the fire")
+	_top(&"villain")
+	_finish_top(["Say nothing", "Give it back", "Sit down"])
+	check(not GameState.has_flag(&"ch10_real_friend_woke") and RouteLibrary.pick_ending().title == "One More Day" and GameState.has_flag(&"ch10_ended"), "keeping it: they never wake")
+	# With the friend at a fire, the System asks for you.
+	_top(&"hero")
+	GameState.dismiss(GameState.childhood_friend())
+	_finish_top(["Say nothing", "Give it back", "Press the reset"])
+	check(GameState.has_flag(&"ch10_friend_went"), "from a fire, they still get asked")
+	# New Game+ doesn't play this ending.
+	_top(&"")
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.due(100, true) != &"ch10_top", "New Game+ has its own ending, later")
+	GameState.ng_plus_cycle = 0
+	# The ending screen waits for the last scene.
+	_top(&"hero")
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	var floor_scene = load(GameState.TOWER_SCENE).instantiate()
+	add_child(floor_scene)
+	await _frames(2)
+	check(not GameState.pending_completion and GameState.run_active, "the run's still going")
+	GameState.set_flag(&"ch10_ended")
+	floor_scene._on_dialogue_finished(DialogueRunner.new())
+	check(not GameState.run_active, "the last line ends it, and goes to the ending screen")
+	floor_scene.queue_free()
+	await _frames(1)
 
 
 func test_skip_warning() -> void:

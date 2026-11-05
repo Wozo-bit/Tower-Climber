@@ -9,8 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapters 3-9 (floors 21-90), the second and third returns, the Day 3 memory, four more quest classes and eleven more recruits too.
-**Not built yet:** first-run story for floors 91-99 (chapter 10), and the rest of the ending, beyond the floor-100 meeting.
+Chapters 3-10 (floors 21-100), the second and third returns, the Day 3 memory, four more quest classes and eleven more recruits too. **The first climb's story is written, start to finish.**
+**Not built yet:** New Game+'s "The One It Kept" and the god chapters on floors 61-99.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -279,6 +279,37 @@ Hayden's picks (2026-11-05): pages, then a playable memory; "it" talks in window
 
 **Numbers:** you went in 26 times (0002 to 0027). Tester 0041 came after you locked it, and is a stranger. **Time:** the tower's clock runs fast when nobody's logged in, and only slows down for an active player (System, floor 84). So 0041's 31 years inside is about three outside. **Log-off:** nobody is holding you in. Your session is stuck the way theirs was (SESSION IN USE); only "it" can override that, and you have to ask, which means agreeing to forget. **Floor 10's** `[ You remembered faster this time. ]` is "it", not the System.
 
+## Chapter 10: "Recognition" (floors 91-100): the ending
+
+Hayden's picks (2026-11-05): your route shapes one last choice; your real friend wakes or doesn't depending on it; the friend by the fire chooses for themselves; you take the memory back from "it" rather than destroying it. Tester 0012 and 0027 share floor 94. Tester 0001 is floor 99. The System admits it sent the invitation, and the title pays off: `[ I only needed one person to recognize me. ]`
+
+| Floor | Beat |
+| --- | --- |
+| 91 | `[ Chapter 10: Recognition ]`. Figures on the stairs hold a blade the way you do. |
+| 92-93 | A camp of 26 made-up bedrolls, numbered. |
+| 94 | 0012 ("One more day") and 0027 ("What's her name?") together. Afterward: "You did what you could" or "You should have gone down the stairs". |
+| 95 | The last fire: Marn, the scarf on the rail, and what your friend wants up there (route). |
+| 96-97 | `[ The email. No sender address. That was me. ]` The Friday message and the blue door were the System too. `[ You spelled it wrong. It still counts. ]` |
+| 98 | It rubs the stairs out faster than the System can draw them. You pick up the charcoal from floor 63 and draw them yourself. `[ That is the worst stair I have ever seen. ]` `[ Keep going. ]` |
+| 99 | Tester 0001, the first login, forced to fight you. The System talks you through it in the battle log (`EnemyDef.battle_lines`): it really is weak to Wind. Afterward: `[ I'm still here. I want that noted. ]` Your friend finally sees the real one. |
+| 100 | Tester 0041, a stranger: an email, a dog, 31 years. Then the white page, and everything below. |
+
+**After 0041.** You can own it, tell them it's only been three years, or help them up. Then "it": `[ You only have to ask. ]`
+
+- **Ask it to let you go ("Welcome Home"):** you wake at your desk, tired. The card's dates are filled in, and you put it in a drawer. `[ Welcome home. ]`
+- **"Give it back. All of it.":** `[ Are you sure? ]` `[ All right. I was very careful with it. ]` `[ This message was sent. ]` Then the box and the pencil.
+
+| Choice | Who gets it | What happens | Friend by the fire |
+| --- | --- | --- | --- |
+| Press the reset | Everyone | The tower and everyone on it end. They wake. | Hero: goes with them, "Give them my laugh". Villain: refuses, ends as themselves. Vigilante: you judge. No route, or at a fire: goes. |
+| Draw the last floor ("The Last Floor") | Hero, or no route | You do the people, they do the lines. A way out for everyone. They wake. | Stays to carry people down. A year later you both log in, and they're at the fire with two cups. |
+| Keep it ("One More Day") | Villain | You sit in the chair. They never wake, and she fills in the date. | Takes the seat beside you. |
+| Hand the pencil to 0041 ("The Sentence") | Vigilante | "You press it yourself. And then you go and see that old woman." Same as reset. | As reset: you judge. |
+
+Going home with them shows in the last image: they laugh, their hand starts up to cover their mouth, and it stops. Otherwise it covers their mouth as it always did.
+
+**Open question for New Game+:** every ending but one ends the tower or changes it. "The One It Kept" has to explain the restored build (first draft: `it` kept a backup).
+
 ## New recruits (Hayden, 2026-11-04)
 
 Eleven more, so every route can reach a full party of 9 in every run. Three come back from earlier scenes: Wren (the thief, floors 6-7), Sabine (the envoy, floor 18), Hilde (the boots, floor 42). Their first lines remember what you did.
@@ -405,7 +436,7 @@ Everyone in the tower knows the top is floor 60. You beat its boss, open the doo
 - **Floors 81-90, The Unfinished:** the game shows its seams. Unnamed enemies, placeholder knights, weaknesses that change every fight, and the First Draft of the tower.
 - **Floors 91-100, Echoes:** past Testers, using your own skills, and Testers 0012 and 0027. Tester 0041 at the top.
 
-These beats are an outline for floors 91-99. Floors 61-90, the false summit and the floor-100 meeting have scenes.
+Every floor has scenes now. These were the first outline.
 
 ## The final boss (floor 100) (Hayden, 2026-11-03; moved from floor 60 on 2026-11-04)
 

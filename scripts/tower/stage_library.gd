@@ -253,8 +253,8 @@ const THEMES := {
 			[&"tester_echo_blade", &"tester_echo_blade", &"tester_echo_bow", &"tester_echo_spell"],
 		],
 		"miniboss_floors": {
-			4: [&"tester_0012", &"tester_echo_blade", &"tester_echo_bow"],
-			9: [&"tester_0027", &"tester_echo_blade", &"tester_echo_spell"],
+			4: [&"tester_0012", &"tester_0027"],
+			9: [&"tester_0001", &"tester_echo_blade", &"tester_echo_spell"],
 		},
 		"boss": [&"tester_0041", &"tester_echo_blade", &"tester_echo_bow", &"tester_echo_spell"],
 	},

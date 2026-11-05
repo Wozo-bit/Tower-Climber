@@ -38,6 +38,8 @@ extends Resource
 ## It fights with that being's blessing (level BOSS_PATRON_LEVEL) and its
 ## blessed skill, and beating it shifts beings' interest in you.
 @export var patron: StringName = &""
+## Story: lines shown in the battle log, one per round from round 1.
+@export var battle_lines: Array = []
 
 # --- Loot profile (only matters if loot_rolls > 0) ---
 ## Added to the party's Luck for this enemy's rarity rolls.

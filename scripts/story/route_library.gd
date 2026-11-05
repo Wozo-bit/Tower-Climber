@@ -44,6 +44,25 @@ const BASE_ENDINGS := [
 		"text": "No one asked you to climb. No one will stop you either." },
 ]
 
+## What you did at the top of a first climb: replaces the ending's title and text,
+## keeping its id (the ending id suggests your domains).
+const FINAL_CHOICES := [
+	{ "if": { "flag": &"ch10_end_forgot" }, "title": "Welcome Home",
+		"text": "You went home. You feel a bit tired, and you don't know why. It's not so bad. You've done it before." },
+	{ "if": { "flag": &"ch10_end_keep" }, "title": "One More Day",
+		"text": "The tower is yours, and everyone in it. You kept what you built. You've got all the time in the world." },
+	{ "if": { "flag": &"ch10_end_draw" }, "title": "The Last Floor",
+		"text": "You did the people. They did the lines. There's a way out of the tower now, and nobody has to climb it twice. They woke up. Somebody's still by the fire, with two terrible cups." },
+	{ "if": { "flag": &"ch10_end_judge", "any_flag": [&"ch10_friend_went"] }, "title": "The Sentence",
+		"text": "Someone with every right told you what you owed. You pressed it yourself. They woke up, and they laugh with their mouth open now, and you're still paying it." },
+	{ "if": { "flag": &"ch10_end_judge" }, "title": "The Sentence",
+		"text": "Someone with every right told you what you owed. You pressed it yourself. They woke up. You told them about someone they'd have liked, and you're still paying it." },
+	{ "if": { "any_flag": [&"ch10_friend_went"] }, "title": "The Laugh",
+		"text": "The tower's gone, and everyone on its stairs. They woke up. Now and then they laugh with their mouth open, and they don't know where they got it. You do." },
+	{ "if": { "flag": &"ch10_end_reset" }, "title": "The Reset",
+		"text": "The tower's gone, and everyone on its stairs. They woke up. You told them about someone they'd have liked. It took a long time." },
+]
+
 ## Live tables: the base content plus anything DLC registered.
 static var routes: Dictionary = BASE_ROUTES.duplicate(true)
 static var endings: Array = BASE_ENDINGS.duplicate(true)
@@ -79,6 +98,12 @@ static func pick_ending() -> Dictionary:
 	for e in endings:
 		if DialogueRunner.check(e.get("if", {})) and (best.is_empty() or e.get("priority", 0) > best.get("priority", 0)):
 			best = e
+	for choice in FINAL_CHOICES:
+		if DialogueRunner.check(choice.if):
+			best = best.duplicate()
+			best.title = choice.title
+			best.text = choice.text
+			break
 	return best
 
 
