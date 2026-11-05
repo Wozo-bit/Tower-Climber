@@ -37,6 +37,7 @@ func _ready() -> void:
 	test_one_it_kept()
 	test_one_it_kept_second_hand()
 	test_one_it_kept_war()
+	test_one_it_kept_tell_them()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1756,6 +1757,79 @@ func test_one_it_kept_war() -> void:
 		r.advance()
 	check(r.choices().size() == 1 and String(r.choices()[0].text).contains("You already know"), "already locked: only that")
 	check(_play(&"ng5_choice", 0).finished, "and it still ends")
+	GameState.ng_plus_cycle = 0
+
+
+func _kept_locked(route_id: StringName, floor_n: int) -> void:
+	_kept_run(floor_n)
+	GameState.lock_route(route_id)
+	GameState.pending_talks.clear()
+
+
+func test_one_it_kept_tell_them() -> void:
+	print("-- the one it kept: floors 51-60 --")
+	_kept_run(51)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(51, false) == &"ng6_opening", "floor 51 in New Game+")
+	check(StoryLibrary.chapter_name(6) == "Chapter 6: Tell Them", "its title")
+	_fresh(51)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(51, false) == &"ch6_opening", "a first run is unchanged")
+	var r := DialogueRunner.new()
+	var nodes := { &"hero": "hero", &"villain": "villain", &"vigilante": "vigilante" }
+	for route_id in nodes:
+		for id in [&"ng6_mission", &"ng6_cost"]:
+			_kept_locked(route_id, 52)
+			r.start(id)
+			check(r.node_id == nodes[route_id] and r.choices().size() == 2, "%s: %s" % [route_id, id])
+			for pick in 2:
+				_kept_locked(route_id, 52)
+				GameState.player.gold = 1000
+				check(_play(id, pick).finished, "%s plays for %s (choice %d)" % [id, route_id, pick])
+		_kept_locked(route_id, 55)
+		for pick in 3:
+			check(_play(&"ng6_campfire", pick).finished, "%s: the fire (choice %d)" % [route_id, pick])
+	_kept_run(52)
+	r.start(&"ng6_mission")
+	check(r.node_id == "a" and _play(&"ng6_cost").finished, "a route that never locked still gets a line")
+	for id in [&"ng6_opening", &"ng6_ashes", &"ng6_scratched", &"ng6_eve", &"ng6_door", &"ng6_summit"]:
+		for past in [[], [&"past_friend_woke"], [&"ng6_told_climbers"]]:
+			for pick in 3:
+				_kept_run(58, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	# Knowing helps: moving the camp early costs nothing.
+	_kept_locked(&"hero", 52)
+	var hp := GameState.player.current_hp()
+	_play(&"ng6_mission", 0)
+	check(GameState.has_flag(&"ng6_hero_early") and GameState.has_flag(&"ch6_hero_long") and GameState.player.current_hp() == hp, "you know which stair falls")
+	# Telling them.
+	_kept_run(55)
+	_play(&"ng6_campfire", 0)
+	check(GameState.has_flag(&"ng6_told_climbers"), "you told the climbers")
+	r.start(&"ng6_scratched")
+	r.advance()
+	check(r.text().contains("HE SAID 40 MORE"), "and they talk back, on the wall")
+	r.start(&"ng6_door")
+	check(r.node_id == "told", "there are fewer on the stairs")
+	_play(&"ng6_summit")
+	check(GameState.has_flag(&"ng6_host_smaller") and GameState.has_flag(&"ch6_complete"), "fewer sign, and the chapter ends")
+	_kept_run(60)
+	r.start(&"ng6_summit")
+	while not r.has_choices():
+		r.advance()
+	check(r.node_id == "c" and r.choices().size() == 2, "if you didn't, they line up, and you can shout")
+	_kept_run(60)
+	hp = GameState.player.current_hp()
+	_play(&"ng6_summit", 0)
+	check(GameState.has_flag(&"ng6_saved_some") and GameState.player.current_hp() < hp, "and save a few, at a cost")
+	# Floor 60's order, and the copy's line.
+	_kept_run(60)
+	GameState.set_flag(&"ch7_friend_knows")
+	GameState.set_flag(StoryLibrary.seen_flag(&"ng6_door"))
+	check(StoryLibrary.due(60, true) == &"summit_false", "the door opens first")
+	GameState.set_flag(StoryLibrary.seen_flag(&"summit_false"))
+	check(StoryLibrary.due(60, true) == &"ng6_summit", "then what's behind it")
+	check(_all_text(&"ng6_summit").contains("SO DID I"), "your copy has been here")
 	GameState.ng_plus_cycle = 0
 
 

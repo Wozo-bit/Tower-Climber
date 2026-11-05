@@ -413,7 +413,9 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **Floors 41-50, "Whose War":** 41, soldiers are singing about tenants, if you told the god. 42-43, you get to the camp early and can move everyone out before the fight (`ng5_moved_camp`; also counts as driving them off, for Hilde). 44, you say "stop correcting them" along with the System. 45, "Am I real?" again, with your better answer: all of it, "You're the part of them that still laughs", or "I came back on purpose". 46-47, you can answer the voice: "I came back twenty-six times." `...you did?` If your real friend woke, they swear that voice wasn't them (`[ I've got a very bad feeling about how much of me I got back. ]`: a thread for later). 48, you get there early: carry Tess off the field (`ng5_saved_tess`, costs blood), warn her (`ng5_warned_tess`), or leave her. You can stay with the priest. 50, the same choice, and your route locks again. The System suggests telling the climbers that 60 isn't the top.
 
-**Still first-run text in New Game+: floors 51-60. Silent: 61-99.**
+**Floors 51-60, "Tell Them":** 52-53 and 56-57, the route missions, knowing how they go (Hero: move the camp before the stair falls, or hold it up; Villain: go straight to the treasury; Vigilante: "I built the floor you burned it on"; and so on). 54, you can leave 0041 a note or food (`ng6_note_0041`, `ng6_food_0041`). **55, the big choice: get up on a crate and tell everyone that 60 isn't the top** (`ng6_told_climbers`), tell a few (`ng6_told_some`), or let them sing. 58, if you told them, they've answered on the wall: HE SAID 40 MORE. WHO IS HE. SHE. is it true. 59, "I had a really good time": you can finally say "Me too". 60, the kind recruiter with the list, and under I BELIEVED IT TOO, in your old handwriting: SO DID I. If you told them, few sign (`ng6_host_smaller`); if not, you can shout in the doorway and save nine (`ng6_saved_some`). Chapter 8 should use these: fewer soldiers, different faces.
+
+**Silent in New Game+: floors 61-99.**
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |
