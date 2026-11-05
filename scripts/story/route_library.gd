@@ -47,6 +47,16 @@ const BASE_ENDINGS := [
 ## What you did at the top of a first climb: replaces the ending's title and text,
 ## keeping its id (the ending id suggests your domains).
 const FINAL_CHOICES := [
+	{ "if": { "flag": &"ng10_end_relieved" }, "title": "The One Who Stayed",
+		"text": "You told it that it could stop, and you took the door. Someone always holds that door. It's a good job. Somebody ought to come up and ask, sooner or later, whether you want to come down." },
+	{ "if": { "flag": &"ng10_end_out" }, "title": "The Way Down",
+		"text": "It stopped when you told it to. Then you drew the worst floor anyone's ever seen, for the second time, and they all walked out on it. Someone's still carrying the old ones. They've got notes." },
+	{ "if": { "flag": &"ng10_end_chair" }, "title": "One More Day, Again",
+		"text": "You came all the way back, and you sat down. It's still comfortable. You know exactly how long that lasts. You've got all the time in the world." },
+	{ "if": { "flag": &"ng10_end_shutdown", "any_flag": [&"past_friend_woke"] }, "title": "Soup",
+		"text": "It stopped when you told it to. You pressed it yourself, and you made yourself look. Then you took off your headset, more or less, and you ate your soup. It was terrible." },
+	{ "if": { "flag": &"ng10_end_shutdown" }, "title": "The Better Part",
+		"text": "It stopped when you told it to. You pressed it yourself, and they said thank you for coming back. It's morning. You've got a phone, and you know her number." },
 	{ "if": { "flag": &"ch10_end_forgot" }, "title": "Welcome Home",
 		"text": "You went home. You feel a bit tired, and you don't know why. It's not so bad. You've done it before." },
 	{ "if": { "flag": &"ch10_end_keep" }, "title": "One More Day",

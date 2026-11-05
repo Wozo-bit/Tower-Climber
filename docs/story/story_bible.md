@@ -10,7 +10,7 @@ the chapter in Tab -> Quests. The scene text lives in
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
 Chapters 3-10 (floors 21-100), the second and third returns, the Day 3 memory, four more quest classes and eleven more recruits too. **The first climb's story is written, start to finish.**
-**Not built yet:** New Game+'s "The One It Kept" and the god chapters on floors 61-99.
+**Not built yet:** the god chapters on floors 61-99.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -395,7 +395,7 @@ None of this decides what the System is or what the tower's secret is.
 
 **Ascending return (NG+).** When you Ascend, or as the Ascendant from floor 41: your room, exactly as on the first night. The email again: *"Welcome back, {player}."* If you're a god, the phone holds a prayer.
 
-### "The One It Kept" (Hayden 2026-11-05; being built)
+### "The One It Kept" (Hayden 2026-11-05; built)
 
 Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21-99 are rewritten, with things you can change. It plays in every New Game+. Gods get "The First Prayer" on top of it.
 
@@ -405,7 +405,7 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **If your real friend woke** (`past_friend_woke`), they type the windows live from the next desk: no more sorrow, a lot of teasing, and the corrections annoy them. If they didn't, it's the System, sadder and still trying.
 
-**How it ends** (Hayden 2026-11-05; not built): beat your copy and your old party on floor 100, then end them and shut the backup down, or take their place and let them rest. Someone always holds that door, so later climbs still make sense.
+**How it ends** (Hayden 2026-11-05; built): beat your copy and your old party on floor 100. It doesn't know what to do next: "You didn't write that part." **Relieve it** ("I've got the door", "The One Who Stayed"): it hands you the door and goes to lie down. On your next climb, someone comes up with charcoal on their hands, and takes it from you. **End it** ("You can stop now. Thank you."): then, if your real friend woke, they talk to your fire friend at last, and the voice from floors 46-47 turns out to be a piece of the real one left in the fire friend; they won't give it back. Then the last choice: **shut the backup down** ("Soup" if they woke, "The Better Part" if not, where the System works out it's all that's left and says thank you; a lease leaves one light on, a cupboard). **Draw a way out** ("The Way Down": Hero or Vigilante, only if you told the climbers, or told the Host, or saved Marn or Tess; never Villain). **Sit in the chair** ("One More Day, Again": Villain).
 
 **Built so far (2026-11-05):** `ng_why`, floors 21-30 ("The Door, Again") and floors 31-40 ("Second Hand"). Tell Marn on floor 25 and you can hold the door with him on 26-27; he lives, and keeps his ledger.
 
@@ -423,7 +423,9 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **The memory, again** (`RETURN_RACK`, after floor 90's boss): the studio on Day 3. If you asked, there's a door beside the window. Two flights. They're on the floor with their shoes on, breathing. You can't touch them. You stay (`return_rack_stayed`). Back on the stairs, tell the System "You were breathing. I stayed", or lie. If your real friend woke, they're three feet away with a spoon, and they stop typing.
 
-**Silent in New Game+: floors 91-99.**
+**Floors 91-100, "The One It Kept":** 91, Echoes stood in rows by height. 92-93, a 27th bedroll with your name on it, never slept in. 94, 0027 asks her name, and you can finally say it. 96-97, Tester 0041, freed, on the stairs with a folded coat: your note or food reached them. Own it, send them to Marn, or sit with them. 98, you draw the stairs together. 99, Tester 0001 again. 100, your copy and your old party.
+
+**The One It Kept is written, floors 1-100 (first draft).** Gods get it plus "The First Prayer", which has no scenes on 61-99 yet.
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |

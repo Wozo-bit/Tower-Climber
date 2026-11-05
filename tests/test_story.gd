@@ -41,6 +41,7 @@ func _ready() -> void:
 	test_one_it_kept_drafts()
 	test_one_it_kept_tenants()
 	await test_one_it_kept_going_down()
+	test_one_it_kept_ending()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1446,7 +1447,7 @@ func _finish_top(picks: Array) -> DialogueRunner:
 
 func test_chapter_ten() -> void:
 	print("-- chapter 10 --")
-	var ch10 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 10 and not s.get("if", {}).get("god", false))
+	var ch10 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 10 and String(s.dialogue).begins_with("ch10"))
 	var covered := {}
 	for s in ch10:
 		for f in s.floors:
@@ -2045,6 +2046,101 @@ func test_one_it_kept_going_down() -> void:
 	_kept_run(90)
 	_play(&"ng9_draft_down")
 	check(GameState.has_flag(&"ch9_complete"), "chapter 9 complete")
+	GameState.ng_plus_cycle = 0
+
+
+func _kept_top(picks: Array) -> DialogueRunner:
+	var r := DialogueRunner.new()
+	r.start(&"ng10_top")
+	var guard := 0
+	var i := 0
+	while not r.finished and guard < 80:
+		guard += 1
+		if r.has_choices():
+			var cs := r.choices()
+			var chosen = cs[0]
+			if i < picks.size():
+				for c in cs:
+					if String(c.text).contains(picks[i]):
+						chosen = c
+			i += 1
+			r.choose(chosen.index)
+		else:
+			r.advance()
+	return r
+
+
+func test_one_it_kept_ending() -> void:
+	print("-- the one it kept: floors 91-100 --")
+	_kept_run(91, [&"ng7_friend_knows"])
+	check(StoryLibrary.due(91, false) == &"ng10_opening", "floor 91 in New Game+")
+	check(StoryLibrary.chapter_name(10) == "Chapter 10: The One It Kept", "its title")
+	for id in [&"ng10_opening", &"ng10_camp", &"ng10_twelve", &"ng10_twelve_down", &"ng10_fire", &"ng10_0041", &"ng10_stairs", &"ng10_first_login", &"ng10_first_login_down", &"ng10_final"]:
+		for past in [[], [&"past_friend_woke"], [&"ng3_marn_lives", &"ng8_tess_lives"], [&"ng6_note_0041"]]:
+			for pick in 3:
+				_kept_run(95, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	_kept_run(100, [&"ng7_friend_knows"])
+	check(StoryLibrary.SCENES[&"final_mimic"].dialogue == &"ng10_final", "the mimic greets you with the new scene")
+	GameState.set_flag(StoryLibrary.seen_flag(&"final_mimic"))
+	GameState.set_flag(StoryLibrary.seen_flag(&"god_top"))
+	check(StoryLibrary.due(100, true) == &"ng10_top", "after it, the ending")
+	# Relieve it.
+	_kept_run(100)
+	check(_kept_top(["Get up"]).finished and GameState.has_flag(&"ch10_ended") and RouteLibrary.pick_ending().title == "The One Who Stayed", "relieve it: you hold the door")
+	check(&"past_relieved_copy" in StoryLibrary.past_flags(&"hero"), "and the next climb knows")
+	_kept_run(1, [&"past_relieved_copy", &"past_end_reset"])
+	var r := DialogueRunner.new()
+	r.start(&"ng_why")
+	check(r.node_id == "relieved", "someone comes up and takes the door from you")
+	# End it: then the last choice.
+	var offered := { &"hero": ["Press it", "Pick up the pencil"], &"villain": ["Press it", "Sit down in the chair"], &"vigilante": ["Press it", "Pick up the pencil"] }
+	for route_id in offered:
+		_kept_locked(route_id, 100)
+		GameState.set_flag(&"ng6_told_climbers")
+		r.start(&"ng10_top")
+		var guard := 0
+		while r.node_id != "pick" and guard < 40:
+			guard += 1
+			if r.has_choices():
+				r.choose(r.choices()[0].index)
+			else:
+				r.advance()
+		var texts: Array = r.choices().map(func(c): return String(c.text))
+		check(texts.size() == 2 and offered[route_id].all(func(want): return texts.any(func(t): return t.contains(want))), "%s: its options %s" % [route_id, texts])
+	_kept_locked(&"hero", 100)
+	r.start(&"ng10_top")
+	var g2 := 0
+	while r.node_id != "pick" and g2 < 40:
+		g2 += 1
+		if r.has_choices():
+			r.choose(r.choices()[0].index)
+		else:
+			r.advance()
+	check(r.choices().size() == 1, "the way out has to be earned")
+	# Each ending.
+	_kept_locked(&"hero", 100)
+	GameState.set_flag(&"ng3_marn_lives")
+	_kept_top(["You can stop", "Pick up the pencil"])
+	check(GameState.has_flag(&"ng10_end_out") and RouteLibrary.pick_ending().title == "The Way Down" and GameState.has_flag(&"ch10_ended"), "everyone walks out")
+	_kept_locked(&"villain", 100)
+	_kept_top(["You can stop", "Sit down"])
+	check(RouteLibrary.pick_ending().title == "One More Day, Again", "villains can sit down again")
+	_kept_locked(&"hero", 100)
+	GameState.set_flag(&"past_friend_woke")
+	_kept_top(["You can stop", "Press it"])
+	check(GameState.has_flag(&"ng10_friends_met") and RouteLibrary.pick_ending().title == "Soup", "your two friends meet, and there's soup")
+	_kept_locked(&"hero", 100)
+	_kept_top(["You can stop", "Press it"])
+	check(RouteLibrary.pick_ending().title == "The Better Part" and not GameState.has_flag(&"ng10_friends_met"), "if they never woke, it's goodbye")
+	check(_all_text(&"ng10_top").contains("the nicest cupboard"), "a lease leaves a light on")
+	_kept_locked(&"hero", 100)
+	GameState.set_flag(&"ng8_gave_lease")
+	check(_kept_top(["You can stop", "Press it"]).finished, "and it still ends")
+	_kept_run(100)
+	GameState.dismiss(GameState.childhood_friend())
+	GameState.set_flag(&"past_friend_woke")
+	check(_kept_top(["You can stop", "Press it"]).finished and not GameState.has_flag(&"ng10_friends_met"), "friend by a fire: they can't meet")
 	GameState.ng_plus_cycle = 0
 
 

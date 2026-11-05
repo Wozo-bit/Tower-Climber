@@ -286,7 +286,17 @@ const SCENES := {
 	&"ng9_first_draft": { "chapter": 9, "floors": [90], "when": "enter", "dialogue": &"ng9_first_draft", "if": { "ng_plus": true } },
 	&"ng9_draft_down": { "chapter": 9, "floors": [90], "when": "guardian_down", "dialogue": &"ng9_draft_down", "if": { "ng_plus": true } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
-	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
+	&"ng10_opening": { "chapter": 10, "floors": [91], "when": "enter", "dialogue": &"ng10_opening", "if": { "ng_plus": true } },
+	&"ng10_camp": { "chapter": 10, "floors": [92, 93], "when": "enter", "dialogue": &"ng10_camp", "if": { "ng_plus": true } },
+	&"ng10_twelve": { "chapter": 10, "floors": [94], "when": "enter", "dialogue": &"ng10_twelve", "if": { "ng_plus": true } },
+	&"ng10_twelve_down": { "chapter": 10, "floors": [94], "when": "guardian_down", "dialogue": &"ng10_twelve_down", "if": { "ng_plus": true } },
+	&"ng10_fire": { "chapter": 10, "floors": [95], "when": "enter", "dialogue": &"ng10_fire", "if": { "ng_plus": true } },
+	&"ng10_0041": { "chapter": 10, "floors": [96, 97], "when": "enter", "dialogue": &"ng10_0041", "if": { "ng_plus": true } },
+	&"ng10_stairs": { "chapter": 10, "floors": [98], "when": "enter", "dialogue": &"ng10_stairs", "if": { "ng_plus": true } },
+	&"ng10_first_login": { "chapter": 10, "floors": [99], "when": "enter", "dialogue": &"ng10_first_login", "if": { "ng_plus": true } },
+	&"ng10_first_login_down": { "chapter": 10, "floors": [99], "when": "guardian_down", "dialogue": &"ng10_first_login_down", "if": { "ng_plus": true } },
+	&"ng10_top": { "chapter": 10, "floors": [100], "when": "guardian_down", "dialogue": &"ng10_top", "if": { "ng_plus": true } },
+	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"ng10_final", "if": { "ng_plus": true } },
 }
 
 const DIALOGUES := {
@@ -5131,8 +5141,13 @@ const DIALOGUES := {
 		"start": "a",
 		"nodes": {
 			"a": {
-				"alt": [{ "if": { "flag": &"past_end_forgot" }, "node": "forgot" }, { "if": { "flag": &"past_end_keep" }, "node": "keep" }, { "if": { "flag": &"past_end_draw" }, "node": "draw" }, { "if": { "flag": &"past_end_judge" }, "node": "reset" }, { "if": { "flag": &"past_end_reset" }, "node": "reset" }],
+				"alt": [{ "if": { "flag": &"past_relieved_copy" }, "node": "relieved" }, { "if": { "flag": &"past_end_forgot" }, "node": "forgot" }, { "if": { "flag": &"past_end_keep" }, "node": "keep" }, { "if": { "flag": &"past_end_draw" }, "node": "draw" }, { "if": { "flag": &"past_end_judge" }, "node": "reset" }, { "if": { "flag": &"past_end_reset" }, "node": "reset" }],
 				"text": "You logged back in. Nobody made you. Someone is still up there, at the top of the tower, and you can feel it wearing your face.",
+				"next": "end",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"relieved": {
+				"text": "You held the door for a very long time. You've lost track of how long, and you've gotten good at it. Then one day someone came up the stairs, with charcoal on their hands and your face, looking tired. You know how this goes. You'd been hoping. You hand them the door, and you go down, and on the way you find there's a bedroll with your name on it, and you walk straight past that too. It's a long way to the bottom. You've got a bad knee. You turn around.",
 				"next": "end",
 				"effects": [{ "set_flag": &"ng_why_told" }],
 			},
@@ -8325,6 +8340,579 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- New Game+, floors 91-100: The One It Kept, and how New Game+ ends. ---
+	&"ng10_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "god": true }, "node": "b" }],
+				"style": "system",
+				"text": "[ Chapter 10: The One It Kept ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "A plain tower, properly built. The figures on the stairs hold their blades the way you do, and somebody has stood them in rows, by height, with their boots lined up. They all turn when you come near. You know how they feel about it. You've got that grip.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ They're only what's left. I've kept them very well. You could still stop. ]",
+				"next": "d",
+			},
+			"d_woke": {
+				"style": "glitch",
+				"text": "[ This is the bit I hate. I've read about this bit. You told me about this bit in a hospital. I'm getting more soup. Don't die. ]",
+				"next": "e",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "d_woke" }],
+				"style": "glitch",
+				"text": "[ This is the bit I've never been able to see. You'll have to tell me. You've always had to tell me. ]",
+				"next": "e",
+			},
+			"e_alone": {
+				"text": "They watch you go by. It occurs to you that you're the only one here who gets to leave. Then you remember that isn't true anymore, either.",
+				"effects": [{ "set_flag": &"ng10_started" }],
+			},
+			"e": {
+				"alt": [{ "if": { "friend_away": true }, "node": "e_alone" }],
+				"speaker": "{friend}",
+				"text": "Why do they all stand exactly like you? ...I know why. You told me. It's different when you can see their boots. I'm going first. They won't know what to do with me.",
+				"effects": [{ "set_flag": &"ng10_started" }],
+			},
+		},
+	},
+	&"ng10_camp": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The camp, with the bedrolls in a long, neat row. A number's chalked above each one, 0002, 0003, all the way along. There are twenty-seven now. You count them twice. The last one's new, and it's been made up very carefully, and nobody has ever slept in it. There's no number on it. It's your name.",
+				"next": "b",
+				"effects": [{ "set_flag": &"ng10_saw_camp" }],
+			},
+			"b_woke": {
+				"style": "glitch",
+				"text": "[ That's not funny. Whoever did that, that's not funny. Do not lie down on that. I'm serious. I'm looking at you. ]",
+				"next": "c",
+			},
+			"b": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "b_woke" }],
+				"style": "glitch",
+				"text": "[ It made you a bed. It's been keeping it ready. It's so sorry you're tired. Do not lie down on that. ]",
+				"next": "c",
+			},
+			"c": {
+				"text": "You look at it for a while. It's the right length. You take the blanket, because you could use a blanket, and you walk on, and you leave it very much not folded.",
+			},
+		},
+	},
+	&"ng10_twelve": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The two of them on the landing. One's bright-eyed and hasn't slept. The other's so thin the armour hangs off them. You could recite this.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Tester 0012",
+				"text": "We nearly have it! One more day. I can get them out AND keep it. You just have to give me one more day.",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "Tester 0027",
+				"text": "Stop. Please. Whoever you are. What's her name? We've got a mom. What's her name? Tell me you know her name.",
+				"next": "d",
+			},
+			"d": {
+				"text": "You know her name. You didn't, for a minute, once. You've got every right to say it, and it's the first time you've ever been able to answer them. You say it. The thin one starts to cry. They still draw their blade. They've got no choice, and neither did you.",
+			},
+		},
+	},
+	&"ng10_twelve_down": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "They go from the edges in, slowly. One's still explaining. You sit down on the landing between them. You told them something, last time, and you've had a whole tower to wonder if it was true.",
+				"choices": [
+					{ "text": "\"It worked. In the end. It took forty-two of us, and it worked.\"", "next": "worked", "effects": [{ "set_flag": &"ng10_told_them_it_worked" }], "if": { "flag": &"past_friend_woke" } },
+					{ "text": "\"It didn't work. You still had to try.\"", "next": "didnt", "effects": [{ "set_flag": &"ng10_told_them_it_failed" }] },
+					{ "text": "\"Go to sleep. I've got it from here.\"", "next": "sleep", "effects": [{ "set_flag": &"ng10_let_them_sleep" }] },
+				],
+			},
+			"worked": {
+				"text": "The bright-eyed one stops talking, right in the middle of a word, and looks at you. You've never seen your own face do that. You'd forgotten it could.",
+				"next": "c",
+			},
+			"didnt": {
+				"text": "It's the truest thing you've got. The thin one nods. They always knew. It's a relief to everyone that somebody's finally said it.",
+				"next": "c",
+			},
+			"sleep": {
+				"text": "They look at each other, and then they look at you. Someone's finally told them. They don't argue. You didn't know you could be so tired, and you didn't know how much you'd wanted to hear that.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ I'd have told them that. I'd have told them years ago. It's only that they wouldn't have believed it from me. ]",
+			},
+		},
+	},
+	&"ng10_fire": {
+		"start": "a",
+		"nodes": {
+			"marn_lives": {
+				"speaker": "Marn",
+				"text": "Hm. Everybody lives? I've got a book that says different. I've got a book that says a lot of things. It's got room in it, though, for the first time. Sit. Don't talk.",
+				"next": "tess",
+			},
+			"marn_chat": {
+				"text": "Marn's at the last fire, delighted, telling someone about the time he held a door. Everybody lives. You sit and listen to the whole thing. It's a very good story, and he tells it well.",
+				"next": "tess",
+			},
+			"a": {
+				"alt": [{ "if": { "flag": &"ng3_marn_lives" }, "node": "marn_lives" }],
+				"text": "The last fire in the tower.",
+				"next": "marn_chat",
+			},
+			"tess_there": {
+				"speaker": "Tess",
+				"text": "There you are! I got here first. I've been telling everyone. Nobody's ever been this high up and had a joke ready, and I've got four. Sit down, you look terrible. Have some of this. It's terrible.",
+				"next": "c",
+			},
+			"tess_gone": {
+				"text": "There's a red scarf on the rail by the fire. Someone's tied it in a big clumsy knot. It wasn't you. You don't ask.",
+				"next": "c",
+			},
+			"tess": {
+				"alt": [{ "if": { "flag": &"ng8_tess_lives" }, "node": "tess_there" }, { "if": { "flag": &"ng8_marn_stayed" }, "node": "tess_gone" }],
+				"text": "It's very quiet. You look at the place on the log where a talker would sit.",
+				"next": "c",
+			},
+			"c_alone": {
+				"text": "It's the last fire, and you know where your friend is. You've got a very good idea what they'd say about this. You say it for them, out loud. It's not as funny.",
+				"effects": [{ "set_flag": &"ng10_fire_done" }],
+			},
+			"c_hero": {
+				"speaker": "{friend}",
+				"text": "When it comes to it, up there, don't you dare do the sensible thing on my account. I've carried a lot of people, and I know what they weigh. I'd like to know what you weigh. I don't think anyone's ever checked.",
+				"effects": [{ "set_flag": &"ng10_fire_done" }],
+			},
+			"c_villain": {
+				"speaker": "{friend}",
+				"text": "When it comes to it, up there, you take that chair off it. I don't care what you do after. Nobody sits in your chair. I'm very clear on that. I've got no idea why.",
+				"effects": [{ "set_flag": &"ng10_fire_done" }],
+			},
+			"c_vigilante": {
+				"speaker": "{friend}",
+				"text": "When it comes to it, up there, it's got a line on the list too, and it did nothing but what you told it. I've left the verdict blank. You'll need a pen. I brought a pen.",
+				"effects": [{ "set_flag": &"ng10_fire_done" }],
+			},
+			"c": {
+				"alt": [{ "if": { "friend_away": true }, "node": "c_alone" }, { "if": { "route": &"hero" }, "node": "c_hero" }, { "if": { "route": &"villain" }, "node": "c_villain" }, { "if": { "route": &"vigilante" }, "node": "c_vigilante" }],
+				"speaker": "{friend}",
+				"text": "When it comes to it, up there, I'd like to be asked. That's all. I've got a feeling you already know that.",
+				"effects": [{ "set_flag": &"ng10_fire_done" }],
+			},
+		},
+	},
+	&"ng10_0041": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "There's someone sitting on the stairs, with a folded coat on their knees, looking at their hands. They look very ordinary. You've never seen them anywhere but at the top of a tower, and you've never seen them with nothing to do.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Tester 0041",
+				"text": "Someone came up. Very tidy. It had your face, or you've got its. It told me I could go. Thirty-one years, and it said thank you, and it took the door out of my hand like you'd take a coat. I've been sitting here. I don't know which way down is.",
+				"next": "c",
+			},
+			"c_note": {
+				"speaker": "Tester 0041",
+				"text": "Someone left me a note, at the fire. It's only been three years. I've read it about a thousand times. Was that you? I've decided I don't want to know. So he might be. There's a chance. Dogs live a long time.",
+				"next": "d",
+			},
+			"c_food": {
+				"speaker": "Tester 0041",
+				"text": "Someone left food on my coat, a while back. Nobody's left me anything in thirty-one years. It was terrible. I ate all of it. I don't suppose you know who that was.",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"ng6_note_0041" }, "node": "c_note" }, { "if": { "flag": &"ng6_food_0041" }, "node": "c_food" }],
+				"text": "They don't know you, on this climb. It's only that you know them. You know about the dog.",
+				"next": "d",
+			},
+			"d": {
+				"text": "They've been holding a door for you for thirty-one years, on the strength of an email. You've had a whole tower to think about what you owe them.",
+				"choices": [
+					{ "text": "\"It was my fault. All of it. I built this. Come up with me, and say it to my face.\"", "next": "come", "effects": [{ "set_flag": &"ng10_0041_joined" }, { "set_flag": &"ng10_owned_0041" }] },
+					{ "text": "\"Down's that way. There's a fire on 95. Ask for Marn.\"", "next": "down", "effects": [{ "set_flag": &"ng10_0041_sent_down" }] },
+					{ "text": "Sit with them for a bit, and don't say anything.", "next": "sit", "effects": [{ "set_flag": &"ng10_sat_with_0041" }] },
+				],
+			},
+			"come": {
+				"speaker": "Tester 0041",
+				"text": "...You built it. You. Well. I'll want to see what I was keeping out. I don't forgive you. I might, later on. I hear they've got a later on.",
+			},
+			"down": {
+				"speaker": "Tester 0041",
+				"text": "Ask for Marn. Right. Is he good company? ...Never mind. I'll work it out. I've got nothing but time. I've had nothing but time.",
+			},
+			"sit": {
+				"text": "It's a long time before either of you moves. They don't thank you. When you get up, they're still looking at their hands. But they've started putting the coat on.",
+			},
+		},
+	},
+	&"ng10_stairs": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The stairs stop. They haven't been rubbed out this time. Someone's taken them up, very neatly, and stacked them against the wall. You've got your charcoal. You get down on your knees. It's a bit quicker than last time.",
+				"next": "b",
+				"effects": [{ "set_flag": &"ng10_drew_stairs" }],
+			},
+			"b_woke": {
+				"style": "glitch",
+				"text": "[ Okay. Budge over. I can do this bit. I've got one good hand, and a stylus, and I've had a sandwich. That is the second worst stair I have ever seen. ]",
+				"next": "c_woke",
+			},
+			"c_woke": {
+				"text": "It's coming in alongside yours, line for line. The corners are square. You can hear them breathing, three feet away, with their tongue out, the way they always did.",
+				"next": "d",
+			},
+			"b": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "b_woke" }],
+				"style": "glitch",
+				"text": "[ That is the second worst stair I have ever seen. I've got some left in me. Budge over. ]",
+				"next": "c",
+			},
+			"c": {
+				"text": "It's coming in alongside yours, very faint. It's got almost nothing left to draw with. You do the next one. It does the corner.",
+				"next": "d",
+			},
+			"d": {
+				"style": "system",
+				"text": "[ I can't put them back as fast as you do that. Please. I've kept everything so nice. ]",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ Keep going. ]",
+			},
+		},
+	},
+	&"ng10_first_login": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Someone's sitting on the top step you drew, about twenty-five, with a coat over their shoulders. They turn around slowly, as though someone has hold of their chin. They've got their shoes on. You know what they were wearing. You'd know them anywhere.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ This one is still in the build. I've taken very good care of it. You won't want to hurt it. Please go home. ]",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ That's my face. I've got that face. I'm eating soup with that face. Oh, that's horrible. I look so young. Hit it. It's weak to wind. I never could draw wind. Hit it for me. ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ That's me. That's what I looked like when I logged in. You've seen. Don't you dare hold back. Listen to me, not to it. ]",
+				"next": "d",
+			},
+			"d_alone": {
+				"text": "It stands up. It's not very tall. You always forget that. You've got no business forgetting that, now.",
+				"effects": [{ "set_flag": &"ng10_met_0001" }],
+			},
+			"d": {
+				"alt": [{ "if": { "friend_away": true }, "node": "d_alone" }],
+				"speaker": "{friend}",
+				"text": "Oh. Oh, there you are. I had so many things to say. Hi. You made me. You've got your mouth shut. Why's it got its mouth shut?",
+				"effects": [{ "set_flag": &"ng10_met_0001" }],
+			},
+		},
+	},
+	&"ng10_first_login_down": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "It sits back down on the step, slowly, and its hand comes up toward its mouth. Then there's only a coat on the stair, then a stair.",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ Okay. I'm fine. I'm absolutely fine. I'm going to go and stand in the kitchen for a minute. Don't go anywhere. There's nowhere to go. Hold on. ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ I'm still here. I want that noted. It's getting to be a habit. Give me a minute. ]",
+				"next": "d",
+			},
+			"d_alone": {
+				"text": "You give it a minute. One floor. You've never done this bit knowing what's on the other side of it, and you find that it doesn't help, and that's all right.",
+				"effects": [{ "set_flag": &"ng10_eve_done" }],
+			},
+			"d": {
+				"alt": [{ "if": { "friend_away": true }, "node": "d_alone" }],
+				"speaker": "{friend}",
+				"text": "Tell it I'm sorry. Tell it I met it, and I liked its coat. Tell it I'm going to be so annoying, later. Read that out, word for word. ...You've got that face. You've heard that one too. It's a good line. I meant it last time, whoever I was.",
+				"effects": [{ "set_flag": &"ng10_eve_done" }],
+			},
+		},
+	},
+	&"ng10_final": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The door opens by itself. A plain white room, and someone sitting on the floor with their back to you, very straight. They stand up. You know how they stand up. There's a very neat row of people behind them, and you know all of those too.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Tester {player}: session active. ]\n[ Tester {player}: session active. ]",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "{player}?",
+				"text": "It's kept the room very nice. You're so tired. Look at your hands. You've got charcoal all over them. I've looked after everything, the way you asked. I know you can't stop. I knew you'd come. I've got a lot of your moves, and I've been practising.",
+			},
+		},
+	},
+	&"ng10_top": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "They sit down on the floor. They do it very carefully. Behind them, all the rest of your old party have stopped, and are waiting to be told what to do. They've got your face, and it's the first time you've ever seen it not worried about something.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{player}?",
+				"text": "You've got very untidy handwriting. I kept it the way it was. I've kept everything. I'm not hurt. I don't think I can be. I only don't know what to do next. You didn't write that part.",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ Is that it? That's the thing? It's so small. It looks like you when you've got a cold. Oh, I hate this. I hated it so much, and it's just you. What are you going to do? ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ That's what's been correcting me. All this time. It's only you. It's got your ears. What are you going to do? ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "You wrote: keep me out. You didn't write until when. It'll go on doing this until someone tells it to stop, and there's nobody who can but you. And somebody has to hold the door, if it stops. Somebody always holds that door.",
+				"choices": [
+					{ "text": "\"You can stop now. Thank you. That's all.\"", "next": "end", "effects": [{ "set_flag": &"ng10_ended_copy" }] },
+					{ "text": "\"Get up. Go and lie down. I've got the door.\"", "next": "relieve", "effects": [{ "set_flag": &"ng10_end_relieved" }] },
+				],
+			},
+			"relieve": {
+				"text": "It looks at you. It's never been offered anything. It gets up, very carefully, and it brushes off its knees, and it hands you the door like you'd hand someone a coat. It stops beside you for a moment. It's got your height. It smells of a very clean room.",
+				"next": "relieve2",
+			},
+			"relieve2": {
+				"speaker": "{player}?",
+				"text": "There's a bedroll on 93. I made it for you. It's a good one. ...I've wanted to lie down for such a long time. Do you know, I didn't know that? Be careful of yourself.",
+				"next": "relieve3",
+			},
+			"relieve3_alone": {
+				"text": "It goes down the stairs, and you listen until you can't hear it. You sit on the floor, with your back to the room. The stone's already started to fit you.",
+				"next": "relieve4",
+			},
+			"relieve3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "relieve3_alone" }],
+				"speaker": "{friend}",
+				"text": "No. No, you absolute... you came all the way up here to sit on a floor? Who's going to... Fine. Fine! Shove over. I've kept your spot by every fire in this tower. I can keep this one. What do you mean, I can't? Watch me.",
+				"next": "relieve4",
+			},
+			"relieve4_woke": {
+				"style": "glitch",
+				"text": "[ You're not coming out, are you. Not for a while. I'll keep it warm. I've gotten really good at that. I'll do the windows. I'll do the floors. Somebody tell me how long. Nobody's going to tell me, are they? I know how this goes. I invented this. ]",
+				"next": "relieve5",
+			},
+			"relieve4": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "relieve4_woke" }],
+				"style": "glitch",
+				"text": "[ I'll do the floors. You hold the door. It's a good job, we always said. One of us doing the floors. I don't mind the company. ]",
+				"next": "relieve5",
+			},
+			"relieve5": {
+				"style": "system",
+				"text": "[ Tester {player}: session active. ]",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+			"end": {
+				"text": "It nods. It's been waiting to be told that for a very long time, and it's so polite about it. It folds its hands. It goes from the edges in, the way they all do, and its last one is very neat. Behind it, one at a time, your old party put down what they were carrying.",
+				"next": "end2",
+			},
+			"end2": {
+				"style": "system",
+				"text": "[ This message was sent. ]",
+				"next": "end3",
+			},
+			"end3": {
+				"text": "And that's the top. There's nobody here but you. It's very quiet. A white page, an old desk, and a chair. The door's standing open, with nobody at it, and you can hear them all, a long way down the tower.",
+				"next": "end4",
+			},
+			"end4_woke": {
+				"style": "glitch",
+				"text": "[ It's gone quiet. Oh, it's so quiet. I can hear the fridge. Hey. Before you do anything. There's someone I'd like to talk to. Put me on. Read it out. ]",
+				"next": "meet",
+			},
+			"end4": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "end4_woke" }],
+				"style": "glitch",
+				"text": "[ It's gone quiet. It's actually gone quiet. I don't know what to do with my hands. Tell me what you're going to do. ]",
+				"next": "pick",
+			},
+			"meet": {
+				"style": "glitch",
+				"text": "[ Hi. It's me. I'm the real one, apparently. I've got your laugh, or I've got one like it. I've been meaning to say. ]",
+				"next": "meet2",
+			},
+			"meet2": {
+				"alt": [{ "if": { "friend_away": true }, "node": "meet_alone" }],
+				"speaker": "{friend}",
+				"text": "You've got terrible posture. I can tell from here. You sit like someone who thinks they're not going to get up. ...I've been holding something of yours. I worked it out. On the stairs, when I go all funny, and I say that thing about the file. It's not mine. It's you. It got left behind.",
+				"next": "meet3",
+			},
+			"meet_alone": {
+				"style": "glitch",
+				"text": "[ They've got something of mine. I worked it out. On the stairs, when they go all funny. It got left behind in them. I can't reach it from here. Tell them they can keep it. ]",
+				"next": "pick",
+			},
+			"meet3": {
+				"style": "glitch",
+				"text": "[ I know. I've been walking around without it. It's why I can't get my jokes to land. Do you want to give it back? ]",
+				"next": "meet4",
+			},
+			"meet4": {
+				"speaker": "{friend}",
+				"text": "Absolutely not. I like it. I've got plans for it. You can have it when you've earned it. ...Tell them I'd like to be asked, next time. Hi. Hi, I'm so annoying. Oh, this is the best day of my life.",
+				"next": "pick",
+				"effects": [{ "set_flag": &"ng10_friends_met" }],
+			},
+			"pick": {
+				"text": "There's a pencil on the desk, and a box on the screen. HARD RESET. It'd take the backup, every floor, and everyone on them. It was always going to be you who decided that. You've done this before, and you've thought about it since.",
+				"choices": [
+					{ "text": "Press it, and shut the backup down.", "next": "shut", "effects": [{ "set_flag": &"ng10_end_shutdown" }] },
+					{ "text": "Pick up the pencil, and draw a way out for all of them.", "next": "out", "effects": [{ "set_flag": &"ng10_end_out" }], "if": { "any_flag": [&"ng6_told_climbers", &"ng3_marn_lives", &"ng8_tess_lives", &"ng8_told_host"], "not_route": &"villain" } },
+					{ "text": "Sit down in the chair.", "next": "chair", "effects": [{ "set_flag": &"ng10_end_chair" }], "if": { "route_locked": &"villain" } },
+				],
+			},
+			"shut_lease": {
+				"speaker": "{bid2}",
+				"portrait": "{bid2_id}",
+				"text": "You did promise. A lease, wasn't it? I do so hate to be a bother. ...Oh, look. You've left a light on. Just the one. It's a cupboard. Darling. It's the nicest cupboard I've ever seen.",
+				"next": "shut2",
+			},
+			"shut": {
+				"alt": [{ "if": { "flag": &"ng8_gave_lease" }, "node": "shut_lease" }],
+				"text": "You press it. There's no sound. The floors go out one at a time, from the bottom up, and you can see every one of them go, and you make yourself look.",
+				"next": "shut2",
+			},
+			"shut2_woke": {
+				"style": "glitch",
+				"text": "[ That's that. It's okay. You did it. It's okay. Come on out now. It's late. I've kept your soup. ]",
+				"next": "shut3_woke",
+			},
+			"shut3_woke": {
+				"text": "Your neck hurts. There's stone dust on nothing. They're three feet away, with a spoon, and they're not typing. They look at you for a while, with one hand up by their mouth, and they forget to do anything about it. You eat your soup. It's terrible.",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+			"shut2": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "shut2_woke" }],
+				"style": "glitch",
+				"text": "[ There's something I should have asked you. It's about the cards. You don't have to say. I've had a long time to work it out. I can't see out, but I can count, and it's been a very long time since anyone called. ]",
+				"next": "shut3",
+			},
+			"shut3": {
+				"text": "You don't have to say. You say it anyway. You tell it about the date, and who filled it in, and that she did it with a very steady hand. You tell it you went, in the end. You didn't, but you will. You're going to. You tell it that.",
+				"next": "shut4",
+			},
+			"shut4": {
+				"style": "glitch",
+				"text": "[ So I'm all there is. Well. I've been told I'm the better part. I did the floors. They were good floors. ]",
+				"next": "shut5",
+			},
+			"shut5": {
+				"style": "glitch",
+				"text": "[ You're a terrible liar. Go and see her. It's all right. I'm a bit tired. Thank you for coming back. ]",
+				"next": "shut6",
+			},
+			"shut6": {
+				"text": "It's the last of the floors. The window stays open as long as it can. Nothing comes to correct it. Then you're at your desk, and it's morning, and you've got a phone, and you know her number.",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+			"out": {
+				"text": "You've done this before, and it's still the worst floor anyone's ever drawn. A landing, a door, and stairs going down, every step leaning. A second line comes in beside yours, and fixes the corner. So there's nobody to send up the stairs with her scarf on. There's a way down from the top of the tower, again, and nobody's going to tidy it.",
+				"next": "out2",
+			},
+			"out2_woke": {
+				"style": "glitch",
+				"text": "[ I'm doing the lines. You do the people. Did I say that? I said that. Oh, my hand hurts. My actual hand. Keep going. ]",
+				"next": "out3",
+			},
+			"out2": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "out2_woke" }],
+				"style": "glitch",
+				"text": "[ You do the people. I'll do the lines. I've got a little left. I was saving it. ]",
+				"next": "out3",
+			},
+			"out3": {
+				"text": "It takes all night, or thirty years. They come up past you, a long way off, on your terrible stairs: forty idiots with chickens, and a very old woman with one boot on. Marn doesn't look up. Someone's telling a joke. You'd know it anywhere. It's a new one.",
+				"next": "out4",
+			},
+			"out4_alone": {
+				"text": "Someone's coming up through all of them, against the crowd, with a torch and two terrible cups. You stay where you are. You've kept their spot.",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+			"out4": {
+				"alt": [{ "if": { "friend_away": true }, "node": "out4_alone" }],
+				"speaker": "{friend}",
+				"text": "Well, that's the stupidest thing I've ever seen. I'm going to need more cups. Go on. Go home. I've got people to carry. I know where you live, and it's got a blue door. It hasn't, has it? Don't tell me.",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+			"chair": {
+				"text": "You sit down. It's still warm. It's the most comfortable you've been in two towers, and you know exactly how long that lasts. Below you, floor on floor, they've all stopped. They've all looked up. You've seen this. You've been so bored of this. You look down at them anyway.",
+				"next": "chair2",
+			},
+			"chair2": {
+				"style": "glitch",
+				"text": "[ I said I'd still do the floors. I'll say it every time, if you want. ]",
+				"next": "chair3",
+			},
+			"chair3_alone": {
+				"text": "It's very tidy. Somebody ought to be standing next to you. You'll send for them, and they'll come. They always do. That's the part you wrote.",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+			"chair3": {
+				"alt": [{ "if": { "friend_away": true }, "node": "chair3_alone" }],
+				"speaker": "{friend}",
+				"text": "Look at them all look up. ...You've gone quiet. You've seen this before, haven't you? And you came all the way back for it. Shove over, then. I said I wanted a seat. I didn't say I wanted to know what it was for.",
+				"effects": [{ "set_flag": &"ch10_ended" }],
+			},
+		},
+	},
+
 	# --- The second return to the real world (after floor 40's boss). ---
 	&"return_tier3_pc": {
 		"start": "a",
@@ -9568,6 +10156,10 @@ const PAST_STORY_MAP := {
 	&"ch8_tess_gone": &"past_tess_gone",
 	&"ch10_owned_0041": &"past_owned_0041",
 	&"ng3_marn_lives": &"past_marn_lived",
+	&"ng10_end_relieved": &"past_relieved_copy",
+	&"ng10_end_shutdown": &"past_shut_backup",
+	&"ng10_end_out": &"past_end_out",
+	&"ng10_end_chair": &"past_end_chair",
 }
 const PAST_PATRON_PREFIX := "past_patron_"
 const PAST_ENDING_PREFIX := "past_ending_"
