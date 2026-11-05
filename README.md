@@ -602,6 +602,8 @@ Picked at **New Game** (and again when starting **New Game+**). During a run you
 - Numbers: `scripts/data/difficulty.gd`.
 
 ### What the balance simulator says
+**After the 11 new recruits** (2026-11-04), Normal on the bot: 16/48 clears to floor 100, against 30/48 with the five early new recruits skipped, and 14/24 with just Oren and Dragan skipped. No enemy changed: the bot takes everyone it meets in order and never chooses a party, so an early second tank seems to take a damage dealer's seat. Treat this as a bot limit until real play says otherwise.
+
 **After the playtest changes** (2026-11-04), 40 runs per difficulty, before -> after: Relaxed 40 -> 40, Normal 33 -> 28, Hard 25 -> 25, Hell 4 -> 5 (with the back-row pressure; one batch of 40 swings by several runs, the same changes without it gave 29 / 17 / 8). The bot doesn't use merchants' weapons, travel, Defend for blasts or barriers' weaknesses on purpose, and beaten guardians no longer give it extra XP when it re-climbs after a wipe (its level at the floor-10 boss fell from about 15.6 to 11.4 on Normal), so most of the drop is at the first two bosses. Late fights still cost the bot only 1-2% party HP, so the twists and boss mechanics add variety more than danger. To re-check with real play.
 
 `tools/balance_sim.tscn` plays whole runs with a bot: it fights everything, uses weaknesses, heals, buffs, keeps its summons up, takes a heal skill when the party has none, recruits, equips gear and shops, but never grinds. It also skips roaming bosses and never moves rows, Defends or Guards, so a real player should do somewhat better. The bot is noisy (battles roll their own dice), so compare 20+ runs.
