@@ -38,6 +38,7 @@ func _ready() -> void:
 	test_one_it_kept_second_hand()
 	test_one_it_kept_war()
 	test_one_it_kept_tell_them()
+	test_one_it_kept_drafts()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -966,7 +967,7 @@ func test_chapter_six() -> void:
 
 func test_chapter_seven() -> void:
 	print("-- chapter 7 --")
-	var ch7 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 7)
+	var ch7 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 7 and String(s.dialogue).begins_with("ch7"))
 	var covered := {}
 	for s in ch7:
 		for f in s.floors:
@@ -977,7 +978,7 @@ func test_chapter_seven() -> void:
 	check(StoryLibrary.chapter_name(7) == "Chapter 7: First Drafts", "its title")
 	check(StoryLibrary.due(61, false) == &"ch7_opening", "floor 61 opens it")
 	GameState.ng_plus_cycle = 1
-	check(StoryLibrary.due(61, false) == &"", "New Game+ doesn't replay it")
+	check(StoryLibrary.due(61, false) != &"ch7_opening", "New Game+ doesn't replay it")
 	GameState.ng_plus_cycle = 0
 	# Telling your friend, on every route.
 	for route_id in [&"hero", &"villain", &"vigilante"]:
@@ -1830,6 +1831,67 @@ func test_one_it_kept_tell_them() -> void:
 	GameState.set_flag(StoryLibrary.seen_flag(&"summit_false"))
 	check(StoryLibrary.due(60, true) == &"ng6_summit", "then what's behind it")
 	check(_all_text(&"ng6_summit").contains("SO DID I"), "your copy has been here")
+	GameState.ng_plus_cycle = 0
+
+
+func test_one_it_kept_drafts() -> void:
+	print("-- the one it kept: floors 61-70 --")
+	_kept_run(61)
+	check(StoryLibrary.due(61, false) == &"ng7_opening", "floor 61 in New Game+")
+	check(StoryLibrary.chapter_name(7) == "Chapter 7: Second Drafts", "its title")
+	_fresh(61)
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.due(61, false) == &"ch7_opening", "a first run is unchanged")
+	for id in [&"ng7_opening", &"ng7_chains", &"ng7_arm", &"ng7_hands", &"ng7_question", &"ng7_copy", &"ng7_spelling", &"ng7_eve", &"ng7_throne", &"ng7_cronus_down"]:
+		for past in [[], [&"past_friend_woke"], [&"past_drew_arm", &"past_freed_giant"], [&"ch5_friend_truth"]]:
+			for pick in 3:
+				_kept_run(65, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	# Your friend finds out one way or another.
+	var r := DialogueRunner.new()
+	_kept_run(61, [&"ch5_friend_truth"])
+	_play(&"ng7_opening")
+	check(GameState.has_flag(&"ng7_friend_knows"), "you told them on floor 45")
+	_kept_run(61)
+	_play(&"ng7_opening", 1)
+	check(not GameState.has_flag(&"ng7_friend_knows"), "you said later")
+	_play(&"ng7_copy")
+	check(GameState.has_flag(&"ng7_friend_knows"), "so you tell them yourself, before the Seer can")
+	_kept_run(61)
+	GameState.dismiss(GameState.childhood_friend())
+	_play(&"ng7_copy")
+	check(GameState.has_flag(&"ng7_seer_spoke") and not GameState.has_flag(&"ng7_friend_knows"), "away: the Seer talks to you")
+	# The arm stayed.
+	_kept_run(63, [&"past_drew_arm"])
+	r.start(&"ng7_arm")
+	check(r.node_id == "drawn", "the arm you drew is still there")
+	var flasks := GameState.inventory.count(&"advanced_potion")
+	_play(&"ng7_arm")
+	check(GameState.inventory.count(&"advanced_potion") == flasks + 5, "and it made you something")
+	_kept_run(63)
+	_play(&"ng7_arm")
+	check(GameState.has_flag(&"ch7_drew_arm"), "or you can draw it now")
+	check(&"past_drew_arm" in StoryLibrary.past_flags(&"hero"), "and the next climb keeps it")
+	# The chains.
+	_kept_run(62)
+	var pair: Dictionary = StoryLibrary.bid_pair()
+	var first := GameState.blessings.interest(pair.first)
+	_play(&"ng7_chains")
+	check(GameState.has_flag(&"ng7_rubbed_chains") and GameState.blessings.interest(pair.first) < first, "you rub out the chains, and the gods feel it")
+	# The System's question; a friend at the next desk asks a lighter one.
+	_kept_run(65)
+	r.start(&"ng7_question")
+	r.advance()
+	check(r.text().contains("Is my mom all right"), "it asks about its mom")
+	_kept_run(65, [&"past_friend_woke"])
+	r.start(&"ng7_question")
+	r.advance()
+	check(r.text().contains("soup"), "or they've made soup")
+	# It has learned to spell.
+	check(_all_text(&"ng7_spelling").contains("You do not recognize this floor") and not _all_text(&"ng7_spelling").contains("recongize this"), "the copy spells it right now")
+	_kept_run(70)
+	_play(&"ng7_cronus_down")
+	check(GameState.has_flag(&"ch7_complete"), "chapter 7 complete")
 	GameState.ng_plus_cycle = 0
 
 

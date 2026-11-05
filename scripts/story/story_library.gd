@@ -255,6 +255,16 @@ const SCENES := {
 	&"ch10_first_login": { "chapter": 10, "floors": [99], "when": "enter", "dialogue": &"ch10_first_login", "if": { "ng_plus": false } },
 	&"ch10_first_login_down": { "chapter": 10, "floors": [99], "when": "guardian_down", "dialogue": &"ch10_first_login_down", "if": { "ng_plus": false } },
 	&"ch10_top": { "chapter": 10, "floors": [100], "when": "guardian_down", "dialogue": &"ch10_top", "if": { "ng_plus": false } },
+	&"ng7_opening": { "chapter": 7, "floors": [61], "when": "enter", "dialogue": &"ng7_opening", "if": { "ng_plus": true } },
+	&"ng7_chains": { "chapter": 7, "floors": [62], "when": "enter", "dialogue": &"ng7_chains", "if": { "ng_plus": true } },
+	&"ng7_arm": { "chapter": 7, "floors": [63], "when": "enter", "dialogue": &"ng7_arm", "if": { "ng_plus": true } },
+	&"ng7_hands": { "chapter": 7, "floors": [64], "when": "guardian_down", "dialogue": &"ng7_hands", "if": { "ng_plus": true } },
+	&"ng7_question": { "chapter": 7, "floors": [65], "when": "enter", "dialogue": &"ng7_question", "if": { "ng_plus": true } },
+	&"ng7_copy": { "chapter": 7, "floors": [66, 67], "when": "enter", "dialogue": &"ng7_copy", "if": { "ng_plus": true } },
+	&"ng7_spelling": { "chapter": 7, "floors": [68], "when": "enter", "dialogue": &"ng7_spelling", "if": { "ng_plus": true } },
+	&"ng7_eve": { "chapter": 7, "floors": [69], "when": "guardian_down", "dialogue": &"ng7_eve", "if": { "ng_plus": true } },
+	&"ng7_throne": { "chapter": 7, "floors": [70], "when": "enter", "dialogue": &"ng7_throne", "if": { "ng_plus": true } },
+	&"ng7_cronus_down": { "chapter": 7, "floors": [70], "when": "guardian_down", "dialogue": &"ng7_cronus_down", "if": { "ng_plus": true } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
 	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
 }
@@ -6799,6 +6809,458 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- New Game+, floors 61-70: the Titans remember you. It couldn't restore them. ---
+	&"ng7_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "god": true }, "node": "b" }],
+				"style": "system",
+				"text": "[ Chapter 7: Second Drafts ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The stairs past the summit, and the stone with a grain in it like paper. Something enormous shifts, somewhere under your feet, and goes still, and you get the very clear feeling that it knows who's walking on it.",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ So here's a fun thing. It restored every floor but these. They're older than the restore point. They were in the file before there was a file. Say hi. ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ It put everything back. Everything it could reach. It couldn't reach these. They're older than anything it knows how to restore. They've been waiting. ]",
+				"next": "d",
+			},
+			"d_alone": {
+				"text": "They're down by a fire, and they don't know. You've told this to someone once, or nearly. You go on up.",
+				"effects": [{ "set_flag": &"ng7_started" }],
+			},
+			"d_known": {
+				"speaker": "{friend}",
+				"text": "So I've got the part about who made me. You told me that, at the fire. You've got the face you get, though, so I'm guessing there's more. Is there more? There's always more with you.",
+				"effects": [{ "set_flag": &"ng7_started" }, { "set_flag": &"ng7_friend_knows" }],
+			},
+			"d": {
+				"alt": [{ "if": { "friend_away": true }, "node": "d_alone" }, { "if": { "flag": &"ch5_friend_truth" }, "node": "d_known" }],
+				"speaker": "{friend}",
+				"text": "Forty more floors. Who do I complain to? ...You don't look surprised. You've been staring at nothing since the door. You've got the face you get.",
+				"next": "e",
+			},
+			"e": {
+				"text": "You did this once. You know how it goes if you tell them here, and you know how it goes if you don't.",
+				"choices": [
+					{ "text": "Tell them all of it, the same way you did before.", "next": "told", "effects": [{ "set_flag": &"ng7_started" }, { "set_flag": &"ng7_friend_knows" }] },
+					{ "text": "\"Later.\"", "next": "later", "effects": [{ "set_flag": &"ng7_started" }] },
+				],
+			},
+			"told": {
+				"speaker": "{friend}",
+				"text": "...So somebody missed you so much they built a person. And you've told me this before, haven't you? I can tell. You've got it all in the right order. It's not fair. I'd like to have heard it badly.",
+			},
+			"later": {
+				"speaker": "{friend}",
+				"text": "Yeah. You always did say later.",
+			},
+		},
+	},
+	&"ng7_chains": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "flag": &"past_freed_giant" }, "node": "freed" }],
+				"text": "The Earthborn, hanging from the underside of the floor above. {bid1}'s seal on one side, {bid2}'s on the other. It asks, in a voice you feel in your teeth, whether it's morning yet.",
+				"next": "b",
+			},
+			"freed": {
+				"text": "The Earthborn, hanging from the underside of the floor above, in its chains. They put it back. It looks down at you, and it's got no anger in it at all, and it knows you. You told me it was morning, it says. It was very nice for a while.",
+				"next": "b",
+			},
+			"b": {
+				"text": "You know something about these chains. You know where they came from. Somebody liked how they looked, one afternoon, and drew them in a margin. You've got the charcoal, and you've got a thumb.",
+				"choices": [
+					{ "text": "Rub them out.", "next": "rub", "effects": [{ "set_flag": &"ng7_rubbed_chains" }, { "bid_interest": { "first": -3, "second": -3 } }] },
+					{ "text": "Tell it not yet.", "next": "not", "effects": [{ "set_flag": &"ng7_left_chains" }] },
+				],
+			},
+			"rub": {
+				"text": "It's only pencil. It always was. It comes away on your thumb, link by link, and the seals fall the length of the floor and make no sound at all. It stays where it is for a long time. You didn't know how to draw it standing up. Then it works it out.",
+				"next": "rub2",
+			},
+			"rub2": {
+				"speaker": "Earthborn",
+				"text": "Is it morning?",
+				"next": "rub3",
+			},
+			"rub3": {
+				"text": "You tell it yes. You've got the right, this time. Somewhere above you, two gods have just felt a very old chain go slack, and they've both started to count floors.",
+			},
+			"not": {
+				"text": "You tell it not yet. It says that's what you said last time. You've still got the charcoal in your hand, and you put it away, and you go on up.",
+			},
+		},
+	},
+	&"ng7_arm": {
+		"start": "a",
+		"nodes": {
+			"drawn": {
+				"text": "A cyclops at an anvil, and the anvil's hot. Its left arm is careful, every muscle of it. Its right arm is much too long, with a hand like a bunch of bananas. It's the worst arm in the tower, and it's still there. It looks up, and puts down its hammer.",
+				"next": "drawn2",
+				"effects": [{ "set_flag": &"ng7_arm_stayed" }],
+			},
+			"drawn2": {
+				"speaker": "Cyclops Smith",
+				"text": "Maker. It tried to tidy this. It came through with a very clean cloth. I told it no.",
+				"next": "drawn3",
+			},
+			"drawn3": {
+				"speaker": "Cyclops Smith",
+				"text": "I have made you something. It took thirty years, and the hand is very bad. Take it.",
+				"next": "drawn4",
+				"effects": [{ "give_item": &"advanced_potion", "count": 5 }],
+			},
+			"drawn4": {
+				"text": "It's a dented iron case of flasks, every one a slightly different shape, and you can tell which ones the bad hand made. You don't know what to say to it. It's already gone back to work, and it's the evenest sound you've ever heard.",
+			},
+			"a": {
+				"alt": [{ "if": { "flag": &"past_drew_arm" }, "node": "drawn" }],
+				"text": "A cyclops sits at a cold anvil. One arm's finished. The other's three lines and a smudge. It's been waiting for you to come back from dinner for a very long time, and you know how bad you are at this, and there's a lump of charcoal on the anvil.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Cyclops Smith",
+				"text": "Maker. You said you would do the other arm after dinner.",
+				"next": "c",
+			},
+			"c": {
+				"text": "You walked past this, the last time you were here. You told yourself you had forty floors.",
+				"choices": [
+					{ "text": "Draw the arm.", "next": "drew", "effects": [{ "set_flag": &"ch7_drew_arm" }] },
+					{ "text": "Walk on.", "next": "passed", "effects": [{ "set_flag": &"ch7_passed_smith" }] },
+				],
+			},
+			"drew": {
+				"text": "The stone takes the line. It's a terrible arm. You knew it would be. It flexes it, and looks at it for a long time, and it picks up the hammer. It starts to cry, and it starts to work, and you stay and watch for longer than you've got.",
+			},
+			"passed": {
+				"text": "You still don't. You hear it hammering behind you, with its one good arm, all the way up the stairs. You've heard it for a whole tower.",
+			},
+		},
+	},
+	&"ng7_hands": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "It comes apart slowly. Twelve hands, every knuckle drawn, and one long bored scribble down its side. You don't have to reach for it now. You've got the whole afternoon: the fan, a stomach ache from laughing, and a hand coming up to cover a mouth. You say it out loud. You're such a cheat.",
+				"next": "c",
+				"effects": [{ "set_flag": &"ng7_said_cheat" }],
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ TWELVE. I have been waiting for years to say this. You told me that was BASICALLY A HUNDRED. I have it in writing. I can see you laughing, I'm right here. Stop it. ]",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ ... ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ You told me that was basically a hundred. I want that noted. ]",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ Say it again. ]",
+			},
+		},
+	},
+	&"ng7_question": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The campfire on this floor has about a dozen people at it, and they keep glancing at you. You've been up here before, and it's starting to show. The window opens, small, at the corner of your eye.",
+				"next": "b",
+			},
+			"b_woke": {
+				"style": "glitch",
+				"text": "[ Okay. I've got one question. I've been saving it. Why are you in there, and not out here? I made soup. It's on the desk. You've been in there for nine hours. ]",
+				"next": "c_woke",
+			},
+			"c_woke": {
+				"text": "They're right there. They're about three feet from your actual body. You could just take off the headset, if there was a headset. You've got a lot of good answers, and they've heard them all.",
+				"choices": [
+					{ "text": "\"There's someone still up there with my face.\"", "next": "w_face", "effects": [{ "set_flag": &"ng7_answered_soup" }] },
+					{ "text": "\"Because it's the last floor we didn't finish.\"", "next": "w_floor", "effects": [{ "set_flag": &"ng7_answered_soup" }] },
+				],
+			},
+			"w_face": {
+				"style": "glitch",
+				"text": "[ Yeah. I know. Eat when you get back. I'll keep it warm. I've gotten very good at keeping things going. ]",
+			},
+			"w_floor": {
+				"style": "glitch",
+				"text": "[ You absolute dummy. Yeah. All right. Eat when you get back. I'll keep it warm. ]",
+			},
+			"b": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "b_woke" }],
+				"style": "glitch",
+				"text": "[ You asked me last time. So I get one now. It's busy. One. Is my mom all right? ]",
+				"next": "c",
+			},
+			"c": {
+				"text": "It's never asked you anything like that. It can't see out. You've been to her house, or you've had the chance to. You know exactly what's on that card.",
+				"choices": [
+					{ "text": "\"She never stopped asking about you.\"", "next": "true", "effects": [{ "set_flag": &"ng7_told_mom" }] },
+					{ "text": "\"She's fine.\"", "next": "fine", "effects": [{ "set_flag": &"ng7_lied_mom" }] },
+					{ "text": "\"I don't know. I never picked up.\"", "next": "never", "effects": [{ "set_flag": &"ng7_never_picked_up" }] },
+				],
+			},
+			"true": {
+				"style": "glitch",
+				"text": "[ No. She wouldn't. ]",
+				"next": "true2",
+			},
+			"true2": {
+				"style": "glitch",
+				"text": "[ Thank you. I'm not going to ask the next one. ]",
+			},
+			"fine": {
+				"style": "glitch",
+				"text": "[ You're a terrible liar. I taught them that. I'm going to choose to believe you anyway. It's a thing you can do. ]",
+			},
+			"never": {
+				"style": "glitch",
+				"text": "[ I know. I'd have heard. ]",
+				"next": "never2",
+			},
+			"never2": {
+				"style": "glitch",
+				"text": "[ You should pick up. If you get out of here. That's not a correction. That's only me saying. ]",
+			},
+		},
+	},
+	&"ng7_copy": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"text": "On the stairs, the old Earthborn Seer, with its back to the wall. It lifts its blank face as you pass, and it turns toward the space beside you.",
+				"next": "alone2",
+				"effects": [{ "set_flag": &"ng7_seer_spoke" }],
+			},
+			"alone2": {
+				"speaker": "Earthborn Seer",
+				"text": "The copy's by a fire. And you've got a copy of your own now, upstairs. It came through here. It had very clean hands. It asked us all to hold on a little longer, and it said please. You never used to say please.",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"text": "On the stairs, the old Earthborn Seer, with its back to the wall. Nobody ever drew it any eyes. It lifts its blank face as you pass, and turns toward {friend}.",
+				"next": "b",
+				"effects": [{ "set_flag": &"ng7_seer_spoke" }],
+			},
+			"b": {
+				"speaker": "Earthborn Seer",
+				"text": "Little copy. You've got the walk. But you laugh with your mouth open. They always covered theirs. They hated their teeth.",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ Excuse me. I did not hate my teeth. ...I hated my teeth. Who's telling it this? Who is that? Tell it I've got a very nice smile. I've had work done. ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"text": "You know what's coming. You knew exactly how long the walk up here was.",
+				"next": "d",
+			},
+			"d_known": {
+				"speaker": "{friend}",
+				"text": "I know what I am, and {player} told me. You can stop looking at me like that. You haven't got the eyes.",
+				"next": "e",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"ng7_friend_knows" }, "node": "d_known" }],
+				"speaker": "{friend}",
+				"text": "...Copy of who? {player}, what's it talking about? You've gone all quiet, and you don't look surprised.",
+				"next": "untold",
+			},
+			"untold": {
+				"text": "You'd said later. You had a whole tower to do it in, the second time around. So you tell them yourself, there on the stairs, before it can. You owed them that. You owed them a lot sooner than that.",
+				"next": "untold2",
+				"effects": [{ "set_flag": &"ng7_friend_knows" }],
+			},
+			"untold2": {
+				"speaker": "{friend}",
+				"text": "...You've known that since before I said my first word to you. You've known it for two towers. I don't know what I'm supposed to do with that. Keep walking. I'm walking.",
+				"next": "e",
+			},
+			"e": {
+				"speaker": "Earthborn Seer",
+				"text": "And you, Maker. There's another of you upstairs. It came through here with very clean hands. It asked us to hold on a little longer, and it said please. You never used to say please.",
+			},
+		},
+	},
+	&"ng7_spelling": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ You do not recognize this floor. ]",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ You do not recognize the person in the windows. ]",
+				"next": "c",
+			},
+			"c": {
+				"text": "It takes you a moment. You read it again. It's the flat window, and there's something wrong with it, and you've gone cold before you've worked out why. It's spelled right.",
+				"next": "d",
+				"effects": [{ "set_flag": &"ng7_saw_spelling" }],
+			},
+			"d_woke": {
+				"style": "glitch",
+				"text": "[ Oh, I don't like that. I don't like that at all. You've never spelled that right in your life. I've seen you try. It's been practising. ]",
+				"next": "e",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "d_woke" }],
+				"style": "glitch",
+				"text": "[ It's never done that before. It's been practising. It's up there by itself, with nothing to do but get better at being you. ]",
+				"next": "e",
+			},
+			"e_alone": {
+				"text": "You say it out loud to the stairs, the wrong way, the way you always did. It sounds right. You say it again.",
+			},
+			"e": {
+				"alt": [{ "if": { "friend_away": true }, "node": "e_alone" }],
+				"speaker": "{friend}",
+				"text": "What's it say? Read it out. ...Recognize. That's right. Well done, you've finally... why's that scared you? You're the only person I know who's frightened of a dictionary.",
+			},
+		},
+	},
+	&"ng7_eve": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The Elder Cyclops sits down to die, gently, the way you'd sit on the edge of a bed. Its one eye's a little off-centre. Someone was laughing when it was drawn. It looks at you for a long time, and it's very pleased about something.",
+				"next": "c",
+			},
+			"c": {
+				"speaker": "Elder Cyclops",
+				"text": "The one who does the floors told us to hold on. They said you'd be back by morning. Everyone laughed at them, you know. All the others. I didn't. I said you would. And here you are, twice.",
+				"next": "d",
+			},
+			"d_woke": {
+				"style": "glitch",
+				"text": "[ Hi. That's mine. That's my one. I gave it a kind face, and you said it looked stupid. I can't believe it's still going. Tell it I said thanks. Read that out. ]",
+				"next": "e",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "d_woke" }],
+				"style": "glitch",
+				"text": "[ That one's mine. I gave it a kind face. You said it looked stupid. ]",
+				"next": "e",
+			},
+			"e_alone": {
+				"text": "You stay until it's done. There's no one to read that out to. You read it out anyway.",
+				"effects": [{ "set_flag": &"ng7_eve_done" }],
+			},
+			"e_hero": {
+				"speaker": "{friend}",
+				"text": "It held on all that time because somebody asked it nicely. I know how that goes. Whatever's on the next floor, I'm standing in front of you. I think you knew that.",
+				"effects": [{ "set_flag": &"ng7_eve_done" }],
+			},
+			"e_villain": {
+				"speaker": "{friend}",
+				"text": "The next floor's the king of all this. If he kneels, we've got an army older than the gods. You've got that look. Did he kneel, last time? No? Well. Either's fine.",
+				"effects": [{ "set_flag": &"ng7_eve_done" }],
+			},
+			"e_vigilante": {
+				"speaker": "{friend}",
+				"text": "Somebody left a door open, and everything after that is because of it. I've got a page for that. I keep leaving it blank. You keep looking at it, like you know whose it is.",
+				"effects": [{ "set_flag": &"ng7_eve_done" }],
+			},
+			"e": {
+				"alt": [{ "if": { "friend_away": true }, "node": "e_alone" }, { "if": { "route": &"hero" }, "node": "e_hero" }, { "if": { "route": &"villain" }, "node": "e_villain" }, { "if": { "route": &"vigilante" }, "node": "e_vigilante" }],
+				"speaker": "{friend}",
+				"text": "The next floor's the old king. I don't know what you say to something you drew. I'd start with sorry. Then I'd duck.",
+				"effects": [{ "set_flag": &"ng7_eve_done" }],
+			},
+		},
+	},
+	&"ng7_throne": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Cronus, on a throne made of every crayon in the box, in a crown with six points. He's been waiting. He's had your teeth marks in him for as long as there's been a him, and he knows exactly who's on his stairs.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Cronus",
+				"text": "There it is. The little god who made me hungry. Come here, and tell me it was cool.",
+				"next": "c",
+			},
+			"c": {
+				"text": "You've wondered what you'd say to that. You got the whole way down and back up to think of it.",
+				"choices": [
+					{ "text": "\"It was the best thing I'd ever read.\"", "next": "cool", "effects": [{ "set_flag": &"ng7_told_cronus_cool" }] },
+					{ "text": "\"I was nine. I'm sorry.\"", "next": "sorry", "effects": [{ "set_flag": &"ng7_told_cronus_sorry" }] },
+				],
+			},
+			"cool": {
+				"speaker": "Cronus",
+				"text": "HA. Oh, I knew it. I knew it. You always had good taste, little god. Come on, then. Let's do this properly. I've got a reputation.",
+			},
+			"sorry": {
+				"speaker": "Cronus",
+				"text": "...No one has ever said that to me. I don't know what to do with it. I'm going to eat you now. Don't take it personally. You wrote it.",
+			},
+		},
+	},
+	&"ng7_cronus_down": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "He doesn't fall so much as get rubbed out, from the crown down. What's left of him is in a good mood, which is the worst it's ever been.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "Cronus",
+				"text": "The other one of you came through here, you know. Sat on my throne a while, very straight, and it asked me to go on holding. I asked if it wanted a crown. It said it wouldn't know how to draw one anymore. Isn't that sad? Tell it I said it's boring.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ Chapter 7 complete. ]",
+				"next": "d",
+				"effects": [{ "set_flag": &"ch7_complete" }],
+			},
+			"d_woke": {
+				"style": "glitch",
+				"text": "[ Boring. That's the worst thing anyone's ever said about you, and I've known you for thirty years. Go on. I'm still making soup. ]",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "d_woke" }],
+				"style": "glitch",
+				"text": "[ It's never been cruel to anyone, up there. It's only getting better at it. Keep going. ]",
+			},
+		},
+	},
+
 	# --- The second return to the real world (after floor 40's boss). ---
 	&"return_tier3_pc": {
 		"start": "a",
@@ -8032,6 +8494,9 @@ const PAST_STORY_MAP := {
 	&"ch9_told_part": &"past_told_part",
 	&"ch9_told_nothing": &"past_told_nothing",
 	&"ch7_drew_arm": &"past_drew_arm",
+	&"ch7_hero_freed": &"past_freed_giant",
+	&"ch7_villain_freed": &"past_freed_giant",
+	&"ng7_rubbed_chains": &"past_freed_giant",
 	&"ch8_tess_gone": &"past_tess_gone",
 	&"ch10_owned_0041": &"past_owned_0041",
 	&"ng3_marn_lives": &"past_marn_lived",

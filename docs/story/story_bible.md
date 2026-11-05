@@ -415,7 +415,9 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **Floors 51-60, "Tell Them":** 52-53 and 56-57, the route missions, knowing how they go (Hero: move the camp before the stair falls, or hold it up; Villain: go straight to the treasury; Vigilante: "I built the floor you burned it on"; and so on). 54, you can leave 0041 a note or food (`ng6_note_0041`, `ng6_food_0041`). **55, the big choice: get up on a crate and tell everyone that 60 isn't the top** (`ng6_told_climbers`), tell a few (`ng6_told_some`), or let them sing. 58, if you told them, they've answered on the wall: HE SAID 40 MORE. WHO IS HE. SHE. is it true. 59, "I had a really good time": you can finally say "Me too". 60, the kind recruiter with the list, and under I BELIEVED IT TOO, in your old handwriting: SO DID I. If you told them, few sign (`ng6_host_smaller`); if not, you can shout in the doorway and save nine (`ng6_saved_some`). Chapter 8 should use these: fewer soldiers, different faces.
 
-**Silent in New Game+: floors 61-99.**
+**Floors 61-70, "Second Drafts":** the one chapter "it" couldn't restore, because the Titans are older than the restore point, so they remember you. 62, you know you drew the chains, so you rub them out with your thumb (`ng7_rubbed_chains`). 63, if you drew the arm, it's still there, and the smith has spent 30 years making you a case of flasks: 5 Advanced Potions (`past_drew_arm`, a choice you made a whole climb ago). 64, you say "you're such a cheat" out loud. 65, the System gets to ask you one question: "Is my mom all right?" If your real friend woke: "Why are you in there, and not out here? I made soup." 66-67, the Seer, and news of your copy: "It said please. You never used to say please." 68, the corrections are spelled right now, and that's the frightening part. 69, the Elder: "I said you would. And here you are, twice." 70, tell Cronus it was cool, or say you were nine and you're sorry. He tells you your copy is boring.
+
+**Silent in New Game+: floors 71-99.**
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |
