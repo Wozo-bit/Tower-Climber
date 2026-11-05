@@ -348,6 +348,7 @@ THE SECRET (Hayden picked 2026-11-04): you built the game with your real childho
 friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
+TESTERS (Hayden 2026-11-05): 0012 + 0027 = you; 0041 = a stranger; wants an Echo of 0001 (real friend/System) in floors 91-100, form to confirm.
 Chapter 8 "The Tenants" BUILT 2026-11-05 (Hayden's picks): each god offers a deal (wake the real one /
 make the fire friend real), Anointed Champion = Tess (really gone), friend talks through you + wants
 to outlive it. WHY YOU FORGOT (decided, reveal in Chapter 9): a reset would have wiped the build, you

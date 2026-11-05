@@ -256,7 +256,7 @@ Hayden's picks (2026-11-05): each god makes one offer (the first swears it can w
 
 **Why you forgot (decided, Hayden 2026-11-05; reveal in Chapter 9):** a hybrid. At first you could have pulled them out with a reset, but it would have wiped the build you'd spent years on, so you held off for one more day. Then the reset stopped working. You went back in after them, again and again, and it was killing you, so you locked yourself out and cut the memory. "It" is what's left of that decision: careful, tidy, and trying to keep you safe, which is why it keeps sending you home. It thinks the System is what's hurting you.
 
-**Drafted, for Hayden to confirm:** Testers 0012 and 0027 were you, logging in again under new numbers. Only the T.0012 page hints at it so far. Tester 0041 is still open. **Tess is really gone now** (`ch8_tess_gone`): nobody has written whether anything comes back to a fire. The deals are never formally ended; the friend calls theirs off if you took it. `ch8_catchup` tells a friend who rejoins after floors 66-67, on any floor from 71 to 99.
+**Testers (decided, Hayden 2026-11-05):** 0012 and 0027 were you, logging in again under new numbers. Only the T.0012 page hints at it so far. **Tester 0041 is a stranger**, someone real who lost 31 years to your mistake, not another you. Hayden would also like an Echo for **Tester 0001, the real friend / System**, if it doesn't break the story (form still to confirm). **Tess is really gone now** (`ch8_tess_gone`): nobody has written whether anything comes back to a fire. The deals are never formally ended; the friend calls theirs off if you took it. `ch8_catchup` tells a friend who rejoins after floors 66-67, on any floor from 71 to 99.
 
 ## New recruits (Hayden, 2026-11-04)
 
