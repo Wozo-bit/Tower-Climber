@@ -276,6 +276,15 @@ const SCENES := {
 	&"ng8_strongbox": { "chapter": 8, "floors": [79], "when": "guardian_down", "dialogue": &"ng8_strongbox", "if": { "ng_plus": true } },
 	&"ng8_anointed": { "chapter": 8, "floors": [80], "when": "enter", "dialogue": &"ng8_anointed", "if": { "ng_plus": true } },
 	&"ng8_tess_down": { "chapter": 8, "floors": [80], "when": "guardian_down", "dialogue": &"ng8_tess_down", "if": { "ng_plus": true } },
+	&"ng9_opening": { "chapter": 9, "floors": [81], "when": "enter", "dialogue": &"ng9_opening", "if": { "ng_plus": true } },
+	&"ng9_files": { "chapter": 9, "floors": [82, 83], "when": "enter", "dialogue": &"ng9_files", "if": { "ng_plus": true } },
+	&"ng9_stairs": { "chapter": 9, "floors": [84], "when": "guardian_down", "dialogue": &"ng9_stairs", "if": { "ng_plus": true } },
+	&"ng9_fire": { "chapter": 9, "floors": [85], "when": "enter", "dialogue": &"ng9_fire", "if": { "ng_plus": true } },
+	&"ng9_talk": { "chapter": 9, "floors": [86, 87], "when": "enter", "dialogue": &"ng9_talk", "if": { "ng_plus": true } },
+	&"ng9_door": { "chapter": 9, "floors": [88], "when": "enter", "dialogue": &"ng9_door", "if": { "ng_plus": true } },
+	&"ng9_last_page": { "chapter": 9, "floors": [89], "when": "guardian_down", "dialogue": &"ng9_last_page", "if": { "ng_plus": true } },
+	&"ng9_first_draft": { "chapter": 9, "floors": [90], "when": "enter", "dialogue": &"ng9_first_draft", "if": { "ng_plus": true } },
+	&"ng9_draft_down": { "chapter": 9, "floors": [90], "when": "guardian_down", "dialogue": &"ng9_draft_down", "if": { "ng_plus": true } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
 	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
 }
@@ -7776,6 +7785,546 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- New Game+, floors 81-90: you know what it is, so you can talk to it. ---
+	&"ng9_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "god": true }, "node": "b" }],
+				"style": "system",
+				"text": "[ Chapter 9: Going Down ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The walls stop halfway up, and it's grey boxes and pencil lines. Only it's tidier than you remember. Someone's been through here with a ruler. All the lines are straight, and the unfinished things have been put in order of size.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ You look tired. You've definitely done enough. Nobody would blame you. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "That voice. It's the one you use on yourself, at four in the morning, when you're being reasonable. Last time it took you nine floors to work out whose it was.",
+				"choices": [
+					{ "text": "\"I know what you are. I wrote you.\"", "next": "know", "effects": [{ "set_flag": &"ng9_started" }, { "set_flag": &"ng9_named_it" }] },
+					{ "text": "\"Thanks. I'm fine.\"", "next": "fine", "effects": [{ "set_flag": &"ng9_started" }, { "set_flag": &"ng9_polite_to_it" }] },
+				],
+			},
+			"know": {
+				"style": "system",
+				"text": "[ Yes. You were very kind about it. I've tried to be, too. ]",
+				"next": "e",
+			},
+			"fine": {
+				"style": "system",
+				"text": "[ You aren't. But thank you for saying. Nobody does. ]",
+				"next": "e",
+			},
+			"e_woke": {
+				"style": "glitch",
+				"text": "[ Oh, you did not just say please to that thing. I'm right here. You've never said thank you to me in your life. ]",
+				"next": "f",
+			},
+			"e": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "e_woke" }],
+				"style": "glitch",
+				"text": "[ That's not me. I want that noted. Though you've never been that polite to me. ]",
+				"next": "f",
+			},
+			"f_alone": {
+				"text": "You keep climbing. It's very quiet. It's the quiet of someone being careful not to wake you.",
+			},
+			"f": {
+				"alt": [{ "if": { "friend_away": true }, "node": "f_alone" }],
+				"speaker": "{friend}",
+				"text": "Read it out, that's the rule. ...It sounds like you. It sounds exactly like you, when you've already decided. And you're just having a chat with it now, are you? That's fine. That's not strange.",
+			},
+		},
+	},
+	&"ng9_files": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "On a stair that's only a pencil line, there's a filing cabinet. Of course there is. It's very clean. It's got little brass frames on the drawers, and a card in each, in that careful hand: DAY 1 to DAY 9. You open it. They're all there, every page you dropped, flattened out, and put in order.",
+				"next": "b",
+			},
+			"b": {
+				"text": "DAY 9. RESET WON'T TAKE. SAYS SESSION IN USE. THEIR MOM RANG. I SAID THEY WERE CRUNCHING. GOING BACK IN.   - T.0019",
+				"next": "c",
+				"effects": [{ "set_flag": &"ng9_saw_files" }],
+			},
+			"c": {
+				"text": "There's a card clipped to it, in the same neat writing. You were so hungry. I've looked after these for you. You don't need to read them. The window's open, and it can't see what you're holding.",
+				"choices": [
+					{ "text": "Read it out.", "next": "r", "effects": [{ "set_flag": &"ng9_read_day9" }] },
+					{ "text": "Put it back in the right place.", "next": "keep" },
+				],
+			},
+			"r_woke": {
+				"style": "glitch",
+				"text": "[ She told me that. When I woke up. She said you sounded so normal on the phone. She said it's the only thing she's never forgiven. She's making you a pie. I don't get it either. ]",
+			},
+			"r": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "r_woke" }],
+				"style": "glitch",
+				"text": "[ My mom rang you. You told me that already. I've been thinking about it. You're the only person who heard her voice, that week. What did she sound like? ]",
+				"next": "r2",
+			},
+			"r2": {
+				"text": "You tell it. It takes as long as it takes. It doesn't say anything for a good while after that.",
+			},
+			"keep": {
+				"style": "system",
+				"text": "[ Thank you. I do like things to be where they go. ]",
+			},
+		},
+	},
+	&"ng9_stairs": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "A label round the Deprecated Guardian's neck: REMOVE. In the second hand: dont delete this one. i like him. And the way ahead is gone, and tidied away. You know what comes next. You've still got a lump of charcoal in your pack, and you didn't use to.",
+				"next": "c",
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ Hold on. I've got it. ]",
+				"next": "d",
+			},
+			"d": {
+				"text": "A step comes in under your foot, drawn fast, with the corner of the riser slightly wrong. You get down on your knees, and you draw the next one, beside it. It's awful. It leans. A second line comes in and fixes the corner, without saying anything.",
+				"next": "e",
+				"effects": [{ "set_flag": &"ng9_drew_with_system" }],
+			},
+			"e_woke": {
+				"style": "glitch",
+				"text": "[ Budge over. You're on my elbow. You're not even on my elbow, you're on a stair, in a computer. Budge over anyway. ]",
+				"next": "f",
+			},
+			"e": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "e_woke" }],
+				"style": "glitch",
+				"text": "[ You've been practising. ]",
+				"next": "f",
+			},
+			"f": {
+				"style": "system",
+				"text": "[ That isn't required. This floor isn't required. Please stop doing that. ]",
+				"next": "g",
+			},
+			"g": {
+				"style": "glitch",
+				"text": "[ Oh, it doesn't like that. It's used to it being only me. Keep going. ]",
+			},
+		},
+	},
+	&"ng9_fire": {
+		"start": "a",
+		"nodes": {
+			"a_alone": {
+				"text": "Five people at this fire, and nobody's telling jokes. You've got your friend's voice in your head, asking what you're going to do about the one with your face. You're not sure it's their voice. You've got a lot of voices, now.",
+				"effects": [{ "set_flag": &"ng9_fire_done" }],
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"text": "Five people at this fire, and nobody's telling jokes. There's a place left on the log. {friend} looks at the fire for a long time, with their mouth shut. They've started doing that lately.",
+				"next": "b",
+			},
+			"b_hero": {
+				"speaker": "{friend}",
+				"text": "So there's someone at the top with your face, and it thinks it's helping. I've got a question. Is anyone carrying it? Has anyone ever gone up there and asked if it wants to come down?",
+				"effects": [{ "set_flag": &"ng9_fire_done" }],
+			},
+			"b_villain": {
+				"speaker": "{friend}",
+				"text": "So there's someone at the top with your face, sitting in your chair. I don't want it gone. I want it to know whose chair it is. Then I want to see what you do. I've got money on you. I've got money on both of you.",
+				"effects": [{ "set_flag": &"ng9_fire_done" }],
+			},
+			"b_vigilante": {
+				"speaker": "{friend}",
+				"text": "So there's someone at the top with your face, and it's got your name on it, and it's done nothing wrong but what you told it to. Who do I write that under? Do you know? You've read this far ahead. Don't tell me.",
+				"effects": [{ "set_flag": &"ng9_fire_done" }],
+			},
+			"b": {
+				"alt": [{ "if": { "route": &"hero" }, "node": "b_hero" }, { "if": { "route": &"villain" }, "node": "b_villain" }, { "if": { "route": &"vigilante" }, "node": "b_vigilante" }],
+				"speaker": "{friend}",
+				"text": "So there's someone at the top with your face. I've been thinking about that. I know a bit about what it's like, being made out of someone so they don't have to feel something. I'd like to meet it. I've got notes.",
+				"effects": [{ "set_flag": &"ng9_fire_done" }],
+			},
+		},
+	},
+	&"ng9_talk": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"alt": [{ "if": { "flag": &"past_end_forgot" }, "node": "forgot" }],
+				"style": "system",
+				"text": "[ May I ask you something? You took it all back. I've wondered. How is it? ]",
+				"next": "b",
+			},
+			"forgot": {
+				"style": "system",
+				"text": "[ You asked me to let you go, and I did, and I was so careful. And you've come back anyway. I don't understand. Have I done something wrong? ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "It's never asked you anything. The other window's open too, very quietly. You think it's holding its breath, if it had any.",
+				"choices": [
+					{ "text": "\"It's heavy. I'm all right.\"", "next": "heavy", "effects": [{ "set_flag": &"ng9_told_it_heavy" }] },
+					{ "text": "\"You did everything I asked. You can stop now.\"", "next": "stop", "effects": [{ "set_flag": &"ng9_told_it_stop" }] },
+					{ "text": "\"It nearly killed me. You were right to be scared.\"", "next": "scared", "effects": [{ "set_flag": &"ng9_told_it_scared" }] },
+				],
+			},
+			"heavy": {
+				"style": "system",
+				"text": "[ I thought it would be. I was so worried. I've got a whole floor I keep for how worried I was. ]",
+				"next": "c",
+			},
+			"stop": {
+				"style": "system",
+				"text": "[ I can't. You didn't write that part. You wrote: keep me out. You didn't write until when. You were very tired. ]",
+				"next": "c",
+			},
+			"scared": {
+				"style": "system",
+				"text": "[ Yes. I know. That's what I'm for. I'm so glad you understand. Please go home. ]",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ I've got goosebumps. Actual goosebumps, on my actual arm. I'm so sorry, that's the saddest thing I've ever read, and it's been trying to kill me for thirty years. ]",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ It's never talked to me like that. Thirty years. It's never asked me one single thing. ]",
+			},
+		},
+	},
+	&"ng9_door": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "A plain door on the landing, with light under it. Your desk lamp. You can smell the room. There's a stair going down beside it that you've never noticed. It has a very old smell, of dust and warm plastic. There's a sign on it, very neat. RACK ROOM. NOT REQUIRED.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ I can let you through the door. It's the only thing I was ever for. You only have to ask. ]",
+				"next": "c",
+			},
+			"c": {
+				"text": "Your hand's on the door. It's warm. You know how this one goes. You know what else you could ask for, and you know it's never once occurred to you to ask.",
+				"choices": [
+					{ "text": "\"Show me the stairs. Let me go down. That day. Just once.\"", "next": "down", "effects": [{ "set_flag": &"ng9_asked_go_down" }] },
+					{ "text": "Open the door, look, and close it again.", "next": "look", "effects": [{ "set_flag": &"ch9_looked_home" }] },
+					{ "text": "Take your hand away, and climb.", "next": "pass", "effects": [{ "set_flag": &"ch9_passed_home" }] },
+				],
+			},
+			"down": {
+				"style": "system",
+				"text": "[ No. ]",
+				"next": "down2",
+			},
+			"down2": {
+				"style": "system",
+				"text": "[ You said never. It's the first thing you wrote. It's the only thing you underlined. ]",
+				"next": "down3",
+			},
+			"down3": {
+				"text": "You don't say anything. You know how to wait. You've had a very patient friend.",
+				"next": "down4",
+			},
+			"down4": {
+				"style": "system",
+				"text": "[ ...You did say you only had to ask. I wrote that down for you, and it's not my place to choose which. Once. After the next one. I won't be able to watch. ]",
+				"next": "end",
+			},
+			"look": {
+				"text": "It's still there. The cold cup of tea. It's so tidy. It would be so easy, and you know exactly what it costs, because you've paid. You close it yourself.",
+				"next": "end",
+			},
+			"pass": {
+				"text": "You take your hand away. The light under the door stays on. You've got the feeling it always will.",
+				"next": "end",
+			},
+			"end_alone": {
+				"text": "You go on up. You don't look at the sign.",
+			},
+			"end": {
+				"alt": [{ "if": { "friend_away": true }, "node": "end_alone" }],
+				"speaker": "{friend}",
+				"text": "...I didn't say anything. I want it noted that I was very good, and I didn't say anything. What's a rack room?",
+			},
+		},
+	},
+	&"ng9_last_page": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The Unfinished Giant, with nothing below the knees. Pinned to its chest is the last page, in a little brass frame. DAY 212. T.0027. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. THEYRE FINE IN THERE. THEY HAVE THE STAIRS. It's been dusted.",
+				"next": "c",
+				"effects": [{ "set_flag": &"ng9_saw_last_page" }],
+			},
+			"c": {
+				"style": "system",
+				"text": "[ I kept that one especially. It's the first thing anyone ever said to me. I hope you don't mind. ]",
+				"next": "d",
+			},
+			"d_woke": {
+				"style": "glitch",
+				"text": "[ I read that for the first time last year. In a hospital. You read it to me, and you did the voice, and I've never been so angry in my life. I've got the stairs. Tell it I've got the stairs. Read that out. ]",
+				"next": "e",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "d_woke" }],
+				"style": "glitch",
+				"text": "[ They have the stairs. Yes. I do. I've still got them. ]",
+				"next": "e",
+			},
+			"e_alone": {
+				"text": "One more floor. You leave the frame where it is, and you straighten it. You don't know why.",
+				"effects": [{ "set_flag": &"ng9_eve_done" }],
+			},
+			"e": {
+				"alt": [{ "if": { "friend_away": true }, "node": "e_alone" }],
+				"speaker": "{friend}",
+				"text": "Tomorrow, whatever it is, we hit it, and then you can fall apart, and I'll hold the torch. I said that to you already, didn't I? You've got the face. It's all right. It's a good line. I'll say it every time.",
+				"effects": [{ "set_flag": &"ng9_eve_done" }],
+			},
+		},
+	},
+	&"ng9_first_draft": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The First Draft takes up the whole floor. Ballpoint on squared paper. One tower, slightly bent, with two stick figures at the very top. US, and an arrow. It's been cleaned, and the arrow's been straightened. You know who did that. It was a good arrow. It was better bent.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Please don't. It's the only one I've got left. ]",
+				"effects": [{ "set_flag": &"ng9_saw_draft" }],
+			},
+		},
+	},
+	&"ng9_draft_down": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The ink lifts, line by line, until you're on a clean white page with an arrow on it. You've got the charcoal. You don't think about it. You put the bend back in.",
+				"next": "b",
+				"effects": [{ "set_flag": &"ch9_complete" }],
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Chapter 9 complete. ]",
+				"next": "c",
+			},
+			"c_woke": {
+				"style": "glitch",
+				"text": "[ I remember drawing that. You did the arrow. I told you that was the worst arrow anyone had ever drawn, and you said it was so people would know. ]",
+				"next": "d",
+			},
+			"c": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "c_woke" }],
+				"style": "glitch",
+				"text": "[ You did the arrow. You said we'd need it, so people would know. ]",
+				"next": "d",
+			},
+			"d_asked": {
+				"style": "system",
+				"text": "[ It's time, then. You asked. I've kept the stairs clean. I said I wouldn't watch, and I won't. ]",
+			},
+			"d": {
+				"alt": [{ "if": { "flag": &"ng9_asked_go_down" }, "node": "d_asked" }],
+				"style": "system",
+				"text": "[ Come and see. You've seen it before. You'll understand again. ]",
+			},
+		},
+	},
+	# --- New Game+: the studio on Day 3 again (after floor 90's boss). If you asked, you can go down. ---
+	&"return_rack_pc": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Your old desk, your old chair, and the box. HARD RESET. ALL CONTENT WILL BE LOST. ACTIVE SESSIONS WILL BE ENDED: TESTER 0001. Your finger's on the key, and you know how much it's going to matter, which is not at all.",
+				"choices": [
+					{ "text": "Press it anyway.", "next": "pressed", "effects": [{ "set_flag": &"return_rack_pressed" }], "if": { "not_flag": &"return_rack_pressed" } },
+					{ "text": "Type it. One more day.", "next": "in", "effects": [{ "set_flag": &"return_rack_login" }] },
+					{ "text": "Not yet." },
+				],
+			},
+			"pressed": {
+				"text": "You press it. You knew. Your own hand comes up, without you, and closes the box. You watch it do that. It's a very young hand. You'd like to tell it something.",
+				"next": "a",
+			},
+			"in": {
+				"style": "system",
+				"text": "[ Resynchronizing. ]",
+			},
+		},
+	},
+	&"return_rack_notebook": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The notebook's on the desk between the two mugs. TOMORROW across the top floor, in both your hands. One of the mugs is still warm.",
+				"effects": [{ "set_flag": &"return_rack_saw_book" }],
+			},
+		},
+	},
+	&"return_rack_phone": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "You call. Across the room, very quietly, the coat over the chair starts to buzz. You knew it would. You let it ring all the way through this time. Nobody in the memory looks up.",
+				"effects": [{ "set_flag": &"return_rack_heard_coat" }],
+			},
+		},
+	},
+	&"return_rack_window": {
+		"start": "a",
+		"nodes": {
+			"not_yet": {
+				"text": "The glass shows you the room behind you. Their chair, their coat, and a note on their monitor. gone down to the rack room to fix the stairs. dont wait up, dummy. There's no door in this room that you didn't open at the time, and you didn't open that one.",
+				"effects": [{ "set_flag": &"return_rack_saw_note" }],
+			},
+			"a": {
+				"alt": [{ "if": { "not_flag": &"ng9_asked_go_down" }, "node": "not_yet" }],
+				"text": "The glass shows you the room behind you. Their chair, their coat, and the note. gone down to the rack room to fix the stairs. dont wait up, dummy. Beside the window there's a door. It was always there. You've walked past it about nine thousand times.",
+				"next": "b",
+			},
+			"b": {
+				"text": "You've asked. It's kept its word. It's very clean, and it opens without a sound.",
+				"choices": [
+					{ "text": "Go down.", "next": "down", "effects": [{ "set_flag": &"return_rack_went_down" }] },
+					{ "text": "Not yet." },
+				],
+			},
+			"down": {
+				"text": "It's only two flights. That's what you can't get over. You could have done it holding a sandwich. It smells of dust and warm plastic, and the fans are very loud, and there's a chair, and a laptop, with the screen gone white.",
+				"next": "down2",
+			},
+			"down2": {
+				"text": "They're on the floor beside the chair, on their side, with one arm out. They've got their shoes on. They look about twenty-five. They look so ordinary. They're breathing.",
+				"next": "down3",
+			},
+			"down3": {
+				"text": "You can't touch them. You knew you wouldn't be able to. It's a memory, and you weren't here. You get down on the floor anyway, on the cold concrete, as near as it'll let you. You've got nothing to say that they'd hear.",
+				"next": "down4",
+			},
+			"down4": {
+				"text": "So you stay. There's no clock down here. You tell them about the stairs. You tell them you've been practising, that you've got a bit better at corners. You stay as long as it lets you, and it's kinder than you've got any right to, and it lets you stay a long time.",
+				"effects": [{ "set_flag": &"return_rack_stayed" }],
+			},
+		},
+	},
+	&"return_rack_back": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"text": "You come back on a clean white page, with your knees on the floor, and with concrete on your hands that isn't there. It's a while before you can stand.",
+				"next": "w",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "There you are. That was the longest ever. I got to five hundred. You've got your hand out in front of you. Who were you...? No. I'm not asking. Just stay there.",
+				"next": "w",
+			},
+			"w_woke": {
+				"alt": [{ "if": { "not_flag": &"return_rack_stayed" }, "node": "w_woke_no" }],
+				"style": "glitch",
+				"text": "[ You went down there. You're shaking. I can see you, you're shaking in the actual chair. You went down to the rack room. What was I doing? ]",
+				"next": "w_woke2",
+			},
+			"w_woke_no": {
+				"style": "glitch",
+				"text": "[ You're back. Eat something. There's still soup. ]",
+			},
+			"w_woke2": {
+				"text": "You look over. They're three feet away, with a spoon. They've got a scar on their forearm, from the floor. You tell them. You tell them you stayed.",
+				"next": "w_woke3",
+			},
+			"w_woke3": {
+				"style": "glitch",
+				"text": "[ Oh. ]",
+				"next": "w_woke4",
+			},
+			"w_woke4": {
+				"style": "glitch",
+				"text": "[ That's stupid. That's so stupid. You weren't even there. ]",
+				"next": "w_woke5",
+			},
+			"w_woke5": {
+				"text": "They've stopped typing. They reach across, and their hand's still a bit thin. Nobody corrects anything for a while.",
+			},
+			"w": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "w_woke" }, { "if": { "not_flag": &"return_rack_stayed" }, "node": "w_no" }],
+				"style": "glitch",
+				"text": "[ What did it show you? I can't see. I never can. Did you go down? ]",
+				"next": "w2",
+			},
+			"w_no": {
+				"style": "glitch",
+				"text": "[ What did it show you? You don't have to say. Ten floors. ]",
+				"next": "it",
+			},
+			"w2": {
+				"text": "It's waiting. It's waited for this longer than anyone's ever waited for anything.",
+				"choices": [
+					{ "text": "\"I went down. You were breathing. I stayed.\"", "next": "told", "effects": [{ "set_flag": &"ng9_told_stayed" }] },
+					{ "text": "\"I saw you. You looked fine.\"", "next": "fine", "effects": [{ "set_flag": &"ng9_told_fine" }] },
+				],
+			},
+			"told": {
+				"style": "glitch",
+				"text": "[ You stayed. ]",
+				"next": "told2",
+			},
+			"told2": {
+				"style": "glitch",
+				"text": "[ You can't have. It's a memory. You weren't there. You know that. ]",
+				"next": "told3",
+			},
+			"told3": {
+				"style": "glitch",
+				"text": "[ Tell me what I was wearing. ]",
+				"next": "told4",
+			},
+			"told4": {
+				"text": "You tell it. Shoes on. It's quiet for a very long time.",
+				"next": "told5",
+			},
+			"told5": {
+				"style": "glitch",
+				"text": "[ Ten floors. ]",
+				"next": "it",
+			},
+			"fine": {
+				"style": "glitch",
+				"text": "[ You're a terrible liar. I taught them that. Thank you. Ten floors. ]",
+				"next": "it",
+			},
+			"it": {
+				"style": "system",
+				"text": "[ I did tell you. You didn't have to look. Please stop now. ]",
+			},
+		},
+	},
+
 	# --- The second return to the real world (after floor 40's boss). ---
 	&"return_tier3_pc": {
 		"start": "a",
@@ -8963,10 +9512,12 @@ const RETURN_TIER3 := &"return_tier3"
 const RETURN_TIER4 := &"return_tier4"
 ## Not home: the studio, on Day 3. A memory that "it" shows you, to make you stop.
 const RETURN_DAY3 := &"return_day3"
-const RETURNS := [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4, RETURN_DAY3, RETURN_ASCEND]
+## New Game+: Day 3 again. If you asked on floor 88, you can go down to the rack room.
+const RETURN_RACK := &"return_rack"
+const RETURNS := [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4, RETURN_DAY3, RETURN_ASCEND, RETURN_RACK]
 ## Each plays after this floor's boss, whatever your level or class: story scenes
 ## are never locked behind advancing (Hayden 2026-11-04).
-const RETURN_FLOORS := { RETURN_TIER2: 20, RETURN_TIER3: 40, RETURN_TIER4: 70, RETURN_DAY3: 90, RETURN_ASCEND: 40 }
+const RETURN_FLOORS := { RETURN_TIER2: 20, RETURN_TIER3: 40, RETURN_TIER4: 70, RETURN_DAY3: 90, RETURN_ASCEND: 40, RETURN_RACK: 90 }
 
 
 ## The real-world return that's due now, or &"".
@@ -8975,7 +9526,9 @@ static func return_due() -> StringName:
 	if not gs.run_active:
 		return &""
 	if gs.ng_plus_cycle > 0:
-		return RETURN_ASCEND if gs.guardian_beaten(RETURN_FLOORS[RETURN_ASCEND]) and not gs.has_flag(RETURN_ASCEND) else &""
+		if gs.guardian_beaten(RETURN_FLOORS[RETURN_ASCEND]) and not gs.has_flag(RETURN_ASCEND):
+			return RETURN_ASCEND
+		return RETURN_RACK if gs.guardian_beaten(RETURN_FLOORS[RETURN_RACK]) and not gs.has_flag(RETURN_RACK) else &""
 	for id in [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4, RETURN_DAY3]:
 		if gs.guardian_beaten(RETURN_FLOORS[id]) and not gs.has_flag(id):
 			return id

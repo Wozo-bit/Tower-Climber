@@ -40,6 +40,7 @@ func _ready() -> void:
 	test_one_it_kept_tell_them()
 	test_one_it_kept_drafts()
 	test_one_it_kept_tenants()
+	await test_one_it_kept_going_down()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1262,7 +1263,7 @@ func test_chapter_eight() -> void:
 
 func test_chapter_nine() -> void:
 	print("-- chapter 9 --")
-	var ch9 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 9)
+	var ch9 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 9 and String(s.dialogue).begins_with("ch9"))
 	var covered := {}
 	for s in ch9:
 		for f in s.floors:
@@ -1964,6 +1965,86 @@ func test_one_it_kept_tenants() -> void:
 	_kept_run(80, [&"ch4_kept_ledger"])
 	_play(&"ng8_tess_down")
 	check(GameState.has_flag(&"ch8_tess_signed"), "or she signs your ledger")
+	GameState.ng_plus_cycle = 0
+
+
+func test_one_it_kept_going_down() -> void:
+	print("-- the one it kept: floors 81-90 --")
+	_kept_run(81, [&"ng7_friend_knows"])
+	check(StoryLibrary.due(81, false) == &"ng9_opening", "floor 81 in New Game+")
+	check(StoryLibrary.chapter_name(9) == "Chapter 9: Going Down", "its title")
+	for id in [&"ng9_opening", &"ng9_files", &"ng9_stairs", &"ng9_talk", &"ng9_door", &"ng9_last_page", &"ng9_first_draft", &"ng9_draft_down", &"return_rack_pc", &"return_rack_notebook", &"return_rack_phone", &"return_rack_window", &"return_rack_back"]:
+		for past in [[], [&"past_friend_woke"], [&"past_end_forgot"], [&"ng9_asked_go_down"], [&"return_rack_stayed"], [&"past_friend_woke", &"return_rack_stayed"]]:
+			for pick in 3:
+				_kept_run(85, past)
+				check(_play(id, pick).finished, "%s plays (%s, choice %d)" % [id, past, pick])
+	for route_id in [&"hero", &"villain", &"vigilante"]:
+		_kept_locked(route_id, 85)
+		check(_play(&"ng9_fire").finished, "%s: the fire" % route_id)
+	var r := DialogueRunner.new()
+	# The spelling's right now, and it's your voice.
+	check(_all_text(&"ng9_opening").contains("definitely"), "it's learned to spell that too")
+	# A question it has never asked; it remembers if you asked to forget.
+	_kept_run(86, [&"past_end_forgot"])
+	r.start(&"ng9_talk")
+	check(r.node_id == "forgot", "it doesn't understand why you came back")
+	# Asking it: only then is there a door down.
+	_kept_run(88)
+	_play(&"ng9_door", 0)
+	check(GameState.has_flag(&"ng9_asked_go_down"), "you asked it")
+	r.start(&"return_rack_window")
+	check(r.node_id == "a", "and there's a door")
+	_play(&"return_rack_window", 0)
+	check(GameState.has_flag(&"return_rack_stayed"), "you went down, and you stayed")
+	var said := ""
+	r.start(&"return_rack_window")
+	while not r.finished:
+		if r.has_choices():
+			r.choose(r.choices()[0].index)
+		said += r.text()
+		r.advance()
+	check(said.contains("They're breathing"), "they were breathing")
+	_kept_run(88)
+	r.start(&"return_rack_window")
+	check(r.node_id == "not_yet", "you didn't ask: no door")
+	# Back on the stairs.
+	_kept_run(90, [&"return_rack_stayed"])
+	_play(&"return_rack_back", 0)
+	check(GameState.has_flag(&"ng9_told_stayed"), "you tell it you stayed")
+	_kept_run(90, [&"return_rack_stayed", &"past_friend_woke"])
+	r.start(&"return_rack_back")
+	r.advance()
+	check(r.node_id == "w_woke", "they're three feet away, and they ask")
+	# When it plays: after floor 90's boss, New Game+ only.
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	GameState.ng_plus_cycle = 1
+	GameState.set_flag(StoryLibrary.RETURN_ASCEND)
+	check(StoryLibrary.return_due() == &"", "not before floor 90's boss")
+	GameState.cleared_guardians.append(90)
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_RACK, "floor 90's boss brings it")
+	GameState.set_flag(StoryLibrary.RETURN_RACK)
+	check(StoryLibrary.return_due() == &"", "once")
+	Prologue.mode = StoryLibrary.RETURN_RACK
+	var room: Prologue = load(Prologue.SCENE).instantiate()
+	room.auto_leave = false
+	var left := [false]
+	room.return_finished.connect(func(): left[0] = true)
+	add_child(room)
+	await _frames(2)
+	check(room._hint.text.contains("studio"), "the studio")
+	room.look_at_object(&"pc")
+	room._dialogue.runner.choose(room._dialogue.runner.choices()[1].index)
+	room._dialogue._refresh()
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(left[0] and GameState.pending_talks.any(func(t): return t.dialogue == &"return_rack_back"), "one more day, and back to the tower")
+	GameState.pending_talks.clear()
+	room.queue_free()
+	await _frames(1)
+	_kept_run(90)
+	_play(&"ng9_draft_down")
+	check(GameState.has_flag(&"ch9_complete"), "chapter 9 complete")
 	GameState.ng_plus_cycle = 0
 
 

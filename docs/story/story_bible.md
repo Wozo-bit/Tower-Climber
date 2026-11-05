@@ -419,7 +419,11 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 
 **Floors 71-80, "The Tenants, Again":** the gods know the deals were worthless, and they know you know. So this time they ask YOU. 72-73, the first: "What happens to the people in the house?" 76-77, the second: "Don't turn the lights off. I'd take a cupboard." 78, in spelled-right corrections, you choose: give them a lease (`ng8_gave_lease`), make them kneel to the owner (`ng8_gods_knelt`) or evict them (`ng8_evicted`). The ending should use this. 71 and 74, gaps in the Host if you told the climbers on the crate. 75, "What happens to me?" gets a real answer from what happened last climb: "they're already out here, I've got their laugh", "they had so many notes", "they told you no", or "they took the seat beside you" (`past_friend_*`). 79, the page is gone, replaced with a tidy note in your hand: EAT SOMETHING. **80, Tess:** carry her off floor 48 and the armour is empty: nobody to put in it, and she walks on (`ng8_tess_lives`). Otherwise it's her again, and she stays where she is; you can tell her what it's worth. If you told Marn on floor 35, he's climbed all the way up to be with her, and she writes DONE in his book.
 
-**Silent in New Game+: floors 81-99.**
+**Floors 81-90, "Going Down":** you know what "it" is, so you talk. It has tidied the unfinished floors with a ruler. 81, "I wrote you." 82-83, your dropped pages are filed in a clean cabinet, with notes. 84, you draw the stairs with the System while it objects. 85, your friend on the one with your face (route). 86-87, it asks you for the first time: "You took it all back. How is it?" Tell it to stop, and it can't: "You wrote: keep me out. You didn't write until when." 88, the door home again, and beside it a stair: RACK ROOM. NOT REQUIRED. You can ask to go down (`ng9_asked_go_down`). `[ You said never. ]` ... `[ You did say you only had to ask. ]` 89, Day 212, framed and dusted. 90, you put the bend back in the arrow.
+
+**The memory, again** (`RETURN_RACK`, after floor 90's boss): the studio on Day 3. If you asked, there's a door beside the window. Two flights. They're on the floor with their shoes on, breathing. You can't touch them. You stay (`return_rack_stayed`). Back on the stairs, tell the System "You were breathing. I stayed", or lie. If your real friend woke, they're three feet away with a spoon, and they stop typing.
+
+**Silent in New Game+: floors 91-99.**
 
 | Floors | Chapter | What's different |
 | --- | --- | --- |
