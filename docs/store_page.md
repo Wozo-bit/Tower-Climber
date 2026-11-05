@@ -160,4 +160,4 @@ Everyone here knows the legend: whoever reaches the top becomes a god. A window 
 
 These details come from secondary sources, so check the current wording in Steamworks and on itch.io when you fill them in. Rewriting the story yourself, as you've planned, may change your answer.
 
-**Names:** search both stores for "Tower of Recognition" before you commit to it. I haven't checked whether the name is free.
+**Name:** Hayden searched itch.io and Steam on 2026-11-05 and found no games called "Tower of Recognition". That doesn't cover trademarks, so check a trademark database before release.
