@@ -31,6 +31,7 @@ func _ready() -> void:
 	test_chapter_six()
 	await test_chapter_seven()
 	test_chapter_eight()
+	await test_chapter_nine()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -136,7 +137,7 @@ func test_due() -> void:
 	check(StoryLibrary.due(10, false) == &"", "the ending waits for the boss")
 	check(StoryLibrary.due(10, true) == &"ch1_end", "boss down: chapter 1 ends")
 	GameState.set_flag(&"ch7_friend_knows")
-	check(StoryLibrary.due(81, false) == &"", "no chapter 9 scenes yet")
+	check(StoryLibrary.due(91, false) == &"", "no chapter 10 scenes yet")
 	GameState.story_flags.erase(&"ch7_friend_knows")
 	GameState.start_new_game("Again", "Rowan", 1)
 	check(StoryLibrary.due(1, false) == &"ch1_wake", "a new run plays the story again")
@@ -1252,6 +1253,124 @@ func test_chapter_eight() -> void:
 		r.advance()
 	check(said.contains(StoryLibrary.bid_pair().first_lines.spent) and said.contains(StoryLibrary.bid_pair().second_lines.spent), "both gods admit what the deals were worth")
 	check(said.contains("You're the only one who ever could"), "and the System says who can reach the room")
+
+
+func test_chapter_nine() -> void:
+	print("-- chapter 9 --")
+	var ch9 := StoryLibrary.SCENES.values().filter(func(s): return s.chapter == 9)
+	var covered := {}
+	for s in ch9:
+		for f in s.floors:
+			covered[f] = true
+	check(covered.size() == StageLibrary.FLOORS_PER_STAGE and covered.has(81) and covered.has(90), "a beat on every floor 81-90 (%s)" % [covered.keys()])
+	check(ch9.all(func(s): return s.if.get("ng_plus") == false), "all of it is for a first run")
+	_fresh()
+	GameState.set_flag(&"ch7_friend_knows")
+	check(StoryLibrary.chapter_name(9) == "Chapter 9: One More Day", "its title")
+	check(StoryLibrary.due(81, false) == &"ch9_opening", "floor 81 opens it")
+	var r := DialogueRunner.new()
+	# It talks like you, and spells like you.
+	var said := ""
+	r.start(&"ch9_opening")
+	while not r.finished:
+		said += r.text()
+		r.advance()
+	check(said.contains("definately") and said.contains("That's not me"), "it talks like you, and the System objects")
+	# Pages: only what you read out reaches the System.
+	for id in [&"ch9_page_day9", &"ch9_page_day47"]:
+		_fresh(82)
+		_play(id, 0)
+		check(GameState.has_flag(&"ch9_read_any"), "%s: read out" % id)
+		_fresh(82)
+		_play(id, 1)
+		check(not GameState.has_flag(&"ch9_read_any"), "%s: kept" % id)
+	_fresh(84)
+	_play(&"ch9_stairs")
+	check(GameState.has_flag(&"ch9_saw_stairs"), "it takes the stairs, the System puts them back")
+	for route_id in [&"hero", &"villain", &"vigilante"]:
+		for pick in 2:
+			_locked(route_id, 85)
+			check(_play(&"ch9_fire", pick).finished, "%s: the fire (choice %d)" % [route_id, pick])
+			_locked(route_id, 88)
+			check(_play(&"ch9_door", pick).finished, "%s: the door home (choice %d)" % [route_id, pick])
+			check(GameState.has_flag(&"ch9_door_done"), "%s: you always climb on" % route_id)
+			_locked(route_id, 90)
+			check(_play(&"return_day3_back", 0).finished, "%s: back from the memory" % route_id)
+	_fresh(89)
+	check(_play(&"ch9_last_page", 0).finished and GameState.has_flag(&"ch9_read_day212"), "the last page, read out")
+	r.start(&"ch9_last_page")
+	said = ""
+	while not r.finished:
+		if r.has_choices():
+			r.choose(r.choices()[0].index)
+		said += r.text()
+		r.advance()
+	check(said.contains("MAKE IT SO I DONT KNOW") and said.contains("T.0027"), "it says why you forgot")
+	check(said.contains("I've been fighting you"), "and the System understands")
+	_fresh(90)
+	check(StoryLibrary.due(90, false) != &"ch9_draft_down", "the boss first")
+	_play(&"ch9_draft_down")
+	check(GameState.has_flag(&"ch9_complete"), "chapter 9 complete")
+	# The memory: floor 90, first runs only.
+	_fresh()
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	for id in [StoryLibrary.RETURN_TIER2, StoryLibrary.RETURN_TIER3, StoryLibrary.RETURN_TIER4]:
+		GameState.set_flag(id)
+	for f in [20, 40, 70]:
+		GameState.cleared_guardians.append(f)
+	check(StoryLibrary.return_due() == &"", "not before floor 90's boss")
+	GameState.cleared_guardians.append(90)
+	check(StoryLibrary.return_due() == StoryLibrary.RETURN_DAY3, "floor 90's boss brings it")
+	GameState.ng_plus_cycle = 1
+	check(StoryLibrary.return_due() != StoryLibrary.RETURN_DAY3, "first runs only")
+	GameState.ng_plus_cycle = 0
+	r.start(&"return_day3_pc")
+	check(r.text().contains("HARD RESET") and r.choices().size() == 3, "the reset, under your finger")
+	r.choose(r.choices()[0].index)
+	check(r.node_id == "pressed" and GameState.has_flag(&"return_day3_pressed"), "you can press it")
+	r.advance()
+	check(r.node_id == "a" and r.choices().size() == 2, "nothing happens, and you only try that once")
+	check(_play(&"return_day3_phone").finished and GameState.has_flag(&"return_day3_heard_coat"), "the coat buzzes")
+	check(_play(&"return_day3_window").finished and GameState.has_flag(&"return_day3_saw_note"), "the note")
+	check(_play(&"return_day3_notebook").finished, "the notebook")
+	# Back: what you tell it.
+	for pick in 3:
+		_fresh(90)
+		check(_play(&"return_day3_back", pick).finished, "back (choice %d)" % pick)
+	_fresh(90)
+	_play(&"return_day3_back", 0)
+	check(GameState.has_flag(&"ch9_told_all"), "you told it everything")
+	_fresh(90)
+	_play(&"return_day3_back", 1)
+	check(GameState.has_flag(&"ch9_told_part"), "you told it some")
+	_fresh(90)
+	GameState.set_flag(&"ch9_read_any")
+	r.start(&"return_day3_back")
+	while not r.has_choices():
+		r.advance()
+	check(r.choices().size() == 2, "you can't tell it part of what you've already read out")
+	r.choose(r.choices()[0].index)
+	check(r.node_id == "all2", "it already knows you came back")
+	_fresh(90)
+	GameState.player = GameState.make_premade("Tester", &"mage", { Stats.Type.INTELLIGENCE: 20 })
+	Prologue.mode = StoryLibrary.RETURN_DAY3
+	var room: Prologue = load(Prologue.SCENE).instantiate()
+	room.auto_leave = false
+	var left := [false]
+	room.return_finished.connect(func(): left[0] = true)
+	add_child(room)
+	await _frames(2)
+	check(room._hint.text.contains("studio"), "not your room this time")
+	room.look_at_object(&"pc")
+	check(room._dialogue.runner.dialogue_id == &"return_day3_pc", "the reset")
+	room._dialogue.runner.choose(room._dialogue.runner.choices()[1].index)
+	room._dialogue._refresh()
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
+	check(left[0] and GameState.pending_talks.any(func(t): return t.dialogue == &"return_day3_back"), "one more day, and back to the tower")
+	GameState.pending_talks.clear()
+	room.queue_free()
+	await _frames(1)
 
 
 func test_skip_warning() -> void:

@@ -341,13 +341,15 @@ friend_caught_up change later scenes). Story only, no stat or route cost.
 (glitched: weaknesses change per fight), Echoes 91-100 (echoing: copy your
 skills). Final boss Tester 0041; NG+ = mimics of your Hall character + party
 (GameState.boss_group / register_mimics; LegacyRecord.party). Tier 4 at floor
-70 (+30%; one capstone per tier-3 class). Story for floors 81-99 is still to
+70 (+30%; one capstone per tier-3 class). Story for floors 91-99 and the ending is still to
 write.
 
 THE SECRET (Hayden picked 2026-11-04): you built the game with your real childhood
 friend, and forgot; they got trapped or died; the System is what's left of them;
 the in-game friend is the game's memory of them. Reveal slowly (bible). Chapter 4
 "The Second Hand" + the tier-3 return BUILT 2026-11-04.
+Chapter 9 "One More Day" + Day 3 memory (floor 90) BUILT 2026-11-05: pages, "it" in your voice, you pick
+what the System hears (ch9_read_*, ch9_told_*; floor 99 and the ending should use them).
 TESTERS (Hayden 2026-11-05): 0012 + 0027 = you; 0041 = a stranger; floor 99's miniboss = Echo of 0001 (real friend), forced by "it"; the System helps you beat it and keeps talking after.
 Chapter 8 "The Tenants" BUILT 2026-11-05 (Hayden's picks): each god offers a deal (wake the real one /
 make the fire friend real), Anointed Champion = Tess (really gone), friend talks through you + wants
@@ -446,7 +448,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 3199 checks at last run).
+Every change gets tests in tests/ (26 suites, 3299 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import

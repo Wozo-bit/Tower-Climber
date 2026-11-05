@@ -195,7 +195,8 @@ func _build_ui() -> void:
 	var move_keys := "/".join(["move_up", "move_left", "move_down", "move_right"].map(
 		func(a): return InputBindings.key_name(a)))
 	_hint.text = ("Your room. Late. Look around, or use the PC.   (%s: move · %s: skip)" if mode == MODE_PROLOGUE
-		else "Your room? The PC is still on.   (%s: move · %s: skip)") % [move_keys, InputBindings.key_name("pause")]
+		else ("The studio. You know what day it is.   (%s: move · %s: skip)" if mode == StoryLibrary.RETURN_DAY3
+		else "Your room? The PC is still on.   (%s: move · %s: skip)")) % [move_keys, InputBindings.key_name("pause")]
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)

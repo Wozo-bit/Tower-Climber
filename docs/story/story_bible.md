@@ -9,8 +9,8 @@ the chapter in Tab -> Quests. The scene text lives in
 `scripts/story/story_library.gd`. Chapter 2 and the first real-world return followed the same day (see below).
 New Game+'s god storyline, "The First Prayer", and the Ascending return are built too.
 The final boss (Tester 0041, or the NG+ mimic) and the false summit are in the game too (2026-11-04).
-Chapters 3-8 (floors 21-80), the second and third returns, four more quest classes and eleven more recruits too.
-**Not built yet:** first-run story for floors 81-99 (chapters 9-10), beyond the floor-100 meeting.
+Chapters 3-9 (floors 21-90), the second and third returns, the Day 3 memory, four more quest classes and eleven more recruits too.
+**Not built yet:** first-run story for floors 91-99 (chapter 10), and the rest of the ending, beyond the floor-100 meeting.
 Chapter 1's campfire climbers are named Tess (red scarf, falls on floor 10)
 and Marn (the old one); the notebook's cover misspells the name as
 "THE TOWER OF RECONGITION", and the floor 8-9 carving has the same mistake.
@@ -258,6 +258,27 @@ Hayden's picks (2026-11-05): each god makes one offer (the first swears it can w
 
 **Testers (decided, Hayden 2026-11-05):** 0012 and 0027 were you, logging in again under new numbers. Only the T.0012 page hints at it so far. **Tester 0041 is a stranger**, someone real who lost 31 years to your mistake, not another you. **Tester 0001, the real friend, is floor 99's miniboss** (Hayden, 2026-11-05): "it" forces the Echo of their first login to fight you. The System stays on your side and helps you beat it (`[ It always swings left first. I drew it that way. I'm sorry. ]`), and must keep talking afterwards. Beating it kills nobody. The friend by the fire finally meets the real one (route lines; System only if they're away). **Tess is really gone now** (`ch8_tess_gone`): nobody has written whether anything comes back to a fire. The deals are never formally ended; the friend calls theirs off if you took it. `ch8_catchup` tells a friend who rejoins after floors 66-67, on any floor from 71 to 99.
 
+## Chapter 9: "One More Day" (floors 81-90)
+
+Hayden's picks (2026-11-05): pages, then a playable memory; "it" talks in windows, in your voice; you decide what the System and the friend are told, because the System can't see the pages.
+
+**What happened.** The night you went home, your friend went down to the rack room (in the studio's basement) to fix the stairs, and the build took them. For three days you thought it was a stuck session. A reset would have ended it, and wiped everything you'd built, so you held off for one more day. You called six times, and you heard their phone buzz in their coat, and thought nothing of it. By Day 9 the reset wouldn't take. You logged in again and again under new tester numbers. Time inside ran slower than outside, and it cost you your health and your memory. On Day 212, as T.0027, you didn't know your mum for a minute, so you locked the build against yourself and cut the memory: ADMIN: KEEP ME OUT. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. That instruction is "it". The System never knew you came back: sessions were kept apart, and it was on the stairs.
+
+| Floor | Beat |
+| --- | --- |
+| 81 | `[ Chapter 9: One More Day ]`. Grey boxes and pencil lines. "It" talks to you in your own voice: `[ You've definately done enough. ]` `[ That's not me. I want that noted. ]` |
+| 82-83 | Page: DAY 9. RESET WON'T TAKE. THEIR MUM RANG. GOING BACK IN. - T.0019. Read it out, or keep it. |
+| 84 | Past the Deprecated Guardian the stairs are tidied away, and the System draws them under your feet. `[ This is what I do. It takes them away, and I put them back. ]` |
+| 85 | At the fire, "Read me one." Read your friend the pages (route lines) or say "Not yet". `[ Nobody has to know. That's what I'm for. ]` |
+| 86-87 | Page: DAY 47. FOUND A FLOOR WITH THEIR WRITING ALL OVER IT. - T.0023. `[ I was on the stairs. I must have been about ten floors up. ]` |
+| 88 | A door with your desk lamp's light under it. `[ I can let you through. It's the only thing I was ever for. ]` Look or don't. You climb on either way. |
+| 89 | The last page, DAY 212, T.0027: you wrote "it". If you read it out: `[ You. I've been fighting you. ]` ... `[ Yes. I do. ]` |
+| 90 | The First Draft: ballpoint, two stick figures at the top, US and an arrow. `[ Please don't. ]` |
+
+**The memory** (after floor 90's boss, first runs only): "it" shows you the studio on Day 3 to make you stop. The PC: the reset under your finger. You can press it; nothing happens, because it's something you didn't do. Bookshelf: TOMORROW across the empty top floor. Window: their coat and the note, "gone down to the rack room to fix the stairs. dont wait up, dummy." Phone: you call, and the coat buzzes. Back on the white page, you tell the System everything, only that you came back, or nothing. If it has heard any page, it already knows you came back. Flags `ch9_told_all` / `ch9_told_part` / `ch9_told_nothing` and `ch9_read_*` are there for floor 99 and the ending.
+
+**Numbers:** you went in 26 times (0002 to 0027). Tester 0041 came after you locked it, and is a stranger. **Loose thread for Chapter 10:** the pages say time runs slower inside (4 days in, 9 out), which fits the returns, but 0041's session reads 31 years. Either the tower's clock is broken, or that needs explaining.
+
 ## New recruits (Hayden, 2026-11-04)
 
 Eleven more, so every route can reach a full party of 9 in every run. Three come back from earlier scenes: Wren (the thief, floors 6-7), Sabine (the envoy, floor 18), Hilde (the boots, floor 42). Their first lines remember what you did.
@@ -362,7 +383,7 @@ Everyone in the tower knows the top is floor 60. You beat its boss, open the doo
 - **Floors 81-90, The Unfinished:** the game shows its seams. Unnamed enemies, placeholder knights, weaknesses that change every fight, and the First Draft of the tower.
 - **Floors 91-100, Echoes:** past Testers, using your own skills, and Testers 0012 and 0027. Tester 0041 at the top.
 
-These beats are an outline for floors 81-99. Floors 61-80, the false summit and the floor-100 meeting have scenes.
+These beats are an outline for floors 91-99. Floors 61-90, the false summit and the floor-100 meeting have scenes.
 
 ## The final boss (floor 100) (Hayden, 2026-11-03; moved from floor 60 on 2026-11-04)
 

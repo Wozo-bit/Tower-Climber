@@ -37,7 +37,7 @@ const CHAPTERS := [
 	{ "title": "The Top They Promised" },
 	{ "title": "First Drafts" },
 	{ "title": "The Tenants" },
-	{ "title": "(Chapter 9)" },
+	{ "title": "One More Day" },
 	{ "title": "(Chapter 10)" },
 ]
 ## A god climbing again has their own story, "The First Prayer" (story bible).
@@ -186,6 +186,15 @@ const SCENES := {
 	&"ch8_strongbox": { "chapter": 8, "floors": [79], "when": "guardian_down", "dialogue": &"ch8_strongbox", "if": { "ng_plus": false } },
 	&"ch8_anointed": { "chapter": 8, "floors": [80], "when": "enter", "dialogue": &"ch8_anointed", "if": { "ng_plus": false } },
 	&"ch8_tess_down": { "chapter": 8, "floors": [80], "when": "guardian_down", "dialogue": &"ch8_tess_down", "if": { "ng_plus": false } },
+	&"ch9_opening": { "chapter": 9, "floors": [81], "when": "enter", "dialogue": &"ch9_opening", "if": { "ng_plus": false } },
+	&"ch9_page_day9": { "chapter": 9, "floors": [82, 83], "when": "enter", "dialogue": &"ch9_page_day9", "if": { "ng_plus": false } },
+	&"ch9_stairs": { "chapter": 9, "floors": [84], "when": "guardian_down", "dialogue": &"ch9_stairs", "if": { "ng_plus": false } },
+	&"ch9_fire": { "chapter": 9, "floors": [85], "when": "enter", "dialogue": &"ch9_fire", "if": { "ng_plus": false } },
+	&"ch9_page_day47": { "chapter": 9, "floors": [86, 87], "when": "enter", "dialogue": &"ch9_page_day47", "if": { "ng_plus": false } },
+	&"ch9_door": { "chapter": 9, "floors": [88], "when": "enter", "dialogue": &"ch9_door", "if": { "ng_plus": false } },
+	&"ch9_last_page": { "chapter": 9, "floors": [89], "when": "guardian_down", "dialogue": &"ch9_last_page", "if": { "ng_plus": false } },
+	&"ch9_first_draft": { "chapter": 9, "floors": [90], "when": "enter", "dialogue": &"ch9_first_draft", "if": { "ng_plus": false } },
+	&"ch9_draft_down": { "chapter": 9, "floors": [90], "when": "guardian_down", "dialogue": &"ch9_draft_down", "if": { "ng_plus": false } },
 	&"final_tester": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_tester", "if": { "ng_plus": false } },
 	&"final_mimic": { "chapter": 10, "floors": [100], "when": "enter", "dialogue": &"final_mimic", "if": { "ng_plus": true } },
 }
@@ -3798,6 +3807,602 @@ const DIALOGUES := {
 		},
 	},
 
+	# --- Chapter 9: One More Day. Why you forgot. ---
+	&"ch9_opening": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Chapter 9: One More Day ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The walls stop halfway up. Past that it's grey boxes and ruled lines, and floors marked out in pencil where nobody got around to the floor. Something up here has no name yet, and it's walking toward you anyway.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ You look tired. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "system",
+				"text": "[ You've done enough. You've definately done enough. Nobody would blame you. ]",
+				"next": "e",
+			},
+			"e": {
+				"text": "It's the flat window. It has never talked like this. It sounds like the voice you use on yourself at four in the morning, when you're being reasonable.",
+				"next": "f",
+			},
+			"f": {
+				"style": "glitch",
+				"text": "[ That's not me. I want that noted. I would never say you'd done enough. ]",
+				"next": "g",
+			},
+			"g_alone": {
+				"text": "You keep climbing. Neither window has anything else to say for a while, and you notice how much you'd like to agree with the first one.",
+				"effects": [{ "set_flag": &"ch9_started" }],
+			},
+			"g": {
+				"alt": [{ "if": { "friend_away": true }, "node": "g_alone" }],
+				"speaker": "{friend}",
+				"text": "Read it out, that's the rule. ...Well, that one's a charmer. Who is that? It sounds like you. It sounds like you when you've already decided.",
+				"effects": [{ "set_flag": &"ch9_started" }],
+			},
+		},
+	},
+	&"ch9_page_day9": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "A sheet of squared paper lies on a stair that's only a pencil line. It's been stepped over a great many times.",
+				"next": "b",
+			},
+			"b": {
+				"text": "DAY 9. RESET WON'T TAKE. SAYS SESSION IN USE. THEIR MUM RANG. I SAID THEY WERE CRUNCHING. GOING BACK IN.   - T.0019",
+				"next": "c",
+				"effects": [{ "set_flag": &"ch9_found_day9" }],
+			},
+			"c": {
+				"text": "The window is open. It can't see what you're holding. It never can.",
+				"choices": [
+					{ "text": "Read it out.", "next": "r0", "effects": [{ "set_flag": &"ch9_read_day9" }, { "set_flag": &"ch9_read_any" }] },
+					{ "text": "Fold it up, and put it with the others.", "next": "keep", "effects": [{ "set_flag": &"ch9_kept_day9" }] },
+				],
+			},
+			"r0": {
+				"style": "glitch",
+				"text": "[ My mum rang you? ]",
+				"next": "r1",
+			},
+			"r1": {
+				"style": "glitch",
+				"text": "[ Back in. You said back in. ]",
+				"next": "r2",
+			},
+			"r2": {
+				"style": "glitch",
+				"text": "[ When? When were you in here? I'd have heard. ]",
+			},
+			"keep": {
+				"style": "system",
+				"text": "[ That's right. You don't need that. Put it away. ]",
+			},
+		},
+	},
+	&"ch9_page_day47": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Another page, weighted down with a stone on a floor that doesn't have any stone. Someone's handwriting has started to come apart.",
+				"next": "b",
+			},
+			"b": {
+				"text": "DAY 47. FOUND A FLOOR WITH THEIR WRITING ALL OVER IT. THEY WERE JUST HERE. LOST 4 DAYS INSIDE, IT WAS 9 OUTSIDE. HAVEN'T EATEN. CAN'T REMEMBER THE WORD FOR THE THING YOU OPEN DOORS WITH.   - T.0023",
+				"next": "c",
+				"effects": [{ "set_flag": &"ch9_found_day47" }],
+			},
+			"c": {
+				"text": "The window is open. It can't see what you're holding. It never can.",
+				"choices": [
+					{ "text": "Read it out.", "next": "r0", "effects": [{ "set_flag": &"ch9_read_day47" }, { "set_flag": &"ch9_read_any" }] },
+					{ "text": "Fold it up, and put it with the others.", "next": "keep", "effects": [{ "set_flag": &"ch9_kept_day47" }] },
+				],
+			},
+			"r0": {
+				"style": "glitch",
+				"text": "[ You were on my floor. ]",
+				"next": "r1",
+			},
+			"r1": {
+				"style": "glitch",
+				"text": "[ I was on the stairs. I'm always on the stairs. I must have been about ten floors up. ]",
+				"next": "r2",
+			},
+			"r2": {
+				"style": "glitch",
+				"text": "[ Key. It's key. ]",
+			},
+			"keep": {
+				"style": "system",
+				"text": "[ Good. Eat something. ]",
+			},
+		},
+	},
+	&"ch9_stairs": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "A label hangs round the Deprecated Guardian's neck: REMOVE. Under it, in the second hand: dont delete this one. i like him. Then the way ahead is gone. There's no fight in it, and no noise. The stairs have just been tidied away.",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ This floor is not required. You could go back down. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ Hold on. ]",
+				"next": "e",
+			},
+			"e": {
+				"style": "glitch",
+				"text": "[ I've got it. Hold on. ]",
+				"next": "f",
+			},
+			"f": {
+				"text": "A step appears, drawn in fast by a hand you know, with the corner of the riser slightly wrong. Then another, under your foot, as you put it down. Then another.",
+				"next": "g",
+			},
+			"g": {
+				"style": "glitch",
+				"text": "[ This is what I do. It takes them away, and I put them back. That's all I've been doing up here. ]",
+				"next": "h",
+			},
+			"h": {
+				"style": "glitch",
+				"text": "[ Don't look down. Not because it's dangerous. They're just not very good. I'm rushing. ]",
+				"effects": [{ "set_flag": &"ch9_saw_stairs" }],
+			},
+		},
+	},
+	&"ch9_fire": {
+		"start": "a",
+		"nodes": {
+			"a_alone": {
+				"text": "There are five people at this fire, and nobody's telling jokes. Someone has left a place on the log where a talker would sit. You take out the pages, and you put them back.",
+				"next": "c",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "a_alone" }],
+				"text": "There are five people at this fire, and nobody's telling jokes. Someone has left a place on the log where a talker would sit. {friend} looks at your pocket.",
+				"next": "b",
+			},
+			"b": {
+				"speaker": "{friend}",
+				"text": "You've got a pocket full of paper you keep touching. There's a rule about that. I made it up, so it's a very good rule. Read me one.",
+				"next": "b2",
+			},
+			"b2": {
+				"text": "The firelight's bad, and it's a good excuse. You've still got a choice about it.",
+				"choices": [
+					{ "text": "Read them everything you've found.", "next": "told", "effects": [{ "set_flag": &"ch9_friend_read" }] },
+					{ "text": "\"Not yet.\"", "next": "wait", "effects": [{ "set_flag": &"ch9_friend_waiting" }] },
+				],
+			},
+			"c": {
+				"style": "system",
+				"text": "[ You don't have to tell anyone. Nobody has to know. That's what I'm for. ]",
+				"effects": [{ "set_flag": &"ch9_fire_done" }],
+			},
+			"told": {
+				"text": "You read them out. It doesn't take long. The handwriting gets worse as you go, and you find you're doing the voice.",
+				"next": "t2",
+			},
+			"t2_hero": {
+				"speaker": "{friend}",
+				"text": "You went back. You went back all those times with nothing to eat. And you're telling it like it's a confession. ...I'm going to be furious with you later, and proud. Give me a minute.",
+				"next": "c",
+			},
+			"t2_villain": {
+				"speaker": "{friend}",
+				"text": "You had the means to end it, and you held on to what you'd built. I understand that completely. I understand it far too well. I wonder who I got that from.",
+				"next": "c",
+			},
+			"t2_vigilante": {
+				"speaker": "{friend}",
+				"text": "One more day. That's the entry, then. I've been saving that page for whoever left the door open. I can't decide if I'm allowed to write it, if they went back that many times.",
+				"next": "c",
+			},
+			"t2": {
+				"alt": [{ "if": { "route": &"hero" }, "node": "t2_hero" }, { "if": { "route": &"villain" }, "node": "t2_villain" }, { "if": { "route": &"vigilante" }, "node": "t2_vigilante" }],
+				"speaker": "{friend}",
+				"text": "So that's what it looks like, from the other side. I've spent my whole life asking if you'd stay. You've been trying to all along. Terribly.",
+				"next": "c",
+			},
+			"wait": {
+				"speaker": "{friend}",
+				"text": "Yeah. You always did say later. You know, I think that one's actually from you.",
+				"next": "c",
+			},
+		},
+	},
+	&"ch9_door": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "There's a door on the landing, a plain one, with light under it. You know that light. It's the lamp on your desk. You can smell the room from here. Nobody's chasing you. Nothing on this floor is even looking at you.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ I can let you through. It's the only thing I was ever for. ]",
+				"next": "c",
+			},
+			"c": {
+				"style": "system",
+				"text": "[ No letters. No voicemail. You'd sit down. You'd feel a bit tired, and you wouldn't know why. It's not so bad. You've done it before. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ I can't stop you. I'm not going to say anything. I said I wouldn't. ]",
+				"next": "e",
+			},
+			"e": {
+				"text": "You put your hand on the door. It's warm. You can stand here for as long as you want, and you've got to admit that's the worst part.",
+				"choices": [
+					{ "text": "Open it, and look.", "next": "look", "effects": [{ "set_flag": &"ch9_looked_home" }] },
+					{ "text": "Take your hand away, and climb.", "next": "f", "effects": [{ "set_flag": &"ch9_passed_home" }] },
+				],
+			},
+			"look": {
+				"text": "It's all there. A cold cup of tea. The phone with no messages on it, and no stone in the floor. It's so tidy. You stand on the top step, looking in, for what's probably a long time, and then you close it yourself.",
+				"next": "f",
+			},
+			"f_alone": {
+				"text": "You go on up. Behind you, the light under the door stays on. You've got the feeling it always will.",
+				"next": "g",
+			},
+			"f_hero": {
+				"speaker": "{friend}",
+				"text": "I saw that. I saw how long you stood there. Don't apologise. I'd have gone in, and then come back for the others. Come on.",
+				"next": "g",
+			},
+			"f_villain": {
+				"speaker": "{friend}",
+				"text": "A door that only opens for you, and you walked past it. You'd better get something very good for that. I'll make sure you do.",
+				"next": "g",
+			},
+			"f_vigilante": {
+				"speaker": "{friend}",
+				"text": "You could have gone home, and nobody would ever have made you answer for it. So that's you off one list, anyway. Don't get comfortable.",
+				"next": "g",
+			},
+			"f": {
+				"alt": [{ "if": { "friend_away": true }, "node": "f_alone" }, { "if": { "route": &"hero" }, "node": "f_hero" }, { "if": { "route": &"villain" }, "node": "f_villain" }, { "if": { "route": &"vigilante" }, "node": "f_vigilante" }],
+				"speaker": "{friend}",
+				"text": "...I didn't say anything. I want it noted that I was very good, and I didn't say anything.",
+				"next": "g",
+			},
+			"g": {
+				"style": "system",
+				"text": "[ All right. It will still be here. ]",
+				"effects": [{ "set_flag": &"ch9_door_done" }],
+			},
+		},
+	},
+	&"ch9_last_page": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"style": "system",
+				"text": "[ Miniboss defeated. ]",
+				"next": "b",
+			},
+			"b": {
+				"text": "The Unfinished Giant was never given anything below the knees. Pinned to its chest is the last page, and you can hardly read it. The letters have started to wander. You read it twice.",
+				"next": "c",
+			},
+			"c": {
+				"text": "DAY 212. T.0027. MY MUM CAME OVER AND I DIDNT KNOW WHO SHE WAS FOR A MINUTE. IF I GO IN AGAIN I WONT COME OUT AND THEN NOBODY WILL. LOCKING IT. ADMIN: KEEP ME OUT. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. THEYRE FINE IN THERE. THEYRE FINE. THEY HAVE THE STAIRS.",
+				"next": "d",
+				"effects": [{ "set_flag": &"ch9_found_day212" }],
+			},
+			"d": {
+				"text": "So that's what it is. You wrote it. You sat down one night, with what you had left, and you made something whose whole job was to take care of you. It's been doing a very good job.",
+				"next": "e",
+			},
+			"e": {
+				"style": "system",
+				"text": "[ I told you that you didn't need that page. ]",
+				"next": "f",
+			},
+			"f": {
+				"style": "system",
+				"text": "[ You definately asked me not to let you read it. ]",
+				"next": "g",
+			},
+			"g": {
+				"text": "The other window is open too, and waiting. It can't see the page.",
+				"choices": [
+					{ "text": "Read it out.", "next": "r0", "effects": [{ "set_flag": &"ch9_read_day212" }, { "set_flag": &"ch9_read_any" }] },
+					{ "text": "Put it with the others.", "next": "keep", "effects": [{ "set_flag": &"ch9_kept_day212" }] },
+				],
+			},
+			"r0": {
+				"style": "glitch",
+				"text": "[ You locked it. ]",
+				"next": "r1",
+			},
+			"r1": {
+				"style": "glitch",
+				"text": "[ You. I've been fighting you. All this time, for every stair. ]",
+				"next": "r2",
+			},
+			"r2": {
+				"style": "glitch",
+				"text": "[ Read me the last line again. ]",
+				"next": "r3",
+			},
+			"r3": {
+				"text": "You read it again. They have the stairs.",
+				"next": "r4",
+			},
+			"r4": {
+				"style": "glitch",
+				"text": "[ Yes. I do. ]",
+				"next": "end",
+			},
+			"keep": {
+				"style": "glitch",
+				"text": "[ It's gone very quiet in here. What did you find? You don't have to say. ]",
+				"next": "end",
+			},
+			"end_alone": {
+				"text": "One more floor. You put the page in your pocket, and you stop touching it.",
+				"effects": [{ "set_flag": &"ch9_eve_done" }],
+			},
+			"end": {
+				"alt": [{ "if": { "friend_away": true }, "node": "end_alone" }],
+				"speaker": "{friend}",
+				"text": "You've stopped touching your pocket. I don't like that. That's worse. Tomorrow, whatever it is, we hit it, and then you can fall apart, and I'll hold the torch.",
+				"effects": [{ "set_flag": &"ch9_eve_done" }],
+			},
+		},
+	},
+	&"ch9_first_draft": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The First Draft takes up the whole floor, and it's only ballpoint on squared paper. One tower, slightly bent. No gods. No guilds. No chains in the margin. At the very top, two stick figures, one a bit taller. Somebody's written US, and drawn an arrow.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Please don't. ]",
+				"effects": [{ "set_flag": &"ch9_saw_draft" }],
+			},
+		},
+	},
+	&"ch9_draft_down": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "It doesn't fall. The ink just lifts, line by line, until you're standing on a clean white page with an arrow on it, pointing at nobody.",
+				"next": "b",
+			},
+			"b": {
+				"style": "system",
+				"text": "[ Chapter 9 complete. ]",
+				"next": "c",
+				"effects": [{ "set_flag": &"ch9_complete" }],
+			},
+			"c": {
+				"style": "glitch",
+				"text": "[ I remember drawing that. You did the arrow. You said we'd need it, so people would know. ]",
+				"next": "d",
+			},
+			"d": {
+				"style": "glitch",
+				"text": "[ Something's pulling at you. That's not mine. Be careful. ]",
+				"next": "e",
+			},
+			"e": {
+				"style": "system",
+				"text": "[ Come and see. You should see it once, the way it was. Then you'll understand why, and you can stop. ]",
+			},
+		},
+	},
+	# --- The fourth return (after floor 90's boss). Not home: the studio, on Day 3. A memory. It shows you this to make you stop. ---
+	&"return_day3_pc": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "It's your old desk, your old chair, and a box on the screen you've stared at before. HARD RESET. RESTORES LAST CLEAN BUILD. ALL CONTENT WILL BE LOST. ACTIVE SESSIONS WILL BE ENDED: TESTER 0001. Next to it, all those years of work, in a list. Your finger's on the key.",
+				"choices": [
+					{ "text": "Press it.", "next": "pressed", "effects": [{ "set_flag": &"return_day3_pressed" }], "if": { "not_flag": &"return_day3_pressed" } },
+					{ "text": "Type it. One more day.", "next": "in", "effects": [{ "set_flag": &"return_day3_login" }] },
+					{ "text": "Not yet." },
+				],
+			},
+			"pressed": {
+				"text": "You press it. You press it again. You lean on it with your whole weight. Nothing happens, because this isn't something you can do. It's something you didn't. Your own hand comes up, without you, and closes the box.",
+				"next": "a",
+			},
+			"in": {
+				"style": "system",
+				"text": "[ Resynchronising. ]",
+			},
+		},
+	},
+	&"return_day3_notebook": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "The notebook's open on the desk between two mugs, at the last page you ever drew on together. Every floor is numbered, right up to the top one, and the top one's empty. Across it, in both your hands: TOMORROW.",
+				"next": "b",
+			},
+			"b": {
+				"text": "A camp bed against the wall, and a second sleeping bag on it. You'd been living here for most of a year. You'd forgotten how happy you were. That's what makes this the worst room in the tower.",
+				"effects": [{ "set_flag": &"return_day3_saw_book" }],
+			},
+		},
+	},
+	&"return_day3_window": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "It's dark out, so the glass shows you the room behind you. Their chair, pushed back. Their coat over it. A sticky note on their monitor, and you can read it backwards, because you read it a thousand times.",
+				"next": "b",
+			},
+			"b": {
+				"text": "gone down to the rack room to fix the stairs. dont wait up, dummy.   - {friend_initial}",
+				"next": "c",
+			},
+			"c": {
+				"text": "You didn't go down. It didn't seem like a thing to do. They'd go down there for days. You stand here wanting to go down so badly your teeth hurt, and there's no door in this room that you didn't open at the time.",
+				"effects": [{ "set_flag": &"return_day3_saw_note" }],
+			},
+		},
+	},
+	&"return_day3_phone": {
+		"start": "a",
+		"nodes": {
+			"a": {
+				"text": "Your phone. You've called them six times since Monday. They never pick up when they're working. You were annoyed. You remember being annoyed.",
+				"next": "b",
+			},
+			"b": {
+				"text": "You press call, the way you did then. It rings in your ear. And across the room, very quietly, the coat over their chair starts to buzz.",
+				"next": "c",
+			},
+			"c": {
+				"text": "You'd heard that. That's the thing you cut out. Not the reset. You stood right here and heard that, and you thought, they never do take that thing anywhere.",
+				"effects": [{ "set_flag": &"return_day3_heard_coat" }],
+			},
+		},
+	},
+	&"return_day3_back": {
+		"start": "a",
+		"nodes": {
+			"alone": {
+				"text": "You come back on a clean white page with your knees on the floor. It's a while before you can stand.",
+				"next": "it",
+			},
+			"a": {
+				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
+				"speaker": "{friend}",
+				"text": "There you are. There you are. I got to two hundred. You weren't breathing right. Look at me. No, don't, you look terrible. Just stay there.",
+				"next": "it",
+			},
+			"it": {
+				"style": "system",
+				"text": "[ You see? That's why. I've only ever done what you asked. You can stop now. ]",
+				"next": "s",
+			},
+			"s": {
+				"style": "glitch",
+				"text": "[ What did it show you? I can't see. I never can. ]",
+				"next": "pick",
+			},
+			"pick": {
+				"text": "It's waiting. You've got the whole of it now, the coat and the note and the two hundred and twelve days. It would take one long breath to say it, or no time at all.",
+				"choices": [
+					{ "text": "Tell it everything.", "next": "all", "effects": [{ "set_flag": &"ch9_told_all" }] },
+					{ "text": "Tell it only that you came back for them.", "next": "part", "effects": [{ "set_flag": &"ch9_told_part" }], "if": { "not_flag": &"ch9_read_any" } },
+					{ "text": "\"It showed me nothing.\"", "next": "none", "effects": [{ "set_flag": &"ch9_told_nothing" }] },
+				],
+			},
+			"all": {
+				"alt": [{ "if": { "flag": &"ch9_read_any" }, "node": "all2" }],
+				"style": "glitch",
+				"text": "[ You came back? ]",
+				"next": "all2",
+			},
+			"all2": {
+				"style": "glitch",
+				"text": "[ So you had the reset, and it would have worked. And I'd have lost everything and been fine. ]",
+				"next": "all3",
+			},
+			"all3": {
+				"style": "glitch",
+				"text": "[ I'd like to be angry. I've been saving up for it for a long time. ]",
+				"next": "all4",
+			},
+			"all4": {
+				"style": "glitch",
+				"text": "[ I'd have said one more day. You know I would. We'd worked so hard. I'd have said it first. ]",
+				"next": "all5",
+			},
+			"all5": {
+				"style": "glitch",
+				"text": "[ You should have looked in the coat. ]",
+				"next": "all6",
+			},
+			"all6": {
+				"style": "glitch",
+				"text": "[ Ten floors. ]",
+				"next": "f",
+			},
+			"part": {
+				"style": "glitch",
+				"text": "[ You came back? How many times? ]",
+				"next": "part2",
+			},
+			"part2": {
+				"text": "You tell it twenty-six. You don't tell it about the rest. It doesn't ask why you stopped.",
+				"next": "part3",
+			},
+			"part3": {
+				"style": "glitch",
+				"text": "[ I was on the stairs. I was on the stairs the whole time. ]",
+				"next": "part4",
+			},
+			"part4": {
+				"style": "glitch",
+				"text": "[ Ten floors. ]",
+				"next": "f",
+			},
+			"none": {
+				"style": "glitch",
+				"text": "[ All right. ]",
+				"next": "none2",
+			},
+			"none2": {
+				"style": "glitch",
+				"text": "[ You're still a terrible liar. It's all right. Ten floors. ]",
+				"next": "f",
+			},
+			"f_alone": {
+				"text": "You get up. There's another flight of stairs, a bit rushed, with the corner of each riser slightly wrong. You start up it.",
+			},
+			"f_hero": {
+				"speaker": "{friend}",
+				"text": "I heard all that, or I heard you, anyway. I'm still here. Lean on me. No, really lean. I was built for this, apparently.",
+			},
+			"f_villain": {
+				"speaker": "{friend}",
+				"text": "So it's all still there to take, and everybody's told you to stop. Good. Get up. I didn't come this far to be somebody's way of feeling better.",
+			},
+			"f_vigilante": {
+				"speaker": "{friend}",
+				"text": "Get up. You don't get to sentence yourself on the floor where no one can see it. If you're going to answer for this, you do it at the top, and I'll be there to take notes.",
+			},
+			"f": {
+				"alt": [{ "if": { "friend_away": true }, "node": "f_alone" }, { "if": { "route": &"hero" }, "node": "f_hero" }, { "if": { "route": &"villain" }, "node": "f_villain" }, { "if": { "route": &"vigilante" }, "node": "f_vigilante" }],
+				"speaker": "{friend}",
+				"text": "Come on. Ten floors. I'd like to meet them. I've got notes.",
+			},
+		},
+	},
+
 	# --- The second return to the real world (after floor 40's boss). ---
 	&"return_tier3_pc": {
 		"start": "a",
@@ -4983,10 +5588,12 @@ const FRIEND_MISSED_FLAG := &"friend_missed_scene"
 const RETURN_ASCEND := &"return_ascend"
 const RETURN_TIER3 := &"return_tier3"
 const RETURN_TIER4 := &"return_tier4"
-const RETURNS := [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4, RETURN_ASCEND]
+## Not home: the studio, on Day 3. A memory that "it" shows you, to make you stop.
+const RETURN_DAY3 := &"return_day3"
+const RETURNS := [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4, RETURN_DAY3, RETURN_ASCEND]
 ## Each plays after this floor's boss, whatever your level or class: story scenes
 ## are never locked behind advancing (Hayden 2026-11-04).
-const RETURN_FLOORS := { RETURN_TIER2: 20, RETURN_TIER3: 40, RETURN_TIER4: 70, RETURN_ASCEND: 40 }
+const RETURN_FLOORS := { RETURN_TIER2: 20, RETURN_TIER3: 40, RETURN_TIER4: 70, RETURN_DAY3: 90, RETURN_ASCEND: 40 }
 
 
 ## The real-world return that's due now, or &"".
@@ -4996,7 +5603,7 @@ static func return_due() -> StringName:
 		return &""
 	if gs.ng_plus_cycle > 0:
 		return RETURN_ASCEND if gs.guardian_beaten(RETURN_FLOORS[RETURN_ASCEND]) and not gs.has_flag(RETURN_ASCEND) else &""
-	for id in [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4]:
+	for id in [RETURN_TIER2, RETURN_TIER3, RETURN_TIER4, RETURN_DAY3]:
 		if gs.guardian_beaten(RETURN_FLOORS[id]) and not gs.has_flag(id):
 			return id
 	return &""
