@@ -262,12 +262,12 @@ Hayden's picks (2026-11-05): each god makes one offer (the first swears it can w
 
 Hayden's picks (2026-11-05): pages, then a playable memory; "it" talks in windows, in your voice; you decide what the System and the friend are told, because the System can't see the pages.
 
-**What happened.** The night you went home, your friend went down to the rack room (in the studio's basement) to fix the stairs, and the build took them. For three days you thought it was a stuck session. A reset would have ended it, and wiped everything you'd built, so you held off for one more day. You called six times, and you heard their phone buzz in their coat, and thought nothing of it. By Day 9 the reset wouldn't take. You logged in again and again under new tester numbers. Time inside ran slower than outside, and it cost you your health and your memory. On Day 212, as T.0027, you didn't know your mum for a minute, so you locked the build against yourself and cut the memory: ADMIN: KEEP ME OUT. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. That instruction is "it". The System never knew you came back: sessions were kept apart, and it was on the stairs.
+**What happened.** The night you went home, your friend went down to the rack room (in the studio's basement) to fix the stairs, and the build took them. For three days you thought it was a stuck session. A reset would have ended it, and wiped everything you'd built, so you held off for one more day. You called six times, and you heard their phone buzz in their coat, and thought nothing of it. By Day 9 the reset wouldn't take. You logged in again and again under new tester numbers. Time inside ran slower than outside, and it cost you your health and your memory. On Day 212, as T.0027, you didn't know your mom for a minute, so you locked the build against yourself and cut the memory: ADMIN: KEEP ME OUT. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. That instruction is "it". The System never knew you came back: sessions were kept apart, and it was on the stairs.
 
 | Floor | Beat |
 | --- | --- |
 | 81 | `[ Chapter 9: One More Day ]`. Grey boxes and pencil lines. "It" talks to you in your own voice: `[ You've definately done enough. ]` `[ That's not me. I want that noted. ]` |
-| 82-83 | Page: DAY 9. RESET WON'T TAKE. THEIR MUM RANG. GOING BACK IN. - T.0019. Read it out, or keep it. |
+| 82-83 | Page: DAY 9. RESET WON'T TAKE. THEIR MOM RANG. GOING BACK IN. - T.0019. Read it out, or keep it. |
 | 84 | Past the Deprecated Guardian the stairs are tidied away, and the System draws them under your feet. `[ This is what I do. It takes them away, and I put them back. ]` |
 | 85 | At the fire, "Read me one." Read your friend the pages (route lines) or say "Not yet". `[ Nobody has to know. That's what I'm for. ]` |
 | 86-87 | Page: DAY 47. FOUND A FLOOR WITH THEIR WRITING ALL OVER IT. - T.0023. `[ I was on the stairs. I must have been about ten floors up. ]` |

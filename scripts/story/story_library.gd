@@ -3859,7 +3859,7 @@ const DIALOGUES := {
 				"next": "b",
 			},
 			"b": {
-				"text": "DAY 9. RESET WON'T TAKE. SAYS SESSION IN USE. THEIR MUM RANG. I SAID THEY WERE CRUNCHING. GOING BACK IN.   - T.0019",
+				"text": "DAY 9. RESET WON'T TAKE. SAYS SESSION IN USE. THEIR MOM RANG. I SAID THEY WERE CRUNCHING. GOING BACK IN.   - T.0019",
 				"next": "c",
 				"effects": [{ "set_flag": &"ch9_found_day9" }],
 			},
@@ -3872,7 +3872,7 @@ const DIALOGUES := {
 			},
 			"r0": {
 				"style": "glitch",
-				"text": "[ My mum rang you? ]",
+				"text": "[ My mom rang you? ]",
 				"next": "r1",
 			},
 			"r1": {
@@ -4111,7 +4111,7 @@ const DIALOGUES := {
 				"next": "c",
 			},
 			"c": {
-				"text": "DAY 212. T.0027. MY MUM CAME OVER AND I DIDNT KNOW WHO SHE WAS FOR A MINUTE. IF I GO IN AGAIN I WONT COME OUT AND THEN NOBODY WILL. LOCKING IT. ADMIN: KEEP ME OUT. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. THEYRE FINE IN THERE. THEYRE FINE. THEY HAVE THE STAIRS.",
+				"text": "DAY 212. T.0027. MY MOM CAME OVER AND I DIDNT KNOW WHO SHE WAS FOR A MINUTE. IF I GO IN AGAIN I WONT COME OUT AND THEN NOBODY WILL. LOCKING IT. ADMIN: KEEP ME OUT. MAKE IT SO I DONT KNOW. BE KIND ABOUT IT. THEYRE FINE IN THERE. THEYRE FINE. THEY HAVE THE STAIRS.",
 				"next": "d",
 				"effects": [{ "set_flag": &"ch9_found_day212" }],
 			},
