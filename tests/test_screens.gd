@@ -277,7 +277,7 @@ func test_title_screen() -> void:
 	await _frames(1)
 	var credits_btn = title.find_children("*", "Button", true, false).filter(func(b): return b.text == "Credits")
 	check(credits_btn.size() == 1, "the title screen has a Credits button")
-	title._credits.open("Tower Climber")
+	title._credits.open("Tower of Recognition")
 	check(title._credits.visible and title._credits._text.get_parsed_text().contains("Godot"), "credits open with Godot's notice")
 	title._credits.close()
 	title.queue_free()

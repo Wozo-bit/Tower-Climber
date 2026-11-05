@@ -1,4 +1,4 @@
-# Tower Climber (Godot 4.7)
+# Tower of Recognition (Godot 4.7)
 
 Open `project.godot` in Godot 4.7.2 and press **F5**. The game scales to fit any window size or fullscreen. It opens on the **title screen**:
 
@@ -41,7 +41,7 @@ In the tower: **WASD / arrows** move, **Tab** opens the party menu, **Esc** paus
 - `scripts/story/domain_library.gd` holds the domains, `scripts/story/divinity_state.gd` everything you do as a god (placeholder names, text and numbers; DLC can `register_domain`).
 
 ## The story (Hayden 2026-11-04)
-The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invited to test **Tower of Recognition** (placeholder name), and it pulls you in. Chapters 1-8 (floors 1-80) and the first three returns to the real world are built; the text is a first draft.
+The plan lives in `docs/story/story_bible.md`. A game inside a game: you're invited to test **Tower of Recognition**, a game with the same name as this one, and it pulls you in. Chapters 1-8 (floors 1-80) and the first three returns to the real world are built; the text is a first draft.
 - **Prologue** (`scenes/prologue.tscn`, `scripts/story/prologue.gd`): your room at night. Walk around and bump things: the PC (the invitation; "Start the test"), the bookshelf (your childhood notebook), the phone and the window. Each one you look at becomes a flag for the run (`prologue_notebook`...), so the tower can call back to it. Esc offers to skip to the client. Settings → "Skip the prologue and home scenes" skips the room for every New Game (it asks first); New Game+ never has it.
 - **The test client** (`scripts/ui/test_client_panel.gd`) is New Game: tester name + difficulty + Ironman, two odd questions, "Name the person you trust most" (the childhood friend), then `[ Tester confirmed. ]` → `[ Synchronising... ]` → a glitched `[ Welcome home. ]` and a white flash. Each answer gives +2 to a stat (shown) and a hidden nudge: "What do you want most?" leans a route, "What are you afraid of losing?" makes a god notice you (+5 interest). Answers are flags (`setup_want_protect`...). Data: `StoryLibrary.SETUP_QUESTIONS`.
 - **Story scenes** (`scripts/story/story_library.gd`): dialogues in the usual format that start on their own, once per run, on set floors: when you arrive (`"enter"`) or after the floor's miniboss/boss (`"guardian_down"`). A scene you skipped past waits until you're back on one of its floors. Chapter 1 has a beat on every floor 1-10 (wake-up, the memory, the System's first slip, the campfire legend, the thief = a route choice, the carving that matches your notebook, a climber who doesn't come back, "So you're the Tester", `[ You remembered faster this time. ]`). New Game+ wakes up differently (`"ng_plus"` start).

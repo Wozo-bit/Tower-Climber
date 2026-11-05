@@ -1,4 +1,6 @@
-# Tower Climber — notes for Claude
+# Tower of Recognition — notes for Claude
+
+Final title (Hayden 2026-11-05). Repo and folder keep the old name, Tower Climber. Renaming moved user:// to app_userdata/Tower of Recognition; saves were copied there, and the old folder is still there as a backup.
 
 Manhwa-inspired tower-climber RPG in **Godot 4.7.2** (GDScript; upgraded from 4.6.1). Plays like
 Hero's Adventure: Road to Passion / Final Fantasy: FF-style menu combat with
@@ -298,7 +300,7 @@ more routes/endings: keep new route content data-driven and registrable.
   placeholder text only, no real story.
 
 STORY (Hayden 2026-11-03/04, plan in docs/story/story_bible.md): game
-inside a game, "Tower of Recognition" (placeholder); grim-but-hopeful; the
+inside a game, "Tower of Recognition" (also the real title); grim-but-hopeful; the
 System has a hidden personality; why you were chosen + the tower's secret
 are undecided. Final boss = the creator's champion (the previous Tester);
 NG+ final boss = a mimic of your last conquering character + their party
@@ -384,7 +386,7 @@ list for the whole save file (user://tips.json; tests redirect Tips.path),
 Tab -> Guide to reread, Settings toggle + reset. TipLibrary (data + when
 due), Tips autoload (queue/window). Text is placeholder.
 
-Placeholders to confirm with Hayden later: title "Tower Climber",
+Placeholders to confirm with Hayden later:
 default friend name "Rowan", Ashbound Knight secret-class details,
 FINAL_FLOOR = 100 (roguelite-style replayability), tier-2/tier-3/demigod class names, Ashbound's Cinderbrand/Wyrmflame Knight.
 Secret classes (Hayden 2026-10-25): a build hint on floors 2-9, their own

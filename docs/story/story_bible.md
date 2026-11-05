@@ -426,6 +426,6 @@ None right now.
 
 Answered: the real world comes back at major milestones (class advancements,
 before the final boss, Ascending); the game inside the game is called **Tower of Recognition**
-(placeholder, 2026-11-04); setup questions give stats + a nudge; keep "You
+(also the real game's title, 2026-11-05); setup questions give stats + a nudge; keep "You
 remembered faster this time"; final boss = the previous Tester, NG+ = a
 mimic of you and your old party.

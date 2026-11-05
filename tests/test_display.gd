@@ -198,7 +198,7 @@ func test_shape(win: Vector2i, scale: float, label: String) -> void:
 	await _frames(2)
 	_expect_fit(title, "title screen", label)
 	for opener in [func(): title._open_slots("load"), func(): title._open_new_game(), func(): title._settings.open(),
-			func(): title._settings._controls.open(), func(): title._credits.open("Tower Climber")]:
+			func(): title._settings._controls.open(), func(): title._credits.open("Tower of Recognition")]:
 		opener.call()
 		await _frames(2)
 		_expect_fit(title, "a title panel", label)

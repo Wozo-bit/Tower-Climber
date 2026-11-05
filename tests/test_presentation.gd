@@ -379,7 +379,7 @@ func test_credits() -> void:
 	var partial := { "team": [], "assets": [{ "name": "Goblins", "author": "A", "license": "CC0", "url": "x",
 		"kind": "art", "files": ["art/enemies/goblin*"] }] }
 	check(Credits.uncredited_files(partial, CREDITS_ROOT) == ["art/enemies/slime.png"], "an uncredited file is caught")
-	var text := Credits.text({ "team": [{ "role": "Design", "name": "Hayden" }], "assets": partial.assets }, "Tower Climber")
+	var text := Credits.text({ "team": [{ "role": "Design", "name": "Hayden" }], "assets": partial.assets }, "Tower of Recognition")
 	check(text.contains("Hayden") and text.contains("Goblins by A"), "the credits list the team and the assets")
 	check(text.contains("Permission is hereby granted") and text.contains("Godot"), "Godot's MIT license notice is included")
 	check(text.contains("FreeType"), "...and the engine's third-party licenses")

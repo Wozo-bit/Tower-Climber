@@ -54,7 +54,7 @@ const GOD_CHAPTERS := [
 	{ "title": "Who Gods Pray To" },
 ]
 
-## The game inside the game (placeholder name, Hayden 2026-11-04).
+## The game inside the game, and the real game's title (Hayden 2026-11-05).
 const GAME_NAME := "Tower of Recognition"
 
 ## The test client's odd questions (New Game). Each answer gives starting

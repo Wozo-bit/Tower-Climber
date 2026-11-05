@@ -1,6 +1,6 @@
 # Store page text (first draft for Hayden)
 
-The title used here is **Tower of Recognition**, which is still a placeholder. If the game ships under another name, replace it everywhere below. The in-game story calls the game inside the game by this name, so the store page and the story match as long as it stays.
+The title is **Tower of Recognition** (Hayden, 2026-11-05). The story's game inside the game has the same name, so the store page and the story match.
 
 The text keeps the story's big reveals secret: who the System is, what the friend is, and that floor 60 isn't the top.
 

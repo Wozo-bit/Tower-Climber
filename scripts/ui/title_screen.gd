@@ -6,7 +6,7 @@ extends Control
 
 const SANDBOX_SCENE := "res://scenes/progression_sandbox.tscn"
 const PROLOGUE_SCENE := "res://scenes/prologue.tscn"
-const GAME_TITLE := "TOWER CLIMBER"   # placeholder title
+const GAME_TITLE := "TOWER OF RECOGNITION"
 
 var _continue_btn: Button
 var _ngplus_btn: Button
