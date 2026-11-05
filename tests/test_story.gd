@@ -43,6 +43,7 @@ func _ready() -> void:
 	await test_one_it_kept_going_down()
 	test_one_it_kept_ending()
 	test_god_late_chapters()
+	test_new_game_plus_lines_up()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -2212,6 +2213,54 @@ func test_god_late_chapters() -> void:
 	GameState.ng_plus_cycle = 0
 
 
+## The second read-through (2026-11-05): New Game+ against the first climb.
+func test_new_game_plus_lines_up() -> void:
+	print("-- new game+ lines up --")
+	var r := DialogueRunner.new()
+	# Tess, if you warned her on floor 5: she's real, and she knows you.
+	_kept_run(48, [&"ch2_tess_real"])
+	r.start(&"ng5_field")
+	check(r.node_id == "a_real", "floor 48: she knows you")
+	r.advance()
+	check(r.raw_speaker() == "Tess" and not r.text().contains("First time this high"), "no first-time joke")
+	check(_play(&"ng5_field", 0).finished, "and you can carry her out")
+	_kept_run(80, [&"ch2_tess_real"])
+	r.start(&"ng8_anointed")
+	r.advance()
+	check(r.node_id == "real" and not r.text().contains("second breakfasts"), "floor 80: she's no copy")
+	# Hilde remembers how you actually did it.
+	_kept_run(42)
+	_play(&"ng5_camp", 0)
+	check(NpcLibrary.pitch_of(&"hilde").contains("rude"), "you moved the camp: no blood in her memory")
+	# The two friends meet according to what happened.
+	var meets := { &"past_friend_free": "meet_free", &"past_friend_stayed": "meet_stayed", &"past_friend_went": "meet" }
+	for f in meets:
+		_kept_run(100, [&"past_friend_woke", f])
+		r.start(&"ng10_top")
+		var guard := 0
+		while r.node_id != "meet" and r.node_id != "meet_free" and r.node_id != "meet_stayed" and guard < 40:
+			guard += 1
+			if r.has_choices():
+				r.choose(r.choices()[0].index)
+			else:
+				r.advance()
+		check(r.node_id == meets[f], "%s: %s" % [f, r.node_id])
+	# A third climb has its own reason.
+	var why := { &"past_end_chair": "chair_again", &"past_shut_backup": "another", &"past_end_out": "another" }
+	for f in why:
+		_kept_run(1, [&"past_end_reset", f])
+		r.start(&"ng_why")
+		check(r.node_id == why[f], "%s: %s" % [f, r.node_id])
+	# Everything's on the session list; the room is the backup's.
+	check(_all_text(&"ch2_session").contains("Tester {player}: session active"), "floor 19 shows your copy")
+	_kept_run(41)
+	r.start(&"return_ascend_pc")
+	check(r.node_id == "first" and r.text().contains("something careful"), "the Ascending room is the backup's")
+	# Time: nobody's been up there longer than the clock allows.
+	check(not _all_text(&"ng3_ledger").contains("Fifty years"), "Marn's thirty years")
+	GameState.ng_plus_cycle = 0
+
+
 func test_skip_warning() -> void:
 	print("-- the skip setting warns --")
 	Settings.skip_prologue = false
@@ -2722,6 +2771,7 @@ func test_ascend_return() -> void:
 	var r := DialogueRunner.new()
 	r.start(&"return_ascend_pc")
 	r.advance()
+	r.advance()
 	check(r.text().contains("Welcome back, Climber"), "the email knows your name (%s)" % r.text())
 	var first: Dictionary = StoryLibrary.DIALOGUES[&"prologue_pc"].nodes.mail
 	check(StoryLibrary.DIALOGUES[&"return_ascend_pc"].nodes.a.text == first.text, "the invitation, word for word")
@@ -2753,10 +2803,14 @@ func test_ascend_return() -> void:
 		else:
 			room._dialogue.runner.advance()
 			room._dialogue._refresh()
+			room._dialogue.runner.advance()
+			room._dialogue._refresh()
 			room._dialogue.runner.choose(room._dialogue.runner.choices()[1].index)
 			room._dialogue._refresh()
 			check(not left[0], "\"Not yet\" stays in the room")
 	room.look_at_object(&"pc")
+	room._dialogue.runner.advance()
+	room._dialogue._refresh()
 	room._dialogue.runner.advance()
 	room._dialogue._refresh()
 	room._dialogue.runner.choose(room._dialogue.runner.choices()[0].index)

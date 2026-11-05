@@ -217,7 +217,7 @@ Shared beats: 54, a campfire still warm, with the stone worn down in the shape o
 
 **Floor 60:** the door, the boss, the false summit, then I BELIEVED IT TOO - T.0041, and the confession: `[ It's me. ]` You did the monsters, they did the floors. "You said one more day, and you went home to sleep, and I stayed in to fix the stairs." `[ You didn't come back. ]` `[ The one by the fire isn't me. I couldn't have you, so I made them out of what I could remember. ]` `[ That message was not sent. ]` `[ Yes it was. All of them were. 40 floors. Hurry. It knows I told you now. ]`
 
-Left open for floors 61-100: how they ended up inside, why you forgot, and what "it" is, the thing doing the correcting.
+These were left open here, and answered in Chapters 7-10.
 
 ## Chapter 7: "First Drafts" (floors 61-70)
 
@@ -454,10 +454,6 @@ Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21
 | 91-100 | "The One It Kept" | 0041 is free, on a fire on these floors, and you can answer to them. The copy holds the door with your old party: end it or relieve it. |
 
 
-### Still to build
-
-The mimic final boss.
-
 ## Chapter 6 (one-line arc, to fill in later)
 
 Written: see Chapter 6 above.
@@ -499,23 +495,18 @@ and gods sponsor guilds and champions.
   are built from those snapshots and use their real skill lists. A run with
   no past conqueror gets the previous Tester.
 
-## Returns to the real world (Hayden, 2026-11-04)
+## Returns to the real world (Hayden, 2026-11-04; built)
 
-The real world comes back at the big milestones, as short playable visits
-to your room (the prologue room, reused). Each time, a little more is wrong
-with it, and something from the tower has followed you.
+All follow a floor's boss, never levels or classes. "Skip the prologue and home scenes" skips them all.
 
-| When | Draft moment |
-| --- | --- |
-| Tier-2 class advancement (floor 20) | You blink awake at your desk, the game client open. It feels like a dream, until the phone shows days have passed. The notebook has a new page you don't remember drawing: your new class. |
-| Tier-3 class advancement (floor 40) | The room is quieter. Messages from friends have stopped. The PC shows a list of testers; most names are greyed out. One is the previous Tester. |
-| Before the final boss (floor 60) | The room is half tower: stone through the floorboards. The window shows the city, and your reflection is the champion. You can still log off... can't you? |
-| Ascending (NG+) | Your room, exactly as on the first night. The invitation email again, but addressed to your old name: *"Welcome back."* |
-
-Each visit ends with the System pulling you back in (`[ Resynchronizing. ]`),
-and the friend is waiting: "You were gone for a second there."
-They're optional to explore but short (1-3 minutes), and a setting can skip
-them like the prologue.
+| Plays | Who | What's there |
+| --- | --- | --- |
+| After floor 20 | First climb | Nine days gone, eleven messages, a new page in the notebook. |
+| After floor 40 | First climb | 140 days gone, the list of Testers, an AND rubbed out of the notebook. |
+| After floor 70 | First climb | 412 days gone: the flyer, then the letters, then the card. |
+| After floor 90 | First climb | The studio on Day 3: a memory "it" shows you, to make you stop. |
+| After floor 40 | New Game+ | Your room as on the first night, and the backup's copy of it. "Welcome back." |
+| After floor 90 | New Game+ | Day 3 again. If you asked, you can go down to the rack room. |
 
 ## How it would work in the game (for later)
 

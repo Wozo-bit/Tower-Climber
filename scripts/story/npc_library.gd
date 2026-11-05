@@ -68,6 +68,7 @@ const NPCS := {
 			"build": { Stats.Type.INTELLIGENCE: 5, Stats.Type.HEALTH: 3, Stats.Type.STAMINA: 2 },
 			"pitch": "I heard what you told those two gods. Every climber, you said. Well, I've mended every boot on this floor. Somebody ought to walk with you who knows how long a road that is.",
 			"pitch_if": [
+				{ "if": { "flag": &"ng5_moved_camp" }, "pitch": "You got my whole camp off floor 42 before anyone came, and you were very rude about it. I've still only got the one boot on. You said every climber, up there. Fine. Let's go." },
 				{ "if": { "flag": &"ch5_stood_neither" }, "pitch": "You drove them off my camp, floor 42. Cost you blood, and I watched you pay it. You said every climber, up there. Fine. My boots are mended. Let's go." },
 			],
 			"loyalty": { "title": "Hilde: One More Pair", "desc": "Hilde means to see the camps get out alive.",

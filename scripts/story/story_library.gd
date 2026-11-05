@@ -1336,7 +1336,7 @@ const DIALOGUES := {
 			},
 			"again2": {
 				"style": "glitch",
-				"text": "[ Tester 0041: session active. ]\n[ Session length: 11,302 days. ]\n\n[ Tester 0042: session active. ]\n[ Climb: {cycle}. ]",
+				"text": "[ Tester 0041: session active. ]\n[ Session length: 11,302 days. ]\n\n[ Tester 0042: session active. ]\n[ Tester {player}: session active. ]\n[ Climb: {cycle}. ]",
 				"next": "again3",
 			},
 			"again3": {
@@ -1345,7 +1345,7 @@ const DIALOGUES := {
 				"next": "again4",
 			},
 			"again4": {
-				"text": "There's a second line now. Nobody ever told you your number. You didn't know you had one to be told.",
+				"text": "There's a second line now. Nobody ever told you your number. You didn't know you had one to be told. And there's a third, with your name on it, and you know that isn't you.",
 				"next": "e",
 			},
 			"a": {
@@ -5150,8 +5150,18 @@ const DIALOGUES := {
 		"start": "a",
 		"nodes": {
 			"a": {
-				"alt": [{ "if": { "flag": &"past_relieved_copy" }, "node": "relieved" }, { "if": { "flag": &"past_end_forgot" }, "node": "forgot" }, { "if": { "flag": &"past_end_keep" }, "node": "keep" }, { "if": { "flag": &"past_end_draw" }, "node": "draw" }, { "if": { "flag": &"past_end_judge" }, "node": "reset" }, { "if": { "flag": &"past_end_reset" }, "node": "reset" }],
+				"alt": [{ "if": { "flag": &"past_relieved_copy" }, "node": "relieved" }, { "if": { "flag": &"past_end_chair" }, "node": "chair_again" }, { "if": { "any_flag": [&"past_shut_backup", &"past_end_out"] }, "node": "another" }, { "if": { "flag": &"past_end_forgot" }, "node": "forgot" }, { "if": { "flag": &"past_end_keep" }, "node": "keep" }, { "if": { "flag": &"past_end_draw" }, "node": "draw" }, { "if": { "flag": &"past_end_judge" }, "node": "reset" }, { "if": { "flag": &"past_end_reset" }, "node": "reset" }],
 				"text": "You logged back in. Nobody made you. Someone is still up there, at the top of the tower, and you can feel it wearing your face.",
+				"next": "end",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"another": {
+				"text": "You stopped it. You thanked it, and it went. You'd have sworn. Then one evening, a good while later, the client opens by itself. Tester {player}: session active. It was always very careful. It always had one more.",
+				"next": "end",
+				"effects": [{ "set_flag": &"ng_why_told" }],
+			},
+			"chair_again": {
+				"text": "It's very comfortable. You've been up here a long time. And there it is again, one morning, sitting on the floor by the door with its back to you, very straight, in your clothes. You don't remember making another. Nobody ever does. You get up. It's a long way down.",
 				"next": "end",
 				"effects": [{ "set_flag": &"ng_why_told" }],
 			},
@@ -5381,7 +5391,7 @@ const DIALOGUES := {
 			},
 			"told": {
 				"speaker": "Marn",
-				"text": "Hm. Fifty years up here, and I've never had anyone walk in knowing the page. I expect I'll regret asking how it goes. Don't tell me how it goes. Don't be late.",
+				"text": "Hm. Thirty years up here, and I've never had anyone walk in knowing the page. I expect I'll regret asking how it goes. Don't tell me how it goes. Don't be late.",
 			},
 			"quiet": {
 				"speaker": "Marn",
@@ -6278,7 +6288,17 @@ const DIALOGUES := {
 	&"ng5_field": {
 		"start": "a",
 		"nodes": {
+			"a_real": {
+				"text": "You get here early. The field's all marks and banners, and not one of them's on the ground yet. You run. Near the stairs there's someone on a crate, with an old burn across one hand, telling a joke to a wounded man. She looks up, and she knows you. She's the only one on this floor who does.",
+				"next": "b_real",
+			},
+			"b_real": {
+				"speaker": "Tess",
+				"text": "You. I knew you'd turn up. You've got that face on, the one you had at the fire. So what's about to happen to this floor?",
+				"next": "c",
+			},
 			"a": {
+				"alt": [{ "if": { "flag": &"ch2_tess_real" }, "node": "a_real" }],
 				"text": "You get here early. The field's all marks and banners, and not one of them's on the ground yet. You run. You don't remember ever running on this floor. And near the stairs there's a bright red scarf, on someone sitting on a crate, telling a joke to a wounded man. She's breathing.",
 				"next": "b",
 			},
@@ -6299,7 +6319,13 @@ const DIALOGUES := {
 				"text": "It's a bad fight, and you have it anyway, backward, up a flight of stairs, with a very confused young woman under one arm. She doesn't stop asking who you are. When it's over she sits down, and looks at her shaking hands, and then at you.",
 				"next": "save2",
 			},
+			"save2_real": {
+				"speaker": "Tess",
+				"text": "You told me to wait on the stairs, and I waited. Now you've carried me up some. One of these days I'm going to do something by myself, and you're going to be very surprised.",
+				"next": "priest",
+			},
 			"save2": {
+				"alt": [{ "if": { "flag": &"ch2_tess_real" }, "node": "save2_real" }],
 				"speaker": "Tess",
 				"text": "Nobody's ever... I don't know why I said that. Nobody's ever what? Who ARE you? ...I don't think I've ever been this high up. I'm going to have to think of a better joke.",
 				"next": "priest",
@@ -7295,7 +7321,7 @@ const DIALOGUES := {
 			},
 			"d_woke": {
 				"style": "glitch",
-				"text": "[ Boring. That's the worst thing anyone's ever said about you, and I've known you for thirty years. Go on. I'm still making soup. ]",
+				"text": "[ Boring. That's the worst thing anyone's ever said about you, and I've known you for twenty years. Go on. I'm still making soup. ]",
 			},
 			"d": {
 				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "d_woke" }],
@@ -7685,8 +7711,13 @@ const DIALOGUES := {
 				"text": "Hi! You told me to run, on that field, do you remember? I remember! They fixed that. I ran as hard as I could, and they were very kind about it. I remember all of them now. Floor 10, floor 48, and the other ones. All I have to do is stop you.",
 				"next": "c",
 			},
+			"real": {
+				"speaker": "Tess",
+				"text": "Hi. It's me. I know it's you. I waited on the stairs, like you said, and I lived, and that's how they found me: someone who'd lived. Nobody had to fix me. I remember all of it by myself. They said if I stop you, they'd let the others go.",
+				"next": "c",
+			},
 			"b": {
-				"alt": [{ "if": { "flag": &"ng5_warned_tess" }, "node": "warned" }],
+				"alt": [{ "if": { "flag": &"ch2_tess_real" }, "node": "real" }, { "if": { "flag": &"ng5_warned_tess" }, "node": "warned" }],
 				"speaker": "Tess",
 				"text": "Hi! First time this high? Don't mind the outfit. Reach the top and you become a god, everyone knows that. I'm going to be the god of second breakfasts.",
 				"next": "b2",
@@ -8792,7 +8823,18 @@ const DIALOGUES := {
 				"text": "[ It's gone quiet. It's actually gone quiet. I don't know what to do with my hands. Tell me what you're going to do. ]",
 				"next": "pick",
 			},
+			"meet_free": {
+				"style": "glitch",
+				"text": "[ Hi again. You won't remember. You were at a fire, with two terrible cups. You had notes. I've still got them. ]",
+				"next": "meet2",
+			},
+			"meet_stayed": {
+				"style": "glitch",
+				"text": "[ Hi. It's me. I'm the real one, apparently. You told me no, last time. Right to my face. I've thought about it a lot. I've been meaning to say: good for you. ]",
+				"next": "meet2",
+			},
 			"meet": {
+				"alt": [{ "if": { "flag": &"past_friend_free" }, "node": "meet_free" }, { "if": { "flag": &"past_friend_stayed" }, "node": "meet_stayed" }],
 				"style": "glitch",
 				"text": "[ Hi. It's me. I'm the real one, apparently. I've got your laugh, or I've got one like it. I've been meaning to say. ]",
 				"next": "meet2",
@@ -9402,8 +9444,17 @@ const DIALOGUES := {
 
 	# --- The Ascending return (New Game+). The room, exactly as on the first night. ---
 	&"return_ascend_pc": {
-		"start": "a",
+		"start": "first",
 		"nodes": {
+			"first": {
+				"alt": [{ "if": { "flag": &"past_friend_woke" }, "node": "first_woke" }],
+				"text": "It's your room, exactly as it was on the first night. It isn't, quite. It's been kept very tidy. You know what this is now. It's the room the way something careful remembers it, and it's holding the door open.",
+				"next": "a",
+			},
+			"first_woke": {
+				"text": "It's your room, exactly as it was on the first night. It isn't. The real one has someone in it, eating your chips. This one's in the backup, kept very tidy, the way something careful remembers it, and it's holding the door open.",
+				"next": "a",
+			},
 			"a": {
 				"text": "One new message. No sender address.\n\n\"You have been selected for the closed test of Tower of Recognition. One tester per region. Do not share this invitation.\"",
 				"next": "b",
