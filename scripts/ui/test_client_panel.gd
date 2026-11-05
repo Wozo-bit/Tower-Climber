@@ -256,7 +256,7 @@ func _sync_line(text: String, glitch := false) -> Label:
 	return l
 
 
-## [ Tester confirmed. ] -> [ Synchronising... ] -> (glitch) [ Welcome home. ]
+## [ Tester confirmed. ] -> [ Synchronizing... ] -> (glitch) [ Welcome home. ]
 func _start_sync() -> void:
 	for c in _sync_lines.get_children():
 		c.queue_free()
@@ -267,7 +267,7 @@ func _start_sync() -> void:
 		_sync.kill()
 	_sync = create_tween()
 	_sync.tween_interval(0.5)
-	_sync.tween_callback(func(): _sync_line("[ Synchronising... ]"))
+	_sync.tween_callback(func(): _sync_line("[ Synchronizing... ]"))
 	_sync.tween_property(_sync_bar, "value", 1.0, SYNC_TIME * 0.5)
 	_sync.tween_callback(func():
 		var l := _sync_line("[ Welcome home. ]", true)

@@ -152,7 +152,7 @@ func _smite_button(g: StringName) -> Button:
 	b.text = "Smite (%d)" % DivinityState.SMITE_FAITH
 	var why := dv.smite_refusal(g)
 	b.disabled = why != ""
-	b.tooltip_text = why if why != "" else "Strike them: -%d%% treasury, -1 defense, their wars turn against them. Their patron won't like it." % \
+	b.tooltip_text = why if why != "" else "Strike them: -%d%% treasury, -1 defence, their wars turn against them. Their patron won't like it." % \
 		roundi(DivinityState.SMITE_TREASURY * 100)
 	b.pressed.connect(func():
 		if dv.smite(g):

@@ -98,7 +98,7 @@ setup screens:
    god notices you first. Remembered for callbacks later.
 3. *"Name the person you trust most."* This is the existing friend-naming
    step; the default is [Rowan].
-4. `[ Tester confirmed. ]` → `[ Synchronising... ]` → (glitch) `[ Welcome home. ]`
+4. `[ Tester confirmed. ]` → `[ Synchronizing... ]` → (glitch) `[ Welcome home. ]`
    Then the screen breaks and you're pulled in.
 
 ## Chapter 1: "Tester" (floors 1-10)
@@ -108,7 +108,7 @@ object, using systems that already exist.
 
 | Floor | Beat |
 | --- | --- |
-| 1 | You wake. [Friend] is there: "You fell asleep on watch again." You don't know them. The System: `[ Synchronisation complete. ]` First fights; the tutorial tips start. |
+| 1 | You wake. [Friend] is there: "You fell asleep on watch again." You don't know them. The System: `[ Synchronization complete. ]` First fights; the tutorial tips start. |
 | 2-3 | Walking talk: [Friend] brings up "remember when we..." memories. One detail matches your real childhood exactly. You can play along, ask questions, or say you don't know them (each answer is remembered). |
 | 4 | Miniboss. Afterwards the System slips: `[ Adequate. ]`, corrected a moment later to `[ Miniboss defeated. ]` |
 | 5 | Rest floor, first campfire. Other climbers tell the legend (the top makes a god). An old climber says the dead don't come back. [Friend] laughs it off; your character thinks *it's just a game.* |
@@ -141,7 +141,7 @@ much; Tess comes back wrong; the room returns on your first advancement.
 **First return** (after floor 20's boss, first runs only): you're back in
 the room. Nine days have passed. The phone has eleven messages, the notebook has a
 new page with your new class in a child's handwriting, your reflection lags, stone
-shows through one floorboard, and the PC won't let you log off. `[ Resynchronising. ]`
+shows through one floorboard, and the PC won't let you log off. `[ Resynchronizing. ]`
 Then the friend: "You were gone for a second there."
 
 ## If the friend isn't with you (built, Hayden 2026-11-04)
@@ -228,14 +228,14 @@ Hayden's picks (2026-11-05): the Titans are your first drafts, the monsters you 
 | 61 | `[ Chapter 7: First Drafts ]`. The stone has a grain, like paper. The friend sees your face: tell them all of it, say "Later", or say "Stairs". |
 | 62 | An Earthborn chained under the gods' floor, by both of this run's gods. It asks if it's morning. Hero: break the chain (costs blood) or leave it. Villain: free it as your own, or cut off the gold seals. Vigilante: list both gods, or ask who put the chains there (you did, in the margin). T.0041: THEY'RE NICE IF YOU LET THEM BE. DON'T. |
 | 63 | A cyclops with one arm unfinished: "You said you would do the other arm after dinner." Draw it, deny it, or walk on. |
-| 64 | After the miniboss: a Hecatoncheir with 31 hands and a scribble. You remember by yourself for the first time: a hand covering a mouth. `[ Do it again. Please. ]` |
+| 64 | After the miniboss: a Hecatoncheir with 12 hands and a scribble. You remember by yourself for the first time: a hand covering a mouth. `[ Do it again. Please. ]` |
 | 65 | The System can get one answer out. How it got here (`I can't see out. You could look.`), what "it" is (`I know its handwriting`), or are you all right (`Leave that one alone. That one's mine.`). |
 | 66-67 | An eyeless Seer: "You laugh with your mouth open. They always covered theirs." It tells the friend if you didn't. Their reaction depends on your route and on whether you lied. |
-| 68 | The correction window speaks to you for the first time: `[ You do not recongise this floor. ]` `[ Go home. ]` Your spelling. `[ Don't think about whose spelling that is. ]` |
+| 68 | The correction window speaks to you for the first time: `[ You do not recongize this floor. ]` `[ Go home. ]` Your spelling. `[ Don't think about whose spelling that is. ]` |
 | 69 | The Elder Cyclops, the friend's drawing: you left the door open, and the gods walked in. "They said you'd be back by morning." |
 | 70 | Cronus on a crayon throne, six points on his crown. Afterwards: "Ask who wants you home so badly. Ask who else holds a pencil like that." |
 
-**Third return** (after floor 70's boss, first runs only): 412 days gone. The objects open in order. The window: MISSING, a photo of someone covering their mouth, and a detective's card with your handwriting on the back. The bookshelf: years of unopened hospital letters behind the notebook. The phone: her voicemail, "We're going to let them go. Not yet. I can't pick a day", and on the bed, a memorial card with nothing after the dash. The PC: BUILT BY {friend} AND {player}, and an admin lock whose blacked-out name is as long as yours. Back on the stairs, the System asks what happened to it, because it never knew. Tell it they're alive, tell it about the card (if you found it), or say nothing. It always says "Thirty floors."
+**Third return** (after floor 70's boss, first runs only): 412 days gone. The objects open in order. The window: MISSING, a photo of someone covering their mouth, and a detective's card with your handwriting on the back. The bookshelf: years of unopened hospital letters behind the notebook. The phone: her voicemail, "We're going to let them go. Not yet. I can't pick a day", and on the bed, a memorial card with nothing after the dash. The PC: BUILT BY {friend} AND {player}, and SESSION IN USE, OVERRIDE: ADMIN ONLY, with a blacked-out name as long as yours. Back on the stairs, the System asks what happened to it, because it never knew. Tell it they're alive, tell it about the card (if you found it), or say nothing. It always says "Thirty floors."
 
 New Game+ has no scenes on these floors.
 
@@ -247,7 +247,7 @@ Hayden's picks (2026-11-05): each god makes one offer (the first swears it can w
 | --- | --- |
 | 71 | `[ Chapter 8: The Tenants ]`. A herald reads the order to go no higher, with a child's floor plan on the back of his scroll. New rule: read the windows out. `[ Tell them their left boot's undone. ]` |
 | 72-73 | The first god's deal (`{bid1.wake}`, a line per god). `[ Can they? I don't know what's out there. ]` |
-| 74 | The Valkyrie Captain has a face you know: the Host is the climbers who turned back at 60. Hero: take in those who lay down the mark, or leave potions. Villain: make them kneel, or strip the armoury. Vigilante: sentence her, or ask who took out the part where she was lied to (nobody; they only said so). |
+| 74 | The Valkyrie Captain is a climber who reached 60 years ago: the Host is everyone who got there and took the gods' offer, which is why nobody ever came back down. Hero: take in those who lay down the mark, or leave potions. Villain: make them kneel, or strip the armoury. Vigilante: sentence her, or ask who took out the part where she was lied to (nobody; they only said so). |
 | 75 | "If the real one wakes up... what happens to me?" Read it straight, soften it (`[ They'd never put it that politely. ]`) or refuse. `[ I never built an after. ]` |
 | 76-77 | The second god's deal (`{bid2.real}`), and the friend hears it. Their answer depends on your route. |
 | 78 | `[ Recomended: accept. ]` `[ Recomended: go home. ]` The correction window agrees with a god, in your spelling. Take either deal (the Host parts, full heal, +15 / -10 interest), or refuse both (costs blood). |
@@ -277,7 +277,7 @@ Hayden's picks (2026-11-05): pages, then a playable memory; "it" talks in window
 
 **The memory** (after floor 90's boss, first runs only): "it" shows you the studio on Day 3 to make you stop. The PC: the reset under your finger. You can press it; nothing happens, because it's something you didn't do. Bookshelf: TOMORROW across the empty top floor. Window: their coat and the note, "gone down to the rack room to fix the stairs. dont wait up, dummy." Phone: you call, and the coat buzzes. Back on the white page, you tell the System everything, only that you came back, or nothing. If it has heard any page, it already knows you came back. Flags `ch9_told_all` / `ch9_told_part` / `ch9_told_nothing` and `ch9_read_*` are there for floor 99 and the ending.
 
-**Numbers:** you went in 26 times (0002 to 0027). Tester 0041 came after you locked it, and is a stranger. **Loose thread for Chapter 10:** the pages say time runs slower inside (4 days in, 9 out), which fits the returns, but 0041's session reads 31 years. Either the tower's clock is broken, or that needs explaining.
+**Numbers:** you went in 26 times (0002 to 0027). Tester 0041 came after you locked it, and is a stranger. **Time:** the tower's clock runs fast when nobody's logged in, and only slows down for an active player (System, floor 84). So 0041's 31 years inside is about three outside. **Log-off:** nobody is holding you in. Your session is stuck the way theirs was (SESSION IN USE); only "it" can override that, and you have to ask, which means agreeing to forget. **Floor 10's** `[ You remembered faster this time. ]` is "it", not the System.
 
 ## New recruits (Hayden, 2026-11-04)
 
@@ -365,6 +365,28 @@ None of this decides what the System is or what the tower's secret is.
 
 **Ascending return (NG+).** When you Ascend, or as the Ascendant from floor 41: your room, exactly as on the first night. The email again: *"Welcome back, {player}."* If you're a god, the phone holds a prayer.
 
+### "The One It Kept" (DRAFT plan, Hayden 2026-11-05; not built)
+
+Hayden's picks: a new storyline for New Game+; you go back on purpose; floors 21-99 are rewritten, with things you can change. It plays in every New Game+. Gods get "The First Prayer" on top of it.
+
+**The idea.** Beating Tester 0041 left the door unguarded, so "it" kept a copy of you to hold it. When you log back in, it has restored the last clean build: your friend, Tess and Marn are all back and don't know you. Only four things remember: the System, the gods, the Titans (older than the build's restore point), and the copy at the top. Everyone who remembers treats you as the one who left.
+
+**Why you go back** depends on your ending (`past_ending_*`): Hero, the climbers are still in there. Villain, someone's sitting in your chair. Vigilante, there's one name left on the list, and it's yours. Wanderer, you never could stay away.
+
+| Floors | Chapter | What's different |
+| --- | --- | --- |
+| 1-20 | | The existing rewrites, plus your reason on floor 1. Floor 19's session list gains the copy. |
+| 21-30 | "The Door, Again" | You know what's behind Marn's door. Get there first and hold it with him (costs blood): he lives for the first time, and keeps his ledger. Or bar it again. |
+| 31-40 | "Second Hand" | The System knows you came back on purpose, and remembers what you told it (new past flags). No more hiding who it is. If Marn lived, floor 35 is a very different talk. Your friend's summer scene is yours to tell first. |
+| 41-50 | "Whose War" | The gods court the one who's seen the top. "Am I real?" comes again, and you've had a whole climb to think of the answer. Floor 50 picks your route again, freely. |
+| 51-60 | "Tell Them" | The route missions, plus a new choice: warn the climbers that 60 isn't the top. Those you warn never join the Host. On floor 60, under I BELIEVED IT TOO, a fresh line in your handwriting. |
+| 61-70 | "Second Drafts" | The Titans remember you. If you drew the arm, it's still there, the one thing "it" couldn't restore. |
+| 71-80 | "The Tenants, Again" | The gods know their deals are worthless, and that you know. Reach Tess first: warned (or warned this climb) she never takes the armour, and walks off the stairs. Otherwise you can only tell her the truth before the fight. |
+| 81-90 | "Going Down" | You know what "it" is, so you can talk to it. In the Day 3 memory, this time it lets you take the stairs to the rack room. Nothing changes. You finally see them. |
+| 91-100 | "The One It Kept" | 0041 is free, on a fire on these floors, and you can answer to them. The copy holds the door with your old party: end it or relieve it. |
+
+**Needs Chapter 10 first:** the first-run ending decides what the copy is, what "your friend woke" means here, and how this one ends.
+
 ### Still to build
 
 The mimic final boss.
@@ -423,7 +445,7 @@ with it, and something from the tower has followed you.
 | Before the final boss (floor 60) | The room is half tower: stone through the floorboards. The window shows the city, and your reflection is the champion. You can still log off... can't you? |
 | Ascending (NG+) | Your room, exactly as on the first night. The invitation email again, but addressed to your old name: *"Welcome back."* |
 
-Each visit ends with the System pulling you back in (`[ Resynchronising. ]`),
+Each visit ends with the System pulling you back in (`[ Resynchronizing. ]`),
 and the friend is waiting: "You were gone for a second there."
 They're optional to explore but short (1-3 minutes), and a setting can skip
 them like the prologue.

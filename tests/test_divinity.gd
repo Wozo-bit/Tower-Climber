@@ -73,7 +73,7 @@ func test_domains() -> void:
 	check(DomainLibrary.domains.values().all(func(d): return not d.title.begins_with("God ") and not d.title.begins_with("Goddess")),
 		"default titles are gender-neutral")
 	check(DomainLibrary.clean_title("  Lord [b]of[/b] {Ash}  ", &"valor") == "Lord bof/b Ash", "typed titles are cleaned (no BBCode)")
-	check(DomainLibrary.clean_title("", &"valor") == "Deity of Valor", "a blank title uses the domain's")
+	check(DomainLibrary.clean_title("", &"valor") == "Deity of Valour", "a blank title uses the domain's")
 	check(DomainLibrary.clean_title("x".repeat(80), &"valor").length() == DomainLibrary.TITLE_MAX_LENGTH, "titles are capped")
 
 
@@ -172,7 +172,7 @@ func test_god_in_ng_plus() -> void:
 		"a mortal run has no divinity (and no effects)")
 	_god(&"valor", &"hero")
 	var dv := GameState.divinity
-	check(dv.active and dv.domain == &"valor" and dv.title == "Deity of Valor", "an ascended character climbs again as a god")
+	check(dv.active and dv.domain == &"valor" and dv.title == "Deity of Valour", "an ascended character climbs again as a god")
 	check(dv.faith == 0 and dv.level() == 1 and dv.slots() == 1, "starting out: no faith, one contract")
 	dv.add_faith(150)
 	check(dv.level() == 2 and dv.slots() == 2, "faith raises divinity: more contracts")

@@ -32,6 +32,7 @@ func _ready() -> void:
 	await test_chapter_seven()
 	test_chapter_eight()
 	await test_chapter_nine()
+	test_continuity()
 	await test_skip_warning()
 	test_quest_log()
 	test_glitch()
@@ -1047,7 +1048,7 @@ func test_chapter_seven() -> void:
 		check(_play(&"ch7_question", pick).finished, "one question (choice %d)" % pick)
 	_fresh(68)
 	r.start(&"ch7_spelling")
-	check(r.text().contains("recongise"), "the correction has your spelling")
+	check(r.text().contains("recongize"), "the correction has your spelling")
 	_play(&"ch7_spelling")
 	check(GameState.has_flag(&"ch7_saw_spelling"), "you noticed")
 	var said := ""
@@ -1225,7 +1226,7 @@ func test_chapter_eight() -> void:
 	while not r.finished:
 		said += r.text()
 		r.advance()
-	check(said.contains("T.0012") and said.contains("recongise"), "signed by a Tester you've never been, and corrected in your spelling")
+	check(said.contains("T.0012") and said.contains("recongize"), "signed by a Tester you've never been, and corrected in your spelling")
 	# Floor 80: Tess.
 	_fresh(80)
 	GameState.set_flag(&"ch7_friend_knows")
@@ -1371,6 +1372,41 @@ func test_chapter_nine() -> void:
 	GameState.pending_talks.clear()
 	room.queue_free()
 	await _frames(1)
+
+
+func _all_text(id: StringName) -> String:
+	var out := ""
+	for n in StoryLibrary.DIALOGUES[id].nodes.values():
+		out += String(n.get("text", "")) + " "
+	return out
+
+
+## The story has to agree with itself (read through by hand 2026-11-05).
+func test_continuity() -> void:
+	print("-- continuity --")
+	check(not _all_text(&"ch6_confession").contains("watched you forget"), "the System never saw you forget")
+	check(_all_text(&"return_tier4_pc").contains("SESSION IN USE") and _all_text(&"ch9_page_day9").contains("SESSION IN USE"), "you're stuck the way they were")
+	check(_all_text(&"ch9_door").contains("You only have to ask"), "only asking gets you out")
+	var nodes: Dictionary = StoryLibrary.DIALOGUES[&"ch1_end"].nodes
+	check(nodes.values().filter(func(n): return n.get("text", "") == "[ You remembered faster this time. ]").all(func(n): return n.style == "system"), "floor 10's line is the flat window, not the System")
+	check(_all_text(&"return_day3_back").contains("You remembered faster this time"), "and it says so again")
+	check(_all_text(&"ch3_last_page").contains("You've never been here"), "the System can't explain your mark")
+	check(_all_text(&"ch9_stairs").contains("runs fast when nobody's logged in"), "why it's thirty years in here")
+	check(_all_text(&"ch8_faces").contains("nobody ever came back down"), "why nobody came back down")
+	check(_all_text(&"return_tier4_notebook").contains("rack room"), "where they were found")
+	check(_all_text(&"ch7_hands").contains("This one has twelve"), "you can't count past twelve")
+	check(_all_text(&"ch5_am_i_real").contains("hand over their eyes") and not _all_text(&"ch5_am_i_real").contains("over their mouth"), "only the real one covers their mouth")
+	for id in [&"ch3_opening", &"ch3_ledger"]:
+		check(not _all_text(id).contains("hive") and not _all_text(id).contains("legs"), "%s fits the Beast Den too" % id)
+	check(EnemyLibrary.get_enemy(&"cronus").patron == &"" and EnemyLibrary.get_enemy(&"anointed_champion").patron == &"", "no god sponsors Cronus or the Champion")
+	var words := ["recognise", "recongise", "realise", "apologise", "synchronis", " mum", "Armor"]
+	var bad := []
+	for id in StoryLibrary.DIALOGUES:
+		var text := _all_text(id).to_lower()
+		for w in words:
+			if text.contains(w.to_lower()):
+				bad.append("%s: %s" % [id, w])
+	check(bad.is_empty(), "Canadian spelling %s" % [bad])
 
 
 func test_skip_warning() -> void:

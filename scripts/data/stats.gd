@@ -30,8 +30,8 @@ const SHORT_NAMES := {
 const DESCRIPTIONS := {
 	Type.HEALTH: "Increases maximum HP.",
 	Type.STRENGTH: "Increases physical damage.",
-	Type.INTELLIGENCE: "Increases magic damage and magic defense.",
-	Type.STAMINA: "Increases physical defense, and magic defense at 1/4 the rate of Intelligence.",
+	Type.INTELLIGENCE: "Increases magic damage and magic defence.",
+	Type.STAMINA: "Increases physical defence, and magic defence at 1/4 the rate of Intelligence.",
 	Type.AGILITY: "Increases turn priority and dodge chance.",
 	Type.LUCK: "Increases critical hit chance and item roll quality.",
 }

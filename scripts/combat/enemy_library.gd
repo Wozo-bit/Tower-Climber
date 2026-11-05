@@ -517,7 +517,7 @@ static func _build() -> Dictionary:
 			"xp_reward": 420, "gold_reward": 140, "color": Color(0.45, 0.45, 0.5),
 			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
 		EnemyDef.make(&"cronus", "Cronus", {
-			"family": &"titan", "patron": &"typhon",
+			"family": &"titan",
 			"max_hp": 1300, "stats": {S.HEALTH: 22, S.STRENGTH: 26, S.INTELLIGENCE: 20, S.STAMINA: 20, S.AGILITY: 14, S.LUCK: 12},
 			"row": FRONT, "skills": [&"smash", &"earthshatter", &"heavens_fall"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 1200, "gold_reward": 500, "color": Color(0.8, 0.65, 0.25), "is_boss": true,
@@ -564,7 +564,7 @@ static func _build() -> Dictionary:
 			"xp_reward": 500, "gold_reward": 160, "color": Color(0.25, 0.55, 0.6),
 			"is_boss": true, "is_miniboss": true, "loot_rolls": 1}),
 		EnemyDef.make(&"anointed_champion", "The Anointed Champion", {
-			"family": &"host", "patron": &"odin",
+			"family": &"host",
 			"max_hp": 1450, "stats": {S.HEALTH: 23, S.STRENGTH: 28, S.INTELLIGENCE: 22, S.STAMINA: 22, S.AGILITY: 18, S.LUCK: 14},
 			"row": FRONT, "skills": [&"smite", &"judgment_ray", &"power_strike"] as Array[StringName], "skill_chance": 0.5,
 			"xp_reward": 1500, "gold_reward": 600, "color": Color(1.0, 0.85, 0.35), "is_boss": true,

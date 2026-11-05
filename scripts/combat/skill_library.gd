@@ -546,7 +546,7 @@ static func _build() -> Dictionary:
 		SkillDef.make(&"miracle_aegis", "Miracle: Aegis", "The whole party takes 30% less damage for 3 turns. Costs faith, not MP.",
 			{"faith_cost": 15, "effect": E.STATUS, "targeting": T.ALLY_ALL, "status_id": &"ward", "status_turns": 3}),
 		# Divine domains (DomainLibrary): a past god's blessed skill.
-		SkillDef.make(&"valor_strike", "Valor Strike", "A fearless blow that ignores 30% of defense.",
+		SkillDef.make(&"valor_strike", "Valour Strike", "A fearless blow that ignores 30% of defense.",
 			{"mp_cost": 9, "damage_type": D.MELEE, "power": 1.8, "def_pierce": 0.3}),
 		SkillDef.make(&"verdict_of_light", "Verdict of Light", "Holy judgment on every enemy.",
 			{"elements": [EL.HOLY] as Array[int], "mp_cost": 16, "damage_type": D.MAGIC, "targeting": T.ENEMY_ALL, "power": 1.0}),

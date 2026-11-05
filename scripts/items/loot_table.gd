@@ -81,7 +81,7 @@ const UNIQUES := {
 		"desc": "Its string hums before the wind changes." },
 	&"rogue": { "name": "Fang of Fortune", "base": &"dagger",
 		"weights": { S.AGILITY: 3, S.LUCK: 4, S.STRENGTH: 1 },
-		"desc": "It always seems to find the gap in the armor." },
+		"desc": "It always seems to find the gap in the armour." },
 	&"support": { "name": "Lifebloom Scepter", "base": &"scepter",
 		"weights": { S.INTELLIGENCE: 4, S.STAMINA: 3, S.HEALTH: 1 },
 		"desc": "Flowers bloom where it touches stone." },

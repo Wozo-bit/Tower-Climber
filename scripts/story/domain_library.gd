@@ -27,7 +27,7 @@ const AF := Element.Affinity
 
 const BASE_DOMAINS := {
 	# --- Hero ending ---
-	&"valor": { "name": "Valor", "title": "Deity of Valor", "kind": "god", "ending": &"hero",
+	&"valor": { "name": "Valour", "title": "Deity of Valour", "kind": "god", "ending": &"hero",
 		"likes": [&"hero"], "dislikes": [&"villain"], "temper": 0.6,
 		"approves": [&"war", &"fortify", &"ally", &"trade"], "forbids": [&"raid"],
 		"skill": &"valor_strike",

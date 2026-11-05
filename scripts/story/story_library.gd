@@ -408,7 +408,7 @@ const DIALOGUES := {
 			},
 			"d": {
 				"style": "system",
-				"text": "[ Synchronisation complete. ]\n[ Tester: {player}. Welcome to the Tower. ]",
+				"text": "[ Synchronization complete. ]\n[ Tester: {player}. Welcome to the Tower. ]",
 				"next": "e",
 			},
 			"e": {
@@ -716,7 +716,7 @@ const DIALOGUES := {
 			{ "node": "stranger" },
 		],
 		"nodes": {
-			"saved_alone": { "text": "You're smiling, you realise, with something enormous waiting above you. {friend} would have told you how that looks.", "effects": [{ "set_flag": &"ch1_tess_turned_back" }] },
+			"saved_alone": { "text": "You're smiling, you realize, with something enormous waiting above you. {friend} would have told you how that looks.", "effects": [{ "set_flag": &"ch1_tess_turned_back" }] },
 			"b_alone": { "text": "Monsters fade when they fall. She doesn't. You wait for her to vanish and wake at the last campfire, the way everyone says. She doesn't.", "next": "c_alone" },
 			"c_alone": { "text": "Everyone says she'll be at the fire. The one person who'd have said it to your face is at a fire already, a long way from here.", "next": "d_alone" },
 			"d_alone": { "text": "You don't look at her again. The boss is waiting above.", "effects": [{ "set_flag": &"ch1_tess_fell" }] },
@@ -835,7 +835,7 @@ const DIALOGUES := {
 				"next": "e",
 			},
 			"e": {
-				"style": "glitch",
+				"style": "system",
 				"text": "[ You remembered faster this time. ]",
 				"effects": [{ "set_flag": &"ch1_complete" }],
 			},
@@ -1368,11 +1368,11 @@ const DIALOGUES := {
 				"text": "[ That message was not sent. ]\n[ Chapter 3: What the Tower Sends ]",
 				"next": "b",
 			},
-			"b_alone": { "text": "You look around, out of habit, for someone to ask whether they saw that. There's nobody. The window is gone, and the corridor hums with something that has too many legs.", "effects": [{ "set_flag": &"ch3_system_spoke" }] },
+			"b_alone": { "text": "You look around, out of habit, for someone to ask whether they saw that. There's nobody. The window is gone, and something up the corridor is moving. There's a lot of it.", "effects": [{ "set_flag": &"ch3_system_spoke" }] },
 			"b": {
 				"alt": [{ "if": { "friend_away": true }, "node": "b_alone" }],
 				"speaker": "{friend}",
-				"text": "You've got that look again. Reading the air. Can you read me what it says about the noise up ahead? Because that's a lot of legs.",
+				"text": "You've got that look again. Reading the air. Can you read me what it says about the noise up ahead? Because that's a lot of something.",
 				"effects": [{ "set_flag": &"ch3_system_spoke" }],
 			},
 		},
@@ -1490,12 +1490,12 @@ const DIALOGUES := {
 			},
 			"who": {
 				"speaker": "Marn",
-				"text": "Going up to find out, aren't I? Same as last time, I expect. Something below the hive keeps a door. I mean to see what comes through it. You should stay well back from me when I do.",
+				"text": "Going up to find out, aren't I? Same as last time, I expect. Something on these floors keeps a door. I mean to see what comes through it. You should stay well back from me when I do.",
 				"effects": [{ "set_flag": &"ch3_read_ledger" }],
 			},
 			"why": {
 				"speaker": "Marn",
-				"text": "Because you're the only one who's looked at that page and been afraid for the right reason. There's something below the hive keeping a door. I mean to see what comes through it.",
+				"text": "Because you're the only one who's looked at that page and been afraid for the right reason. There's something on these floors keeping a door. I mean to see what comes through it.",
 				"effects": [{ "set_flag": &"ch3_read_ledger" }],
 			},
 		},
@@ -1593,6 +1593,11 @@ const DIALOGUES := {
 				"next": "d",
 			},
 			"d": {
+				"style": "glitch",
+				"text": "[ That can't be right. You've never been here. ]",
+				"next": "d2",
+			},
+			"d2": {
 				"style": "glitch",
 				"text": "[ One. That's good. It's usually more. ]",
 				"effects": [{ "set_flag": &"ch3_found_your_page" }],
@@ -2098,7 +2103,7 @@ const DIALOGUES := {
 				"text": "...That's the worst answer you could've given. It's also the only one I'd have believed. All right. All right. I can work with that.",
 			},
 			"truth": {
-				"text": "You tell them everything. It takes a long time. When you get to the part about typing a name, they laugh, once, and put their hand over their mouth.",
+				"text": "You tell them everything. It takes a long time. When you get to the part about typing a name, they laugh, once, and put their hand over their eyes.",
 				"next": "truth2",
 			},
 			"truth2": {
@@ -2510,7 +2515,7 @@ const DIALOGUES := {
 					{ "text": "I'm sorry.", "next": "g3", "effects": [{ "set_flag": &"ch6_said_sorry" }] },
 				],
 			},
-			"g1": { "style": "glitch", "text": "[ I know. I watched you forget. It took a while. ]", "next": "h" },
+			"g1": { "style": "glitch", "text": "[ I know. Everything you do up here, you do like someone who's never seen it. ]", "next": "h" },
 			"g2": { "style": "glitch", "text": "[ You typed it. Right at the start. The person you trust most. It's good that you still knew that much. ]", "next": "h" },
 			"g3": { "style": "glitch", "text": "[ You don't know what for, yet. I'll take it anyway. I've been saving up. ]", "next": "h" },
 			"h": { "style": "glitch", "text": "[ The one by the fire isn't me. I couldn't have you, so I made them out of what I could remember. They're better than I was. They still laugh. ]", "next": "i" },
@@ -2695,11 +2700,11 @@ const DIALOGUES := {
 				"next": "b",
 			},
 			"b": {
-				"text": "It comes apart slowly. A Hecatoncheir has a hundred hands; everyone knows that. This one has thirty-one, with every knuckle drawn, and then, down its whole left side, one long bored scribble.",
+				"text": "It comes apart slowly. A Hecatoncheir has a hundred hands; everyone knows that. This one has twelve, with every knuckle drawn, and then, down its whole left side, one long bored scribble.",
 				"next": "c",
 			},
 			"c": {
-				"text": "And you remember. Nobody shows you. You're nine, on a floor, with a stomach ache from laughing. You got to thirty-one and said that's basically a hundred, and someone said you're such a cheat, {player}. You can't see the face. You can see a hand, coming up to cover a mouth.",
+				"text": "And you remember. Nobody shows you. You're nine, on a floor, with a stomach ache from laughing. You got to twelve and said that's basically a hundred, and someone said you're such a cheat, {player}. You can't see the face. You can see a hand, coming up to cover a mouth.",
 				"next": "d",
 			},
 			"d": {
@@ -2898,12 +2903,12 @@ const DIALOGUES := {
 		"nodes": {
 			"a": {
 				"style": "system",
-				"text": "[ You do not recongise this floor. ]",
+				"text": "[ You do not recongize this floor. ]",
 				"next": "b",
 			},
 			"b": {
 				"style": "system",
-				"text": "[ You do not recongise the person in the windows. ]",
+				"text": "[ You do not recongize the person in the windows. ]",
 				"next": "c",
 			},
 			"c": {
@@ -2922,7 +2927,7 @@ const DIALOGUES := {
 			"e": {
 				"alt": [{ "if": { "friend_away": true }, "node": "e_alone" }],
 				"speaker": "{friend}",
-				"text": "Recognise. G, then N. Who taught you to spell, dummy?",
+				"text": "Recognize. G, then N. Who taught you to spell, dummy?",
 				"next": "e2",
 			},
 			"e2": {
@@ -3070,12 +3075,12 @@ const DIALOGUES := {
 				"next": "off2",
 			},
 			"off2": {
-				"text": "Below it, a line you've never seen on this screen: Admin lock set by, and then a black bar. You put your finger against the glass to measure it. It's as long as your name.",
+				"text": "Below it, a line you've never seen on this screen: SESSION IN USE. OVERRIDE: ADMIN ONLY. After ADMIN there's a black bar. You put your finger against the glass to measure it. It's as long as your name.",
 				"next": "b",
 			},
 			"in": {
 				"style": "system",
-				"text": "[ Resynchronising. ]",
+				"text": "[ Resynchronizing. ]",
 			},
 		},
 	},
@@ -3108,7 +3113,7 @@ const DIALOGUES := {
 				"next": "b",
 			},
 			"b": {
-				"text": "You open the oldest. A patient brought in without ID, found on the floor of a locked studio, identified from a missing-person notice. Unresponsive. They'd listed you as their contact. Would you please call.",
+				"text": "You open the oldest. A patient brought in without ID, found on the floor of a locked rack room in a studio's basement, identified from a missing-person notice. Unresponsive. They'd listed you as their contact. Would you please call.",
 				"next": "c",
 			},
 			"c": {
@@ -3353,13 +3358,13 @@ const DIALOGUES := {
 				"next": "b",
 			},
 			"b": {
-				"text": "Her helmet comes off. You know that face. You saw it on the landing at floor 60, shouting that it wasn't fair. She laughs, with blood on her teeth.",
+				"text": "Her helmet comes off. She's no god's soldier, not really. She has a climber's hands, and a climber's boots, mended too many times. She laughs, with blood on her teeth.",
 				"next": "c",
 				"effects": [{ "set_flag": &"ch8_saw_faces" }],
 			},
 			"c": {
 				"speaker": "Valkyrie Captain",
-				"text": "They said, come down from sixty and serve. They said they'd take out the part where you were lied to. It was a very good offer. Half this army took it. Look at them, Tester. You've climbed with all of them.",
+				"text": "I reached sixty, you know. Years before you. I opened that door and saw the stairs, and someone was waiting there, very kind, with an offer: serve, and they'd take out the part where you were lied to. Why do you think nobody ever came back down to tell you? Half this army took it.",
 				"next": "d",
 			},
 			"d": {
@@ -3640,7 +3645,7 @@ const DIALOGUES := {
 			},
 			"e": {
 				"style": "system",
-				"text": "[ You do not recongise this. ]",
+				"text": "[ You do not recongize this. ]",
 				"next": "f",
 			},
 			"f": {
@@ -3963,6 +3968,11 @@ const DIALOGUES := {
 			"g": {
 				"style": "glitch",
 				"text": "[ This is what I do. It takes them away, and I put them back. That's all I've been doing up here. ]",
+				"next": "g2",
+			},
+			"g2": {
+				"style": "glitch",
+				"text": "[ Thirty-odd years of it, by the clock in here. It runs fast when nobody's logged in. It only slows down for you. ]",
 				"next": "h",
 			},
 			"h": {
@@ -4048,6 +4058,11 @@ const DIALOGUES := {
 			"c": {
 				"style": "system",
 				"text": "[ No letters. No voicemail. You'd sit down. You'd feel a bit tired, and you wouldn't know why. It's not so bad. You've done it before. ]",
+				"next": "c2",
+			},
+			"c2": {
+				"style": "system",
+				"text": "[ You only have to ask. That was the one rule you gave me. ]",
 				"next": "d",
 			},
 			"d": {
@@ -4072,7 +4087,7 @@ const DIALOGUES := {
 			},
 			"f_hero": {
 				"speaker": "{friend}",
-				"text": "I saw that. I saw how long you stood there. Don't apologise. I'd have gone in, and then come back for the others. Come on.",
+				"text": "I saw that. I saw how long you stood there. Don't apologize. I'd have gone in, and then come back for the others. Come on.",
 				"next": "g",
 			},
 			"f_villain": {
@@ -4238,7 +4253,7 @@ const DIALOGUES := {
 			},
 			"in": {
 				"style": "system",
-				"text": "[ Resynchronising. ]",
+				"text": "[ Resynchronizing. ]",
 			},
 		},
 	},
@@ -4304,7 +4319,7 @@ const DIALOGUES := {
 			},
 			"it": {
 				"style": "system",
-				"text": "[ You see? That's why. I've only ever done what you asked. You can stop now. ]",
+				"text": "[ You remembered faster this time. I did tell you. You see why, now. I've only ever done what you asked. You can stop. ]",
 				"next": "s",
 			},
 			"s": {
@@ -4431,7 +4446,7 @@ const DIALOGUES := {
 			},
 			"in": {
 				"style": "system",
-				"text": "[ Resynchronising. ]",
+				"text": "[ Resynchronizing. ]",
 			},
 		},
 	},
@@ -4505,7 +4520,7 @@ const DIALOGUES := {
 			},
 			"in": {
 				"style": "system",
-				"text": "[ Resynchronising. ]",
+				"text": "[ Resynchronizing. ]",
 			},
 		},
 	},
@@ -4547,7 +4562,7 @@ const DIALOGUES := {
 		"start": "a",
 		"nodes": {
 			"alone": { "text": "You come back on the stairs, mid-step, as if someone blew you out and lit you again. Nobody who'd notice is here to say so.", "next": "alone2" },
-			"alone2": { "style": "glitch", "text": "[ Resynchronised. ]\n[ You were gone for a second there. ]" },
+			"alone2": { "style": "glitch", "text": "[ Resynchronized. ]\n[ You were gone for a second there. ]" },
 			"a": {
 				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",
@@ -4631,7 +4646,7 @@ const DIALOGUES := {
 			},
 			"in": {
 				"style": "system",
-				"text": "[ Resynchronising. ]",
+				"text": "[ Resynchronizing. ]",
 			},
 		},
 	},
@@ -4690,7 +4705,7 @@ const DIALOGUES := {
 		"start": "a",
 		"nodes": {
 			"alone": { "text": "You come back on the stairs. You went out like a candle, standing up, and nobody who'd notice is here to say so.", "next": "alone2" },
-			"alone2": { "style": "glitch", "text": "[ Resynchronised. ]\n[ You were gone for a second there. ]" },
+			"alone2": { "style": "glitch", "text": "[ Resynchronized. ]\n[ You were gone for a second there. ]" },
 			"a": {
 				"alt": [{ "if": { "friend_away": true }, "node": "alone" }],
 				"speaker": "{friend}",

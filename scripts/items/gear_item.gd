@@ -4,7 +4,7 @@ extends Resource
 
 enum Slot { WEAPON, ARMOR, ACCESSORY }
 
-const SLOT_NAMES := { Slot.WEAPON: "Weapon", Slot.ARMOR: "Armor", Slot.ACCESSORY: "Accessory" }
+const SLOT_NAMES := { Slot.WEAPON: "Weapon", Slot.ARMOR: "Armour", Slot.ACCESSORY: "Accessory" }
 
 @export var display_name: String
 @export var base_id: StringName

@@ -448,7 +448,7 @@ after floor 20 (tier 1 only).
   wait there too.
 
 ## Testing
-Every change gets tests in tests/ (26 suites, 3299 checks at last run).
+Every change gets tests in tests/ (26 suites, 3314 checks at last run).
 Run headless from the project folder:
 
     godot --headless --path . --import
@@ -470,6 +470,7 @@ The Dev Sandbox has a floor picker for testing any floor's enemies/bosses.
 - He commits with GitHub Desktop (repo: Wozo-bit/Tower-Climber, private).
 - No rush: quality over speed, work can span days. Don't cut corners to
   save usage; still commit at safe points (tests passing) on feature branches.
+- All game text uses CANADIAN spelling (Hayden 2026-11-05): colour, armour, centre, defence, grey, Mom, but recognize, realize, apologize.
 - He plans to SELL the game. So: no assets, fonts, music or code that
   aren't cleared for commercial use (record the license of anything added);
   no other games' names, characters or trademarks in the game itself; keep
